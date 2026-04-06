@@ -15,3 +15,5 @@
 - The active OpenClaw install and state now live under `/home/clawdy/.openclaw`.
 - Telegram delivery and the main OpenAI auth profile are currently working.
 - Missing personal memory/history files were reinitialized in the workspace after the failed migration.
+- Older workspace memory from the root-owned install was merged back into the active clawdy workspace.
+- Christian explicitly enabled root access for recovery work during migration repair.
