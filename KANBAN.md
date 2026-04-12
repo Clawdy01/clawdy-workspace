@@ -18,13 +18,16 @@
 - Photo editing / image workflows: alleen opnieuw actief zodra er een echte bruikbare modelroute beschikbaar is
 
 ## Now
-- Publieke profielronde / LinkedIn-context: eerste audit + headline/About-draft staan vast in `research/linkedin-profile-round-1.md`; volgende stap is de echte huidige LinkedIn-tekst ernaast leggen en een gerichte before/after rewrite maken
+- Publieke profielronde / LinkedIn-context: eerste audit + headline/About-draft staan vast in `research/linkedin-profile-round-1.md`; rewrite-kader en before/after-werkblad staan nu klaar
+- Nieuwe concrete stap afgerond: bewijsbare profielclaims en accomplishment-bullets uit de workspace staan nu in `research/linkedin-proof-points.md`, zodat ronde 2 niet alleen op toon maar ook op harde voorbeelden leunt
+- Extra concrete stap afgerond: publiek verifieerbare context uit CleverIT/CleverEnable en een extern interview is toegevoegd aan `research/linkedin-proof-points.md`, zodat de rewrite straks ook op zichtbare externe profielsignalen kan steunen
+- Volgende stap blijft: de echte huidige LinkedIn-tekst ernaast leggen en de gerichte rewrite invullen met minimaal 2 bewijsblokken uit `research/linkedin-proof-points.md`
 - Verplichte anti-stall regel: als dit spoor stilvalt zonder blocker, direct één concrete stap uitvoeren of de blocker met bewijs vastleggen
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: geparkeerd tot betere model/hardware-route
 
 ## Blocked
-- Geen open deliverables op dit moment
+- LinkedIn rewrite ronde 2 blijft inhoudelijk geblokkeerd op bronmateriaal: huidige headline/About of exacte LinkedIn-URL ontbreekt nog; extra lokale search, gerichte publieke LinkedIn-lookups en publiek contextonderzoek op 2026-04-12 leverden wel ondersteunende CleverIT/CleverEnable-bronnen op, maar nog geen bevestigde live LinkedIn-profieltekst
 
 ## Next
 - Creative tooling/workflows verdiepen voor image/audio/video

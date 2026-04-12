@@ -105,6 +105,9 @@
 - `research/github-private-publish-checklist.md` — runbook voor veilige eerste private GitHub push vanuit deze workspace
 - `research/github-private-gitignore-proposal.txt` — voorstel voor publish-veilige `.gitignore` bij eerste private push
 - `research/github-private-first-push-next-step.md` — compacte next-step volgorde voor de eerste private GitHub push
+- `research/linkedin-profile-round-1.md` — eerste profielaudit met headline/About-richting en rewrite-kader
+- `research/linkedin-profile-round-2-input-template.md` — klein invultemplate om de echte huidige LinkedIn-tekst snel om te zetten naar een gerichte rewrite
+- `research/linkedin-profile-round-2-request.txt` — korte copy/paste aanvraagtekst om de huidige LinkedIn-tekst snel op te halen voor ronde 2
 
 ## Notes
 - For real-people photo edits: verify both visible effect and identity preservation before delivery.

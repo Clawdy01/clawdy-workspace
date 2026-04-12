@@ -88,3 +88,79 @@ De volgende nuttige stap is een **proofread op de echte huidige LinkedIn-tekst**
 - welke toon voelt te vaag, te oud of te generiek
 
 Daarna kan ronde 2 een echte before/after rewrite worden.
+
+## Discovery-check uitgevoerd op 2026-04-12
+Om deze stap niet vaag te laten hangen is een korte discovery-check gedaan:
+
+- lokale workspace-search op `LinkedIn`, `headline` en `About` leverde alleen dit researchbestand op
+- publieke websearch op `site:linkedin.com/in Clawdy01 Christian` leverde geen bevestigde LinkedIn-profielmatch op
+- de publieke GitHub-profielpagina van `Clawdy01` gaf in deze fetch geen bruikbare naam/LinkedIn-verwijzing terug
+
+### Conclusie
+De inhoudelijke rewrite is klaar om in te vullen, maar de **huidige echte headline/About-tekst ontbreekt nog als bronmateriaal**. Zonder die bron blijft ronde 2 speculatief.
+
+### Kleinste unblocker
+Eén van deze twee inputs is genoeg om ronde 2 direct af te maken:
+
+- de huidige LinkedIn-URL
+- of een copy/paste van de huidige headline + About
+
+Daarvoor staan nu twee kleine hulpmiddelen klaar:
+- `research/linkedin-profile-round-2-input-template.md`
+- `research/linkedin-profile-round-2-request.txt`
+
+## Ronde 2 voorbereidend rewrite-kader
+Onderstaand kader maakt de volgende stap klein en direct uitvoerbaar zodra de huidige LinkedIn-tekst erbij ligt.
+
+### Wat expliciet behouden moet blijven
+- praktische AI-workflows in plaats van vage AI-positionering
+- systems integration en developer tooling als kern
+- privacy, controle en on-prem affiniteit als onderscheidende invalshoek
+- concrete geloofwaardigheid via tastbare verbeteringen, niet via hype
+
+### Concrete punten die zichtbaar mogen worden in de rewrite
+- complexe migratie van `root` naar `clawdy` hersteld zonder de omgeving stuk te maken
+- GitHub/private repo en veilige publish-flow werkend gemaakt
+- Exchange on-prem mailbox/agenda/taken bruikbaar geïntegreerd
+- automation, statusoverzicht en operator-routines opgebouwd
+
+### Before/after-werkblad
+Kopieer de huidige tekst hieronder zodra die beschikbaar is, en werk daarna regel voor regel naar de rewrite.
+
+#### Huidige headline
+`[plak huidige headline hier]`
+
+#### Huidige About
+`[plak huidige About hier]`
+
+#### Problemen in de huidige versie
+- `[te generiek / te vaag / te oud / te breed]`
+- `[mist concrete resultaten]`
+- `[onderscheidend profiel nog niet scherp]`
+
+#### Gerichte rewrite, headline
+**Before**  
+`[huidige headline]`
+
+**After**  
+AI automation, systems integration en developer workflows met focus op bruikbaarheid, privacy en controle
+
+#### Gerichte rewrite, About
+**Before**  
+`[huidige About]`
+
+**After**  
+Ik werk op het snijvlak van automation, developer tooling en praktische AI-workflows.
+
+Mijn focus ligt op systemen die echt bruikbaar moeten zijn: integraties werkend krijgen, observability verbeteren, veilige workflows bouwen en losse tools omzetten naar betrouwbare routines.
+
+In de praktijk werk ik aan AI-assisted workflows, browser automation, on-prem integraties, mailbox- en taakroutines, GitHub/developer flows en privacy-bewuste operationele tooling.
+
+Ik haal de meeste energie uit technisch scherp werk dat ook gewoon nuttig is: minder handwerk, minder ruis, meer grip.
+
+### Kort beoordelingskader voor de echte vergelijking
+Bij de uiteindelijke before/after-vergelijking moet elk tekstblok hierop scoren:
+- meteen duidelijk wat Christian bouwt of verbetert
+- geen generieke AI-taal zonder operationele context
+- minstens 1 tot 2 concrete signalen van geloofwaardige praktijkervaring
+- toon nuchter, technisch en bruikbaar

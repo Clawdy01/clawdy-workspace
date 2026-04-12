@@ -7,7 +7,11 @@
 ## Now
 - Publieke profielronde / LinkedIn-context is nu het primaire spoor
 - Eerste concrete stap gezet: audit + headline/About-draft vastgelegd in `research/linkedin-profile-round-1.md`
-- Volgende stap: huidige echte LinkedIn-tekst vergelijken en omzetten naar een gerichte before/after rewrite
+- Tweede concrete stap gezet: rewrite-kader + before/after-werkblad toegevoegd zodat de echte LinkedIn-tekst direct vergeleken kan worden
+- Derde concrete stap gezet: bewijsbare profielclaims, accomplishment-bullets en veilige formuleringen uit de workspace vastgelegd in `research/linkedin-proof-points.md`
+- Vierde concrete stap gezet: publiek verifieerbare context uit CleverIT/CleverEnable-teambronnen en een extern interview toegevoegd aan `research/linkedin-proof-points.md`
+- Extra gerichte lookup gedaan, maar nog steeds geen bevestigde huidige LinkedIn-tekst of profielmatch gevonden
+- Volgende stap: zodra headline/About of LinkedIn-URL beschikbaar is, het gerichte before/after voorstel invullen met minimaal 2 bewijsblokken uit `research/linkedin-proof-points.md`
 - GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next
@@ -16,6 +20,7 @@
 - Secrets / password workflow netter maken
 
 ## Blocked
+- LinkedIn rewrite ronde 2 wacht op bronmateriaal: huidige headline/About of exacte LinkedIn-URL is nog niet beschikbaar; lokale workspace-search, extra gerichte publieke LinkedIn-lookups en aanvullend publiek contextonderzoek op 2026-04-12 bevestigden die tekst nog steeds niet
 - Goede beeldgeneratie-route ontbreekt nog in deze runtime, dus betere image-remakes wachten op sterkere/lokale modelroute
 - Control UI via LAN zonder SSH vraagt later nog een nette HTTPS-route
 
