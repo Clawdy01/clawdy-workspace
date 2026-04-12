@@ -5,12 +5,13 @@
 - Exchange Agenda wordt nu actief gebruikt voor agenda-uitleesroutes.
 
 ## Now
-- GitHub-account + private repo + eerste push afronden
-- Exchange SE on-prem route uitbouwen via EWS + Autodiscover
-- Mail workflow slimmer maken
+- Exchange SE on-prem is nu het primaire spoor
+- Doel: task lifecycle en nuttige mailbox/agenda samenvattingen verder aanscherpen nu de eerste echte read/write EWS-actie bevestigd is
+- GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next
-- Exchange kalender/taken workflow opzetten op basis van on-prem routes
+- Exchange kalender/taken workflow verder opzetten op basis van on-prem routes
+- Daarna mail workflow slimmer maken
 - Creative tooling/workflows voor image/audio/video verbeteren
 - Secrets / password workflow netter maken
 
@@ -19,6 +20,8 @@
 - Control UI via LAN zonder SSH vraagt later nog een nette HTTPS-route
 
 ## Done
+- GitHub-track afgerond: private repo bestaat, SSH-auth werkt, eerste push bevestigd, hourly auto-push actief
+- Exchange-track eerste echte actie bevestigd: Autodiscover + EWS werken, unread inbox-check gelukt, kalenderroute werkt, en een verouderde GitHub-taak is via EWS op `Completed` gezet en teruggelezen
 - Migratie naar `clawdy` hersteld
 - Memory/history grotendeels hersteld
 - Root toegang werkend gemaakt

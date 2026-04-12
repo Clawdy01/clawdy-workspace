@@ -173,6 +173,7 @@ def find_tasks(limit: int = 20):
     root = ET.fromstring(xml)
     tasks = []
     for item in root.findall('.//t:Task', NS):
+        item_id_node = item.find('t:ItemId', NS)
         tasks.append({
             'subject': text(item, 't:Subject'),
             'status': text(item, 't:Status'),
@@ -181,9 +182,66 @@ def find_tasks(limit: int = 20):
             'importance': text(item, 't:Importance'),
             'percent_complete': text(item, 't:PercentComplete'),
             'body': text(item, 't:Body'),
-            'item_id': (item.find('t:ItemId', NS).attrib.get('Id') if item.find('t:ItemId', NS) is not None else None),
+            'item_id': (item_id_node.attrib.get('Id') if item_id_node is not None else None),
+            'change_key': (item_id_node.attrib.get('ChangeKey') if item_id_node is not None else None),
         })
     return tasks
+
+
+def find_task(task_ref: str):
+    ref = task_ref.strip()
+    for task in find_tasks(limit=200):
+        if task.get('item_id') == ref or str(task.get('subject') or '').strip() == ref:
+            return task
+    raise RuntimeError(f'task not found: {task_ref}')
+
+
+def update_task_status(task_ref: str, status: str):
+    task = find_task(task_ref)
+    item_id = task.get('item_id')
+    change_key = task.get('change_key')
+    if not item_id or not change_key:
+        raise RuntimeError(f'task missing item id/change key: {task_ref}')
+
+    status_value = escape(status)
+    percent_value = '1.0' if status == 'Completed' else '0.0'
+    complete_xml = ''
+    if status == 'Completed':
+        complete_xml = f'''
+        <t:SetItemField>
+          <t:FieldURI FieldURI="task:CompleteDate" />
+          <t:Task><t:CompleteDate>{datetime.now(UTC).isoformat().replace("+00:00", "Z")}</t:CompleteDate></t:Task>
+        </t:SetItemField>'''
+    body = f'''
+<m:UpdateItem ConflictResolution="AlwaysOverwrite">
+  <m:ItemChanges>
+    <t:ItemChange>
+      <t:ItemId Id="{escape(item_id)}" ChangeKey="{escape(change_key)}" />
+      <t:Updates>
+        <t:SetItemField>
+          <t:FieldURI FieldURI="task:Status" />
+          <t:Task><t:Status>{status_value}</t:Status></t:Task>
+        </t:SetItemField>
+        <t:SetItemField>
+          <t:FieldURI FieldURI="task:PercentComplete" />
+          <t:Task><t:PercentComplete>{percent_value}</t:PercentComplete></t:Task>
+        </t:SetItemField>{complete_xml}
+      </t:Updates>
+    </t:ItemChange>
+  </m:ItemChanges>
+</m:UpdateItem>'''
+    xml = ews_request(soap_envelope(body))
+    root = ET.fromstring(xml)
+    msg = root.find('.//m:UpdateItemResponseMessage', NS)
+    if msg is None or msg.attrib.get('ResponseClass') != 'Success':
+        raise RuntimeError(f'task status update failed: {task_ref}')
+    updated = find_task(item_id)
+    return {
+        'subject': updated.get('subject'),
+        'item_id': updated.get('item_id'),
+        'status': updated.get('status'),
+        'percent_complete': updated.get('percent_complete'),
+    }
 
 
 def create_task(subject: str, body_text: str | None = None, due_days: int | None = None):
@@ -255,6 +313,9 @@ def render_text(payload):
     if 'ensure_tasks' in payload:
         summary = payload['ensure_tasks']
         lines.append(f"Taken bijgewerkt: {len(summary.get('created', []))} nieuw, {len(summary.get('skipped', []))} bestond al")
+    if 'task_update' in payload:
+        item = payload['task_update']
+        lines.append(f"Taakstatus bijgewerkt: {item.get('subject') or '(geen onderwerp)'} -> {item.get('status') or 'unknown'} ({item.get('percent_complete') or '?'})")
     return '\n'.join(lines)
 
 
@@ -265,13 +326,15 @@ def main():
     parser.add_argument('--calendar', action='store_true')
     parser.add_argument('--tasks', action='store_true')
     parser.add_argument('--seed-current-tasks', action='store_true')
+    parser.add_argument('--complete-task-subject', help='markeer taak met exact subject als Completed')
+    parser.add_argument('--complete-task-id', help='markeer taak met exact item_id als Completed')
     parser.add_argument('--unread-only', action='store_true')
     parser.add_argument('--search', help='filter inbox results op onderwerp/afzender/preview')
     parser.add_argument('--limit', type=int, default=10)
     parser.add_argument('--hours', type=int, default=48)
     args = parser.parse_args()
 
-    if not args.inbox and not args.calendar and not args.tasks and not args.seed_current_tasks:
+    if not args.inbox and not args.calendar and not args.tasks and not args.seed_current_tasks and not args.complete_task_subject and not args.complete_task_id:
         args.inbox = True
         args.calendar = True
 
@@ -304,6 +367,10 @@ def main():
                 'due_days': 14,
             },
         ])
+    if args.complete_task_subject:
+        result['task_update'] = update_task_status(args.complete_task_subject, 'Completed')
+    if args.complete_task_id:
+        result['task_update'] = update_task_status(args.complete_task_id, 'Completed')
 
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))

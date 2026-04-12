@@ -3,7 +3,7 @@
 ## Execution guardrails
 - Operationele werklijst staat ook in Exchange Taken; KANBAN blijft de lokale bron voor structuur en prioriteit.
 - Eén primair spoor tegelijk. Alleen het primaire spoor krijgt actieve bouwtijd totdat het klaar of echt geblokkeerd is.
-- Huidig primair spoor: GitHub
+- Huidig primair spoor: Exchange SE on-prem
 - Parallel mag alleen voor klein onderhoud of wanneer het primaire spoor extern wacht.
 - Als het primaire spoor leeg is of extern wacht, herbeoordeel proactief taken, geparkeerde taken en backlog op wat nu wel uitgevoerd kan worden.
 - Elk actief spoor moet een concrete definition of done hebben.
@@ -13,20 +13,20 @@
 
 ## Definition of done
 - GitHub: account bestaat, login werkt, private repo bestaat, eerste push bevestigd
-- Exchange SE on-prem: EWS/Autodiscover helper werkt, daarna eerstvolgende bruikbare mailbox- of kalenderactie bevestigd
+- Exchange SE on-prem: mailbox, agenda en taken hebben een bruikbare on-prem EWS-route voor lezen én de eerstvolgende nuttige actie is bevestigd
 - Photo editing / image workflows: alleen opnieuw actief zodra er een echte bruikbare modelroute beschikbaar is
 
 ## Now
-- GitHub: private Clawdy account + private repo + eerste push
-- Exchange SE on-prem: wacht als parallel spoor tot GitHub klaar of echt geblokkeerd is
+- Exchange SE on-prem: task lifecycle en nuttige mailbox/agenda samenvattingen verder aanscherpen nu de eerste echte read/write EWS-actie bevestigd is
+- GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: geparkeerd tot betere model/hardware-route
 
 ## Blocked
-- Geen expliciete blocker hier; open directe deliverables uit chat hebben voorrang als ze bestaan
-- GitHub is nog niet geblokkeerd, alleen nog niet afgerond
+- Geen open deliverables op dit moment
 
 ## Next
-- Exchange mailbox/kalender/taken workflow structureren op basis van on-prem entry points
+- Exchange mailbox/kalender/taken workflow verder structureren op basis van on-prem entry points
+- Daarna publieke profiel / LinkedIn-context of andere bruikbare backlog opnieuw beoordelen
 - Creative tooling/workflows verdiepen voor image/audio/video
 - Onderzoek naar betere identity-preserving photo edit modellen/workflows
 - Secrets/workflows verder opruimen nu Bitwarden werkt
@@ -47,6 +47,8 @@
 - Ski-foto edit, opnieuw oppakken met betere modelroute
 
 ## Done
+- GitHub private repo aangemaakt, SSH-auth ingesteld, eerste push bevestigd, hourly auto-push actief
+- Exchange SE on-prem basisroute bevestigd: Autodiscover + EWS werken, unread inbox/kalendercheck gelukt, en een verouderde GitHub-taak is succesvol via EWS naar Completed gezet en teruggelezen
 - OpenClaw migratie hersteld
 - Telegram reactions zichtbaar
 - Telegram file sending werkend
