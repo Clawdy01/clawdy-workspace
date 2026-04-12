@@ -3,7 +3,7 @@
 ## Execution guardrails
 - Operationele werklijst staat ook in Exchange Taken; KANBAN blijft de lokale bron voor structuur en prioriteit.
 - Eén primair spoor tegelijk. Alleen het primaire spoor krijgt actieve bouwtijd totdat het klaar of echt geblokkeerd is.
-- Huidig primair spoor: Exchange SE on-prem
+- Huidig primair spoor: publieke profielronde / LinkedIn-context
 - Parallel mag alleen voor klein onderhoud of wanneer het primaire spoor extern wacht.
 - Als het primaire spoor leeg is of extern wacht, herbeoordeel proactief taken, geparkeerde taken en backlog op wat nu wel uitgevoerd kan worden.
 - Elk actief spoor moet een concrete definition of done hebben.
@@ -18,7 +18,7 @@
 - Photo editing / image workflows: alleen opnieuw actief zodra er een echte bruikbare modelroute beschikbaar is
 
 ## Now
-- Exchange SE on-prem: task lifecycle en nuttige mailbox/agenda samenvattingen verder aanscherpen nu de eerste echte read/write EWS-actie bevestigd is
+- Publieke profielronde / LinkedIn-context: inventariseren wat nog onaf voelt en een eerste concrete verbeterstap kiezen
 - Verplichte anti-stall regel: als dit spoor stilvalt zonder blocker, direct één concrete stap uitvoeren of de blocker met bewijs vastleggen
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: geparkeerd tot betere model/hardware-route
@@ -27,9 +27,9 @@
 - Geen open deliverables op dit moment
 
 ## Next
-- Exchange mailbox/kalender/taken workflow verder structureren op basis van on-prem entry points
-- Daarna publieke profiel / LinkedIn-context of andere bruikbare backlog opnieuw beoordelen
 - Creative tooling/workflows verdiepen voor image/audio/video
+- Secrets/workflows verder opruimen nu Bitwarden werkt
+- Daarna Mac migratieplan en lokale LLM/media-workflows oppakken
 - Onderzoek naar betere identity-preserving photo edit modellen/workflows
 - Secrets/workflows verder opruimen nu Bitwarden werkt
 
@@ -51,6 +51,8 @@
 ## Done
 - GitHub private repo aangemaakt, SSH-auth ingesteld, eerste push bevestigd, hourly auto-push actief
 - Exchange SE on-prem basisroute bevestigd: Autodiscover + EWS werken, unread inbox/kalendercheck gelukt, en een verouderde GitHub-taak is succesvol via EWS naar Completed gezet en teruggelezen
+- Exchange summary aangescherpt: onderscheid tussen actiegerichte vs notificatie-unread, signalering van afspraken binnen 24 uur, en overdue actieve taken zodat `next_action` minder snel op ruis blijft hangen
+- Exchange huidige actieve taak afgerond: summary live geverifieerd en Exchange-taak `Exchange SE: mailbox/agenda helper verder uitbouwen` staat nu op Completed
 - OpenClaw migratie hersteld
 - Telegram reactions zichtbaar
 - Telegram file sending werkend
