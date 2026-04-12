@@ -48,6 +48,18 @@ def build_summary(hours: int, inbox_limit: int, task_limit: int):
     active_open_tasks = [t for t in open_tasks if not is_parked_task(t)]
     parked_open_tasks = [t for t in open_tasks if is_parked_task(t)]
 
+    next_action = None
+    if unread_items:
+        first = unread_items[0]
+        sender = first.get('from_name') or first.get('from_email') or 'onbekend'
+        next_action = f"review unread mail van {sender}: {first.get('subject') or '(geen onderwerp)'}"
+    elif active_open_tasks:
+        first = active_open_tasks[0]
+        next_action = f"werk actieve taak bij: {first.get('subject') or '(geen onderwerp)'}"
+    elif calendar_items:
+        first = calendar_items[0]
+        next_action = f"check eerstvolgende afspraak: {first.get('subject') or '(geen onderwerp)'}"
+
     return {
         'check': {
             'autodiscover_ok': check.get('autodiscover_ok'),
@@ -75,6 +87,7 @@ def build_summary(hours: int, inbox_limit: int, task_limit: int):
             'active_open_items': active_open_tasks,
             'parked_open_items': parked_open_tasks,
         },
+        'next_action': next_action,
     }
 
 
@@ -108,6 +121,8 @@ def render_text(summary):
         item = tasks['parked_open_items'][0]
         due = f" due {item.get('due_date')}" if item.get('due_date') else ''
         lines.append(f"- eerstvolgende geparkeerde taak: {item.get('subject') or '(geen onderwerp)'} [{item.get('status') or 'unknown'}]{due}")
+    if summary.get('next_action'):
+        lines.append(f"- next action: {summary['next_action']}")
     return '\n'.join(lines)
 
 
