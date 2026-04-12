@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import fnmatch
 import json
 import mimetypes
 import subprocess
@@ -7,6 +8,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+
+EXCLUDE_SETS = {
+    'artifact-defaults': ['reports', 'helper-*'],
+    'clip-helper-layout': ['reports', 'helper-*', 'frames', '*/frames'],
+    'frame-export-layout': ['reports', 'helper-*', 'clips', '*/clips'],
+}
 
 PRESETS = {
     'video-proof': {
@@ -24,6 +31,28 @@ PRESETS = {
         'min_size_bytes': 100,
         'min_width': 160,
         'min_height': 120,
+    },
+    'artifact-review': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+    },
+    'artifact-frames-review': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+        'includes': ['frame-*.png'],
+    },
+    'clip-review': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['clip-helper-layout'],
+    },
+    'frame-export-review': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['frame-export-layout'],
+        'kinds': ['image'],
     },
 }
 
@@ -56,6 +85,47 @@ FAIL_PROFILES = {
     'mixed-batch-review': {
         'max_warning_files': 1,
         'max_total_warnings': 2,
+    },
+    'artifact-scan-review': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+        'max_warning_files': 1,
+        'max_total_warnings': 2,
+    },
+    'artifact-scan-strict': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'artifact-frames-strict': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+        'includes': ['frame-*.png'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'clip-review-strict': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['clip-helper-layout'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'frame-export-strict': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['frame-export-layout'],
+        'kinds': ['image'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
     },
 }
 
@@ -225,6 +295,11 @@ def build_parser():
     parser.add_argument('--dir', dest='directory', help='Inspecteer alle ondersteunde mediabestanden in deze map')
     parser.add_argument('--recursive', action='store_true', help='Doorzoek submappen ook bij --dir')
     parser.add_argument('--kind', dest='kinds', choices=['audio', 'image', 'video'], nargs='+', help='Beperk de check tot alleen deze mediatypes')
+    parser.add_argument('--exclude', dest='excludes', action='append', default=[], help='Sla paden/bestandsnamen over via glob-pattern, herhaalbaar')
+    parser.add_argument('--exclude-set', dest='exclude_sets', choices=sorted(EXCLUDE_SETS), action='append', default=[], help='Gebruik een herbruikbare set exclude-patterns voor veelvoorkomende outputmappen, herhaalbaar')
+    parser.add_argument('--include', dest='includes', action='append', default=[], help='Neem alleen paden/bestandsnamen mee die matchen met dit glob-pattern, herhaalbaar')
+    parser.add_argument('--name-contains', dest='name_contains', action='append', default=[], help='Neem alleen bestanden mee waarvan de bestandsnaam deze substring bevat, herhaalbaar')
+    parser.add_argument('--name-not-contains', dest='name_not_contains', action='append', default=[], help='Sla bestanden over waarvan de bestandsnaam deze substring bevat, herhaalbaar')
     parser.add_argument('--json', action='store_true', help='Geef output als JSON')
     parser.add_argument('--jsonl', action='store_true', help='Geef output als één JSONL-event op stdout')
     parser.add_argument('--jsonl-summary-only', action='store_true', help='Laat bij JSONL-output alleen summary/meta zien, zonder volledige items')
@@ -255,6 +330,9 @@ def apply_profile_defaults(args, profile):
         if isinstance(value, bool):
             if current is False:
                 setattr(args, key, value)
+        elif isinstance(value, list):
+            if not current:
+                setattr(args, key, list(value))
         elif current is None:
             setattr(args, key, value)
     return args
@@ -268,12 +346,61 @@ def apply_preset_defaults(args):
     return args
 
 
+def expand_exclude_patterns(args):
+    combined = list(args.excludes or [])
+    for set_name in args.exclude_sets or []:
+        for pattern in EXCLUDE_SETS[set_name]:
+            if pattern not in combined:
+                combined.append(pattern)
+    return combined
+
+
+def path_matches_patterns(path: Path, patterns):
+    if not patterns:
+        return True
+    path_str = str(path)
+    name = path.name
+    posix = path.as_posix()
+    parts = path.parts
+    for pattern in patterns:
+        if fnmatch.fnmatch(name, pattern) or fnmatch.fnmatch(path_str, pattern) or fnmatch.fnmatch(posix, pattern):
+            return True
+        if any(fnmatch.fnmatch(part, pattern) for part in parts):
+            return True
+    return False
+
+
+def is_excluded(path: Path, patterns):
+    if not patterns:
+        return False
+    return path_matches_patterns(path, patterns)
+
+
+def name_matches(path: Path, includes=None, excludes=None):
+    name = path.name
+    includes = includes or []
+    excludes = excludes or []
+    if includes and not any(fragment in name for fragment in includes):
+        return False
+    if excludes and any(fragment in name for fragment in excludes):
+        return False
+    return True
+
+
+
 def collect_paths(args, parser):
     requested_kinds = set(args.kinds or [])
+    exclude_patterns = expand_exclude_patterns(args)
     collected = []
 
     for raw_path in args.paths:
         path = Path(raw_path)
+        if args.includes and not path_matches_patterns(path, args.includes):
+            continue
+        if is_excluded(path, exclude_patterns):
+            continue
+        if not name_matches(path, includes=args.name_contains, excludes=args.name_not_contains):
+            continue
         kind = detect_kind(path)
         if requested_kinds and kind not in requested_kinds:
             continue
@@ -285,14 +412,26 @@ def collect_paths(args, parser):
             parser.error(f'geen map: {directory}')
         iterator = directory.rglob('*') if args.recursive else directory.iterdir()
         for path in sorted(iterator):
+            if args.includes and not path_matches_patterns(path, args.includes):
+                continue
+            if is_excluded(path, exclude_patterns):
+                continue
+            if not name_matches(path, includes=args.name_contains, excludes=args.name_not_contains):
+                continue
             kind = detect_kind(path)
             if path.is_file() and kind != 'unknown':
                 if requested_kinds and kind not in requested_kinds:
                     continue
                 collected.append(path)
     if not collected:
+        if args.includes:
+            parser.error('geen mediabestanden gevonden na include-filters')
+        if args.name_contains or args.name_not_contains:
+            parser.error('geen mediabestanden gevonden na naamfilters')
         if requested_kinds:
             parser.error(f'geen mediabestanden gevonden voor kind-filter: {", ".join(sorted(requested_kinds))}')
+        if exclude_patterns:
+            parser.error('geen mediabestanden gevonden na exclude-filters')
         parser.error('geef minstens één pad of gebruik --dir')
     return collected
 
@@ -332,6 +471,11 @@ def build_payload(args, summary, displayed_results, fail_reasons, exit_code, kin
         'fail_profile': args.fail_profile,
         'directory': args.directory,
         'kinds': sorted(args.kinds) if args.kinds else None,
+        'excludes': expand_exclude_patterns(args) or None,
+        'exclude_sets': args.exclude_sets or None,
+        'includes': args.includes or None,
+        'name_contains': args.name_contains or None,
+        'name_not_contains': args.name_not_contains or None,
         'warnings_only': args.warnings_only,
         'report_append': args.report_append,
         'summary_only': summary_only,
@@ -359,6 +503,17 @@ def render_text_report(args, summary, displayed_results, fail_reasons, kind_summ
         lines.append(f'directory: {Path(args.directory).expanduser().resolve()}')
     if args.kinds:
         lines.append(f"kinds: {', '.join(sorted(args.kinds))}")
+    if args.exclude_sets:
+        lines.append(f"exclude-sets: {', '.join(args.exclude_sets)}")
+    expanded_excludes = expand_exclude_patterns(args)
+    if expanded_excludes:
+        lines.append(f"excludes: {', '.join(expanded_excludes)}")
+    if args.includes:
+        lines.append(f"includes: {', '.join(args.includes)}")
+    if args.name_contains:
+        lines.append(f"name-contains: {', '.join(args.name_contains)}")
+    if args.name_not_contains:
+        lines.append(f"name-not-contains: {', '.join(args.name_not_contains)}")
     if args.warnings_only:
         lines.append('mode: warnings-only')
     if args.report_append:

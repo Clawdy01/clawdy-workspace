@@ -39,12 +39,18 @@
 - `scripts/media-sanity-check.py` ondersteunt nu ook `--report-summary-only`, live geverifieerd op `tmp/creative-tooling-check/reports/summary-only.jsonl` met compacte JSONL-events zonder volledige itemlijsten
 - `scripts/media-sanity-check.py` ondersteunt nu ook compacte stdout-JSONL via `--jsonl`, inclusief `--jsonl-summary-only` voor alleen summary/meta zonder itemlijsten; live geverifieerd op `tmp/creative-tooling-check` en dezelfde compacte mode werkt ook voor JSONL-rapporten
 - `scripts/media-sanity-check.py` ondersteunt nu ook `--kind` filtering, zodat batch-checks gericht alleen audio, image en/of video meenemen; live geverifieerd op `tmp/creative-tooling-check` met `--kind audio image --summary-by-kind` en `--kind video --jsonl --jsonl-summary-only`
-- Volgende stap: optionele exclude-patterns of naamfilters toevoegen zodat batch-checks ook tijdelijke files, thumbs of artifacts kunnen overslaan
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--exclude` voor batch-runs, live geverifieerd op `tmp/creative-tooling-check` met uitsluiting van `reports` en `helper-*`
+- `scripts/media-sanity-check.py` ondersteunt nu ook naamfilters via `--name-contains` en `--name-not-contains`, live geverifieerd op `tmp/creative-tooling-check` met een gerichte frame-run en een bewuste no-match check
+- `scripts/media-sanity-check.py` ondersteunt nu ook artifact-scan profielen (`artifact-review`, `artifact-scan-review`, `artifact-scan-strict`) met standaard `reports`/`helper-*` uitsluiting en compacte review-vs-strict mapchecks, live geverifieerd op `tmp/creative-tooling-check`
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--include` glob-patterns voor nog gerichtere batch-selectie, live geverifieerd op `tmp/creative-tooling-check` met `--include 'frame-*.png' --summary-by-kind`
+- `scripts/media-sanity-check.py` ondersteunt nu ook include-gedreven artifactprofielen (`artifact-frames-review`, `artifact-frames-strict`) voor frame-only mapscans, live geverifieerd op `tmp/creative-tooling-check`
+- `scripts/media-sanity-check.py` ondersteunt nu ook herbruikbare `--exclude-set` bundles voor veelvoorkomende outputmappen (`artifact-defaults`, `clip-helper-layout`, `frame-export-layout`), plus nieuwe presets/fail-profielen `clip-review`, `frame-export-review`, `clip-review-strict` en `frame-export-strict`; live geverifieerd op `tmp/creative-tooling-check`
+- Volgende stap: preset include-sets of pad-aliasen bundelen voor nog vaker terugkerende scanroutes
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
 ## Blocked
-- Geen harde blocker op het huidige creative-tooling spoor; nulmeting, workflow-inventaris, helper-thresholds, presets, batch-check, warnings-only, summary-by-kind, strikte fail-profielen, mixed batch-fail-profielen, rapport-output naar artifact, timestamped output, append-mode, JSONL-reportmode en compacte stdout-JSONL zijn bevestigd en helperbouw kan lokaal doorgaan
+- Geen harde blocker op het huidige creative-tooling spoor; nulmeting, workflow-inventaris, helper-thresholds, presets, batch-check, warnings-only, summary-by-kind, exclude-filters, include-filters, naamfilters, artifact-scan profielen, include-gedreven artifactprofielen, herbruikbare exclude-sets, strikte fail-profielen, mixed batch-fail-profielen, rapport-output naar artifact, timestamped output, append-mode, JSONL-reportmode en compacte stdout-JSONL zijn bevestigd en helperbouw kan lokaal doorgaan
 - Betere identity-preserving photo edits blijven wel geblokkeerd op een sterkere/lokale modelroute
 
 ## Next
@@ -104,3 +110,6 @@
 - Creative tooling helper nog compacter gemaakt voor logverwerking: `scripts/media-sanity-check.py` ondersteunt nu `--report-summary-only` voor JSON/JSONL-rapporten zonder volledige itemlijst
 - Creative tooling helper ook interactief compacter gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--jsonl` plus `--jsonl-summary-only` voor één compact stdout-event zonder volledige itemlijst
 - Creative tooling helper nu ook gerichter gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt `--kind` filtering voor audio/image/video in batch- en stdout-runs
+- Creative tooling helper verder opgeschoond voor batch-runs: `scripts/media-sanity-check.py` ondersteunt nu `--exclude` met glob-patterns, inclusief subtree-uitsluiting via padcomponenten
+- Creative tooling helper nog gerichter gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--name-contains` en `--name-not-contains` voor relevantere bestandsselectie binnen batch-runs
+- Creative tooling helper nog preciezer gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu ook `--include` glob-patterns voor gerichte batch-selectie van relevante artifacts

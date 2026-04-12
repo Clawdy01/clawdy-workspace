@@ -344,8 +344,92 @@ Live geverifieerd op 2026-04-12:
 - tweede event: warning-run met `total=1`, `warnings=1`
 - beide events hebben `report_summary_only: true` en geen volledige `items`-lijst
 
+## Exclude-patterns nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--exclude` voor glob-based uitsluiting van tijdelijke files, thumbs of artifactmappen.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --recursive --exclude 'reports' --exclude 'helper-*' --summary-by-kind
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --recursive --kind video --exclude 'sample-*' --jsonl --jsonl-summary-only
+```
+
+Live geverifieerd op 2026-04-12:
+- exclude van `reports` plus `helper-*` gaf een schone batch-run met `total=7`, `ok=7`, `warnings=0`
+- gerichte video-run met `--exclude 'sample-*'` gaf compacte JSONL summary-only output met `total=2`, `ok=2`, `warnings=0`
+- pattern matching werkt nu ook op padcomponenten, zodat een map als `helper-frames/` haar subtree echt overslaat
+
+## Artifact-scan review-profielen nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook preset/fail-profielen voor terugkerende outputmappen, inclusief standaard uitsluiting van artifactmappen zoals `reports` en helper-output zoals `helper-*`.
+
+Nieuwe profielen:
+- preset `artifact-review` → zet automatisch `--recursive`, `--summary-by-kind`, `--exclude reports`, `--exclude helper-*`
+- fail-profile `artifact-scan-review` → zelfde scanbasis, plus reviewgrenzen `max_warning_files=1` en `max_total_warnings=2`
+- fail-profile `artifact-scan-strict` → zelfde scanbasis, maar strikt groen met `fail_on_warnings`, `max_warning_files=0`, `max_total_warnings=0`
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --preset artifact-review
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --fail-profile artifact-scan-review --json
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --fail-profile artifact-scan-strict --jsonl --jsonl-summary-only
+```
+
+Live geverifieerd op 2026-04-12:
+- `artifact-review` gaf schoon `total=7 ok=7 warnings=0` met `audio=2`, `image=3`, `video=2`
+- `artifact-scan-review --json` gaf dezelfde schone map-samenvatting met `exit_code: 0`
+- `artifact-scan-strict --jsonl --jsonl-summary-only` gaf een compact groen event zonder itemlijst
+
+Nut:
+- minder losse flags bij terugkerende media-outputchecks
+- artifactmappen en helper-output standaard buiten de hoofdscan
+- review vs strict CI-route nu direct herbruikbaar
+
+## Include-patterns nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--include` voor glob-based selectie van alleen de gewenste artifactgroep binnen een batch-run.
+
+Nieuwe profielen:
+- `artifact-frames-review`
+- `artifact-frames-strict`
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --recursive --exclude 'reports' --exclude 'helper-*' --include 'frame-*.png' --summary-by-kind
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --preset artifact-frames-review
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --fail-profile artifact-frames-strict --jsonl --jsonl-summary-only
+```
+
+Live geverifieerd op 2026-04-12:
+- include-run op `frame-*.png` gaf `total=3`, `ok=3`, `warnings=0`
+- `artifact-frames-review` gaf dezelfde schone frame-only review-run
+- `artifact-frames-strict` gaf compacte JSONL summary-only output met `total=3`, `ok=3`, `warnings=0`
+
+## Herbruikbare ignore-sets nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--exclude-set`, zodat terugkerende outputmappen minder losse `--exclude` flags nodig hebben.
+
+Beschikbare exclude-sets:
+- `artifact-defaults` → `reports`, `helper-*`
+- `clip-helper-layout` → `reports`, `helper-*`, `frames`, `*/frames`
+- `frame-export-layout` → `reports`, `helper-*`, `clips`, `*/clips`
+
+Nieuwe profielen:
+- preset `clip-review`
+- preset `frame-export-review`
+- fail-profile `clip-review-strict`
+- fail-profile `frame-export-strict`
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --preset clip-review
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --preset frame-export-review --json
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --recursive --exclude-set artifact-defaults --summary-by-kind
+```
+
+Live geverifieerd op 2026-04-13:
+- `clip-review` gaf schoon `total=7 ok=7 warnings=0`
+- `frame-export-review --json` gaf schoon `total=3 ok=3 warnings=0` met alleen image-output
+- directe `--exclude-set artifact-defaults` run gaf schoon `total=7 ok=7 warnings=0`
+
 ## Aanbevolen volgende stap
-- Kleine follow-up: stdout optioneel ook compacter maken met een echte summary-only view als dezelfde logcompactheid interactief ook nuttig blijkt
+- Kleine follow-up: preset include-sets of pad-aliasen bundelen voor nog vaker terugkerende scanroutes
 
 ## Kind-filtering nu beschikbaar
 `scripts/media-sanity-check.py` ondersteunt nu ook `--kind`, zodat batch-checks gericht alleen `audio`, `image` en/of `video` meenemen.
