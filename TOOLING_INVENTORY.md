@@ -81,6 +81,9 @@
 - `scripts/gitignore-proposal-check.py` — laat zien wat het GitHub private `.gitignore`-voorstel al wel/niet afdekt
 - `scripts/git-first-push-plan.py` — geeft concrete commando’s voor de eerste private GitHub push, zonder al iets te wijzigen
 - `scripts/git-sensitive-tracked.py` — toont gevoelige paden die nog tracked zijn en eerst uit git moeten voor een veilige private push
+- `scripts/exchange-ews-check.py` — snelle Exchange SE on-prem check voor Autodiscover + EWS-basisroute
+- `scripts/exchange-ews-tool.py` — praktische Exchange SE helper voor inbox, agenda, taken, taakcreatie en taakstatus-updates via EWS
+- `scripts/exchange-mailbox.py` — compacte mailbox-view voor unread/latest Exchange-mail bovenop EWS
 - `scripts/exchange-summary.py` — compacte Exchange SE samenvatting bovenop EWS-check, unread mailbox, agenda en taken
 - `browser-automation/proton_probe_status.js` — herhaalbare Proton signup probe met screenshot, JSON status en candidate actions
 - `browser-automation/proton_probe_username_activation.js` — toont waarom `#username` niet normaal invulbaar is en test JS-activering

@@ -102,10 +102,12 @@ def render_text(summary):
     lines.append(f"- taken: {tasks['count']} totaal, {tasks['open_count']} open ({tasks['active_open_count']} actief, {tasks['parked_open_count']} geparkeerd)")
     if tasks['active_open_items']:
         item = tasks['active_open_items'][0]
-        lines.append(f"- eerstvolgende actieve taak: {item.get('subject') or '(geen onderwerp)'} [{item.get('status') or 'unknown'}]")
+        due = f" due {item.get('due_date')}" if item.get('due_date') else ''
+        lines.append(f"- eerstvolgende actieve taak: {item.get('subject') or '(geen onderwerp)'} [{item.get('status') or 'unknown'}]{due}")
     elif tasks['parked_open_items']:
         item = tasks['parked_open_items'][0]
-        lines.append(f"- eerstvolgende geparkeerde taak: {item.get('subject') or '(geen onderwerp)'} [{item.get('status') or 'unknown'}]")
+        due = f" due {item.get('due_date')}" if item.get('due_date') else ''
+        lines.append(f"- eerstvolgende geparkeerde taak: {item.get('subject') or '(geen onderwerp)'} [{item.get('status') or 'unknown'}]{due}")
     return '\n'.join(lines)
 
 
