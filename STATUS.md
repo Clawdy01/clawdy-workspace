@@ -6,7 +6,8 @@
 
 ## Now
 - Publieke profielronde / LinkedIn-context is nu het primaire spoor
-- Doel: inventariseren wat nog onaf voelt en direct één concrete verbeterstap kiezen
+- Eerste concrete stap gezet: audit + headline/About-draft vastgelegd in `research/linkedin-profile-round-1.md`
+- Volgende stap: huidige echte LinkedIn-tekst vergelijken en omzetten naar een gerichte before/after rewrite
 - GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next

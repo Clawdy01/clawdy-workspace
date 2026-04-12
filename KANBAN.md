@@ -18,7 +18,7 @@
 - Photo editing / image workflows: alleen opnieuw actief zodra er een echte bruikbare modelroute beschikbaar is
 
 ## Now
-- Publieke profielronde / LinkedIn-context: inventariseren wat nog onaf voelt en een eerste concrete verbeterstap kiezen
+- Publieke profielronde / LinkedIn-context: eerste audit + headline/About-draft staan vast in `research/linkedin-profile-round-1.md`; volgende stap is de echte huidige LinkedIn-tekst ernaast leggen en een gerichte before/after rewrite maken
 - Verplichte anti-stall regel: als dit spoor stilvalt zonder blocker, direct één concrete stap uitvoeren of de blocker met bewijs vastleggen
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: geparkeerd tot betere model/hardware-route
