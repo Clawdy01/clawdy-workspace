@@ -32,7 +32,13 @@
 - `scripts/media-sanity-check.py` ondersteunt nu ook `--include` glob-patterns voor nog gerichtere batch-selectie, live geverifieerd op `tmp/creative-tooling-check` met `--include 'frame-*.png' --summary-by-kind`
 - `scripts/media-sanity-check.py` ondersteunt nu ook include-gedreven artifactprofielen (`artifact-frames-review`, `artifact-frames-strict`) voor frame-only mapscans, live geverifieerd op `tmp/creative-tooling-check`
 - `scripts/media-sanity-check.py` ondersteunt nu ook herbruikbare `--exclude-set` bundles voor veelvoorkomende outputmappen (`artifact-defaults`, `clip-helper-layout`, `frame-export-layout`), plus nieuwe presets/fail-profielen `clip-review`, `frame-export-review`, `clip-review-strict` en `frame-export-strict`; live geverifieerd op `tmp/creative-tooling-check`
-- Volgende stap is preset include-sets of pad-aliasen bundelen voor nog vaker terugkerende scanroutes
+- `scripts/media-sanity-check.py` ondersteunt nu ook herbruikbare `--include-set` bundles voor veelvoorkomende artifactgroepen (`frame-png`, `clips-video`, `audio-wav`), plus nieuwe presets/fail-profielen `frame-png-review`, `clip-video-review`, `frame-png-strict` en `clip-video-strict`; live geverifieerd op `tmp/creative-tooling-check`
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--dir-alias` voor terugkerende scanroots (`creative-tooling-check`, `creative-reports`, `creative-helper-frames`, `creative-helper-test`, `creative-helper-test-frames`), live geverifieerd op artifact-review, frame-submap en clips-video JSONL-run
+- `scripts/media-sanity-check.py` ondersteunt nu ook complete workflowprofielen bovenop dir-aliasen: presets `creative-mixed-review`, `creative-audio-review`, `creative-helper-frames-review`, `creative-helper-clips-review` plus strict varianten als fail-profiel, live geverifieerd op mixed/audio/helper-frame/helper-clip runs
+- `scripts/creative-review.py` biedt nu korte wrapper-commando's voor vaste creative review- en strict-routes, inclusief optionele rapportartifacts in `tmp/creative-tooling-check/reports/`; live geverifieerd op `mixed-review` en `helper-clips-strict --report --timestamped`
+- `scripts/creative-review.py` ondersteunt nu ook suites `review-suite` en `strict-suite`, zodat alle vaste creative review- of strict-routes in één run kunnen worden afgewerkt inclusief timestamped rapportartifacts per subrun; live geverifieerd op de lokale testlayout
+- `scripts/creative-review.py` ondersteunt nu ook `--daylog`, zodat review- en strictroutes compacte JSONL summary-events per UTC-dag naar één append-vriendelijk daglogartifact schrijven; live geverifieerd met `python3 scripts/creative-review.py review-suite --daylog` op `tmp/creative-tooling-check/reports/creative-review-daylog-20260412.jsonl`
+- Volgende stap is wrapper desgewenst uitbreiden met artifact-pruning voor terugkerende sanity-checks en oudere timestamped/daglog-artifacts
 - GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next
@@ -83,3 +89,5 @@
 - `scripts/media-sanity-check.py` verder opgeschoond voor batch-runs met `--exclude`, inclusief subtree-uitsluiting via padcomponenten
 - `scripts/media-sanity-check.py` nog gerichter gemaakt en live getest met `--name-contains` en `--name-not-contains`, zodat terugkerende batch-runs sneller relevante files selecteren en thumb/tijdelijke varianten overslaan
 - `scripts/media-sanity-check.py` nog preciezer gemaakt en live getest met `--include` glob-patterns, zodat batch-runs direct op gewenste artifactgroepen kunnen worden beperkt
+- `scripts/media-sanity-check.py` nog sneller bruikbaar gemaakt voor terugkerende lokale scanroutes en live getest met `--dir-alias`, zodat veelgebruikte creative-tooling mappen en submappen kort aanspreekbaar zijn
+- `scripts/creative-review.py` verder CI-vriendelijk gemaakt en live getest met suites `review-suite` en `strict-suite`, inclusief timestamped rapportartifacts per subrun

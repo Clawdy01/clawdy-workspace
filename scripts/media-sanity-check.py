@@ -15,6 +15,20 @@ EXCLUDE_SETS = {
     'frame-export-layout': ['reports', 'helper-*', 'clips', '*/clips'],
 }
 
+INCLUDE_SETS = {
+    'frame-png': ['frame-*.png'],
+    'clips-video': ['*.mp4', '*.mov', '*.mkv', '*.webm'],
+    'audio-wav': ['*.wav'],
+}
+
+DIR_ALIASES = {
+    'creative-tooling-check': 'tmp/creative-tooling-check',
+    'creative-reports': 'tmp/creative-tooling-check/reports',
+    'creative-helper-frames': 'tmp/creative-tooling-check/helper-frames',
+    'creative-helper-test': 'tmp/creative-tooling-check/helper-test',
+    'creative-helper-test-frames': 'tmp/creative-tooling-check/helper-test/frames',
+}
+
 PRESETS = {
     'video-proof': {
         'min_size_bytes': 1000,
@@ -53,6 +67,45 @@ PRESETS = {
         'summary_by_kind': True,
         'exclude_sets': ['frame-export-layout'],
         'kinds': ['image'],
+    },
+    'frame-png-review': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+        'include_sets': ['frame-png'],
+    },
+    'clip-video-review': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['clip-helper-layout'],
+        'include_sets': ['clips-video'],
+    },
+    'creative-mixed-review': {
+        'dir_alias': 'creative-tooling-check',
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+    },
+    'creative-audio-review': {
+        'dir_alias': 'creative-tooling-check',
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+        'include_sets': ['audio-wav'],
+        'kinds': ['audio'],
+    },
+    'creative-helper-frames-review': {
+        'dir_alias': 'creative-helper-frames',
+        'summary_by_kind': True,
+        'include_sets': ['frame-png'],
+        'kinds': ['image'],
+    },
+    'creative-helper-clips-review': {
+        'dir_alias': 'creative-helper-test',
+        'recursive': True,
+        'summary_by_kind': True,
+        'excludes': ['frames', '*/frames'],
+        'include_sets': ['clips-video'],
+        'kinds': ['video'],
     },
 }
 
@@ -123,6 +176,63 @@ FAIL_PROFILES = {
         'summary_by_kind': True,
         'exclude_sets': ['frame-export-layout'],
         'kinds': ['image'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'frame-png-strict': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+        'include_sets': ['frame-png'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'clip-video-strict': {
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['clip-helper-layout'],
+        'include_sets': ['clips-video'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'creative-mixed-strict': {
+        'dir_alias': 'creative-tooling-check',
+        'recursive': True,
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'creative-audio-strict': {
+        'dir_alias': 'creative-tooling-check',
+        'summary_by_kind': True,
+        'exclude_sets': ['artifact-defaults'],
+        'include_sets': ['audio-wav'],
+        'kinds': ['audio'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'creative-helper-frames-strict': {
+        'dir_alias': 'creative-helper-frames',
+        'summary_by_kind': True,
+        'include_sets': ['frame-png'],
+        'kinds': ['image'],
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'creative-helper-clips-strict': {
+        'dir_alias': 'creative-helper-test',
+        'recursive': True,
+        'summary_by_kind': True,
+        'excludes': ['frames', '*/frames'],
+        'include_sets': ['clips-video'],
+        'kinds': ['video'],
         'fail_on_warnings': True,
         'max_warning_files': 0,
         'max_total_warnings': 0,
@@ -293,11 +403,13 @@ def build_parser():
     parser = argparse.ArgumentParser(description='Snelle sanity-check voor video-, audio- en image-output.')
     parser.add_argument('paths', nargs='*', help='Een of meer mediabestanden om te inspecteren')
     parser.add_argument('--dir', dest='directory', help='Inspecteer alle ondersteunde mediabestanden in deze map')
+    parser.add_argument('--dir-alias', choices=sorted(DIR_ALIASES), help='Gebruik een herbruikbare map-alias voor terugkerende scanroutes')
     parser.add_argument('--recursive', action='store_true', help='Doorzoek submappen ook bij --dir')
     parser.add_argument('--kind', dest='kinds', choices=['audio', 'image', 'video'], nargs='+', help='Beperk de check tot alleen deze mediatypes')
     parser.add_argument('--exclude', dest='excludes', action='append', default=[], help='Sla paden/bestandsnamen over via glob-pattern, herhaalbaar')
     parser.add_argument('--exclude-set', dest='exclude_sets', choices=sorted(EXCLUDE_SETS), action='append', default=[], help='Gebruik een herbruikbare set exclude-patterns voor veelvoorkomende outputmappen, herhaalbaar')
     parser.add_argument('--include', dest='includes', action='append', default=[], help='Neem alleen paden/bestandsnamen mee die matchen met dit glob-pattern, herhaalbaar')
+    parser.add_argument('--include-set', dest='include_sets', choices=sorted(INCLUDE_SETS), action='append', default=[], help='Gebruik een herbruikbare set include-patterns voor veelvoorkomende artifactgroepen, herhaalbaar')
     parser.add_argument('--name-contains', dest='name_contains', action='append', default=[], help='Neem alleen bestanden mee waarvan de bestandsnaam deze substring bevat, herhaalbaar')
     parser.add_argument('--name-not-contains', dest='name_not_contains', action='append', default=[], help='Sla bestanden over waarvan de bestandsnaam deze substring bevat, herhaalbaar')
     parser.add_argument('--json', action='store_true', help='Geef output als JSON')
@@ -346,10 +458,29 @@ def apply_preset_defaults(args):
     return args
 
 
+def resolve_directory(args, parser):
+    if args.directory and args.dir_alias:
+        parser.error('gebruik niet tegelijk --dir en --dir-alias')
+    if args.dir_alias:
+        return Path(DIR_ALIASES[args.dir_alias]).expanduser().resolve()
+    if args.directory:
+        return Path(args.directory).expanduser().resolve()
+    return None
+
+
 def expand_exclude_patterns(args):
     combined = list(args.excludes or [])
     for set_name in args.exclude_sets or []:
         for pattern in EXCLUDE_SETS[set_name]:
+            if pattern not in combined:
+                combined.append(pattern)
+    return combined
+
+
+def expand_include_patterns(args):
+    combined = list(args.includes or [])
+    for set_name in args.include_sets or []:
+        for pattern in INCLUDE_SETS[set_name]:
             if pattern not in combined:
                 combined.append(pattern)
     return combined
@@ -391,11 +522,13 @@ def name_matches(path: Path, includes=None, excludes=None):
 def collect_paths(args, parser):
     requested_kinds = set(args.kinds or [])
     exclude_patterns = expand_exclude_patterns(args)
+    include_patterns = expand_include_patterns(args)
+    directory = resolve_directory(args, parser)
     collected = []
 
     for raw_path in args.paths:
         path = Path(raw_path)
-        if args.includes and not path_matches_patterns(path, args.includes):
+        if include_patterns and not path_matches_patterns(path, include_patterns):
             continue
         if is_excluded(path, exclude_patterns):
             continue
@@ -406,13 +539,12 @@ def collect_paths(args, parser):
             continue
         collected.append(path)
 
-    if args.directory:
-        directory = Path(args.directory).expanduser().resolve()
+    if directory:
         if not directory.is_dir():
             parser.error(f'geen map: {directory}')
         iterator = directory.rglob('*') if args.recursive else directory.iterdir()
         for path in sorted(iterator):
-            if args.includes and not path_matches_patterns(path, args.includes):
+            if include_patterns and not path_matches_patterns(path, include_patterns):
                 continue
             if is_excluded(path, exclude_patterns):
                 continue
@@ -424,7 +556,7 @@ def collect_paths(args, parser):
                     continue
                 collected.append(path)
     if not collected:
-        if args.includes:
+        if include_patterns:
             parser.error('geen mediabestanden gevonden na include-filters')
         if args.name_contains or args.name_not_contains:
             parser.error('geen mediabestanden gevonden na naamfilters')
@@ -469,11 +601,13 @@ def build_payload(args, summary, displayed_results, fail_reasons, exit_code, kin
         'generated_at': datetime.now(timezone.utc).isoformat(),
         'preset': args.preset,
         'fail_profile': args.fail_profile,
-        'directory': args.directory,
+        'directory': str(resolve_directory(args, build_parser())) if (args.directory or args.dir_alias) else None,
+        'dir_alias': args.dir_alias,
         'kinds': sorted(args.kinds) if args.kinds else None,
         'excludes': expand_exclude_patterns(args) or None,
         'exclude_sets': args.exclude_sets or None,
-        'includes': args.includes or None,
+        'includes': expand_include_patterns(args) or None,
+        'include_sets': args.include_sets or None,
         'name_contains': args.name_contains or None,
         'name_not_contains': args.name_not_contains or None,
         'warnings_only': args.warnings_only,
@@ -499,17 +633,23 @@ def render_text_report(args, summary, displayed_results, fail_reasons, kind_summ
         lines.append(f'preset: {args.preset}')
     if args.fail_profile:
         lines.append(f'fail-profile: {args.fail_profile}')
-    if args.directory:
-        lines.append(f'directory: {Path(args.directory).expanduser().resolve()}')
+    directory = resolve_directory(args, build_parser())
+    if args.dir_alias:
+        lines.append(f'dir-alias: {args.dir_alias}')
+    if directory:
+        lines.append(f'directory: {directory}')
     if args.kinds:
         lines.append(f"kinds: {', '.join(sorted(args.kinds))}")
     if args.exclude_sets:
         lines.append(f"exclude-sets: {', '.join(args.exclude_sets)}")
+    if args.include_sets:
+        lines.append(f"include-sets: {', '.join(args.include_sets)}")
     expanded_excludes = expand_exclude_patterns(args)
     if expanded_excludes:
         lines.append(f"excludes: {', '.join(expanded_excludes)}")
-    if args.includes:
-        lines.append(f"includes: {', '.join(args.includes)}")
+    expanded_includes = expand_include_patterns(args)
+    if expanded_includes:
+        lines.append(f"includes: {', '.join(expanded_includes)}")
     if args.name_contains:
         lines.append(f"name-contains: {', '.join(args.name_contains)}")
     if args.name_not_contains:

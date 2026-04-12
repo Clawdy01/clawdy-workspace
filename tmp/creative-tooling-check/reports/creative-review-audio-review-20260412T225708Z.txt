@@ -1,0 +1,20 @@
+Media sanity check
+preset: creative-audio-review
+dir-alias: creative-tooling-check
+directory: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check
+kinds: audio
+exclude-sets: artifact-defaults
+include-sets: audio-wav
+excludes: reports, helper-*
+includes: *.wav
+summary: total=2 ok=2 warnings=0 total-warning-messages=0
+summary-by-kind:
+  - audio: total=2 ok=2 warnings=0
+- audio: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-tone-normalized.wav
+  size: 64080 bytes
+  duration: 1.000s
+  audio: sr=16000 ch=1
+- audio: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-tone.wav
+  size: 64080 bytes
+  duration: 1.000s
+  audio: sr=16000 ch=1

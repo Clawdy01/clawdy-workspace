@@ -428,8 +428,162 @@ Live geverifieerd op 2026-04-13:
 - `frame-export-review --json` gaf schoon `total=3 ok=3 warnings=0` met alleen image-output
 - directe `--exclude-set artifact-defaults` run gaf schoon `total=7 ok=7 warnings=0`
 
+## Include-sets nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--include-set`, zodat terugkerende artifactgroepen met korte herbruikbare bundels geselecteerd kunnen worden.
+
+Beschikbare include-sets:
+- `frame-png` → `frame-*.png`
+- `clips-video` → `*.mp4`, `*.mov`, `*.mkv`, `*.webm`
+- `audio-wav` → `*.wav`
+
+Nieuwe profielen:
+- preset `frame-png-review`
+- preset `clip-video-review`
+- fail-profile `frame-png-strict`
+- fail-profile `clip-video-strict`
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --include-set frame-png --exclude-set artifact-defaults --summary-by-kind
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --preset frame-png-review --json
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --fail-profile clip-video-strict --jsonl --jsonl-summary-only
+```
+
+Live geverifieerd op 2026-04-13:
+- `--include-set frame-png --exclude-set artifact-defaults` gaf `total=3`, `ok=3`, `warnings=0`
+- `frame-png-review --json` gaf een schone frame-only samenvatting met `summary_by_kind.image.total=3`
+- `clip-video-strict --jsonl --jsonl-summary-only` gaf een compact groen event met `total=2`, `ok=2`, `warnings=0`
+
+## Map-aliasen nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--dir-alias`, zodat terugkerende scanroutes in de lokale creative-tooling testlayout niet steeds als volledig pad hoeven te worden herhaald.
+
+Beschikbare aliasen:
+- `creative-tooling-check` → `tmp/creative-tooling-check`
+- `creative-reports` → `tmp/creative-tooling-check/reports`
+- `creative-helper-frames` → `tmp/creative-tooling-check/helper-frames`
+- `creative-helper-test` → `tmp/creative-tooling-check/helper-test`
+- `creative-helper-test-frames` → `tmp/creative-tooling-check/helper-test/frames`
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir-alias creative-tooling-check --preset artifact-review
+python3 scripts/media-sanity-check.py --dir-alias creative-helper-test-frames --summary-by-kind --json
+python3 scripts/media-sanity-check.py --dir-alias creative-tooling-check --recursive --include-set clips-video --jsonl --jsonl-summary-only
+```
+
+Live geverifieerd op 2026-04-13:
+- `--dir-alias creative-tooling-check --preset artifact-review` gaf schoon `total=7 ok=7 warnings=0`
+- `--dir-alias creative-helper-test-frames --summary-by-kind --json` gaf schoon `total=2 ok=2 warnings=0`
+- `--dir-alias creative-tooling-check --recursive --include-set clips-video --jsonl --jsonl-summary-only` gaf compact groen event met `total=4 ok=4 warnings=0`
+
+Nut:
+- minder herhaling in terugkerende lokale scancommando's
+- sneller wisselen tussen hoofdmap, helper-output en frame-submappen
+- combineert netjes met bestaande presets, include-sets en JSONL-runs
+
+## Workflowprofielen bovenop map-aliasen nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook complete preset/fail-profielen die meteen een vaste `--dir-alias` meenemen. Daardoor zijn terugkerende reviewroutes voor de lokale creative-tooling layout nu één kort commando per use-case.
+
+Nieuwe presets:
+- `creative-mixed-review` → hele `creative-tooling-check` map, recursief, `summary_by_kind`, standaard artifact-uitsluiting
+- `creative-audio-review` → audio-only review op `creative-tooling-check` met `audio-wav`
+- `creative-helper-frames-review` → frame-only review op `creative-helper-frames`
+- `creative-helper-clips-review` → clip-only review op `creative-helper-test`, met uitsluiting van `frames/`
+
+Nieuwe fail-profielen:
+- `creative-mixed-strict`
+- `creative-audio-strict`
+- `creative-helper-frames-strict`
+- `creative-helper-clips-strict`
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --preset creative-mixed-review
+python3 scripts/media-sanity-check.py --preset creative-helper-frames-review --json
+python3 scripts/media-sanity-check.py --fail-profile creative-helper-clips-strict --jsonl --jsonl-summary-only
+python3 scripts/media-sanity-check.py --fail-profile creative-audio-strict --json
+```
+
+Live geverifieerd op 2026-04-13:
+- `creative-mixed-review` gaf schoon `total=7 ok=7 warnings=0` met `audio=2`, `image=3`, `video=2`
+- `creative-helper-frames-review --json` gaf schoon `total=2 ok=2 warnings=0` op de helper-frame-map
+- `creative-helper-clips-strict --jsonl --jsonl-summary-only` gaf een compact groen event met `total=1 ok=1 warnings=0`
+
+## CI-wrapper suites nu beschikbaar
+`scripts/creative-review.py` bestond al als korte wrapper rond de vaste creative review-profielen, en ondersteunt nu ook suites zodat alle vaste review- of strict-routes in één run kunnen worden afgewerkt inclusief rapport-artifacts per subrun.
+
+Nieuwe suite-routes:
+- `review-suite` → draait `mixed-review`, `audio-review`, `helper-frames-review`, `helper-clips-review`
+- `strict-suite` → draait `mixed-strict`, `audio-strict`, `helper-frames-strict`, `helper-clips-strict`
+
+Voorbeelden:
+```bash
+python3 scripts/creative-review.py review-suite --report --timestamped
+python3 scripts/creative-review.py strict-suite --report --timestamped
+```
+
+Live geverifieerd op 2026-04-13:
+- `review-suite --report --timestamped` draaide alle vier review-routes schoon en schreef per route een timestamped artifact naar `tmp/creative-tooling-check/reports/`
+- `strict-suite --report --timestamped` draaide alle vier strikte routes schoon en schreef JSON/JSONL-artifacts per route weg
+- suites geven per subrun een duidelijke sectiekop op stderr zodat CI/logs nog leesbaar blijven
+- `creative-audio-strict --json` gaf schoon `total=2 ok=2 warnings=0`
+
+Nut:
+- vaste reviewroutes nu met één kort profiel in plaats van alias + include/exclude-stapel
+- mixed, audio, helper-frames en helper-clips hebben nu elk een herbruikbare review- én strict-route
+- minder kans op profiel/alias-mismatches in terugkerende checks
+
+## Kleine wrapper-commando's nu beschikbaar
+`script/creative-review.py` bundelt de vaste creative review- en strict-routes in korte wrapper-commando's bovenop `media-sanity-check.py`.
+
+Beschikbare modes:
+- `mixed-review`
+- `audio-review`
+- `helper-frames-review`
+- `helper-clips-review`
+- `mixed-strict`
+- `audio-strict`
+- `helper-frames-strict`
+- `helper-clips-strict`
+
+Voorbeelden:
+```bash
+python3 scripts/creative-review.py mixed-review
+python3 scripts/creative-review.py helper-clips-strict --report --timestamped
+python3 scripts/creative-review.py audio-strict --format json
+```
+
+Wat de wrapper doet:
+- kiest automatisch de juiste preset of fail-profile
+- kiest een logisch stdout-formaat per mode
+- kan optioneel direct rapportartifacts wegschrijven naar `tmp/creative-tooling-check/reports/`
+- ondersteunt `--timestamped` en `--append` voor terugkerende runs
+
+Live geverifieerd op 2026-04-13:
+- `mixed-review` gaf schoon `total=7`, `ok=7`, `warnings=0`
+- `helper-clips-strict --report --timestamped` gaf een compact groen JSONL-event met `total=1`, `ok=1`, `warnings=0`
+- bevestigd rapportartifact: `tmp/creative-tooling-check/reports/creative-review-helper-clips-strict-20260412T225552Z.jsonl`
+
+## Daglogmodus nu beschikbaar
+`scripts/creative-review.py` ondersteunt nu ook `--daylog`, zodat terugkerende review-runs compacte JSONL summary-events per UTC-dag naar één gedeeld logbestand appenden.
+
+Voorbeelden:
+```bash
+python3 scripts/creative-review.py review-suite --daylog
+python3 scripts/creative-review.py strict-suite --daylog
+```
+
+Live geverifieerd op 2026-04-13:
+- `review-suite --daylog` draaide alle vier review-routes schoon
+- bevestigde daglog-output: `tmp/creative-tooling-check/reports/creative-review-daylog-20260412.jsonl`
+- het daglogbestand bevat nu per subrun één compact JSONL-event met `summary_only: true`, inclusief `preset`, `dir_alias`, totals en `summary_by_kind`
+
+Nut:
+- terugkerende creative checks kunnen nu naar één append-vriendelijk dagartifact loggen zonder per run losse timestamp-bestanden te maken
+- suites bouwen zo een compact dagspoor op dat makkelijk te tailen of later te verwerken is
+
 ## Aanbevolen volgende stap
-- Kleine follow-up: preset include-sets of pad-aliasen bundelen voor nog vaker terugkerende scanroutes
+- Kleine follow-up: artifact-pruning toevoegen voor oudere timestamped reports of overtollige daglogs
 
 ## Kind-filtering nu beschikbaar
 `scripts/media-sanity-check.py` ondersteunt nu ook `--kind`, zodat batch-checks gericht alleen `audio`, `image` en/of `video` meenemen.
