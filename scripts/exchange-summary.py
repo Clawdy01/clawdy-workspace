@@ -2,6 +2,7 @@
 import argparse
 import json
 import subprocess
+from datetime import datetime, timedelta, UTC
 from pathlib import Path
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
@@ -27,11 +28,34 @@ def is_parked_task(task):
     )
 
 
+def parse_dt(value):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+    except ValueError:
+        return None
+
+
+def is_notification_mail(item):
+    subject = str(item.get('subject') or '').lower()
+    sender_name = str(item.get('from_name') or '').lower()
+    sender_email = str(item.get('from_email') or '').lower()
+    preview = str(item.get('preview') or '').lower()
+    haystack = ' '.join([subject, sender_name, sender_email, preview])
+    markers = [
+        'github', 'gitlab', 'notification', 'noreply', 'no-reply', 'do-not-reply',
+        'mailer-daemon', 'automated', 'automatisch', 'alert', 'digest', 'newsletter',
+    ]
+    return any(marker in haystack for marker in markers)
+
+
 def sort_tasks(tasks):
     def key(task):
-        due = task.get('due_date') or '9999-99-99T99:99:99Z'
+        due_dt = parse_dt(task.get('due_date'))
+        due_key = due_dt.isoformat() if due_dt else '9999-99-99T99:99:99+00:00'
         parked = is_parked_task(task)
-        return (parked, due, str(task.get('subject') or '').lower())
+        return (parked, due_key, str(task.get('subject') or '').lower())
     return sorted(tasks, key=key)
 
 
@@ -47,15 +71,38 @@ def build_summary(hours: int, inbox_limit: int, task_limit: int):
     open_tasks = sort_tasks([t for t in task_items if (t.get('status') or '').lower() != 'completed'])
     active_open_tasks = [t for t in open_tasks if not is_parked_task(t)]
     parked_open_tasks = [t for t in open_tasks if is_parked_task(t)]
+    actionable_unread_items = [item for item in unread_items if not is_notification_mail(item)]
+    notification_unread_items = [item for item in unread_items if is_notification_mail(item)]
+
+    now = datetime.now(UTC)
+    next_24h = now + timedelta(hours=24)
+    upcoming_soon_items = [
+        item for item in calendar_items
+        if (start := parse_dt(item.get('start'))) is not None and start <= next_24h
+    ]
+    overdue_active_tasks = [
+        item for item in active_open_tasks
+        if (due := parse_dt(item.get('due_date'))) is not None and due < now
+    ]
 
     next_action = None
-    if unread_items:
-        first = unread_items[0]
+    if upcoming_soon_items:
+        first = sorted(upcoming_soon_items, key=lambda item: parse_dt(item.get('start')) or next_24h)[0]
+        next_action = f"check eerstvolgende afspraak binnen 24 uur: {first.get('subject') or '(geen onderwerp)'}"
+    elif actionable_unread_items:
+        first = actionable_unread_items[0]
         sender = first.get('from_name') or first.get('from_email') or 'onbekend'
         next_action = f"review unread mail van {sender}: {first.get('subject') or '(geen onderwerp)'}"
+    elif overdue_active_tasks:
+        first = overdue_active_tasks[0]
+        next_action = f"werk overdue taak bij: {first.get('subject') or '(geen onderwerp)'}"
     elif active_open_tasks:
         first = active_open_tasks[0]
         next_action = f"werk actieve taak bij: {first.get('subject') or '(geen onderwerp)'}"
+    elif notification_unread_items:
+        first = notification_unread_items[0]
+        sender = first.get('from_name') or first.get('from_email') or 'onbekend'
+        next_action = f"scan notificatie-mail van {sender}: {first.get('subject') or '(geen onderwerp)'}"
     elif calendar_items:
         first = calendar_items[0]
         next_action = f"check eerstvolgende afspraak: {first.get('subject') or '(geen onderwerp)'}"
@@ -70,22 +117,30 @@ def build_summary(hours: int, inbox_limit: int, task_limit: int):
         },
         'unread': {
             'count': len(unread_items),
+            'actionable_count': len(actionable_unread_items),
+            'notification_count': len(notification_unread_items),
             'items': unread_items,
+            'actionable_items': actionable_unread_items,
+            'notification_items': notification_unread_items,
         },
         'calendar': {
             'hours': hours,
             'count': len(calendar_items),
+            'soon_count': len(upcoming_soon_items),
             'items': calendar_items,
+            'soon_items': sorted(upcoming_soon_items, key=lambda item: parse_dt(item.get('start')) or next_24h),
         },
         'tasks': {
             'count': len(task_items),
             'open_count': len(open_tasks),
             'active_open_count': len(active_open_tasks),
             'parked_open_count': len(parked_open_tasks),
+            'overdue_active_count': len(overdue_active_tasks),
             'items': task_items,
             'open_items': open_tasks,
             'active_open_items': active_open_tasks,
             'parked_open_items': parked_open_tasks,
+            'overdue_active_items': overdue_active_tasks,
         },
         'next_action': next_action,
     }
@@ -99,21 +154,29 @@ def render_text(summary):
         lines.append(f"- inbox unread (server): {chk['inbox_unread_count']}")
 
     unread = summary['unread']
-    lines.append(f"- unread nu: {unread['count']}")
-    if unread['items']:
-        item = unread['items'][0]
+    lines.append(f"- unread nu: {unread['count']} ({unread['actionable_count']} actiegericht, {unread['notification_count']} notificatie)")
+    if unread['actionable_items']:
+        item = unread['actionable_items'][0]
         sender = item.get('from_name') or item.get('from_email') or 'onbekend'
-        lines.append(f"- eerstvolgende unread: {sender} — {item.get('subject') or '(geen onderwerp)'}")
+        lines.append(f"- eerstvolgende actiegerichte unread: {sender} — {item.get('subject') or '(geen onderwerp)'}")
+    elif unread['notification_items']:
+        item = unread['notification_items'][0]
+        sender = item.get('from_name') or item.get('from_email') or 'onbekend'
+        lines.append(f"- eerstvolgende notificatie-unread: {sender} — {item.get('subject') or '(geen onderwerp)'}")
 
     cal = summary['calendar']
-    lines.append(f"- agenda komende {cal['hours']} uur: {cal['count']}")
+    lines.append(f"- agenda komende {cal['hours']} uur: {cal['count']} ({cal['soon_count']} binnen 24 uur)")
     if cal['items']:
         item = cal['items'][0]
         lines.append(f"- eerstvolgende afspraak: {item.get('start') or '?'} — {item.get('subject') or '(geen onderwerp)'}")
 
     tasks = summary['tasks']
-    lines.append(f"- taken: {tasks['count']} totaal, {tasks['open_count']} open ({tasks['active_open_count']} actief, {tasks['parked_open_count']} geparkeerd)")
-    if tasks['active_open_items']:
+    lines.append(f"- taken: {tasks['count']} totaal, {tasks['open_count']} open ({tasks['active_open_count']} actief, {tasks['parked_open_count']} geparkeerd, {tasks['overdue_active_count']} overdue)")
+    if tasks['overdue_active_items']:
+        item = tasks['overdue_active_items'][0]
+        due = f" due {item.get('due_date')}" if item.get('due_date') else ''
+        lines.append(f"- eerstvolgende overdue taak: {item.get('subject') or '(geen onderwerp)'} [{item.get('status') or 'unknown'}]{due}")
+    elif tasks['active_open_items']:
         item = tasks['active_open_items'][0]
         due = f" due {item.get('due_date')}" if item.get('due_date') else ''
         lines.append(f"- eerstvolgende actieve taak: {item.get('subject') or '(geen onderwerp)'} [{item.get('status') or 'unknown'}]{due}")
