@@ -5,6 +5,7 @@ REPO="/home/clawdy/.openclaw/workspace"
 LOCK="/tmp/clawdy-git-auto-push.lock"
 SSH_KEY="/home/clawdy/.ssh/id_ed25519_github_clawdy"
 BRANCH="$(git -C "$REPO" branch --show-current)"
+SSH_CMD="ssh -i $SSH_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 
 exec 9>"$LOCK"
 if ! flock -n 9; then
@@ -30,17 +31,27 @@ if [[ -n "$(git -C "$REPO" status --porcelain)" ]]; then
   fi
 fi
 
-if [[ -z "$(git -C "$REPO" rev-list --left-right --count "origin/$BRANCH...HEAD" 2>/dev/null || true)" ]]; then
-  git -C "$REPO" remote -v >/dev/null
+UPSTREAM="$(git -C "$REPO" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
+REMOTE_BRANCH_EXISTS="$(GIT_SSH_COMMAND="$SSH_CMD" git -C "$REPO" ls-remote --heads origin "$BRANCH" 2>/dev/null || true)"
+
+if [[ -n "$UPSTREAM" ]]; then
+  AHEAD="$(git -C "$REPO" rev-list --left-right --count "$UPSTREAM...HEAD" 2>/dev/null | awk '{print $2}' || echo 0)"
+else
+  AHEAD="$(git -C "$REPO" rev-list --count HEAD 2>/dev/null || echo 0)"
 fi
 
-AHEAD="$(git -C "$REPO" rev-list --left-right --count "origin/$BRANCH...HEAD" 2>/dev/null | awk '{print $2}' || echo 0)"
-if [[ "${AHEAD:-0}" == "0" ]] && [[ -z "$(git -C "$REPO" status --porcelain)" ]]; then
+if [[ "${AHEAD:-0}" == "0" ]] && [[ -n "$UPSTREAM" ]] && [[ -z "$(git -C "$REPO" status --porcelain)" ]]; then
   echo "NO_CHANGES"
   exit 0
 fi
 
-GIT_SSH_COMMAND="ssh -i $SSH_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
-  git -C "$REPO" push origin "$BRANCH" >/dev/null
+if [[ -z "$REMOTE_BRANCH_EXISTS" ]]; then
+  GIT_SSH_COMMAND="$SSH_CMD" git -C "$REPO" push -u origin "$BRANCH" >/dev/null
+else
+  GIT_SSH_COMMAND="$SSH_CMD" git -C "$REPO" push origin "$BRANCH" >/dev/null
+  if [[ "$UPSTREAM" != "origin/$BRANCH" ]]; then
+    git -C "$REPO" branch --set-upstream-to="origin/$BRANCH" "$BRANCH" >/dev/null 2>&1 || true
+  fi
+fi
 
 echo "PUSHED"
