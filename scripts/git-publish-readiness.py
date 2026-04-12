@@ -177,6 +177,9 @@ def build_summary():
         else:
             tracked_risks.append(path)
 
+    expected_upstream = f'origin/{branch}'
+    upstream_matches_branch = upstream['upstream'] == expected_upstream if upstream['has_upstream'] else False
+
     publish_blockers = []
     if tracked_risks:
         publish_blockers.append('tracked_sensitive_paths')
@@ -190,6 +193,8 @@ def build_summary():
         publish_blockers.append('missing_origin')
     if not upstream['has_upstream']:
         publish_blockers.append('missing_upstream')
+    elif not upstream_matches_branch:
+        publish_blockers.append('upstream_branch_mismatch')
 
     next_hint = 'repo oogt klaar voor private remote + eerste push'
     if tracked_risks:
@@ -200,6 +205,8 @@ def build_summary():
         next_hint = 'publish-selectie oogt beter; volgende stap is private remote toevoegen en eerste push voorbereiden'
     elif not upstream['has_upstream']:
         next_hint = 'origin bestaat al; volgende stap is branch koppelen met upstream via de eerste push'
+    elif not upstream_matches_branch:
+        next_hint = f'upstream wijst nog naar {upstream["upstream"]}; koppel {branch} aan origin/{branch} via een nieuwe push -u'
     elif upstream['ahead']:
         next_hint = 'upstream bestaat; volgende stap is lokale commits pushen'
 
@@ -215,6 +222,8 @@ def build_summary():
         'publish_blockers': publish_blockers,
         'has_upstream': upstream['has_upstream'],
         'upstream': upstream['upstream'],
+        'expected_upstream': expected_upstream,
+        'upstream_matches_branch': upstream_matches_branch,
         'ahead_count': upstream['ahead'],
         'behind_count': upstream['behind'],
         'tracked_changed_count': len(tracked_changed),
@@ -247,6 +256,8 @@ def render_text(summary):
     lines.append(f"- upstream: {'ja' if summary['has_upstream'] else 'nee'}")
     if summary['upstream']:
         lines.append(f"- upstream ref: {summary['upstream']} (ahead {summary['ahead_count']}, behind {summary['behind_count']})")
+    lines.append(f"- expected upstream: {summary['expected_upstream']}")
+    lines.append(f"- upstream matcht branch: {'ja' if summary['upstream_matches_branch'] else 'nee'}")
     if summary.get('publish_blockers'):
         lines.append(f"- blockers: {', '.join(summary['publish_blockers'])}")
     lines.append(f"- tracked gewijzigd: {summary['tracked_changed_count']}, untracked: {summary['untracked_count']}")

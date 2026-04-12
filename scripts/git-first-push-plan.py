@@ -49,9 +49,10 @@ def main():
     if not readiness.get('has_origin'):
         commands.append(f'git remote add origin {remote_url}')
     commands.append('git status --short --branch')
+    needs_upstream_fix = not readiness.get('has_upstream') or not readiness.get('upstream_matches_branch', False)
     if renaming_branch:
         commands.append(f'git push -u origin {branch}')
-    elif not readiness.get('has_upstream'):
+    elif needs_upstream_fix:
         commands.append(f'git push -u origin {branch}')
     elif readiness.get('ahead_count'):
         commands.append(f'git push origin {branch}')
@@ -67,6 +68,8 @@ def main():
         'publish_blockers': readiness.get('publish_blockers', []),
         'has_upstream': readiness.get('has_upstream', False),
         'upstream': readiness.get('upstream'),
+        'expected_upstream': readiness.get('expected_upstream'),
+        'upstream_matches_branch': readiness.get('upstream_matches_branch', False),
         'ahead_count': readiness.get('ahead_count'),
         'behind_count': readiness.get('behind_count'),
         'renaming_branch': renaming_branch,
@@ -90,6 +93,9 @@ def main():
         print(f"- upstream aanwezig: {'ja' if summary['has_upstream'] else 'nee'}")
         if summary['upstream']:
             print(f"- upstream ref: {summary['upstream']} (ahead {summary['ahead_count']}, behind {summary['behind_count']})")
+        if summary['expected_upstream']:
+            print(f"- expected upstream: {summary['expected_upstream']}")
+            print(f"- upstream matcht branch: {'ja' if summary['upstream_matches_branch'] else 'nee'}")
         if summary['renaming_branch']:
             print(f"- branch-rename nodig: ja ({current_branch} -> {branch})")
         if summary['publish_blockers']:
