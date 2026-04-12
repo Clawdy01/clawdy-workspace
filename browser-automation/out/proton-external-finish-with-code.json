@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-04-08T19:14:51.256Z",
+  "email": "clawdy01@christiandekok.nl",
+  "password": ")sbSLAU)5*9Js&$P0y-CUMJVoLXa",
+  "passwordLength": 28,
+  "fetchedCode": "395321",
+  "mailSubject": "Proton Verification Code",
+  "retryCode": null,
+  "fillResult": {
+    "mode": "single",
+    "field": "verification",
+    "verifyDisabled": false
+  },
+  "verifyButtonVisible": true,
+  "finalStartVisible": false,
+  "finalStartDisabled": null,
+  "screenshot": "/home/clawdy/.openclaw/workspace/browser-automation/out/proton-external-finish-with-code.png",
+  "result": {
+    "title": "Create a Proton Account | Take back your privacy",
+    "url": "https://account.proton.me/start",
+    "text": "Already have an account? Sign in Set your password Use your email, or get a secure Proton Mail address. Password Strong Get started Loading End-to-end encrypted By continuing, you agree to our terms and conditions and privacy policy. Every free account comes with: Mail Calendar VPN Drive Pass Lumo Encrypted email with 1 GB storage 1 address, 3 calendars 2000+ VPN servers in 10 countries 5 GB cloud storage for files and photos Collaborative documents and spreadsheets Password manager for all your devices Private AI assistant with encrypted chat history Privacy policy Terms Need help? English Email address verification Close Invalid verification code Would you like to receive a new verification code? Request new code",
+    "interestingSignals": [
+      "account",
+      "pass",
+      "email",
+      "mail",
+      "verification",
+      "invalid",
+      "code"
+    ]
+  }
+}

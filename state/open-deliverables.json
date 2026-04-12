@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "id": "d-current-images",
+      "title": "Maak de Clawdy-afbeeldingen opnieuw met een echte beeldroute en verstuur ze correct",
+      "source": "chat",
+      "status": "done",
+      "createdAt": 1775893200,
+      "updatedAt": 1775900070,
+      "notes": "Afgerond op 2026-04-11: twee nieuwe Clawdy-afbeeldingen lokaal via SVG->PNG route gemaakt, PNG-output geverifieerd, en als echte Telegram-media afgeleverd in chat 16584407 (message_id 1166 en 1167)."
+    }
+  ]
+}

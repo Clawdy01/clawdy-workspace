@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-04-12T03:43:41Z",
+  "url": "https://vault.bitwarden.com/#/login",
+  "display": ":99",
+  "success": true,
+  "error": "",
+  "durationSeconds": 25,
+  "startedXvfb": true,
+  "startedOpenbox": true,
+  "chromiumBin": "chromium-browser",
+  "windowCount": 1,
+  "screenshotPath": "desktop.png",
+  "numberedScreenshotPath": "desktop_014.png",
+  "keepScreenshots": 6,
+  "prunedScreenshotCount": 1,
+  "windowsPreview": "0x00400003  0 openclaw01 Bitwarden Web vault - Chromium"
+}

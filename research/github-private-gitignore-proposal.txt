@@ -1,0 +1,32 @@
+# Voorstel .gitignore voor eerste private GitHub push
+# Doel: lokale state, memory en runtime-restanten niet mee publiceren
+
+# OpenClaw runtime / local state
+.openclaw/
+state/
+
+# Memory / persoonlijke context
+MEMORY.md
+memory/
+HEARTBEAT.md
+USER.md
+TOOLS.md
+
+# Lokale venvs / caches
+.venv/
+.venv*/
+.venv-*/
+__pycache__/
+*.pyc
+
+# Browser automation outputs / screenshots
+browser-automation/out/
+browser-automation/out-*/
+
+# Lokale media / tijdelijke exports
+*.webp
+*.tmp
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

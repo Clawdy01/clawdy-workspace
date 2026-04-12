@@ -1,0 +1,55 @@
+Target email: clawdy01@christiandekok.nl
+Planned product: Proton account with Pass free tier
+
+Observed on 2026-04-07:
+- Start page loads correctly at https://account.proton.me/start
+- No captcha or access-block detected on the initial page load
+- Visible primary action: "Create free account now"
+- Default mode appears to be Proton Mail address creation
+- In that mode the relevant hidden controls are:
+  - label `Username`
+  - input `#username`
+  - domain button `#select-domain` (default `@proton.me`)
+- The toggle "use your current email." switches mode successfully
+- After switching, the relevant hidden control becomes input `#email`
+- In both modes, the actual input field is present in DOM but off-screen/hidden in headless Chromium, while the submit button remains visible
+
+Current status / handoff:
+- The signup form mode is detectable, but the real editable field is hidden/off-screen in headless mode
+- Plain Playwright `fill()` fails because `#username` has `visibility:hidden` and sits around x=-777/y=-451
+- Forcing the field visible via JS makes it focusable and fillable, but submit still resets the value and stays on the start page
+- The visible control is not the DOM input itself: Proton renders an iframe challenge/proxy at the visible field location
+- Visible iframe found at `https://account-api.proton.me/challenge/v4/html?Type=0&Name=email&Lang=en-US&Dir=ltr` with title `Email address`
+- Hidden helper iframe also exists off-screen for `Name=unauth`
+- Interacting inside the visible `Email address` iframe works
+- Filling the iframe input with `clawdy01` propagates into the page-level `#username` value and clicking submit advances to the password step (`Set your password` / `Get started`)
+- Re-tested route on 2026-04-07 16:10Z and confirmed it is reproducible, not a one-off
+- Re-tested again on 2026-04-08 11:09Z and the same route no longer advanced to the password step even though the iframe value still propagated into hidden `#username`; this suggests a Proton flow regression/change rather than a missing mail/code problem
+- Password step is now mapped cleanly after the iframe email step
+- Visible password fields on the main page: `#password` and `#password-confirm`
+- Visible submit button on that step: `Get started`
+- Password step keeps the hidden `#username` value populated (`clawdy01`, `aria-invalid=false`)
+- After transition, the active element is the visible `#password` field
+- No captcha/human-verification prompt is shown yet at the password step itself
+- Safe password-validation probe works without final account creation
+- Test password `Short123!` is accepted into both fields, shows strength feedback `Vulnerable`, and `Get started` remains enabled
+- Next real step would be deciding whether to intentionally submit into the account-creation / possible human-verification phase
+- Update on 2026-04-09: the flow has since progressed far enough that status artifacts now show `account_created=True` and `recovery_kit=True`
+- Current recommended route is `account-created`, which means the automation case has effectively crossed into deliberate manual finish territory rather than more blind retries
+- Latest observed used verification code: `395321`
+- Manual finish checklist:
+  - sla de Recovery Kit bewust op op een veilige plek voordat je verder klikt
+  - log daarna in op Proton met het nieuwe account en bevestig dat Pass beschikbaar is
+  - markeer de laatst gebruikte verificatiecode als afgehandeld in notities
+
+Useful probes:
+- `browser-automation/proton_probe_status.js`
+- `browser-automation/proton_probe_form_details.js`
+- `browser-automation/proton_probe_visible_inputs.js`
+- `browser-automation/proton_probe_toggle_email_mode.js`
+- `browser-automation/proton_probe_username_activation.js`
+- `browser-automation/proton_probe_username_submit_js.js`
+- `browser-automation/proton_probe_input_proxy.js`
+- `browser-automation/proton_probe_iframe_email.js`
+- `browser-automation/proton_to_password_step.js`
+- `browser-automation/proton_probe_password_step.js`

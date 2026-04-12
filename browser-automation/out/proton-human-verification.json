@@ -1,0 +1,89 @@
+{
+  "checkedAt": "2026-04-08T16:16:25.390Z",
+  "username": "clawdy01",
+  "passwordLength": 20,
+  "emailProvided": false,
+  "codeProvided": false,
+  "sendRequested": false,
+  "verifyRequested": false,
+  "screenshot": "/home/clawdy/.openclaw/workspace/browser-automation/out/proton-human-verification.png",
+  "flow": {
+    "ok": false,
+    "stage": "password-step-missing",
+    "snapshot": {
+      "title": "Create a Proton Account | Take back your privacy",
+      "url": "https://account.proton.me/start",
+      "bodyText": "Already have an account? Sign in Sign up to get everything Proton has to offer Get a secure Proton Mail address, or use your current email. Create free account now End-to-end encrypted Every free account comes with: Mail Calendar VPN Drive Pass Lumo Encrypted email with 1 GB storage 1 address, 3 calendars 2000+ VPN servers in 10 countries 5 GB cloud storage for files and photos Collaborative documents and spreadsheets Password manager for all your devices Private AI assistant with encrypted chat history Privacy policy Terms Need help? English",
+      "passwordVisible": false,
+      "passwordConfirmVisible": false,
+      "usernameValue": "clawdy01",
+      "submitButtons": [
+        "use your current email.",
+        "@proton.me",
+        "Create free account now",
+        "Need help?",
+        "English"
+      ]
+    }
+  },
+  "initial": {
+    "title": "Create a Proton Account | Take back your privacy",
+    "url": "https://account.proton.me/start",
+    "verificationScreen": false,
+    "dialogText": "Already have an account? Sign in Sign up to get everything Proton has to offer Get a secure Proton Mail address, or use your current email. Create free account now End-to-end encrypted Every free account comes with: Mail Calendar VPN Drive Pass Lumo Encrypted email with 1 GB storage 1 address, 3 calendars 2000+ VPN servers in 10 countries 5 GB cloud storage for files and photos Collaborative documents and spreadsheets Password manager for all your devices Private AI assistant with encrypted chat history Privacy policy Terms Need help? English",
+    "inputs": [],
+    "buttons": [
+      {
+        "index": 0,
+        "text": "use your current email.",
+        "disabled": false
+      },
+      {
+        "index": 1,
+        "text": "Create free account now",
+        "disabled": false
+      },
+      {
+        "index": 2,
+        "text": "Need help?",
+        "disabled": false
+      },
+      {
+        "index": 3,
+        "text": "English",
+        "disabled": false
+      }
+    ]
+  },
+  "emailAction": null,
+  "codeAction": null,
+  "final": {
+    "title": "Create a Proton Account | Take back your privacy",
+    "url": "https://account.proton.me/start",
+    "verificationScreen": false,
+    "dialogText": "Already have an account? Sign in Sign up to get everything Proton has to offer Get a secure Proton Mail address, or use your current email. Create free account now End-to-end encrypted Every free account comes with: Mail Calendar VPN Drive Pass Lumo Encrypted email with 1 GB storage 1 address, 3 calendars 2000+ VPN servers in 10 countries 5 GB cloud storage for files and photos Collaborative documents and spreadsheets Password manager for all your devices Private AI assistant with encrypted chat history Privacy policy Terms Need help? English",
+    "inputs": [],
+    "buttons": [
+      {
+        "index": 0,
+        "text": "use your current email.",
+        "disabled": false
+      },
+      {
+        "index": 1,
+        "text": "Create free account now",
+        "disabled": false
+      },
+      {
+        "index": 2,
+        "text": "Need help?",
+        "disabled": false
+      },
+      {
+        "index": 3,
+        "text": "English",
+        "disabled": false
+      }
+    ]
+  }
+}

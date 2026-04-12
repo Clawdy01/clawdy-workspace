@@ -1,0 +1,111 @@
+{
+  "checkedAt": "2026-04-08T11:20:53.699Z",
+  "url": "https://account.proton.me/start",
+  "title": "Create a Proton Account | Take back your privacy",
+  "finalUrl": "https://account.proton.me/start",
+  "slug": "probe",
+  "interactives": [
+    {
+      "i": 0,
+      "tag": "A",
+      "role": "",
+      "text": "Sign in",
+      "href": "https://account.proton.me/login",
+      "type": "",
+      "name": "",
+      "id": ""
+    },
+    {
+      "i": 1,
+      "tag": "BUTTON",
+      "role": "",
+      "text": "use your current email.",
+      "href": "",
+      "type": "button",
+      "name": "",
+      "id": ""
+    },
+    {
+      "i": 2,
+      "tag": "INPUT",
+      "role": "",
+      "text": "",
+      "href": "",
+      "type": "",
+      "name": "",
+      "id": "username"
+    },
+    {
+      "i": 3,
+      "tag": "BUTTON",
+      "role": "",
+      "text": "proton.me",
+      "href": "",
+      "type": "button",
+      "name": "",
+      "id": "select-domain"
+    },
+    {
+      "i": 4,
+      "tag": "BUTTON",
+      "role": "",
+      "text": "Create free account now",
+      "href": "",
+      "type": "submit",
+      "name": "",
+      "id": ""
+    },
+    {
+      "i": 5,
+      "tag": "A",
+      "role": "",
+      "text": "Privacy policy",
+      "href": "https://proton.me/legal/privacy",
+      "type": "",
+      "name": "",
+      "id": ""
+    },
+    {
+      "i": 6,
+      "tag": "A",
+      "role": "",
+      "text": "Terms",
+      "href": "https://proton.me/legal/terms",
+      "type": "",
+      "name": "",
+      "id": ""
+    },
+    {
+      "i": 7,
+      "tag": "BUTTON",
+      "role": "",
+      "text": "Need help?",
+      "href": "",
+      "type": "button",
+      "name": "",
+      "id": ""
+    },
+    {
+      "i": 8,
+      "tag": "BUTTON",
+      "role": "",
+      "text": "English",
+      "href": "",
+      "type": "button",
+      "name": "",
+      "id": ""
+    }
+  ],
+  "interactiveCount": 9,
+  "forms": [
+    {
+      "i": 0,
+      "id": "",
+      "name": "accountForm",
+      "action": "",
+      "method": "post"
+    }
+  ],
+  "formCount": 1,
+  "bodyText": "Already have an account? Sign in\nSign up to get everything Proton has to offer\n\nGet a secure Proton Mail address, or use your current email.\n\nCreate free account now\nEnd-to-end encrypted\nEvery free account comes with:\nMail\nCalendar\nVPN\nDrive\nPass\nLumo\nEncrypted email with 1 GB storage\n1 address, 3 calendars\n2000+ VPN servers in 10 countries\n5 GB cloud storage for files and photos\nCollaborative documents and spreadsheets\nPassword manager for all your devices\nPrivate AI assistant with encrypted chat history\nPrivacy policy\nTerms\nNeed help?\nEnglish"
+}

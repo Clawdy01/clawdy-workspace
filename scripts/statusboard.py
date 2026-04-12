@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import subprocess
+from pathlib import Path
+
+from mail_heuristics import (
+    format_attachment_hint,
+    format_cluster_hint,
+    format_next_step_alternative_commands,
+    format_next_step_candidate_hint,
+    format_security_alert_hint,
+    format_stale_attention_hint,
+)
+
+ROOT = Path('/home/clawdy/.openclaw/workspace')
+BRIEF = ROOT / 'scripts' / 'clawdy-brief.py'
+
+
+def run_brief_json():
+    try:
+        proc = subprocess.run(
+            ['python3', str(BRIEF), '--json'],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired:
+        raise SystemExit('clawdy-brief timed out')
+    if proc.returncode != 0:
+        raise SystemExit(proc.stderr.strip() or proc.stdout.strip() or f'clawdy-brief failed: {proc.returncode}')
+    return json.loads(proc.stdout)
+
+
+def render_text(data, show_preview=False):
+    status = data['status']
+    security = data.get('security') or {}
+    recent_mail = data.get('recent_mail') or []
+    recent_mail_current = data.get('recent_mail_current') or []
+    recent_threads = data.get('recent_threads') or []
+    recent_threads_current = data.get('recent_threads_current') or []
+    mail_triage = data.get('mail_triage') or {}
+    mail_focus = data.get('mail_focus') or {}
+    mail_high_recent = data.get('mail_high_recent') or {}
+    mail_next_step = data.get('mail_next_step') or {}
+    mail = data['mail']
+    session = status.get('session') or {}
+
+    lines = []
+    lines.append('Statusboard')
+    lines.append(f"- OpenClaw {status['version']}")
+    lines.append(f"- gateway: {status['gateway']['text']}")
+    lines.append(f"- telegram: {status['telegram']}, heartbeat {status['heartbeat']}")
+    lines.append(
+        f"- taken: {status['tasks']['active']} actief, {status['tasks']['failures']} failures, {status['tasks']['lost']} vermist"
+    )
+    lines.append(
+        f"- audit: {status['audit']['errors']} errors, {status['audit']['warnings']} warns"
+    )
+    lines.append(f"- security: {security.get('text', 'onbekend')}")
+    if session:
+        context = f", {session['percent_used']}% context" if session.get('percent_used') is not None else ''
+        lines.append(
+            f"- sessie: {session.get('age', 'onbekend')}, model {session.get('model', 'onbekend')}, reasoning {session.get('reasoning', 'uit')}{context}"
+        )
+    mail_line = f"- mail: last_uid {mail['last_uid']}, notified {mail['tracked_notifications']} ({mail['account']})"
+    recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))
+    recent_high_groups = mail_high_recent.get('total_related_group_count', mail_high_recent.get('related_group_count', 0))
+    recent_attention_now_count = mail_high_recent.get('total_high_attention_now_count', mail_high_recent.get('total_attention_now_count', mail_high_recent.get('attention_now_count', 0)))
+    if recent_high_count > 0:
+        mail_line += f", hoog recent {recent_high_count}"
+        if recent_high_groups:
+            mail_line += f" in {recent_high_groups} cluster(s)"
+        recent_stale_high_count = mail_high_recent.get('total_high_stale_attention_count', mail_high_recent.get('total_stale_attention_count', mail_high_recent.get('stale_attention_count', 0)))
+        mail_line += f", actueel {recent_attention_now_count}, niet actueel {recent_stale_high_count}"
+        if recent_attention_now_count == 0:
+            mail_line += ", alles niet actueel"
+    lines.append(mail_line)
+    top_high_groups = mail_high_recent.get('top_related_groups') or []
+    if top_high_groups:
+        group_bits = [format_cluster_hint(group, include_age=True) for group in top_high_groups[:2]]
+        remaining = max(0, len(top_high_groups) - len(group_bits))
+        suffix = f" +{remaining} cluster(s)" if remaining else ''
+        lines.append(f"- hoge mailclusters: {'; '.join(group_bits)}{suffix}")
+    if recent_mail_current:
+        latest = recent_mail_current[0]
+        age = f" ({latest.get('age_hint')})" if latest.get('age_hint') else ''
+        line = f"- actuele betekenisvolle mail: #{latest.get('uid', '?')} {latest.get('from', 'onbekend')}: {latest.get('subject', '(geen onderwerp)')}{format_attachment_hint(latest)}{format_security_alert_hint(latest)}{age}{format_stale_attention_hint(latest)}"
+        if show_preview and latest.get('preview'):
+            line += f" — {latest.get('preview')[:140]}"
+        lines.append(line)
+    elif recent_mail:
+        latest = recent_mail[0]
+        age = f" ({latest.get('age_hint')})" if latest.get('age_hint') else ''
+        line = f"- laatste betekenisvolle mail: #{latest.get('uid', '?')} {latest.get('from', 'onbekend')}: {latest.get('subject', '(geen onderwerp)')}{format_attachment_hint(latest)}{format_security_alert_hint(latest)}{age}{format_stale_attention_hint(latest)}"
+        if show_preview and latest.get('preview'):
+            line += f" — {latest.get('preview')[:140]}"
+        lines.append(line)
+    thread = None
+    thread_label = 'actieve thread'
+    if recent_threads_current:
+        thread = recent_threads_current[0]
+    elif recent_threads:
+        thread = recent_threads[0]
+        if thread.get('stale_attention'):
+            thread_label = 'laatste betekenisvolle thread'
+    if thread:
+        stale = ' [niet actueel]' if thread.get('stale_attention') else ''
+        variant_suffix = f", +{thread.get('subject_variant_count', 0) - 1} variant(en)" if (thread.get('subject_variant_count', 0) or 0) > 1 else ''
+        time_bits = [bit for bit in [thread.get('latest_age_hint'), thread.get('span_hint')] if bit]
+        time_suffix = f", {', '.join(time_bits)}" if time_bits else ''
+        lines.append(
+            f"- {thread_label}: {thread.get('subject', '(geen onderwerp)')} ({thread.get('message_count', 0)}x{variant_suffix}, laatste van {thread.get('latest_from', 'onbekend')}{time_suffix}){format_attachment_hint(thread)}{format_security_alert_hint(thread)}{stale}"
+        )
+    triage_items = mail_triage.get('items') or []
+    if triage_items:
+        item = triage_items[0]
+        age = f" ({item.get('age_hint')})" if item.get('age_hint') else ''
+        stale = ' [niet actueel]' if item.get('stale_attention') else ''
+        lines.append(
+            f"- triage eerst: #{item.get('uid', '?')} {item.get('from', 'onbekend')}: {item.get('subject', '(geen onderwerp)')}{format_attachment_hint(item)}{format_security_alert_hint(item)} [{item.get('action_hint', 'ter info')}{' ↩' if item.get('reply_needed') else ''}]{age}{stale}"
+        )
+    focus_item = mail_focus.get('focus')
+    if focus_item:
+        suffix = ' ↩' if focus_item.get('reply_needed') else ''
+        draft_flag = ' + concept' if mail_focus.get('draft') else ''
+        age = f" ({focus_item.get('age_hint')})" if focus_item.get('age_hint') else ''
+        related_burst = mail_focus.get('focus_related_burst_count', 0)
+        exact_burst = mail_focus.get('focus_burst_count', 0)
+        burst = max(related_burst, exact_burst)
+        burst_label = 'verwant' if related_burst > exact_burst else 'soortgelijk'
+        burst_suffix = f' ({burst}x {burst_label})' if burst > 1 else ''
+        focus_line = (
+            f"- focus nu ({mail_focus.get('scope', 'mail')}): #{focus_item.get('uid', '?')} {focus_item.get('from', 'onbekend')}: {focus_item.get('subject', '(geen onderwerp)')}{format_attachment_hint(focus_item)}{format_security_alert_hint(focus_item)} [{focus_item.get('action_hint', 'ter info')}{suffix}]{draft_flag}{burst_suffix}{age}"
+        )
+        if focus_item.get('stale_attention'):
+            focus_line = (
+                f"- geen actuele focus, laatste kandidaat was: #{focus_item.get('uid', '?')} {focus_item.get('from', 'onbekend')}: {focus_item.get('subject', '(geen onderwerp)')}{format_attachment_hint(focus_item)}{format_security_alert_hint(focus_item)} [{focus_item.get('action_hint', 'ter info')}{suffix}]{draft_flag}{burst_suffix}{age} [niet actueel]"
+            )
+        lines.append(focus_line)
+    elif mail_focus.get('fallback_thread'):
+        thread = mail_focus.get('fallback_thread') or {}
+        participants = ', '.join((thread.get('participants') or [])[:2]) or thread.get('latest_from', 'onbekend')
+        extra_people = max(0, len(thread.get('participants') or []) - 2)
+        if extra_people:
+            participants += f' (+{extra_people})'
+        skipped = mail_focus.get('skipped_ephemeral_count', 0)
+        time_bits = [bit for bit in [thread.get('latest_age_hint'), thread.get('span_hint')] if bit]
+        time_suffix = f", {', '.join(time_bits)}" if time_bits else ''
+        stale = ' [niet actueel]' if thread.get('stale_attention') else ''
+        suffix = f", code-noise overgeslagen: {skipped}" if skipped else ''
+        label = 'geen actuele focus, laatste betekenisvolle thread' if thread.get('stale_attention') else 'focus fallback'
+        lines.append(
+            f"- {label}: {participants} — {thread.get('subject', '(geen onderwerp)')} ({thread.get('message_count', 0)}x{time_suffix}){format_attachment_hint(thread)}{suffix}{stale}"
+        )
+    selected_next = mail_next_step.get('selected_group') or {}
+    if mail_next_step.get('recommended_route') and mail_next_step.get('recommended_route') != 'noop' and selected_next:
+        review_only = bool(mail_next_step.get('review_only'))
+        label = 'mail review' if review_only or selected_next.get('stale_attention') else 'mail next'
+        lines.append(
+            f"- {label}: {format_next_step_candidate_hint(selected_next, include_age=True)}"
+            + (' + concept' if mail_next_step.get('selected_draft') else '')
+        )
+        candidates = mail_next_step.get('candidates') or []
+        alternative_candidates = candidates[1:3] if len(candidates) > 1 else []
+        if alternative_candidates:
+            preview = '; '.join(format_next_step_candidate_hint(candidate, include_age=True) for candidate in alternative_candidates)
+            remaining = max(0, len(candidates) - 1 - len(alternative_candidates))
+            suffix = f" +{remaining} meer" if remaining else ''
+            lines.append(f"- mail queue: {preview}{suffix}")
+            command_preview = format_next_step_alternative_commands(alternative_candidates, limit=len(alternative_candidates))
+            if command_preview:
+                lines.append(f"- mail queue commands: {command_preview}")
+        if mail_next_step.get('recommended_command'):
+            command_label = 'mail review command' if review_only or selected_next.get('stale_attention') else 'mail next command'
+            lines.append(f"- {command_label}: {mail_next_step.get('recommended_command')}")
+    return '\n'.join(lines)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Compact statusboard voor command workflows')
+    parser.add_argument('--json', action='store_true', help='geef JSON-output')
+    parser.add_argument('--preview', action='store_true', help='toon korte preview van de laatste mail in tekstoutput')
+    args = parser.parse_args()
+
+    data = run_brief_json()
+    if args.json:
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+    else:
+        print(render_text(data, show_preview=args.preview))
+
+
+if __name__ == '__main__':
+    main()

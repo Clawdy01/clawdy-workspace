@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff3f9"/>
+      <stop offset="45%" stop-color="#f3e8ff"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg3)"/>
+  <circle cx="512" cy="300" r="148" fill="#ffd9c7"/>
+  <path d="M360 292q36-146 152-146 121 0 156 146-33-20-72-24-67-6-112 10-61 22-124 14z" fill="#8b5cf6"/>
+  <path d="M420 220q32-38 92-38 65 0 98 38" fill="none" stroke="#f9a8d4" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="456" cy="315" r="11" fill="#312e81"/>
+  <circle cx="568" cy="315" r="11" fill="#312e81"/>
+  <path d="M456 378q56 35 112 0" fill="none" stroke="#db2777" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="408" cy="348" r="16" fill="#f9a8d4" opacity="0.72"/>
+  <circle cx="616" cy="348" r="16" fill="#f9a8d4" opacity="0.72"/>
+  <path d="M336 532q40-84 176-84 136 0 176 84v186H336z" fill="#a855f7"/>
+  <rect x="250" y="604" width="524" height="238" rx="34" fill="#312e81"/>
+  <rect x="286" y="636" width="452" height="170" rx="20" fill="#ede9fe"/>
+  <text x="512" y="690" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" fill="#6d28d9">Hallo Lisa en Vivian!</text>
+  <text x="512" y="740" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#4338ca">Clawdy tekent sterretjes</text>
+  <text x="512" y="782" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#7c3aed">zacht, vrolijk en een beetje magisch</text>
+  <rect x="466" y="848" width="92" height="22" rx="11" fill="#64748b"/>
+  <rect x="396" y="870" width="232" height="18" rx="9" fill="#94a3b8"/>
+  <circle cx="182" cy="176" r="28" fill="#f9a8d4"/>
+  <circle cx="840" cy="180" r="34" fill="#bfdbfe"/>
+  <circle cx="880" cy="344" r="22" fill="#fde68a"/>
+  <polygon points="188,332 198,356 224,358 204,374 210,398 188,384 166,398 172,374 152,358 178,356" fill="#fef08a"/>
+  <polygon points="794,302 808,338 846,340 816,364 826,402 794,382 762,402 772,364 742,340 780,338" fill="#f9a8d4"/>
+  <polygon points="120,478 132,508 164,510 138,530 146,560 120,542 94,560 102,530 76,510 108,508" fill="#c4b5fd"/>
+  <text x="512" y="948" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#7c3aed">nieuwe Clawdy sterrencomputer 🐾</text>
+</svg>

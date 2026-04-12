@@ -1,0 +1,104 @@
+{
+  "checkedAt": "2026-04-07T08:12:07.910Z",
+  "before": {
+    "input": {
+      "tag": "input",
+      "text": "",
+      "visible": false,
+      "x": -777,
+      "y": -451,
+      "width": 241,
+      "height": 42,
+      "opacity": "1",
+      "display": "block",
+      "visibility": "hidden"
+    },
+    "label": {
+      "tag": "div",
+      "text": "Username@proton.me",
+      "visible": true,
+      "x": 222,
+      "y": 524,
+      "width": 464,
+      "height": 89,
+      "opacity": "1",
+      "display": "flex",
+      "visibility": "visible"
+    },
+    "activeTag": "iframe",
+    "activeId": ""
+  },
+  "attempts": [
+    {
+      "step": 1,
+      "error": "locator.click: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('label').filter({ hasText: /username/i }).first()\n    - locator resolved to <label for=\"username\" class=\"field-two-label-container flex justify-space-between flex-nowrap items-end gap-2\">…</label>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 100ms\n    84 × waiting for element to be visible, enabled and stable\n       - element is not visible\n     - retrying click action\n       - waiting 500ms\n"
+    },
+    {
+      "step": 2,
+      "error": "locator.click: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByText(/username/i).first()\n    - locator resolved to <span class=\"field-two-label\">Username</span>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 100ms\n    84 × waiting for element to be visible, enabled and stable\n       - element is not visible\n     - retrying click action\n       - waiting 500ms\n"
+    },
+    {
+      "step": 3,
+      "state": {
+        "value": "",
+        "visible": false,
+        "x": -777,
+        "y": -451,
+        "width": 241,
+        "height": 42,
+        "display": "block",
+        "visibility": "hidden",
+        "opacity": "1",
+        "activeTag": "iframe",
+        "activeId": ""
+      }
+    },
+    {
+      "step": 4,
+      "state": {
+        "value": "",
+        "visible": true,
+        "x": -777,
+        "y": -450,
+        "width": 280,
+        "height": 40,
+        "display": "block",
+        "visibility": "visible",
+        "opacity": "1",
+        "activeTag": "input",
+        "activeId": "username"
+      }
+    },
+    {
+      "step": 5,
+      "state": {
+        "value": "clawdy01-js",
+        "visible": true,
+        "x": -777,
+        "y": -450,
+        "width": 280,
+        "height": 40,
+        "display": "block",
+        "visibility": "visible",
+        "opacity": "1",
+        "activeTag": "input",
+        "activeId": "username"
+      }
+    }
+  ],
+  "finalInput": {
+    "value": "clawdy01-js",
+    "ariaInvalid": "false",
+    "describedBy": "id-1"
+  },
+  "buttonTexts": [
+    "use your current email.",
+    "@proton.me",
+    "Create free account now",
+    "Need help?",
+    "English"
+  ],
+  "screenshot": "/home/clawdy/.openclaw/workspace/browser-automation/out/proton-username-activation.png",
+  "url": "https://account.proton.me/start",
+  "title": "Create a Proton Account | Take back your privacy"
+}

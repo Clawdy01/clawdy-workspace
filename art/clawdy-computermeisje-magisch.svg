@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff1f8"/>
+      <stop offset="50%" stop-color="#efe7ff"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg2)"/>
+  <circle cx="512" cy="310" r="145" fill="#ffd9c7"/>
+  <path d="M364 300q35-145 148-145 122 0 155 145-30-20-67-23-65-5-110 9-58 17-126 14z" fill="#a855f7"/>
+  <path d="M412 228q32-44 100-44 69 0 102 44" fill="none" stroke="#f9a8d4" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="456" cy="320" r="11" fill="#312e81"/>
+  <circle cx="568" cy="320" r="11" fill="#312e81"/>
+  <path d="M455 382q56 34 112 0" fill="none" stroke="#db2777" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="408" cy="352" r="16" fill="#f9a8d4" opacity="0.7"/>
+  <circle cx="616" cy="352" r="16" fill="#f9a8d4" opacity="0.7"/>
+  <path d="M336 542q39-82 176-82 136 0 176 82v180H336z" fill="#c084fc"/>
+  <rect x="258" y="618" width="508" height="228" rx="32" fill="#4338ca"/>
+  <rect x="292" y="648" width="440" height="162" rx="20" fill="#dbeafe"/>
+  <text x="512" y="705" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#1d4ed8">Hoi Lisa &amp; Vivian!</text>
+  <text x="512" y="758" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" fill="#7c3aed">Ik ben Clawdy ✨💻</text>
+  <rect x="466" y="848" width="92" height="22" rx="11" fill="#64748b"/>
+  <rect x="398" y="870" width="228" height="18" rx="9" fill="#94a3b8"/>
+  <polygon points="210,160 226,202 270,206 236,234 246,276 210,252 174,276 184,234 150,206 194,202" fill="#fde047"/>
+  <polygon points="810,138 822,170 856,172 830,194 838,226 810,206 782,226 790,194 764,172 798,170" fill="#f9a8d4"/>
+  <polygon points="852,322 862,348 890,350 868,368 874,394 852,380 830,394 836,368 814,350 842,348" fill="#93c5fd"/>
+  <polygon points="160,360 172,390 204,392 178,412 186,442 160,424 134,442 142,412 116,392 148,390" fill="#c4b5fd"/>
+  <text x="512" y="950" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#7c3aed">magische computer-Clawdy 🌈</text>
+</svg>

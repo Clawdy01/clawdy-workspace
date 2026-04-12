@@ -1,0 +1,77 @@
+{
+  "checkedAt": "2026-04-08T15:44:19.898Z",
+  "url": "https://account.proton.me/start",
+  "data": [
+    {
+      "index": 0,
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "text": "use your current email.",
+      "ariaLabel": "",
+      "testId": "",
+      "visible": true,
+      "x": 467,
+      "y": 480,
+      "width": 152,
+      "height": 20
+    },
+    {
+      "index": 1,
+      "tag": "label",
+      "id": "",
+      "type": "",
+      "text": "Username",
+      "ariaLabel": "",
+      "testId": "",
+      "visible": false,
+      "x": -778,
+      "y": -476,
+      "width": 356,
+      "height": 20
+    },
+    {
+      "index": 2,
+      "tag": "input",
+      "id": "username",
+      "type": "",
+      "text": "",
+      "ariaLabel": "",
+      "testId": "input-input-element",
+      "visible": false,
+      "x": -777,
+      "y": -451,
+      "width": 241,
+      "height": 42
+    },
+    {
+      "index": 3,
+      "tag": "button",
+      "id": "select-domain",
+      "type": "button",
+      "text": "@proton.me",
+      "ariaLabel": "proton.me",
+      "testId": "",
+      "visible": false,
+      "x": -536,
+      "y": -440,
+      "width": 101,
+      "height": 20
+    },
+    {
+      "index": 4,
+      "tag": "button",
+      "id": "",
+      "type": "submit",
+      "text": "Create free account now",
+      "ariaLabel": "",
+      "testId": "",
+      "visible": true,
+      "x": 222,
+      "y": 621,
+      "width": 464,
+      "height": 58
+    }
+  ],
+  "screenshot": "/home/clawdy/.openclaw/workspace/browser-automation/out/proton-visible-inputs.png"
+}

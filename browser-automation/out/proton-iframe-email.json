@@ -1,0 +1,95 @@
+{
+  "checkedAt": "2026-04-07T09:09:43.833Z",
+  "initial": [
+    {
+      "index": 0,
+      "tag": "div",
+      "id": "",
+      "name": "",
+      "type": "",
+      "placeholder": "",
+      "ariaLabel": "",
+      "text": "Username @proton.me",
+      "value": ""
+    },
+    {
+      "index": 1,
+      "tag": "div",
+      "id": "",
+      "name": "",
+      "type": "",
+      "placeholder": "",
+      "ariaLabel": "",
+      "text": "Username @proton.me",
+      "value": ""
+    },
+    {
+      "index": 2,
+      "tag": "div",
+      "id": "",
+      "name": "",
+      "type": "",
+      "placeholder": "",
+      "ariaLabel": "",
+      "text": "Username @proton.me",
+      "value": ""
+    },
+    {
+      "index": 3,
+      "tag": "label",
+      "id": "",
+      "name": "",
+      "type": "",
+      "placeholder": "",
+      "ariaLabel": "",
+      "text": "Username",
+      "value": ""
+    },
+    {
+      "index": 4,
+      "tag": "span",
+      "id": "",
+      "name": "",
+      "type": "",
+      "placeholder": "",
+      "ariaLabel": "",
+      "text": "Username",
+      "value": ""
+    },
+    {
+      "index": 8,
+      "tag": "input",
+      "id": "username",
+      "name": "",
+      "type": "",
+      "placeholder": "",
+      "ariaLabel": "",
+      "text": "",
+      "value": ""
+    }
+  ],
+  "post": {
+    "activeTag": "button",
+    "activeId": "select-domain",
+    "inputs": [
+      {
+        "index": 0,
+        "id": "username",
+        "name": "",
+        "type": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "clawdy01"
+      }
+    ],
+    "text": "Username @proton.me"
+  },
+  "pageValue": {
+    "value": "clawdy01",
+    "ariaInvalid": "false"
+  },
+  "title": "Create a Proton Account | Take back your privacy",
+  "url": "https://account.proton.me/start",
+  "excerpt": "Already have an account? Sign in\nSet your password\n\nGet a secure Proton Mail address, or use your current email.\n\nPassword\nGet started\nEnd-to-end encrypted\nBy continuing, you agree to our terms and conditions and privacy policy.\nEvery free account comes with:\nMail\nCalendar\nVPN\nDrive\nPass\nLumo\nEncrypted email with 1 GB storage\n1 address, 3 calendars\n2000+ VPN servers in 10 countries\n5 GB cloud storage for files and photos\nCollaborative documents and spreadsheets\nPassword manager for all your devices\nPrivate AI assistant with encrypted chat history\nPrivacy policy\nTerms\nNeed help?\nEnglish",
+  "screenshot": "/home/clawdy/.openclaw/workspace/browser-automation/out/proton-iframe-email.png"
+}

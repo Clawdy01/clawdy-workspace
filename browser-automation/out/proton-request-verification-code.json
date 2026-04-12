@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-04-08T10:24:00.209Z",
+  "username": "clawdy01",
+  "verificationEmail": "clawdy01@christiandekok.nl",
+  "passwordLength": 20,
+  "requestButtonDisabledBefore": false,
+  "screenshot": "/home/clawdy/.openclaw/workspace/browser-automation/out/proton-request-verification-code.png",
+  "preRequest": {
+    "title": "Create a Proton Account | Take back your privacy",
+    "url": "https://account.proton.me/start",
+    "text": "Already have an account? Sign in Set your password Get a secure Proton Mail address, or use your current email. Password Strong Get started Loading End-to-end encrypted By continuing, you agree to our terms and conditions and privacy policy. Every free account comes with: Mail Calendar VPN Drive Pass Lumo Encrypted email with 1 GB storage 1 address, 3 calendars 2000+ VPN servers in 10 countries 5 GB cloud storage for files and photos Collaborative documents and spreadsheets Password manager for all your devices Private AI assistant with encrypted chat history Privacy policy Terms Need help? English Human Verification Close Your email will only be used for this one-time verification. Learn more Email address Get verification code"
+  },
+  "postRequest": {
+    "title": "Create a Proton Account | Take back your privacy",
+    "url": "https://account.proton.me/start",
+    "text": "Already have an account? Sign in Set your password Get a secure Proton Mail address, or use your current email. Password Strong Get started Loading End-to-end encrypted By continuing, you agree to our terms and conditions and privacy policy. Every free account comes with: Mail Calendar VPN Drive Pass Lumo Encrypted email with 1 GB storage 1 address, 3 calendars 2000+ VPN servers in 10 countries 5 GB cloud storage for files and photos Collaborative documents and spreadsheets Password manager for all your devices Private AI assistant with encrypted chat history Privacy policy Terms Need help? English Human Verification Close Enter the verification code that was sent to clawdy01@christiandekok.nl. If you don't find the email in your inbox, please check your spam folder. Verification code Code is 6 digits without spaces VerifyResend code",
+    "interestingSignals": [
+      "email",
+      "human",
+      "verification",
+      "code",
+      "sent",
+      "verify"
+    ],
+    "emailInputs": [
+      {
+        "type": "text",
+        "id": "username",
+        "name": "",
+        "value": "clawdy01",
+        "ariaInvalid": "false"
+      },
+      {
+        "type": "password",
+        "id": "password",
+        "name": "",
+        "value": "Aa9!gE=cq9HW)QB2Lhxi",
+        "ariaInvalid": "false"
+      },
+      {
+        "type": "password",
+        "id": "password-confirm",
+        "name": "",
+        "value": "Aa9!gE=cq9HW)QB2Lhxi",
+        "ariaInvalid": "false"
+      },
+      {
+        "type": "text",
+        "id": "verification",
+        "name": "",
+        "value": "",
+        "ariaInvalid": "false"
+      }
+    ]
+  }
+}

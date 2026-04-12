@@ -1,0 +1,54 @@
+{
+  "sites": [
+    {
+      "slug": "bitwarden-login",
+      "label": "Bitwarden",
+      "adapter": "bitwarden",
+      "url": "https://vault.bitwarden.com/#/login",
+      "host": "vault.bitwarden.com",
+      "notes": "Vault login observability warm houden als beheerde site target",
+      "refreshCommand": "python3 scripts/web-automation-dispatch.py probe-page 'https://vault.bitwarden.com/#/login' --slug bitwarden-login",
+      "staleAfterSeconds": 3600,
+      "desktopEnabled": true,
+      "desktopKeepScreenshots": 6
+    },
+    {
+      "slug": "github-login",
+      "label": "GitHub signin",
+      "adapter": "github",
+      "url": "https://github.com/login",
+      "host": "github.com",
+      "notes": "GitHub login observability warm houden met sticky browser state voor toekomstige adapter/selector work.",
+      "probeArgs": [
+        "--session",
+        "github-shared"
+      ],
+      "desktopEnabled": true,
+      "desktopKeepScreenshots": 6,
+      "staleAfterSeconds": 3600
+    },
+    {
+      "slug": "proton-signup",
+      "label": "Proton signup",
+      "adapter": "proton",
+      "url": "https://account.proton.me/start",
+      "route": "proton-refresh",
+      "notes": "Houd de Proton signup-flow warm via de veilige probe chain, niet via een generieke probe-page refresh."
+    },
+    {
+      "slug": "slack-signin",
+      "label": "Slack signin",
+      "adapter": "slack",
+      "url": "https://app.slack.com/signin",
+      "probeArgs": [
+        "--session",
+        "slack-shared"
+      ],
+      "desktopEnabled": true,
+      "desktopKeepScreenshots": 6,
+      "notes": "Voor toekomstige site-adapter en selectorobservability.",
+      "host": "app.slack.com",
+      "staleAfterSeconds": 3600
+    }
+  ]
+}
