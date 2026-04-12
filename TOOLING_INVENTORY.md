@@ -81,6 +81,7 @@
 - `scripts/gitignore-proposal-check.py` — laat zien wat het GitHub private `.gitignore`-voorstel al wel/niet afdekt
 - `scripts/git-first-push-plan.py` — geeft concrete commando’s voor de eerste private GitHub push, zonder al iets te wijzigen
 - `scripts/git-sensitive-tracked.py` — toont gevoelige paden die nog tracked zijn en eerst uit git moeten voor een veilige private push
+- `scripts/exchange-summary.py` — compacte Exchange SE samenvatting bovenop EWS-check, unread mailbox, agenda en taken
 - `browser-automation/proton_probe_status.js` — herhaalbare Proton signup probe met screenshot, JSON status en candidate actions
 - `browser-automation/proton_probe_username_activation.js` — toont waarom `#username` niet normaal invulbaar is en test JS-activering
 - `browser-automation/proton_probe_username_submit_js.js` — probeert submit na JS-activering van `#username` en legt de vervolgstap vast
