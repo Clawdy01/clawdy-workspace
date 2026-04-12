@@ -99,3 +99,6 @@ Zodra de huidige headline/About beschikbaar is, gebruik dan minimaal twee van de
 - GitHub veilige publish-flow
 - ruisarme operator-samenvattingen
 - 1 publiek verifieerbaar contextsignaal uit CleverIT/CleverEnable-bronnen
+
+Hiervoor staat nu ook een compact bouwblokbestand klaar:
+- `research/linkedin-profile-building-blocks.md`
