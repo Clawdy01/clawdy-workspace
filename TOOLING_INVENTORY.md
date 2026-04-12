@@ -110,6 +110,7 @@
 - `research/linkedin-profile-round-2-request.txt` — korte copy/paste aanvraagtekst om de huidige LinkedIn-tekst snel op te halen voor ronde 2
 - `research/linkedin-profile-building-blocks.md` — compacte, direct inzetbare profielbouwblokken voor headline/About/Experience
 - `scripts/video-clip.py` — kleine helper om een korte video-clip te maken en frames te exporteren via ffmpeg
+- `scripts/media-sanity-check.py` — snelle inspectie van video/audio/image-output, inclusief JSON, preset-profielen, threshold-warnings en directory/batch-check via `--dir`
 
 ## Notes
 - For real-people photo edits: verify both visible effect and identity preservation before delivery.

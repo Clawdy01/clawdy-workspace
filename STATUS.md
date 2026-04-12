@@ -10,7 +10,12 @@
 - De eerste workflow-notitie staat nu in `research/creative-tooling-workflows.md`, met live geteste routes voor clippen, frames exporteren, audio normaliseren en simpele image-afleidingen
 - Eerste helper nu gebouwd en live geverifieerd: `scripts/video-clip.py` maakt korte clips plus frame-export uit video
 - Tweede helper nu gebouwd en live geverifieerd: `scripts/media-sanity-check.py` inspecteert video, audio en image-output met tekst- en JSON-output
-- Volgende stap is de helper aanscherpen met optionele thresholds/warnings voor resolutie, sample rate of lege outputdetectie
+- `scripts/media-sanity-check.py` is nu ook aangescherpt met optionele threshold-warnings voor duur, resolutie, sample rate, minimale bestandsgrootte en ontbrekende audio, live geverifieerd op sample media plus negatieve check op video zonder audio
+- `scripts/media-sanity-check.py` ondersteunt nu ook preset-profielen (`video-proof`, `audio-voice-16k`, `image-preview`) zodat terugkerende media-checks minder flags handmatig nodig hebben, live geverifieerd op sample video/audio/image plus JSON-output
+- `scripts/media-sanity-check.py` ondersteunt nu ook directory/batch-check via `--dir` en `--recursive`, live geverifieerd op `tmp/creative-tooling-check`
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--warnings-only`, live geverifieerd op een schone testmap plus negatieve video-zonder-audio check zodat batch-output compacter blijft
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--summary-by-kind`, live geverifieerd op `tmp/creative-tooling-check` in tekst- en JSON-output zodat batch-runs direct compacte totalen per audio/image/video tonen
+- Volgende stap is optionele aggregate-warnings of exit-codes per batch-run toevoegen voor CI-achtige checks
 - GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next
@@ -42,3 +47,8 @@
 - Typing feedback en human delay verbeterd
 - `scripts/video-clip.py` toegevoegd en live getest op synthetische sample-video voor clip + frame-export
 - `scripts/media-sanity-check.py` toegevoegd en live getest op synthetische sample-video, genormaliseerde WAV en afgeleide PNG, inclusief `--json`
+- `scripts/media-sanity-check.py` aangescherpt en live getest met threshold-warnings voor minimale duur, resolutie, verwachte sample rate, minimale bestandsgrootte en ontbrekende audio
+- `scripts/media-sanity-check.py` verder bruikbaar gemaakt en live getest met preset-profielen voor video-, audio- en image-checks
+- `scripts/media-sanity-check.py` verder uitgebreid en live getest met directory/batch-check, inclusief detectie van een sample-clip zonder videostream
+- `scripts/media-sanity-check.py` compacter bruikbaar gemaakt en live getest met `--warnings-only`; de kapotte sample-clip is daarna direct opnieuw opgebouwd zodat de batch-check weer volledig groen draait
+- `scripts/media-sanity-check.py` verder verdiept en live getest met `--summary-by-kind`, inclusief schone tekstoutput en JSON-output op `tmp/creative-tooling-check`

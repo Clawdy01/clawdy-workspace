@@ -133,5 +133,95 @@ Live geverifieerd op 2026-04-12 met output voor:
 
 JSON-variant ook bevestigd via `--json`.
 
+### Thresholds en warnings
+De helper ondersteunt nu ook optionele controles zoals:
+- `--min-size-bytes`
+- `--min-duration`
+- `--min-width`
+- `--min-height`
+- `--expect-sample-rate`
+- `--require-audio`
+
+Live geverifieerd op 2026-04-12:
+```bash
+python3 scripts/media-sanity-check.py \
+  tmp/creative-tooling-check/sample-video.mp4 \
+  tmp/creative-tooling-check/sample-tone-normalized.wav \
+  tmp/creative-tooling-check/frame-01-small-gray.png \
+  --min-size-bytes 100 \
+  --min-duration 0.5 \
+  --min-width 100 \
+  --min-height 100 \
+  --expect-sample-rate 16000 \
+  --json
+```
+Alle drie testbestanden kwamen terug met `ok: true`.
+
+Extra negatieve check bevestigd:
+```bash
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/sample-video.mp4 --require-audio
+```
+Deze sample-video geeft dan terecht warning `audio stream ontbreekt`.
+
+## Preset-profielen nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--preset` voor terugkerende checks zonder losse flagreeks.
+
+Beschikbare presets:
+- `video-proof` → `min_size_bytes=1000`, `min_duration=0.5`, `min_width=320`, `min_height=240`
+- `audio-voice-16k` → `min_size_bytes=1000`, `min_duration=0.5`, `expect_sample_rate=16000`
+- `image-preview` → `min_size_bytes=100`, `min_width=160`, `min_height=120`
+
+Voorbeeld:
+```bash
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/sample-video.mp4 --preset video-proof
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/sample-tone-normalized.wav --preset audio-voice-16k
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/frame-01-small-gray.png --preset image-preview --json
+```
+
+Live geverifieerd op 2026-04-12 met alle drie presets.
+
+## Batch-check nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook mapinspectie via `--dir`, optioneel met `--recursive`.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --preset image-preview
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --recursive --json
+```
+
+Live geverifieerd op 2026-04-12:
+- niet-recursieve mapcheck gaf eerst `summary: total=8 ok=7 warnings=1` en vond daarmee een corrupte `sample-clip.mp4`
+- die clip is direct opnieuw opgebouwd via `python3 scripts/video-clip.py ... --clip-out tmp/creative-tooling-check/sample-clip.mp4`
+- daarna gaf de batch-check schoon `summary: total=8 ok=8 warnings=0`
+
+## Alleen warnings tonen nu beschikbaar
+Voor grotere outputmappen ondersteunt de helper nu ook `--warnings-only`, zodat de itemlijst compact blijft en alleen probleemgevallen toont terwijl de totaalsamenvatting behouden blijft.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --warnings-only
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/sample-video.mp4 --require-audio --warnings-only --json
+```
+
+Live geverifieerd op 2026-04-12:
+- warnings-only op de schone testmap liet alleen de samenvatting zien met `total=8 ok=8 warnings=0`
+- de negatieve check met `--require-audio` gaf in warnings-only JSON alleen het probleemitem terug met warning `audio stream ontbreekt`
+
+## Samenvatting per mediatype nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--summary-by-kind`, zodat batch-runs naast de totaalscore direct een compacte opsplitsing per `audio` / `image` / `video` tonen.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --warnings-only --summary-by-kind --json
+```
+
+Live geverifieerd op 2026-04-12:
+- tekstoutput gaf `summary: total=8 ok=8 warnings=0` plus
+  - `audio: total=2 ok=2 warnings=0`
+  - `image: total=3 ok=3 warnings=0`
+  - `video: total=3 ok=3 warnings=0`
+- JSON-output in `--warnings-only` mode hield de itemlijst leeg, maar gaf wel dezelfde `summary_by_kind` terug
+
 ## Aanbevolen volgende stap
-- Kleine follow-up: helper uitbreiden met optionele thresholds/warnings, bv. minimale resolutie, verwachte sample rate of lege frame-export detecteren
+- Kleine follow-up: optionele aggregate-warnings of exit-codes per batch-run toevoegen voor CI-achtige checks

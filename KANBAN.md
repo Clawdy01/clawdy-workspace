@@ -23,12 +23,17 @@
 - Kleine interne workflow-notitie staat nu in `research/creative-tooling-workflows.md`, met live geteste paden voor video-clippen, frame-export, audio-normalisatie en simpele image-afleidingen
 - Eerste helper staat nu live: `scripts/video-clip.py` voor video-clip + frame-export, lokaal geverifieerd op synthetische testvideo
 - Tweede helper staat nu live: `scripts/media-sanity-check.py` voor snelle inspectie van video/image/audio-output, live geverifieerd op sample video/audio/image plus JSON-output
-- Volgende stap: helper aanscherpen met optionele thresholds/warnings voor resolutie, sample rate of lege outputdetectie
+- `scripts/media-sanity-check.py` ondersteunt nu optionele thresholds/warnings voor duur, resolutie, sample rate, minimale bestandsgrootte en ontbrekende audio, live geverifieerd op sample media plus negatieve check op video zonder audio
+- `scripts/media-sanity-check.py` ondersteunt nu ook preset-profielen (`video-proof`, `audio-voice-16k`, `image-preview`) zodat terugkerende checks minder flags handmatig nodig hebben, live geverifieerd op sample video/audio/image plus JSON-output
+- `scripts/media-sanity-check.py` ondersteunt nu ook directory/batch-check via `--dir` en `--recursive`, live geverifieerd op `tmp/creative-tooling-check`
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--warnings-only`, live geverifieerd op een schone testmap plus negatieve video-zonder-audio check zodat batch-runs compacter blijven
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--summary-by-kind`, live geverifieerd op `tmp/creative-tooling-check` in tekst- en JSON-mode zodat batch-runs direct een compacte opsplitsing per audio/image/video tonen
+- Volgende stap: optionele aggregate-warnings of exit-codes per batch-run toevoegen voor CI-achtige checks
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
 ## Blocked
-- Geen harde blocker op het huidige creative-tooling spoor; nulmeting en workflow-inventaris zijn bevestigd en helperbouw kan lokaal doorgaan
+- Geen harde blocker op het huidige creative-tooling spoor; nulmeting, workflow-inventaris, helper-thresholds, presets, batch-check, warnings-only en summary-by-kind zijn bevestigd en helperbouw kan lokaal doorgaan
 - Betere identity-preserving photo edits blijven wel geblokkeerd op een sterkere/lokale modelroute
 
 ## Next
@@ -72,3 +77,8 @@
 - Memory research: concrete betere geheugentechnieken beoordeeld en aanbeveling vastgelegd in `research/memory-techniques-recommendation.md`
 - Creative tooling helper gebouwd en live geverifieerd: `scripts/video-clip.py` maakt korte clips plus frame-export uit video
 - Creative tooling helper gebouwd en live geverifieerd: `scripts/media-sanity-check.py` inspecteert video, audio en image-output met tekst- en JSON-output
+- Creative tooling helper aangescherpt en live geverifieerd: `scripts/media-sanity-check.py` geeft nu ook optionele threshold-warnings voor duur, resolutie, sample rate, minimale bestandsgrootte en ontbrekende audio
+- Creative tooling helper verder bruikbaar gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu preset-profielen voor video-, audio- en image-checks
+- Creative tooling helper verder verdiept en live geverifieerd: `scripts/media-sanity-check.py` kan nu hele outputmappen batchgewijs beoordelen en vond daarbij ook een kapotte sample-clip zonder videostream
+- Creative tooling helper compacter bruikbaar gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--warnings-only`, en de eerder kapotte sample-clip is direct herbouwd zodat de batch-check weer 8/8 bestanden groen toont
+- Creative tooling helper verder verdiept en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--summary-by-kind`, zodat batch-runs in tekst- en JSON-output direct een compacte opsplitsing per mediatype tonen
