@@ -33,12 +33,18 @@
 - `scripts/media-sanity-check.py` ondersteunt nu ook strikte fail-profielen via `--fail-profile` (`video-strict`, `audio-voice-16k-strict`, `image-preview-strict`), live geverifieerd met een groene audio/image-run en een bewuste video-fail zonder audio (exit code 2)
 - `scripts/media-sanity-check.py` ondersteunt nu ook aggregate fail-profielen via `--fail-profile`, inclusief mixed batch-runs met `mixed-batch-strict` en `mixed-batch-review`, live geverifieerd op een schone map-run en een bewuste fail-case
 - `scripts/media-sanity-check.py` ondersteunt nu ook rapport-output naar bestand/artifact via `--report-out` en `--report-format`, zodat CI-achtige checks resultaten direct kunnen bewaren of doorgeven
-- Volgende stap: optionele timestamped of append-mode voor terugkerende rapport-runs toevoegen
+- `scripts/media-sanity-check.py` ondersteunt nu ook timestamped rapport-output via `--report-timestamped`, live geverifieerd met tekst- en JSON-artifacts in `tmp/creative-tooling-check/reports/`
+- `scripts/media-sanity-check.py` ondersteunt nu ook append-mode via `--report-append`, live geverifieerd op `tmp/creative-tooling-check/reports/append-report.txt` met opeenvolgende rapportsecties zonder overschrijven
+- `scripts/media-sanity-check.py` ondersteunt nu ook JSONL-reportmode via `--report-format jsonl`, live geverifieerd op `tmp/creative-tooling-check/reports/jsonl-report.jsonl` met een batch-event plus een aparte warning-only eventregel
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--report-summary-only`, live geverifieerd op `tmp/creative-tooling-check/reports/summary-only.jsonl` met compacte JSONL-events zonder volledige itemlijsten
+- `scripts/media-sanity-check.py` ondersteunt nu ook compacte stdout-JSONL via `--jsonl`, inclusief `--jsonl-summary-only` voor alleen summary/meta zonder itemlijsten; live geverifieerd op `tmp/creative-tooling-check` en dezelfde compacte mode werkt ook voor JSONL-rapporten
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--kind` filtering, zodat batch-checks gericht alleen audio, image en/of video meenemen; live geverifieerd op `tmp/creative-tooling-check` met `--kind audio image --summary-by-kind` en `--kind video --jsonl --jsonl-summary-only`
+- Volgende stap: optionele exclude-patterns of naamfilters toevoegen zodat batch-checks ook tijdelijke files, thumbs of artifacts kunnen overslaan
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
 ## Blocked
-- Geen harde blocker op het huidige creative-tooling spoor; nulmeting, workflow-inventaris, helper-thresholds, presets, batch-check, warnings-only, summary-by-kind, strikte fail-profielen, mixed batch-fail-profielen en rapport-output naar artifact zijn bevestigd en helperbouw kan lokaal doorgaan
+- Geen harde blocker op het huidige creative-tooling spoor; nulmeting, workflow-inventaris, helper-thresholds, presets, batch-check, warnings-only, summary-by-kind, strikte fail-profielen, mixed batch-fail-profielen, rapport-output naar artifact, timestamped output, append-mode, JSONL-reportmode en compacte stdout-JSONL zijn bevestigd en helperbouw kan lokaal doorgaan
 - Betere identity-preserving photo edits blijven wel geblokkeerd op een sterkere/lokale modelroute
 
 ## Next
@@ -92,3 +98,9 @@
 - Creative tooling helper verder verscherpt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu ook strikte fail-profielen via `--fail-profile` voor video, audio-voice-16k en image-preview checks
 - Creative tooling helper ook op batchniveau verscherpt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu mixed fail-profielen voor hele map-runs, inclusief expliciete `fail_reasons` in JSON-output
 - Creative tooling helper CI-vriendelijker gemaakt en live geverifieerd: `scripts/media-sanity-check.py` kan nu rapporten als tekst of JSON wegschrijven via `--report-out` en `--report-format`
+- Creative tooling helper beter bruikbaar gemaakt voor terugkerende runs: `scripts/media-sanity-check.py` ondersteunt nu ook timestamped rapport-output via `--report-timestamped`
+- Creative tooling helper nog praktischer gemaakt voor terugkerende runs en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--report-append`, zodat meerdere rapportsecties aan één bestaand artifact kunnen worden toegevoegd zonder overschrijven
+- Creative tooling helper verder logvriendelijk gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--report-format jsonl` plus `generated_at`, zodat terugkerende runs als newline-delimited events kunnen worden bijgehouden
+- Creative tooling helper nog compacter gemaakt voor logverwerking: `scripts/media-sanity-check.py` ondersteunt nu `--report-summary-only` voor JSON/JSONL-rapporten zonder volledige itemlijst
+- Creative tooling helper ook interactief compacter gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--jsonl` plus `--jsonl-summary-only` voor één compact stdout-event zonder volledige itemlijst
+- Creative tooling helper nu ook gerichter gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt `--kind` filtering voor audio/image/video in batch- en stdout-runs

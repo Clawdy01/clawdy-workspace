@@ -286,5 +286,80 @@ Live geverifieerd op 2026-04-12:
 - JSON-rapport geschreven naar `tmp/creative-tooling-check/reports/mixed-summary.json`
 - stdout bleef tegelijk bruikbaar voor directe inspectie
 
+## Timestamped report-output nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--report-timestamped`, zodat terugkerende runs nieuwe artifactbestanden krijgen zonder eerdere rapporten te overschrijven.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind --report-out tmp/creative-tooling-check/reports/timestamped-summary.txt --report-timestamped
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind --json --report-out tmp/creative-tooling-check/reports/timestamped-summary.json --report-timestamped
+```
+
+Live geverifieerd op 2026-04-12:
+- `tmp/creative-tooling-check/reports/timestamped-summary-20260412T202559Z.txt`
+- `tmp/creative-tooling-check/reports/timestamped-summary-20260412T202559Z.json`
+- beide rapporten kwamen schoon terug met `total=8`, `ok=8`, `warnings=0`
+
+## Rapport append-mode nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--report-append`, zodat terugkerende runs meerdere tekst- of JSON-rapporten in één bestaand artifact kunnen verzamelen in plaats van overschrijven.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind --report-out tmp/creative-tooling-check/reports/append-report.txt --report-append
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/sample-video.mp4 --require-audio --warnings-only --report-out tmp/creative-tooling-check/reports/append-report.txt --report-append
+```
+
+Live geverifieerd op 2026-04-12:
+- eerste run appende een schone batch-samenvatting aan `tmp/creative-tooling-check/reports/append-report.txt`
+- tweede run appende daarna een compacte warning-only rapportsectie voor `sample-video.mp4`
+- bestaand rapportbestand bleef behouden en kreeg er per run een nieuwe sectie bij
+
+## JSONL-reportmode nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--report-format jsonl`, zodat terugkerende runs compacte newline-delimited JSON-events kunnen wegschrijven voor latere logverwerking of simpele ingest in andere tools.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind --report-out tmp/creative-tooling-check/reports/jsonl-report.jsonl --report-format jsonl --report-append
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/sample-video.mp4 --require-audio --warnings-only --report-out tmp/creative-tooling-check/reports/jsonl-report.jsonl --report-format jsonl --report-append
+```
+
+Live geverifieerd op 2026-04-12:
+- `tmp/creative-tooling-check/reports/jsonl-report.jsonl` bevat nu per run precies één JSON-regel
+- batch-run schreef een compact success-event met `summary_by_kind`
+- warning-only run schreef daarna een apart warning-event voor `sample-video.mp4`
+- payload bevat nu ook `generated_at`, zodat downstream logverwerking runs tijdmatig kan ordenen
+
+## Summary-only JSONL nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--report-summary-only`, zodat JSON/JSONL-rapporten compact kunnen blijven zonder volledige itemlijst.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind --report-format jsonl --report-summary-only --report-out tmp/creative-tooling-check/reports/summary-only.jsonl
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/sample-video.mp4 --require-audio --warnings-only --report-format jsonl --report-summary-only --report-append --report-out tmp/creative-tooling-check/reports/summary-only.jsonl
+```
+
+Live geverifieerd op 2026-04-12:
+- `tmp/creative-tooling-check/reports/summary-only.jsonl` bevat nu compacte newline-delimited events
+- eerste event: schone batch-run met `total=8`, `ok=8`, `warnings=0`
+- tweede event: warning-run met `total=1`, `warnings=1`
+- beide events hebben `report_summary_only: true` en geen volledige `items`-lijst
+
 ## Aanbevolen volgende stap
-- Kleine follow-up: compacte `--report-append` of timestamped artifact-mode toevoegen als terugkerende runs meerdere rapporten naast elkaar moeten bewaren
+- Kleine follow-up: stdout optioneel ook compacter maken met een echte summary-only view als dezelfde logcompactheid interactief ook nuttig blijkt
+
+## Kind-filtering nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--kind`, zodat batch-checks gericht alleen `audio`, `image` en/of `video` meenemen.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --kind audio image --summary-by-kind
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --kind video --jsonl --jsonl-summary-only
+```
+
+Live geverifieerd op 2026-04-12:
+- `--kind audio image` gaf schoon `summary: total=5 ok=5 warnings=0` met `audio=2` en `image=3`
+- `--kind video --jsonl --jsonl-summary-only` gaf een compact event met `total=3 ok=3 warnings=0`
+
+Nut:
+- gerichte checks per outputtype zonder handmatig paden te splitsen
+- compacter voor CI, triage en vervolgacties per mediafamilie

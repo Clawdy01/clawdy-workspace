@@ -1,0 +1,47 @@
+Media sanity check
+mode: warnings-only
+mode: report-append
+summary: total=1 ok=0 warnings=1 total-warning-messages=1
+- video: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-video.mp4
+  size: 12712 bytes
+  duration: 2.000s
+  video: h264 320x240 fps=25/1
+  warnings: audio stream ontbreekt
+
+Media sanity check
+directory: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check
+mode: report-append
+summary: total=8 ok=8 warnings=0 total-warning-messages=0
+summary-by-kind:
+  - audio: total=2 ok=2 warnings=0
+  - image: total=3 ok=3 warnings=0
+  - video: total=3 ok=3 warnings=0
+- image: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/frame-01-small-gray.png
+  size: 3042 bytes
+  image: PNG 160x120 Gray
+- image: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/frame-01.png
+  size: 15514 bytes
+  image: PNG 320x240 sRGB
+- image: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/frame-02.png
+  size: 16562 bytes
+  image: PNG 320x240 sRGB
+- video: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/helper-clip.mp4
+  size: 7458 bytes
+  duration: 0.720s
+  video: h264 320x240 fps=25/1
+- video: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-clip.mp4
+  size: 7458 bytes
+  duration: 0.720s
+  video: h264 320x240 fps=25/1
+- audio: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-tone-normalized.wav
+  size: 64080 bytes
+  duration: 1.000s
+  audio: sr=16000 ch=1
+- audio: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-tone.wav
+  size: 64080 bytes
+  duration: 1.000s
+  audio: sr=16000 ch=1
+- video: /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-video.mp4
+  size: 12712 bytes
+  duration: 2.000s
+  video: h264 320x240 fps=25/1

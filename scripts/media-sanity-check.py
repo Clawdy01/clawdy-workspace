@@ -4,6 +4,7 @@ import json
 import mimetypes
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -223,9 +224,15 @@ def build_parser():
     parser.add_argument('paths', nargs='*', help='Een of meer mediabestanden om te inspecteren')
     parser.add_argument('--dir', dest='directory', help='Inspecteer alle ondersteunde mediabestanden in deze map')
     parser.add_argument('--recursive', action='store_true', help='Doorzoek submappen ook bij --dir')
+    parser.add_argument('--kind', dest='kinds', choices=['audio', 'image', 'video'], nargs='+', help='Beperk de check tot alleen deze mediatypes')
     parser.add_argument('--json', action='store_true', help='Geef output als JSON')
+    parser.add_argument('--jsonl', action='store_true', help='Geef output als één JSONL-event op stdout')
+    parser.add_argument('--jsonl-summary-only', action='store_true', help='Laat bij JSONL-output alleen summary/meta zien, zonder volledige items')
     parser.add_argument('--report-out', help='Schrijf ook een rapportbestand weg')
-    parser.add_argument('--report-format', choices=['auto', 'json', 'text'], default='auto', help='Formaat voor --report-out (default: auto op basis van extensie of stdout-mode)')
+    parser.add_argument('--report-format', choices=['auto', 'json', 'jsonl', 'text'], default='auto', help='Formaat voor --report-out (default: auto op basis van extensie of stdout-mode)')
+    parser.add_argument('--report-summary-only', action='store_true', help='Schrijf in het rapport alleen samenvatting/meta weg, zonder volledige items')
+    parser.add_argument('--report-timestamped', action='store_true', help='Voeg een UTC-timestamp toe aan de bestandsnaam van --report-out')
+    parser.add_argument('--report-append', action='store_true', help='Append het rapport aan --report-out in plaats van overschrijven')
     parser.add_argument('--warnings-only', action='store_true', help='Toon alleen bestanden met warnings in de itemlijst')
     parser.add_argument('--summary-by-kind', action='store_true', help='Toon extra samenvatting per mediatype')
     parser.add_argument('--fail-on-warnings', action='store_true', help='Exit met code 2 als er warnings zijn, bruikbaar voor CI-achtige checks')
@@ -262,16 +269,30 @@ def apply_preset_defaults(args):
 
 
 def collect_paths(args, parser):
-    collected = [Path(p) for p in args.paths]
+    requested_kinds = set(args.kinds or [])
+    collected = []
+
+    for raw_path in args.paths:
+        path = Path(raw_path)
+        kind = detect_kind(path)
+        if requested_kinds and kind not in requested_kinds:
+            continue
+        collected.append(path)
+
     if args.directory:
         directory = Path(args.directory).expanduser().resolve()
         if not directory.is_dir():
             parser.error(f'geen map: {directory}')
         iterator = directory.rglob('*') if args.recursive else directory.iterdir()
         for path in sorted(iterator):
-            if path.is_file() and detect_kind(path) != 'unknown':
+            kind = detect_kind(path)
+            if path.is_file() and kind != 'unknown':
+                if requested_kinds and kind not in requested_kinds:
+                    continue
                 collected.append(path)
     if not collected:
+        if requested_kinds:
+            parser.error(f'geen mediabestanden gevonden voor kind-filter: {", ".join(sorted(requested_kinds))}')
         parser.error('geef minstens één pad of gebruik --dir')
     return collected
 
@@ -304,12 +325,16 @@ def build_fail_reasons(summary, args):
     return fail_reasons
 
 
-def build_payload(args, summary, displayed_results, fail_reasons, exit_code, kind_summary=None):
+def build_payload(args, summary, displayed_results, fail_reasons, exit_code, kind_summary=None, summary_only=False):
     payload = {
+        'generated_at': datetime.now(timezone.utc).isoformat(),
         'preset': args.preset,
         'fail_profile': args.fail_profile,
         'directory': args.directory,
+        'kinds': sorted(args.kinds) if args.kinds else None,
         'warnings_only': args.warnings_only,
+        'report_append': args.report_append,
+        'summary_only': summary_only,
         'fail_on_warnings': args.fail_on_warnings,
         'max_warning_files': args.max_warning_files,
         'max_total_warnings': args.max_total_warnings,
@@ -332,8 +357,12 @@ def render_text_report(args, summary, displayed_results, fail_reasons, kind_summ
         lines.append(f'fail-profile: {args.fail_profile}')
     if args.directory:
         lines.append(f'directory: {Path(args.directory).expanduser().resolve()}')
+    if args.kinds:
+        lines.append(f"kinds: {', '.join(sorted(args.kinds))}")
     if args.warnings_only:
         lines.append('mode: warnings-only')
+    if args.report_append:
+        lines.append('mode: report-append')
     if args.fail_on_warnings:
         lines.append('mode: fail-on-warnings')
     if args.max_warning_files is not None:
@@ -379,16 +408,34 @@ def detect_report_format(args):
         suffix = Path(args.report_out).suffix.lower()
         if suffix == '.json':
             return 'json'
+        if suffix == '.jsonl':
+            return 'jsonl'
         if suffix in {'.txt', '.log', '.report'}:
             return 'text'
     return 'json' if args.json else 'text'
 
 
 
-def write_report(path_value, content):
+def build_report_path(path_value, timestamped=False):
     path = Path(path_value).expanduser().resolve()
+    if not timestamped:
+        return path
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    return path.with_name(f"{path.stem}-{stamp}{path.suffix}")
+
+
+
+def write_report(path_value, content, timestamped=False, append=False):
+    path = build_report_path(path_value, timestamped=timestamped)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding='utf-8')
+    existing_size = path.stat().st_size if path.exists() else 0
+    if append:
+        with path.open('a', encoding='utf-8') as handle:
+            if existing_size > 0 and not content.endswith('\n'):
+                handle.write('\n\n')
+            handle.write(content)
+    else:
+        path.write_text(content, encoding='utf-8')
     return str(path)
 
 
@@ -396,6 +443,8 @@ def write_report(path_value, content):
 def main():
     parser = build_parser()
     args = apply_preset_defaults(parser.parse_args())
+    if args.json and args.jsonl:
+        parser.error('gebruik niet tegelijk --json en --jsonl')
     targets = collect_paths(args, parser)
 
     results = []
@@ -414,17 +463,57 @@ def main():
 
     fail_reasons = build_fail_reasons(summary, args)
     exit_code = 2 if fail_reasons else 0
-    payload = build_payload(args, summary, displayed_results, fail_reasons, exit_code, kind_summary=kind_summary)
+    stdout_summary_only = args.jsonl and args.jsonl_summary_only
+    stdout_items = [] if stdout_summary_only else displayed_results
+    payload = build_payload(
+        args,
+        summary,
+        stdout_items,
+        fail_reasons,
+        exit_code,
+        kind_summary=kind_summary,
+        summary_only=stdout_summary_only,
+    )
     text_report = render_text_report(args, summary, displayed_results, fail_reasons, kind_summary=kind_summary)
 
+    report_path = None
     if args.report_out:
         report_format = detect_report_format(args)
-        report_content = json.dumps(payload, ensure_ascii=False, indent=2) if report_format == 'json' else text_report
-        write_report(args.report_out, report_content)
+        report_summary_only = args.report_summary_only or (report_format == 'jsonl' and args.jsonl_summary_only)
+        report_payload = build_payload(
+            args,
+            summary,
+            [] if report_summary_only else displayed_results,
+            fail_reasons,
+            exit_code,
+            kind_summary=kind_summary,
+            summary_only=report_summary_only,
+        )
+        if report_format == 'json':
+            report_content = json.dumps(report_payload, ensure_ascii=False, indent=2)
+        elif report_format == 'jsonl':
+            report_content = json.dumps(report_payload, ensure_ascii=False) + '\n'
+        else:
+            report_content = render_text_report(
+                args,
+                summary,
+                [] if args.report_summary_only else displayed_results,
+                fail_reasons,
+                kind_summary=kind_summary,
+            )
+        report_path = write_report(args.report_out, report_content, timestamped=args.report_timestamped, append=args.report_append)
+        payload['report_out'] = report_path
 
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         raise SystemExit(exit_code)
+
+    if args.jsonl:
+        print(json.dumps(payload, ensure_ascii=False))
+        raise SystemExit(exit_code)
+
+    if report_path:
+        text_report = f"{text_report}\nreport-out: {report_path}"
 
     print(text_report)
     raise SystemExit(exit_code)

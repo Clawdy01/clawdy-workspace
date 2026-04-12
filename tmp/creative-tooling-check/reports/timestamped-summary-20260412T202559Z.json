@@ -1,0 +1,169 @@
+{
+  "preset": null,
+  "fail_profile": null,
+  "directory": "/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check",
+  "warnings_only": false,
+  "fail_on_warnings": false,
+  "max_warning_files": null,
+  "max_total_warnings": null,
+  "summary": {
+    "total": 8,
+    "ok_count": 8,
+    "warning_count": 0,
+    "total_warnings": 0
+  },
+  "items": [
+    {
+      "path": "/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/frame-01-small-gray.png",
+      "exists": true,
+      "kind": "image",
+      "size_bytes": 3042,
+      "warnings": [],
+      "image": {
+        "width": 160,
+        "height": 120,
+        "colorspace": "Gray",
+        "format": "PNG"
+      },
+      "ok": true
+    },
+    {
+      "path": "/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/frame-01.png",
+      "exists": true,
+      "kind": "image",
+      "size_bytes": 15514,
+      "warnings": [],
+      "image": {
+        "width": 320,
+        "height": 240,
+        "colorspace": "sRGB",
+        "format": "PNG"
+      },
+      "ok": true
+    },
+    {
+      "path": "/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/frame-02.png",
+      "exists": true,
+      "kind": "image",
+      "size_bytes": 16562,
+      "warnings": [],
+      "image": {
+        "width": 320,
+        "height": 240,
+        "colorspace": "sRGB",
+        "format": "PNG"
+      },
+      "ok": true
+    },
+    {
+      "path": "/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/helper-clip.mp4",
+      "exists": true,
+      "kind": "video",
+      "size_bytes": 7458,
+      "warnings": [],
+      "duration_seconds": 0.72,
+      "bit_rate": 82866,
+      "video": {
+        "codec": "h264",
+        "width": 320,
+        "height": 240,
+        "pixel_format": "yuv420p",
+        "frame_rate": "25/1"
+      },
+      "ok": true
+    },
+    {
+      "path": "/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-clip.mp4",
+      "exists": true,
+      "kind": "video",
+      "size_bytes": 7458,
+      "warnings": [],
+      "duration_seconds": 0.72,
+      "bit_rate": 82866,
+      "video": {
+        "codec": "h264",
+        "width": 320,
+        "height": 240,
+        "pixel_format": "yuv420p",
+        "frame_rate": "25/1"
+      },
+      "ok": true
+    },
+    {
+      "path": "/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-tone-normalized.wav",
+      "exists": true,
+      "kind": "audio",
+      "size_bytes": 64080,
+      "warnings": [],
+      "duration_seconds": 1.0,
+      "bit_rate": 512640,
+      "audio": {
+        "input_file": "'/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-tone-normalized.wav'",
+        "channels": "1",
+        "sample_rate": "16000",
+        "precision": "32-bit",
+        "duration": "00:00:01.00 = 16000 samples ~ 75 CDDA sectors",
+        "file_size": "64.1k",
+        "bit_rate": "513k",
+        "sample_encoding": "32-bit Signed Integer PCM"
+      },
+      "ok": true
+    },
+    {
+      "path": "/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-tone.wav",
+      "exists": true,
+      "kind": "audio",
+      "size_bytes": 64080,
+      "warnings": [],
+      "duration_seconds": 1.0,
+      "bit_rate": 512640,
+      "audio": {
+        "input_file": "'/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-tone.wav'",
+        "channels": "1",
+        "sample_rate": "16000",
+        "precision": "32-bit",
+        "duration": "00:00:01.00 = 16000 samples ~ 75 CDDA sectors",
+        "file_size": "64.1k",
+        "bit_rate": "513k",
+        "sample_encoding": "32-bit Signed Integer PCM"
+      },
+      "ok": true
+    },
+    {
+      "path": "/home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/sample-video.mp4",
+      "exists": true,
+      "kind": "video",
+      "size_bytes": 12712,
+      "warnings": [],
+      "duration_seconds": 2.0,
+      "bit_rate": 50848,
+      "video": {
+        "codec": "h264",
+        "width": 320,
+        "height": 240,
+        "pixel_format": "yuv420p",
+        "frame_rate": "25/1"
+      },
+      "ok": true
+    }
+  ],
+  "fail_reasons": [],
+  "exit_code": 0,
+  "summary_by_kind": {
+    "audio": {
+      "total": 2,
+      "ok_count": 2,
+      "warning_count": 0
+    },
+    "image": {
+      "total": 3,
+      "ok_count": 3,
+      "warning_count": 0
+    },
+    "video": {
+      "total": 3,
+      "ok_count": 3,
+      "warning_count": 0
+    }
+  }
+}
