@@ -1,5 +1,9 @@
 # STATUS.md
 
+## Operational notes
+- Exchange Taken wordt nu gebruikt als operationele takenlijst naast deze statusbestanden.
+- Exchange Agenda wordt nu actief gebruikt voor agenda-uitleesroutes.
+
 ## Now
 - GitHub-account + private repo + eerste push afronden
 - Exchange SE on-prem route uitbouwen via EWS + Autodiscover
@@ -13,10 +17,6 @@
 ## Blocked
 - Goede beeldgeneratie-route ontbreekt nog in deze runtime, dus betere image-remakes wachten op sterkere/lokale modelroute
 - Control UI via LAN zonder SSH vraagt later nog een nette HTTPS-route
-
-## Parked
-- Proton signup / Proton Pass als actief spoor, niet meer relevant voor huidige voortgang
-- Microsoft Graph / tenant-id / client-id als Exchange-hoofdspoor, verkeerde aanname voor deze on-prem setup
 
 ## Done
 - Migratie naar `clawdy` hersteld

@@ -109,6 +109,8 @@ def build_summary():
     risks = []
     tracked_risks = []
     uncovered_risks = []
+    resolved_sensitive = []
+    publish_candidates = []
 
     for entry in entries:
         code = entry['code']
@@ -122,13 +124,29 @@ def build_summary():
                 uncovered = not any(path_matches_pattern(path, pattern) for pattern in gitignore_patterns)
                 if uncovered:
                     uncovered_risks.append(item)
+            else:
+                publish_candidates.append({'code': code, 'path': path})
             continue
 
         tracked_changed.append({'code': code, 'path': path})
         risk = classify_path(path)
-        if risk:
-            item = {'kind': 'tracked', 'path': path, 'risk': risk}
-            risks.append(item)
+        if not risk:
+            publish_candidates.append({'code': code, 'path': path})
+            continue
+
+        is_staged_removal = code[0] == 'D'
+        now_ignored = any(path_matches_pattern(path, pattern) for pattern in gitignore_patterns)
+        item = {
+            'kind': 'tracked',
+            'path': path,
+            'risk': risk,
+            'staged_removal': is_staged_removal,
+            'now_ignored': now_ignored,
+        }
+        risks.append(item)
+        if is_staged_removal and now_ignored:
+            resolved_sensitive.append(path)
+        else:
             tracked_risks.append(path)
 
     publish_blockers = []
@@ -151,6 +169,8 @@ def build_summary():
     elif not remotes:
         next_hint = 'publish-selectie oogt beter; volgende stap is private remote toevoegen en eerste push voorbereiden'
 
+    active_risks = tracked_risks + [item['path'] for item in uncovered_risks]
+
     return {
         'branch': branch,
         'remote_count': len(remotes),
@@ -162,11 +182,17 @@ def build_summary():
         'tracked_changed_count': len(tracked_changed),
         'untracked_count': len(untracked),
         'risky_count': len(risks),
+        'active_risky_count': len(active_risks),
+        'resolved_sensitive_count': len(resolved_sensitive),
+        'publish_candidate_count': len(publish_candidates),
         'tracked_risky_count': len(tracked_risks),
         'uncovered_risky_untracked_count': len(uncovered_risks),
         'tracked_changed': tracked_changed[:20],
         'untracked': untracked[:20],
         'risks': risks[:30],
+        'active_risky_paths': active_risks[:20],
+        'resolved_sensitive_paths': resolved_sensitive[:20],
+        'publish_candidates': publish_candidates[:20],
         'tracked_risky_paths': tracked_risks[:20],
         'uncovered_risky_untracked': uncovered_risks[:20],
         'untrack_command': f"git rm --cached -- {' '.join(tracked_risks)}" if tracked_risks else None,
@@ -183,13 +209,24 @@ def render_text(summary):
     if summary.get('publish_blockers'):
         lines.append(f"- blockers: {', '.join(summary['publish_blockers'])}")
     lines.append(f"- tracked gewijzigd: {summary['tracked_changed_count']}, untracked: {summary['untracked_count']}")
-    lines.append(f"- risicopaden: {summary['risky_count']}")
+    lines.append(f"- actieve risicopaden: {summary['active_risky_count']}")
     lines.append(f"- tracked gevoelig: {summary['tracked_risky_count']}, ongedekt untracked gevoelig: {summary['uncovered_risky_untracked_count']}")
-    if summary['risks']:
-        preview = ', '.join(item['path'] for item in summary['risks'][:6])
-        if len(summary['risks']) > 6:
-            preview += f" (+{len(summary['risks']) - 6})"
-        lines.append(f"- risico-preview: {preview}")
+    if summary['active_risky_paths']:
+        preview = ', '.join(summary['active_risky_paths'][:6])
+        if summary['active_risky_count'] > 6:
+            preview += f" (+{summary['active_risky_count'] - 6})"
+        lines.append(f"- actief risico-preview: {preview}")
+    if summary['resolved_sensitive_count']:
+        preview = ', '.join(summary['resolved_sensitive_paths'][:4])
+        if summary['resolved_sensitive_count'] > 4:
+            preview += f" (+{summary['resolved_sensitive_count'] - 4})"
+        lines.append(f"- al veilig uitgefaseerd uit tracking: {preview}")
+    lines.append(f"- publish-kandidaten: {summary['publish_candidate_count']}")
+    if summary['publish_candidates']:
+        preview = ', '.join(item['path'] for item in summary['publish_candidates'][:6])
+        if summary['publish_candidate_count'] > 6:
+            preview += f" (+{summary['publish_candidate_count'] - 6})"
+        lines.append(f"- kandidaat-preview: {preview}")
     if summary['untrack_command']:
         lines.append(f"- untrack: {summary['untrack_command']}")
     lines.append(f"- next: {summary['next_hint']}")

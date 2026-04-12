@@ -4,7 +4,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from secrets import get_secret, load_mail_config
+from workspace_secrets import get_secret, load_mail_config
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 HUMAN_VERIFY = ROOT / 'browser-automation' / 'proton_human_verification.js'

@@ -4,7 +4,7 @@ import json
 import subprocess
 import sys
 
-from secrets import get_secret, load_mail_config
+from workspace_secrets import get_secret, load_mail_config
 from pathlib import Path
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')

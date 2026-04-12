@@ -1,9 +1,11 @@
 # KANBAN.md
 
 ## Execution guardrails
+- Operationele werklijst staat ook in Exchange Taken; KANBAN blijft de lokale bron voor structuur en prioriteit.
 - Eén primair spoor tegelijk. Alleen het primaire spoor krijgt actieve bouwtijd totdat het klaar of echt geblokkeerd is.
 - Huidig primair spoor: GitHub
 - Parallel mag alleen voor klein onderhoud of wanneer het primaire spoor extern wacht.
+- Als het primaire spoor leeg is of extern wacht, herbeoordeel proactief taken, geparkeerde taken en backlog op wat nu wel uitgevoerd kan worden.
 - Elk actief spoor moet een concrete definition of done hebben.
 - Als een spoor geen tastbaar resultaat oplevert binnen korte tijd, stop en meld de blocker in plaats van door te drijven.
 - Harde tijdsgrens: een taak/spoor moet binnen maximaal 1 uur afgerond zijn, of expliciet hard geblokkeerd met bewijs, of opgesplitst worden in kleinere deliverables.
@@ -24,12 +26,13 @@
 - GitHub is nog niet geblokkeerd, alleen nog niet afgerond
 
 ## Next
-- Exchange mailbox/kalender/taken workflow structureren op basis van on-prem entry points, niet Graph
+- Exchange mailbox/kalender/taken workflow structureren op basis van on-prem entry points
 - Creative tooling/workflows verdiepen voor image/audio/video
 - Onderzoek naar betere identity-preserving photo edit modellen/workflows
 - Secrets/workflows verder opruimen nu Bitwarden werkt
 
 ## Backlog
+- Diepere publieke profielronde / LinkedIn-context netter afmaken
 - Mac migratieplan voor lokale LLMs en media workflows
 - Lokale LLM/image stack voorbereiden voor de nieuwe MacBook Pro
 - Home Assistant / Z-Wave toegang voorbereiden zodra beschikbaar
@@ -41,10 +44,7 @@
 - Mailbox, kalender en taken verder integreren in bruikbare routines
 
 ## Parked
-- Proton als actief werkspoor, alleen nog bewaren als oude web-automation casus/legacy referentie
-- Microsoft Graph / tenant-id / client-id voor Exchange, geparkeerd tenzij later expliciet een echte M365/hybrid route blijkt
 - Ski-foto edit, opnieuw oppakken met betere modelroute
-- Diepere publieke profielronde / LinkedIn-context later netter afmaken
 
 ## Done
 - OpenClaw migratie hersteld

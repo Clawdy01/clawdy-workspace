@@ -23,6 +23,7 @@ def main():
     parser = argparse.ArgumentParser(description='Concreet plan voor eerste private GitHub push')
     parser.add_argument('--repo', help='github repo slug, bv. clawdy/clawdy-private')
     parser.add_argument('--branch', default='main', help='gewenste standaardbranch voor eerste push')
+    parser.add_argument('--protocol', choices=['ssh', 'https'], default='ssh', help='remote protocol voor origin (default: ssh)')
     parser.add_argument('--json', action='store_true')
     args = parser.parse_args()
 
@@ -31,6 +32,11 @@ def main():
     repo_slug = args.repo or '<owner>/<repo>'
     branch = args.branch
     readiness = readiness_summary()
+    remote_url = (
+        f'git@github.com:{repo_slug}.git'
+        if args.protocol == 'ssh'
+        else f'https://github.com/{repo_slug}.git'
+    )
 
     commands = [
         'python3 scripts/git-publish-readiness.py',
@@ -40,7 +46,7 @@ def main():
     if current_branch != branch:
         commands.append(f'git branch -M {branch}')
     if not readiness.get('has_origin'):
-        commands.append(f'git remote add origin git@github.com:{repo_slug}.git')
+        commands.append(f'git remote add origin {remote_url}')
     commands.extend([
         'git status --short --branch',
         f'git push -u origin {branch}',
@@ -52,7 +58,14 @@ def main():
         'has_remote': bool(remotes),
         'has_origin': readiness.get('has_origin', False),
         'repo_slug': repo_slug,
+        'protocol': args.protocol,
+        'remote_url': remote_url,
         'publish_blockers': readiness.get('publish_blockers', []),
+        'active_risky_count': readiness.get('active_risky_count', 0),
+        'resolved_sensitive_count': readiness.get('resolved_sensitive_count', 0),
+        'publish_candidate_count': readiness.get('publish_candidate_count', 0),
+        'tracked_risky_paths': readiness.get('tracked_risky_paths', []),
+        'untrack_command': readiness.get('untrack_command'),
         'commands': commands,
         'next_hint': readiness.get('next_hint') or 'bereid eerst de private push veilig voor',
     }
@@ -67,7 +80,17 @@ def main():
         print(f"- origin aanwezig: {'ja' if summary['has_origin'] else 'nee'}")
         if summary['publish_blockers']:
             print(f"- blockers: {', '.join(summary['publish_blockers'])}")
+        print(f"- actieve risicopaden: {summary['active_risky_count']}")
+        print(f"- publish-kandidaten: {summary['publish_candidate_count']}")
+        if summary['resolved_sensitive_count']:
+            print(f"- al veilig uitgefaseerd uit tracking: {summary['resolved_sensitive_count']}")
+        if summary['tracked_risky_paths']:
+            print(f"- tracked risky: {', '.join(summary['tracked_risky_paths'])}")
+        if summary['untrack_command']:
+            print(f"- untrack: {summary['untrack_command']}")
         print(f"- repo: {repo_slug}")
+        print(f"- protocol: {summary['protocol']}")
+        print(f"- remote url: {summary['remote_url']}")
         print('- commando’s:')
         for cmd in commands:
             print(f'  - {cmd}')

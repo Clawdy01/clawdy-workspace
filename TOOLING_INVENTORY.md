@@ -77,9 +77,6 @@
 - `scripts/web-automation-stack-status.py` — combineert per target DOM probe, desktop fallback, artifact-breadcrumbs en workflow-state in één gerichte stack-view voor adapterwerk of debugging
 - `scripts/web-automation-refresh-stack.py` — refreshes één target over zowel DOM/site probe als desktop fallback heen, zodat een adapter in één route weer volledig warm staat
 - `scripts/desktop-fallback-status.py` — compacte health/observability-view voor `browser-automation/out-desktop*`, met screenshot/window-capture freshness en refresh-command
-- `scripts/graph-setup-summary.py` — legacy Microsoft Graph setupsamenvatting, nu geparkeerd omdat de huidige Exchange-route on-prem via EWS/Autodiscover loopt
-- `scripts/graph-auth-start.py` — legacy PKCE helper voor een eventuele latere Graph delegated auth route
-- `scripts/graph-proof.py` — legacy Graph proof-run, nu niet het hoofdspoor voor de huidige Exchange SE setup
 - `scripts/git-publish-readiness.py` — snelle check of de workspace publish-veilig is voor een eerste private GitHub push
 - `scripts/gitignore-proposal-check.py` — laat zien wat het GitHub private `.gitignore`-voorstel al wel/niet afdekt
 - `scripts/git-first-push-plan.py` — geeft concrete commando’s voor de eerste private GitHub push, zonder al iets te wijzigen
@@ -101,8 +98,6 @@
 - `scripts/photo-workflow-notes.md` — workflow notes
 
 ## Research / runbooks
-- `research/exchange-graph-setup-checklist.md` — legacy runbook voor een eventuele latere Microsoft Graph route, niet voor de huidige Exchange SE hoofdaanpak
-- `research/msgraph-env-template.sh` — legacy env-template voor een eventuele latere Graph auth test
 - `research/github-private-publish-checklist.md` — runbook voor veilige eerste private GitHub push vanuit deze workspace
 - `research/github-private-gitignore-proposal.txt` — voorstel voor publish-veilige `.gitignore` bij eerste private push
 - `research/github-private-first-push-next-step.md` — compacte next-step volgorde voor de eerste private GitHub push

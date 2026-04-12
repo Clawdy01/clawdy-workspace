@@ -29,12 +29,19 @@ async function textContentSafe(page, sel) {
     await page.fill('#email', email);
     await page.fill('#password', password);
     await page.fill('#login', username);
+    const country = page.locator('select').first();
+    if (await country.count()) {
+      await country.selectOption({ label: 'Netherlands' }).catch(async () => {
+        await country.selectOption('NL').catch(() => null);
+      });
+    }
     const consent = page.locator('input[type="checkbox"][name="user_signup[marketing_consent]"]');
     if (await consent.count()) {
       try { await consent.check(); } catch {}
     }
+    await page.locator('input[name="required_field_36b7"]').fill('').catch(() => null);
     await page.screenshot({ path: screenshot, fullPage: true });
-    const submit = page.locator('button[type="submit"], input[type="submit"]');
+    const submit = page.locator('form[action*="signup?social=false"] button[type="submit"], form[action*="signup?social=false"] input[type="submit"]');
     out.before = {
       title: await page.title(),
       url: page.url(),
@@ -46,6 +53,10 @@ async function textContentSafe(page, sel) {
     };
     if (await submit.count()) {
       await submit.first().click({ timeout: 10000 }).catch(() => null);
+    } else {
+      await page.locator('form[action*="signup?social=false"]').evaluate((form) => form.submit()).catch(() => null);
+    }
+    if (true) {
       await page.waitForLoadState('domcontentloaded', { timeout: 30000 }).catch(() => null);
       await page.waitForTimeout(3000);
     }

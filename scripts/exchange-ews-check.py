@@ -6,7 +6,7 @@ import pathlib
 import subprocess
 import sys
 
-from secrets import load_mail_config
+from workspace_secrets import load_mail_config
 
 ROOT = pathlib.Path('/home/clawdy/.openclaw/workspace')
 

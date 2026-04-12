@@ -3,7 +3,7 @@ import imaplib
 import json
 import sys
 
-from secrets import load_mail_config
+from workspace_secrets import load_mail_config
 
 
 def main():

@@ -2,7 +2,7 @@
 import imaplib
 import time
 
-from secrets import load_mail_config
+from workspace_secrets import load_mail_config
 
 
 def open_inbox(readonly=True, retries=3, initial_delay=0.75):

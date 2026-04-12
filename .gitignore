@@ -1,7 +1,34 @@
-state/secrets.json
+# OpenClaw runtime / local state
 .openclaw/
+state/
+state/secrets.json
+
+# Memory / persoonlijke context
+MEMORY.md
+memory/
+HEARTBEAT.md
+USER.md
+TOOLS.md
+
+# Lokale venvs / caches
+.venv/
+.venv*/
+.venv-*/
 .venv-audio/
 .venv-photo/
 browser-automation/node_modules/
 **/__pycache__/
+__pycache__/
 *.pyc
+
+# Browser automation outputs / screenshots
+browser-automation/out/
+browser-automation/out-*/
+
+# Lokale media / tijdelijke exports
+*.webp
+*.tmp
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
