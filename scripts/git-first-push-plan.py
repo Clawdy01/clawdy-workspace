@@ -43,14 +43,18 @@ def main():
     ]
     if readiness.get('untrack_command'):
         commands.append(readiness['untrack_command'])
-    if current_branch != branch:
+    renaming_branch = current_branch != branch
+    if renaming_branch:
         commands.append(f'git branch -M {branch}')
     if not readiness.get('has_origin'):
         commands.append(f'git remote add origin {remote_url}')
-    commands.extend([
-        'git status --short --branch',
-        f'git push -u origin {branch}',
-    ])
+    commands.append('git status --short --branch')
+    if renaming_branch:
+        commands.append(f'git push -u origin {branch}')
+    elif not readiness.get('has_upstream'):
+        commands.append(f'git push -u origin {branch}')
+    elif readiness.get('ahead_count'):
+        commands.append(f'git push origin {branch}')
 
     summary = {
         'current_branch': current_branch,
@@ -61,6 +65,11 @@ def main():
         'protocol': args.protocol,
         'remote_url': remote_url,
         'publish_blockers': readiness.get('publish_blockers', []),
+        'has_upstream': readiness.get('has_upstream', False),
+        'upstream': readiness.get('upstream'),
+        'ahead_count': readiness.get('ahead_count'),
+        'behind_count': readiness.get('behind_count'),
+        'renaming_branch': renaming_branch,
         'active_risky_count': readiness.get('active_risky_count', 0),
         'resolved_sensitive_count': readiness.get('resolved_sensitive_count', 0),
         'publish_candidate_count': readiness.get('publish_candidate_count', 0),
@@ -78,6 +87,11 @@ def main():
         print(f"- doelbranch: {branch}")
         print(f"- remote aanwezig: {'ja' if summary['has_remote'] else 'nee'}")
         print(f"- origin aanwezig: {'ja' if summary['has_origin'] else 'nee'}")
+        print(f"- upstream aanwezig: {'ja' if summary['has_upstream'] else 'nee'}")
+        if summary['upstream']:
+            print(f"- upstream ref: {summary['upstream']} (ahead {summary['ahead_count']}, behind {summary['behind_count']})")
+        if summary['renaming_branch']:
+            print(f"- branch-rename nodig: ja ({current_branch} -> {branch})")
         if summary['publish_blockers']:
             print(f"- blockers: {', '.join(summary['publish_blockers'])}")
         print(f"- actieve risicopaden: {summary['active_risky_count']}")

@@ -97,12 +97,40 @@ def path_matches_pattern(path, pattern):
     return path_clean == pattern_clean or path_clean.startswith(pattern_clean + '/')
 
 
+def upstream_status(branch):
+    proc = subprocess.run(
+        ['git', 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return {
+            'has_upstream': False,
+            'upstream': None,
+            'ahead': None,
+            'behind': None,
+        }
+    upstream = proc.stdout.strip()
+    counts = run('git', 'rev-list', '--left-right', '--count', f'{branch}...{upstream}').strip().split()
+    ahead = int(counts[0]) if len(counts) > 0 else 0
+    behind = int(counts[1]) if len(counts) > 1 else 0
+    return {
+        'has_upstream': True,
+        'upstream': upstream,
+        'ahead': ahead,
+        'behind': behind,
+    }
+
+
 def build_summary():
     branch = run('git', 'rev-parse', '--abbrev-ref', 'HEAD').strip()
     remotes = git_lines('remote', '-v')
     remote_names = git_lines('remote')
     entries = git_status_entries()
     gitignore_patterns = load_gitignore_patterns()
+    upstream = upstream_status(branch)
 
     tracked_changed = []
     untracked = []
@@ -160,6 +188,8 @@ def build_summary():
         publish_blockers.append('missing_remote')
     if 'origin' not in remote_names:
         publish_blockers.append('missing_origin')
+    if not upstream['has_upstream']:
+        publish_blockers.append('missing_upstream')
 
     next_hint = 'repo oogt klaar voor private remote + eerste push'
     if tracked_risks:
@@ -168,6 +198,10 @@ def build_summary():
         next_hint = 'werk eerst een publish-veilige .gitignore af voordat je private repo + eerste push doet'
     elif not remotes:
         next_hint = 'publish-selectie oogt beter; volgende stap is private remote toevoegen en eerste push voorbereiden'
+    elif not upstream['has_upstream']:
+        next_hint = 'origin bestaat al; volgende stap is branch koppelen met upstream via de eerste push'
+    elif upstream['ahead']:
+        next_hint = 'upstream bestaat; volgende stap is lokale commits pushen'
 
     active_risks = tracked_risks + [item['path'] for item in uncovered_risks]
 
@@ -179,6 +213,10 @@ def build_summary():
         'gitignore_present': bool(gitignore_patterns),
         'gitignore_pattern_count': len(gitignore_patterns),
         'publish_blockers': publish_blockers,
+        'has_upstream': upstream['has_upstream'],
+        'upstream': upstream['upstream'],
+        'ahead_count': upstream['ahead'],
+        'behind_count': upstream['behind'],
         'tracked_changed_count': len(tracked_changed),
         'untracked_count': len(untracked),
         'risky_count': len(risks),
@@ -206,6 +244,9 @@ def render_text(summary):
     lines.append(f"- remote: {'ja' if summary['has_remote'] else 'nee'} ({summary['remote_count']})")
     lines.append(f"- origin: {'ja' if summary['has_origin'] else 'nee'}")
     lines.append(f"- .gitignore: {'ja' if summary['gitignore_present'] else 'nee'} ({summary['gitignore_pattern_count']} patronen)")
+    lines.append(f"- upstream: {'ja' if summary['has_upstream'] else 'nee'}")
+    if summary['upstream']:
+        lines.append(f"- upstream ref: {summary['upstream']} (ahead {summary['ahead_count']}, behind {summary['behind_count']})")
     if summary.get('publish_blockers'):
         lines.append(f"- blockers: {', '.join(summary['publish_blockers'])}")
     lines.append(f"- tracked gewijzigd: {summary['tracked_changed_count']}, untracked: {summary['untracked_count']}")
