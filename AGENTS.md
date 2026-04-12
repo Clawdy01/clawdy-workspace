@@ -44,6 +44,9 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - When you learn a lesson → update AGENTS.md, TOOLS.md, or the relevant skill
 - When you make a mistake → document it so future-you doesn't repeat it
 - If a track becomes parked/legacy, update KANBAN/STATUS and stop presenting it as active in summaries/boards
+- If a primary track is finished, immediately update KANBAN/STATUS before doing any side work, then start the next highest-value track in the same turn when possible
+- Do not go passively idle while a primary track or clear backlog item exists; either make concrete progress, record a hard blocker with evidence, or explicitly split the work into smaller deliverables
+- If you drift into maintenance/nazorg after the real definition of done is already met, treat that as a process failure and snap back to track handoff immediately
 - For local Exchange Server setups, assume on-prem entry points first (EWS, Autodiscover, PowerShell), not Microsoft Graph, unless there is explicit hybrid/M365 evidence
 - **Text > Brain** 📝
 

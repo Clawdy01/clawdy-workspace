@@ -9,6 +9,7 @@
 - Elk actief spoor moet een concrete definition of done hebben.
 - Als een spoor geen tastbaar resultaat oplevert binnen korte tijd, stop en meld de blocker in plaats van door te drijven.
 - Harde tijdsgrens: een taak/spoor moet binnen maximaal 1 uur afgerond zijn, of expliciet hard geblokkeerd met bewijs, of opgesplitst worden in kleinere deliverables.
+- Na afronding van een primair spoor: eerst KANBAN/STATUS direct syncen, daarna in dezelfde werksessie het volgende spoor activeren.
 - Geparkeerde of legacy sporen mogen niet als actief in updates verschijnen.
 
 ## Definition of done
@@ -18,6 +19,7 @@
 
 ## Now
 - Exchange SE on-prem: task lifecycle en nuttige mailbox/agenda samenvattingen verder aanscherpen nu de eerste echte read/write EWS-actie bevestigd is
+- Verplichte anti-stall regel: als dit spoor stilvalt zonder blocker, direct één concrete stap uitvoeren of de blocker met bewijs vastleggen
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: geparkeerd tot betere model/hardware-route
 
