@@ -1,0 +1,36 @@
+# Eerste publish-veilige baseline voor private GitHub push
+# Houd lokale state, memory en runtime-restanten uit git.
+
+# OpenClaw runtime / local state
+.openclaw/
+state/
+
+# Memory / persoonlijke context
+MEMORY.md
+memory/
+HEARTBEAT.md
+USER.md
+TOOLS.md
+
+# Lokale venvs / caches
+.venv/
+.venv*/
+.venv-*/
+__pycache__/
+*.pyc
+
+# Browser automation dependencies / outputs
+browser-automation/node_modules/
+browser-automation/out/
+browser-automation/out-*/
+browser-automation/out-desktop-*/
+
+# Lokale media / tijdelijke exports
+sunny-fireworks-ski*.png
+*.webp
+*.tmp
+tmp/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
