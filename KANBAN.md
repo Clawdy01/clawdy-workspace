@@ -28,12 +28,17 @@
 - `scripts/media-sanity-check.py` ondersteunt nu ook directory/batch-check via `--dir` en `--recursive`, live geverifieerd op `tmp/creative-tooling-check`
 - `scripts/media-sanity-check.py` ondersteunt nu ook `--warnings-only`, live geverifieerd op een schone testmap plus negatieve video-zonder-audio check zodat batch-runs compacter blijven
 - `scripts/media-sanity-check.py` ondersteunt nu ook `--summary-by-kind`, live geverifieerd op `tmp/creative-tooling-check` in tekst- en JSON-mode zodat batch-runs direct een compacte opsplitsing per audio/image/video tonen
-- Volgende stap: optionele aggregate-warnings of exit-codes per batch-run toevoegen voor CI-achtige checks
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--fail-on-warnings`, live geverifieerd met een groene batch-run en een negatieve check die terecht exit code 2 geeft
+- `scripts/media-sanity-check.py` ondersteunt nu ook aggregate batch-grenzen via `--max-warning-files` en `--max-total-warnings`, live geverifieerd op `tmp/creative-tooling-check` met zowel een groene batch-run als een geforceerde fail-case met exit code 2
+- `scripts/media-sanity-check.py` ondersteunt nu ook strikte fail-profielen via `--fail-profile` (`video-strict`, `audio-voice-16k-strict`, `image-preview-strict`), live geverifieerd met een groene audio/image-run en een bewuste video-fail zonder audio (exit code 2)
+- `scripts/media-sanity-check.py` ondersteunt nu ook aggregate fail-profielen via `--fail-profile`, inclusief mixed batch-runs met `mixed-batch-strict` en `mixed-batch-review`, live geverifieerd op een schone map-run en een bewuste fail-case
+- `scripts/media-sanity-check.py` ondersteunt nu ook rapport-output naar bestand/artifact via `--report-out` en `--report-format`, zodat CI-achtige checks resultaten direct kunnen bewaren of doorgeven
+- Volgende stap: optionele timestamped of append-mode voor terugkerende rapport-runs toevoegen
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
 ## Blocked
-- Geen harde blocker op het huidige creative-tooling spoor; nulmeting, workflow-inventaris, helper-thresholds, presets, batch-check, warnings-only en summary-by-kind zijn bevestigd en helperbouw kan lokaal doorgaan
+- Geen harde blocker op het huidige creative-tooling spoor; nulmeting, workflow-inventaris, helper-thresholds, presets, batch-check, warnings-only, summary-by-kind, strikte fail-profielen, mixed batch-fail-profielen en rapport-output naar artifact zijn bevestigd en helperbouw kan lokaal doorgaan
 - Betere identity-preserving photo edits blijven wel geblokkeerd op een sterkere/lokale modelroute
 
 ## Next
@@ -82,3 +87,8 @@
 - Creative tooling helper verder verdiept en live geverifieerd: `scripts/media-sanity-check.py` kan nu hele outputmappen batchgewijs beoordelen en vond daarbij ook een kapotte sample-clip zonder videostream
 - Creative tooling helper compacter bruikbaar gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--warnings-only`, en de eerder kapotte sample-clip is direct herbouwd zodat de batch-check weer 8/8 bestanden groen toont
 - Creative tooling helper verder verdiept en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--summary-by-kind`, zodat batch-runs in tekst- en JSON-output direct een compacte opsplitsing per mediatype tonen
+- Creative tooling helper automation-vriendelijker gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu `--fail-on-warnings` met exit code 2 bij echte warnings
+- Creative tooling helper nog CI-vriendelijker gemaakt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu aggregate batch-grenzen via `--max-warning-files` en `--max-total-warnings`, inclusief fail-reasons en exit code 2 bij overschrijding
+- Creative tooling helper verder verscherpt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu ook strikte fail-profielen via `--fail-profile` voor video, audio-voice-16k en image-preview checks
+- Creative tooling helper ook op batchniveau verscherpt en live geverifieerd: `scripts/media-sanity-check.py` ondersteunt nu mixed fail-profielen voor hele map-runs, inclusief expliciete `fail_reasons` in JSON-output
+- Creative tooling helper CI-vriendelijker gemaakt en live geverifieerd: `scripts/media-sanity-check.py` kan nu rapporten als tekst of JSON wegschrijven via `--report-out` en `--report-format`

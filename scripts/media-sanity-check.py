@@ -26,6 +26,38 @@ PRESETS = {
     },
 }
 
+FAIL_PROFILES = {
+    'video-strict': {
+        'min_size_bytes': 1000,
+        'min_duration': 0.5,
+        'min_width': 320,
+        'min_height': 240,
+        'require_audio': True,
+        'fail_on_warnings': True,
+    },
+    'audio-voice-16k-strict': {
+        'min_size_bytes': 1000,
+        'min_duration': 0.5,
+        'expect_sample_rate': 16000,
+        'fail_on_warnings': True,
+    },
+    'image-preview-strict': {
+        'min_size_bytes': 100,
+        'min_width': 160,
+        'min_height': 120,
+        'fail_on_warnings': True,
+    },
+    'mixed-batch-strict': {
+        'fail_on_warnings': True,
+        'max_warning_files': 0,
+        'max_total_warnings': 0,
+    },
+    'mixed-batch-review': {
+        'max_warning_files': 1,
+        'max_total_warnings': 2,
+    },
+}
+
 
 def run(cmd):
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -192,9 +224,15 @@ def build_parser():
     parser.add_argument('--dir', dest='directory', help='Inspecteer alle ondersteunde mediabestanden in deze map')
     parser.add_argument('--recursive', action='store_true', help='Doorzoek submappen ook bij --dir')
     parser.add_argument('--json', action='store_true', help='Geef output als JSON')
+    parser.add_argument('--report-out', help='Schrijf ook een rapportbestand weg')
+    parser.add_argument('--report-format', choices=['auto', 'json', 'text'], default='auto', help='Formaat voor --report-out (default: auto op basis van extensie of stdout-mode)')
     parser.add_argument('--warnings-only', action='store_true', help='Toon alleen bestanden met warnings in de itemlijst')
     parser.add_argument('--summary-by-kind', action='store_true', help='Toon extra samenvatting per mediatype')
+    parser.add_argument('--fail-on-warnings', action='store_true', help='Exit met code 2 als er warnings zijn, bruikbaar voor CI-achtige checks')
+    parser.add_argument('--max-warning-files', type=int, help='Exit met code 2 als meer dan dit aantal bestanden warnings heeft')
+    parser.add_argument('--max-total-warnings', type=int, help='Exit met code 2 als het totale aantal warning-meldingen boven deze grens komt')
     parser.add_argument('--preset', choices=sorted(PRESETS), help='Gebruik een standaard controleprofiel voor terugkerende checks')
+    parser.add_argument('--fail-profile', choices=sorted(FAIL_PROFILES), help='Gebruik een streng fail-profiel per mediatype/use-case, inclusief fail-on-warnings')
     parser.add_argument('--min-size-bytes', type=int, help='Waarschuw als bestand kleiner is dan deze grootte in bytes')
     parser.add_argument('--min-duration', type=float, help='Waarschuw als duration korter is dan deze waarde in seconden')
     parser.add_argument('--min-width', type=int, help='Waarschuw als breedte lager is dan deze waarde')
@@ -204,12 +242,22 @@ def build_parser():
     return parser
 
 
-def apply_preset_defaults(args):
-    if not args.preset:
-        return args
-    for key, value in PRESETS[args.preset].items():
-        if getattr(args, key) is None:
+def apply_profile_defaults(args, profile):
+    for key, value in profile.items():
+        current = getattr(args, key)
+        if isinstance(value, bool):
+            if current is False:
+                setattr(args, key, value)
+        elif current is None:
             setattr(args, key, value)
+    return args
+
+
+def apply_preset_defaults(args):
+    if args.preset:
+        args = apply_profile_defaults(args, PRESETS[args.preset])
+    if args.fail_profile:
+        args = apply_profile_defaults(args, FAIL_PROFILES[args.fail_profile])
     return args
 
 
@@ -245,6 +293,106 @@ def build_kind_summary(results):
     return dict(sorted(by_kind.items()))
 
 
+def build_fail_reasons(summary, args):
+    fail_reasons = []
+    if args.fail_on_warnings and summary['warning_count'] > 0:
+        fail_reasons.append('warning_count > 0')
+    if args.max_warning_files is not None and summary['warning_count'] > args.max_warning_files:
+        fail_reasons.append(f"warning_count {summary['warning_count']} > max_warning_files {args.max_warning_files}")
+    if args.max_total_warnings is not None and summary['total_warnings'] > args.max_total_warnings:
+        fail_reasons.append(f"total_warnings {summary['total_warnings']} > max_total_warnings {args.max_total_warnings}")
+    return fail_reasons
+
+
+def build_payload(args, summary, displayed_results, fail_reasons, exit_code, kind_summary=None):
+    payload = {
+        'preset': args.preset,
+        'fail_profile': args.fail_profile,
+        'directory': args.directory,
+        'warnings_only': args.warnings_only,
+        'fail_on_warnings': args.fail_on_warnings,
+        'max_warning_files': args.max_warning_files,
+        'max_total_warnings': args.max_total_warnings,
+        'summary': summary,
+        'items': displayed_results,
+        'fail_reasons': fail_reasons,
+        'exit_code': exit_code,
+    }
+    if kind_summary is not None:
+        payload['summary_by_kind'] = kind_summary
+    return payload
+
+
+
+def render_text_report(args, summary, displayed_results, fail_reasons, kind_summary=None):
+    lines = ['Media sanity check']
+    if args.preset:
+        lines.append(f'preset: {args.preset}')
+    if args.fail_profile:
+        lines.append(f'fail-profile: {args.fail_profile}')
+    if args.directory:
+        lines.append(f'directory: {Path(args.directory).expanduser().resolve()}')
+    if args.warnings_only:
+        lines.append('mode: warnings-only')
+    if args.fail_on_warnings:
+        lines.append('mode: fail-on-warnings')
+    if args.max_warning_files is not None:
+        lines.append(f'mode: max-warning-files={args.max_warning_files}')
+    if args.max_total_warnings is not None:
+        lines.append(f'mode: max-total-warnings={args.max_total_warnings}')
+    lines.append(f"summary: total={summary['total']} ok={summary['ok_count']} warnings={summary['warning_count']} total-warning-messages={summary['total_warnings']}")
+    if kind_summary is not None:
+        lines.append('summary-by-kind:')
+        for kind, bucket in kind_summary.items():
+            lines.append(f"  - {kind}: total={bucket['total']} ok={bucket['ok_count']} warnings={bucket['warning_count']}")
+    for item in displayed_results:
+        lines.append(f"- {item['kind']}: {item['path']}")
+        lines.append(f"  size: {item['size_bytes']} bytes")
+        if item.get('duration_seconds') is not None:
+            lines.append(f"  duration: {item['duration_seconds']:.3f}s")
+        if item.get('video'):
+            video = item['video']
+            lines.append(f"  video: {video.get('codec')} {video.get('width')}x{video.get('height')} fps={video.get('frame_rate')}")
+        if item.get('audio'):
+            audio = item['audio']
+            if isinstance(audio, dict) and 'codec' in audio:
+                lines.append(f"  audio stream: {audio.get('codec')} sr={audio.get('sample_rate')} ch={audio.get('channels')}")
+            elif isinstance(audio, dict):
+                sample_rate = audio.get('sample_rate') or audio.get('sample_rate_(hz)')
+                channels = audio.get('channels')
+                lines.append(f"  audio: sr={sample_rate} ch={channels}")
+        if item.get('image'):
+            image = item['image']
+            lines.append(f"  image: {image.get('format')} {image.get('width')}x{image.get('height')} {image.get('colorspace')}")
+        if item.get('warnings'):
+            lines.append(f"  warnings: {'; '.join(item['warnings'])}")
+    if fail_reasons:
+        lines.append(f"fail-reasons: {'; '.join(fail_reasons)}")
+    return '\n'.join(lines)
+
+
+
+def detect_report_format(args):
+    if args.report_format != 'auto':
+        return args.report_format
+    if args.report_out:
+        suffix = Path(args.report_out).suffix.lower()
+        if suffix == '.json':
+            return 'json'
+        if suffix in {'.txt', '.log', '.report'}:
+            return 'text'
+    return 'json' if args.json else 'text'
+
+
+
+def write_report(path_value, content):
+    path = Path(path_value).expanduser().resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding='utf-8')
+    return str(path)
+
+
+
 def main():
     parser = build_parser()
     args = apply_preset_defaults(parser.parse_args())
@@ -259,56 +407,27 @@ def main():
         'total': len(results),
         'ok_count': sum(1 for item in results if item.get('ok')),
         'warning_count': sum(1 for item in results if item.get('warnings')),
+        'total_warnings': sum(len(item.get('warnings') or []) for item in results),
     }
     kind_summary = build_kind_summary(results) if args.summary_by_kind else None
     displayed_results = [item for item in results if item.get('warnings')] if args.warnings_only else results
 
-    if args.json:
-        payload = {
-            'preset': args.preset,
-            'directory': args.directory,
-            'warnings_only': args.warnings_only,
-            'summary': summary,
-            'items': displayed_results,
-        }
-        if kind_summary is not None:
-            payload['summary_by_kind'] = kind_summary
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return
+    fail_reasons = build_fail_reasons(summary, args)
+    exit_code = 2 if fail_reasons else 0
+    payload = build_payload(args, summary, displayed_results, fail_reasons, exit_code, kind_summary=kind_summary)
+    text_report = render_text_report(args, summary, displayed_results, fail_reasons, kind_summary=kind_summary)
 
-    print('Media sanity check')
-    if args.preset:
-        print(f'preset: {args.preset}')
-    if args.directory:
-        print(f'directory: {Path(args.directory).expanduser().resolve()}')
-    if args.warnings_only:
-        print('mode: warnings-only')
-    print(f"summary: total={summary['total']} ok={summary['ok_count']} warnings={summary['warning_count']}")
-    if kind_summary is not None:
-        print('summary-by-kind:')
-        for kind, bucket in kind_summary.items():
-            print(f"  - {kind}: total={bucket['total']} ok={bucket['ok_count']} warnings={bucket['warning_count']}")
-    for item in displayed_results:
-        print(f"- {item['kind']}: {item['path']}")
-        print(f"  size: {item['size_bytes']} bytes")
-        if item.get('duration_seconds') is not None:
-            print(f"  duration: {item['duration_seconds']:.3f}s")
-        if item.get('video'):
-            video = item['video']
-            print(f"  video: {video.get('codec')} {video.get('width')}x{video.get('height')} fps={video.get('frame_rate')}")
-        if item.get('audio'):
-            audio = item['audio']
-            if isinstance(audio, dict) and 'codec' in audio:
-                print(f"  audio stream: {audio.get('codec')} sr={audio.get('sample_rate')} ch={audio.get('channels')}")
-            elif isinstance(audio, dict):
-                sample_rate = audio.get('sample_rate') or audio.get('sample_rate_(hz)')
-                channels = audio.get('channels')
-                print(f"  audio: sr={sample_rate} ch={channels}")
-        if item.get('image'):
-            image = item['image']
-            print(f"  image: {image.get('format')} {image.get('width')}x{image.get('height')} {image.get('colorspace')}")
-        if item.get('warnings'):
-            print(f"  warnings: {'; '.join(item['warnings'])}")
+    if args.report_out:
+        report_format = detect_report_format(args)
+        report_content = json.dumps(payload, ensure_ascii=False, indent=2) if report_format == 'json' else text_report
+        write_report(args.report_out, report_content)
+
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        raise SystemExit(exit_code)
+
+    print(text_report)
+    raise SystemExit(exit_code)
 
 
 if __name__ == '__main__':

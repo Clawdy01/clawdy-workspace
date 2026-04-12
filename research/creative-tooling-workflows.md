@@ -223,5 +223,68 @@ Live geverifieerd op 2026-04-12:
   - `video: total=3 ok=3 warnings=0`
 - JSON-output in `--warnings-only` mode hield de itemlijst leeg, maar gaf wel dezelfde `summary_by_kind` terug
 
+## CI-achtige fail mode nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--fail-on-warnings`.
+
+Gebruik:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind --fail-on-warnings
+```
+
+Live geverifieerd op 2026-04-12:
+- schone batch-run bleef groen met `warnings=0`
+- negatieve check op `sample-video.mp4 --require-audio --fail-on-warnings --json` gaf terecht `exit_code: 2`
+
+## Strikte fail-profielen nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--fail-profile`, zodat terugkerende CI-achtige checks per use-case niet steeds losse threshold-flags hoeven te combineren.
+
+Beschikbare fail-profielen:
+- `video-strict` → `min_size_bytes=1000`, `min_duration=0.5`, `min_width=320`, `min_height=240`, `require_audio`, `fail_on_warnings`
+- `audio-voice-16k-strict` → `min_size_bytes=1000`, `min_duration=0.5`, `expect_sample_rate=16000`, `fail_on_warnings`
+- `image-preview-strict` → `min_size_bytes=100`, `min_width=160`, `min_height=120`, `fail_on_warnings`
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/sample-tone-normalized.wav --fail-profile audio-voice-16k-strict
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/frame-01-small-gray.png --fail-profile image-preview-strict --json
+python3 scripts/media-sanity-check.py tmp/creative-tooling-check/sample-video.mp4 --fail-profile video-strict --json
+```
+
+Live geverifieerd op 2026-04-12:
+- `audio-voice-16k-strict` gaf schoon `ok=1`, `warnings=0`
+- `image-preview-strict` gaf schoon JSON-resultaat met `exit_code: 0`
+- `video-strict` faalde bewust op de sample-video zonder audio met warning `audio stream ontbreekt` en `exit_code: 2`
+
+## Aggregate fail-profielen nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--fail-profile` voor mixed batch-runs.
+
+Nieuwe profielen:
+- `mixed-batch-strict`
+- `mixed-batch-review`
+
+Voorbeeld:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind --fail-profile mixed-batch-strict
+```
+
+Live geverifieerd op 2026-04-12:
+- schone map-run met `mixed-batch-strict` bleef groen
+- negatieve check op `sample-video.mp4 --require-audio --fail-profile mixed-batch-strict --json` gaf terecht `exit_code: 2`
+- JSON-output bevat daarbij ook expliciete `fail_reasons`
+
+## Rapport-output naar artifact nu beschikbaar
+`scripts/media-sanity-check.py` ondersteunt nu ook `--report-out` plus `--report-format`, zodat een batch-run naast stdout direct een bewaarrapport als JSON of tekst kan wegschrijven.
+
+Voorbeelden:
+```bash
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind --report-out tmp/creative-tooling-check/report.txt
+python3 scripts/media-sanity-check.py --dir tmp/creative-tooling-check --summary-by-kind --json --report-out tmp/creative-tooling-check/report.json
+```
+
+Live geverifieerd op 2026-04-12:
+- tekst-rapport geschreven naar `tmp/creative-tooling-check/reports/mixed-summary.txt`
+- JSON-rapport geschreven naar `tmp/creative-tooling-check/reports/mixed-summary.json`
+- stdout bleef tegelijk bruikbaar voor directe inspectie
+
 ## Aanbevolen volgende stap
-- Kleine follow-up: optionele aggregate-warnings of exit-codes per batch-run toevoegen voor CI-achtige checks
+- Kleine follow-up: compacte `--report-append` of timestamped artifact-mode toevoegen als terugkerende runs meerdere rapporten naast elkaar moeten bewaren

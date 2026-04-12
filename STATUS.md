@@ -15,7 +15,12 @@
 - `scripts/media-sanity-check.py` ondersteunt nu ook directory/batch-check via `--dir` en `--recursive`, live geverifieerd op `tmp/creative-tooling-check`
 - `scripts/media-sanity-check.py` ondersteunt nu ook `--warnings-only`, live geverifieerd op een schone testmap plus negatieve video-zonder-audio check zodat batch-output compacter blijft
 - `scripts/media-sanity-check.py` ondersteunt nu ook `--summary-by-kind`, live geverifieerd op `tmp/creative-tooling-check` in tekst- en JSON-output zodat batch-runs direct compacte totalen per audio/image/video tonen
-- Volgende stap is optionele aggregate-warnings of exit-codes per batch-run toevoegen voor CI-achtige checks
+- `scripts/media-sanity-check.py` ondersteunt nu ook `--fail-on-warnings`, live geverifieerd met een groene batch-run en een negatieve check die terecht exit code 2 geeft
+- `scripts/media-sanity-check.py` ondersteunt nu ook aggregate batch-grenzen via `--max-warning-files` en `--max-total-warnings`, live geverifieerd op `tmp/creative-tooling-check` met zowel een groene batch-run als een geforceerde fail-case met exit code 2
+- `scripts/media-sanity-check.py` ondersteunt nu ook strikte fail-profielen via `--fail-profile` (`video-strict`, `audio-voice-16k-strict`, `image-preview-strict`), live geverifieerd met een groene audio/image-run en een bewuste video-fail zonder audio (exit code 2)
+- `scripts/media-sanity-check.py` ondersteunt nu ook aggregate fail-profielen voor mixed batch-runs (`mixed-batch-strict`, `mixed-batch-review`), live geverifieerd met een schone map-run en een bewuste fail-case met `exit_code: 2`
+- `scripts/media-sanity-check.py` ondersteunt nu ook rapport-output naar bestand/artifact via `--report-out` en `--report-format`, zodat CI-achtige checks resultaten direct kunnen bewaren of doorgeven
+- Volgende stap is optionele timestamped of append-mode voor terugkerende rapport-runs toevoegen
 - GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next
@@ -52,3 +57,8 @@
 - `scripts/media-sanity-check.py` verder uitgebreid en live getest met directory/batch-check, inclusief detectie van een sample-clip zonder videostream
 - `scripts/media-sanity-check.py` compacter bruikbaar gemaakt en live getest met `--warnings-only`; de kapotte sample-clip is daarna direct opnieuw opgebouwd zodat de batch-check weer volledig groen draait
 - `scripts/media-sanity-check.py` verder verdiept en live getest met `--summary-by-kind`, inclusief schone tekstoutput en JSON-output op `tmp/creative-tooling-check`
+- `scripts/media-sanity-check.py` automation-vriendelijker gemaakt en live getest met `--fail-on-warnings`, inclusief exit code 2 op een negatieve check
+- `scripts/media-sanity-check.py` nog CI-vriendelijker gemaakt en live getest met `--max-warning-files` en `--max-total-warnings`, inclusief fail-reasons en exit code 2 bij overschrijding
+- `scripts/media-sanity-check.py` verder verscherpt en live getest met `--fail-profile` voor video-, audio-voice-16k- en image-preview-checks
+- `scripts/media-sanity-check.py` ook op batchniveau verscherpt en live getest met mixed `--fail-profile`, inclusief expliciete `fail_reasons` in JSON-output
+- `scripts/media-sanity-check.py` verder CI-vriendelijk gemaakt en live getest met `--report-out` en `--report-format`, inclusief tekst- en JSON-artifacts naast normale stdout-output
