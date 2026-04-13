@@ -49,8 +49,8 @@ ROUTES = {
     },
     'triage': {
         'description': 'Prioriteer ongelezen of recente mail met actiehints en reply-signalen',
-        'args': ['-n/--limit?', '--all?/--recent?', '--preview?', '--reply-only?', '--high-only?', '--current-only?', '--clusters?', '--search-limit <n>?'],
-        'examples': ['mail-dispatch.py triage', 'mail-dispatch.py triage --recent --preview', 'mail-dispatch.py triage --reply-only', 'mail-dispatch.py triage --recent --current-only', 'mail-dispatch.py triage --recent --clusters'],
+        'args': ['-n/--limit?', '--all?/--recent?', '--preview?', '--reply-only?', '--high-only?', '--current-only?', '--review-worthy?', '--clusters?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py triage', 'mail-dispatch.py triage --recent --preview', 'mail-dispatch.py triage --reply-only', 'mail-dispatch.py triage --recent --current-only', 'mail-dispatch.py triage --recent --review-worthy', 'mail-dispatch.py triage --recent --clusters'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-triage.py')] + args + (['--json'] if json_mode else []),
     },
     'now': {
@@ -90,9 +90,9 @@ ROUTES = {
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-review-next.py')] + args + (['--json'] if json_mode else []),
     },
     'thread': {
-        'description': 'Klap één recente mailthread compact uit, met filters op afzender/onderwerp/actie en optioneel conceptantwoord',
-        'args': ['-n/--limit?', '--search-limit <n>?', '--meaningful?', '--current-only?', '--unread?', '--uid <n>?', '--sender <text>?', '--subject <text>?', '--action <text>?', '--messages <n>?', '--preview?', '--draft?'],
-        'examples': ['mail-dispatch.py thread', 'mail-dispatch.py thread --meaningful --current-only', 'mail-dispatch.py thread --sender bitwarden --draft', 'mail-dispatch.py thread --subject factuur --messages 5'],
+        'description': 'Klap één recente mailthread compact uit, met filters op afzender/onderwerp/actie, reviewwaardigheid en optioneel conceptantwoord',
+        'args': ['-n/--limit?', '--search-limit <n>?', '--meaningful?', '--current-only?', '--review-worthy?', '--unread?', '--uid <n>?', '--sender <text>?', '--subject <text>?', '--action <text>?', '--messages <n>?', '--preview?', '--draft?'],
+        'examples': ['mail-dispatch.py thread', 'mail-dispatch.py thread --meaningful --current-only', 'mail-dispatch.py thread --review-worthy', 'mail-dispatch.py thread --sender bitwarden --draft', 'mail-dispatch.py thread --subject factuur --messages 5'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-thread.py')] + args + (['--json'] if json_mode else []),
     },
     'codes': {
@@ -153,7 +153,7 @@ def catalog_payload():
             for name, meta in ROUTES.items()
         ],
         'aliases': ALIASES,
-        'notes': 'Gebruik board voor een snel totaalbeeld, now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, next-step voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback, review-next om die aanbevolen thread meteen open te klappen met context/concept of via --candidate een alternatief uit de queue te openen, thread om één specifieke conversatie compact uit te klappen, triage voor prioritering van unread mail, compacte clusters via --clusters of alleen actuele aandacht via --current-only, latest voor inbox-scan of thread-view en gebruik --actionable als je alleen concrete follow-upwaardige mails wilt zien, of filter direct met --action en --urgency, summary voor alleen nieuwe mail sinds state.',
+        'notes': 'Gebruik board voor een snel totaalbeeld, now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, next-step voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback, review-next om die aanbevolen thread meteen open te klappen met context/concept of via --candidate een alternatief uit de queue te openen, thread om één specifieke conversatie compact uit te klappen en gebruik --review-worthy als je alleen nog zinnige reviewthreads wilt zien, triage voor prioritering van unread mail, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, latest voor inbox-scan of thread-view en gebruik --actionable als je alleen concrete follow-upwaardige mails wilt zien, of filter direct met --action en --urgency, summary voor alleen nieuwe mail sinds state.',
     }
 
 

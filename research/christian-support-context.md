@@ -8,6 +8,7 @@ Christian is het sterkst te begrijpen als een pragmatische technical builder met
 ## Achtergrond en rollen
 - ondernemer/bouwer rond CleverIT
 - verbonden aan CleverEnable
+- CleverMobi hoort ook expliciet bij de professionele context en mag niet ontbreken naast CleverIT en CleverEnable
 - werkt geloofwaardig op het snijvlak van systems integration, developer tooling, automation en praktische AI-assisted workflows
 - kiest eerder voor een brede builder/operator-rol dan voor een smalle generieke functietitel
 
@@ -60,6 +61,7 @@ Christian is het sterkst te begrijpen als een pragmatische technical builder met
 ## Publiek verifieerbare profielsignalen
 - Christian de Kok wordt publiek genoemd bij CleverIT
 - Christian de Kok wordt publiek genoemd bij CleverEnable
+- publieke context koppelt ook CleverMobi expliciet aan de bredere professionele richting
 - publieke context wijst op een ondernemers- en bouwersrol met nadruk op begrijpelijke IT, innovatie als middel en security-awareness
 
 ## Samenvatting in één alinea

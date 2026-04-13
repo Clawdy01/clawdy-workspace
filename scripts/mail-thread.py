@@ -19,6 +19,7 @@ from mail_heuristics import (
     format_recency_hint,
     format_security_alert_hint,
     format_span_hint,
+    group_needs_review,
     summarize_security_alerts,
 )
 
@@ -259,6 +260,8 @@ def build_threads(rows):
             'security_alert_summary': '',
             'attention_now': False,
             'stale_attention': False,
+            'no_reply_only': True,
+            'review_worthy': False,
         })
         thread['message_count'] += 1
         thread['attachment_count'] += int(row.get('attachment_count') or 0)
@@ -295,6 +298,7 @@ def build_threads(rows):
         if current_ts is not None and (oldest_ts is None or current_ts < oldest_ts):
             thread['oldest_date_ts'] = current_ts
         thread['attention_now'] = thread['attention_now'] or bool(row.get('attention_now'))
+        thread['no_reply_only'] = thread['no_reply_only'] and bool(row.get('no_reply'))
         thread['messages'].append(dict(row))
 
     thread_list = list(threads.values())
@@ -306,6 +310,7 @@ def build_threads(rows):
         thread['span_hint'] = format_span_hint(thread.get('oldest_date_ts'), thread.get('latest_date_ts'))
         thread['messages'].sort(key=lambda item: (item.get('date_ts') is None, -(item.get('date_ts') or 0), -int(item.get('uid') or 0)))
         thread['stale_attention'] = not thread.get('attention_now', False)
+        thread['review_worthy'] = group_needs_review(thread)
     thread_list.sort(key=lambda item: (item.get('latest_date_ts') is None, -(item.get('latest_date_ts') or 0), -int(item.get('latest_uid') or 0)))
     return thread_list
 
@@ -342,15 +347,19 @@ def matches_filter(thread, *, uid_filter=None, sender_filter=None, subject_filte
     return True
 
 
-def pick_thread(threads, *, uid_filter=None, sender_filter=None, subject_filter=None, action_filter=None, current_only=False):
+def pick_thread(threads, *, uid_filter=None, sender_filter=None, subject_filter=None, action_filter=None, current_only=False, review_worthy_only=False):
     filtered = [
         thread for thread in threads
         if matches_filter(thread, uid_filter=uid_filter, sender_filter=sender_filter, subject_filter=subject_filter, action_filter=action_filter)
     ]
+    if review_worthy_only:
+        filtered = [thread for thread in filtered if thread.get('review_worthy')]
     if current_only:
         current = [thread for thread in filtered if thread.get('attention_now')]
-        if current:
-            return current[0], filtered
+        return (current[0], filtered) if current else (None, filtered)
+    preferred = [thread for thread in filtered if thread.get('review_worthy')]
+    if preferred:
+        return preferred[0], filtered
     return (filtered[0], filtered) if filtered else (None, filtered)
 
 
@@ -379,7 +388,14 @@ def shell_join(parts):
 def render_text(result, show_preview=False, show_draft=False, message_limit=8):
     thread = result.get('thread')
     if not thread:
-        return 'Geen passende mailthread gevonden.'
+        reason = result.get('reason') or 'geen passende mailthread gevonden'
+        route = result.get('recommended_route') or 'noop'
+        command = result.get('recommended_command')
+        lines = ['Mail thread']
+        lines.append(f"- next={route}, reason={reason}")
+        if command:
+            lines.append(f"- check={command}")
+        return '\n'.join(lines)
 
     participants = ', '.join((thread.get('participants') or [])[:3]) or (thread.get('latest_from') or 'onbekend')
     extra_people = max(0, len(thread.get('participants') or []) - 3)
@@ -434,6 +450,7 @@ def main():
     parser.add_argument('--search-limit', type=int, default=50, help='hoe ver terug kijken in de mailbox')
     parser.add_argument('--meaningful', action='store_true', help='filter code/noise/self/test weg voor threadselectie')
     parser.add_argument('--current-only', action='store_true', help='kies alleen een thread die nu nog actueel aandacht vraagt')
+    parser.add_argument('--review-worthy', action='store_true', help='beperk threadselectie tot threads die nog echt reviewwaardig zijn')
     parser.add_argument('--unread', action='store_true', help='beperk de zoekruimte tot unread mail')
     parser.add_argument('--uid', type=int, help='kies exact de thread waar dit message uid in zit')
     parser.add_argument('--sender', help='filter op afzender of sender email')
@@ -461,6 +478,7 @@ def main():
         subject_filter=args.subject,
         action_filter=args.action,
         current_only=args.current_only,
+        review_worthy_only=args.review_worthy,
     )
     if thread:
         thread = attach_action_links(thread)
@@ -481,12 +499,46 @@ def main():
         command.append('--meaningful')
     if args.current_only:
         command.append('--current-only')
+    if args.review_worthy:
+        command.append('--review-worthy')
     if args.unread:
         command.append('--unread')
     if args.preview:
         command.append('--preview')
     if args.draft:
         command.append('--draft')
+
+    reason = None
+    recommended_route = 'review-thread'
+    recommended_command = shell_join(command)
+    if not thread:
+        recommended_route = 'noop'
+        if args.review_worthy and args.current_only:
+            reason = 'geen actuele reviewwaardige mailthread'
+        elif args.review_worthy:
+            reason = 'geen reviewwaardige mailthread'
+        elif args.current_only:
+            reason = 'geen actuele mailthread'
+        else:
+            reason = 'geen passende mailthread gevonden'
+        fallback_command = ['python3', 'scripts/mail-dispatch.py', 'latest']
+        if args.meaningful:
+            fallback_command.append('--meaningful')
+        if args.review_worthy:
+            fallback_command.append('--review-worthy')
+        elif args.current_only:
+            fallback_command.append('--current-only')
+        if args.unread:
+            fallback_command.append('--unread')
+        if args.sender:
+            fallback_command += ['--sender', args.sender]
+        if args.subject:
+            fallback_command += ['--subject', args.subject]
+        if args.action:
+            fallback_command += ['--action', args.action]
+        if args.search_limit != 50:
+            fallback_command += ['--search-limit', str(search_limit)]
+        recommended_command = shell_join(fallback_command)
 
     result = {
         'search_limit': search_limit,
@@ -495,6 +547,9 @@ def main():
         'thread': thread,
         'draft': draft,
         'command': shell_join(command),
+        'recommended_route': recommended_route,
+        'recommended_command': recommended_command,
+        'reason': reason,
     }
 
     if args.json:

@@ -12,14 +12,15 @@ from mail_heuristics import (
     format_cluster_hint,
     format_recency_hint,
     format_security_alert_hint,
+    group_needs_review,
     is_ephemeral_code_message,
     is_self_message,
     is_test_message,
+    message_needs_review,
     needs_attention_now,
     reply_needed,
     suggest_action,
     summarize_security_alerts,
-    group_needs_review,
 )
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
@@ -106,7 +107,7 @@ def run_latest(limit=10, unread_only=True, search_limit=50):
         raise SystemExit(f'Invalid JSON from mail-latest: {exc}\n{proc.stdout}')
 
 
-def triage(limit=10, unread_only=True, reply_only=False, high_only=False, current_only=False, search_limit=50, clusters_only=False):
+def triage(limit=10, unread_only=True, reply_only=False, high_only=False, current_only=False, review_worthy_only=False, search_limit=50, clusters_only=False):
     rows = run_latest(limit=limit, unread_only=unread_only, search_limit=search_limit)
     items = []
     for row in rows:
@@ -117,6 +118,7 @@ def triage(limit=10, unread_only=True, reply_only=False, high_only=False, curren
         item['reply_needed'] = reply_needed(item)
         item['attention_now'] = needs_attention_now(item)
         item['stale_attention'] = not item['attention_now']
+        item['review_worthy'] = message_needs_review(item)
         if is_self_message(item):
             continue
         if is_test_message(item):
@@ -149,6 +151,8 @@ def triage(limit=10, unread_only=True, reply_only=False, high_only=False, curren
         items = [item for item in items if item.get('reply_needed')]
     if current_only:
         items = [item for item in items if item.get('attention_now')]
+    if review_worthy_only:
+        items = [item for item in items if item.get('review_worthy')]
 
     total_items = list(items)
     total_count = len(total_items)
@@ -174,6 +178,8 @@ def triage(limit=10, unread_only=True, reply_only=False, high_only=False, curren
         scope += '+reply'
     if current_only:
         scope += '+current'
+    if review_worthy_only:
+        scope += '+review-worthy'
 
     return {
         'scope': scope,
@@ -255,6 +261,7 @@ def main():
     parser.add_argument('--reply-only', action='store_true', help='toon alleen mails waar waarschijnlijk antwoord op nodig is')
     parser.add_argument('--high-only', action='store_true', help='toon alleen high-urgency mails')
     parser.add_argument('--current-only', action='store_true', help='toon alleen mails of clusters die volgens de heuristiek nu nog actueel aandacht vragen')
+    parser.add_argument('--review-worthy', action='store_true', help='toon alleen mails of clusters die na actualiteitsfiltering nog echt reviewwaardig zijn')
     parser.add_argument('--clusters', '--clusters-only', dest='clusters', action='store_true', help='toon gegroepeerde mailclusters in plaats van losse mails')
     parser.add_argument('--search-limit', type=int, default=50, help='kijk verder terug in recente mail om burst/urgentie beter samen te vatten')
     args = parser.parse_args()
@@ -265,6 +272,7 @@ def main():
         reply_only=args.reply_only,
         high_only=args.high_only,
         current_only=args.current_only,
+        review_worthy_only=args.review_worthy,
         search_limit=max(1, min(args.search_limit, 200)),
         clusters_only=args.clusters,
     )
