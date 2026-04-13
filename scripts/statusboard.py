@@ -45,6 +45,7 @@ def render_text(data, show_preview=False):
     mail_focus = data.get('mail_focus') or {}
     mail_high_recent = data.get('mail_high_recent') or {}
     mail_next_step = data.get('mail_next_step') or {}
+    creative_smoke = data.get('creative_smoke') or {}
     mail = data['mail']
     session = status.get('session') or {}
 
@@ -65,6 +66,16 @@ def render_text(data, show_preview=False):
         lines.append(
             f"- sessie: {session.get('age', 'onbekend')}, model {session.get('model', 'onbekend')}, reasoning {session.get('reasoning', 'uit')}{context}"
         )
+    if creative_smoke:
+        smoke_steps = creative_smoke.get('steps') or []
+        smoke_bits = []
+        for step in smoke_steps:
+            if step.get('kind') == 'daylog':
+                smoke_bits.append(f"{step.get('mode')}: {step.get('files_ok', 0)}/{step.get('files_total', 0)} ok, {step.get('files_warning', 0)} warnings")
+            elif step.get('kind') == 'cleanup':
+                smoke_bits.append(f"{step.get('mode')}: cand {step.get('candidate_total', 0)}, del {step.get('deleted_total', 0)}")
+        smoke_text = '; '.join(smoke_bits) if smoke_bits else 'geen stappen'
+        lines.append(f"- creative smoke: {'ok' if creative_smoke.get('ok') else 'warning'} ({smoke_text})")
     mail_line = f"- mail: last_uid {mail['last_uid']}, notified {mail['tracked_notifications']} ({mail['account']})"
     recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))
     recent_high_groups = mail_high_recent.get('total_related_group_count', mail_high_recent.get('related_group_count', 0))

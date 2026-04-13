@@ -1,0 +1,23 @@
+{
+  "mode": "full-cycle-brief",
+  "ok": true,
+  "steps": [
+    {
+      "mode": "review-daylog",
+      "kind": "daylog",
+      "event_count": 55,
+      "files_total": 167,
+      "files_ok": 167,
+      "files_warning": 0,
+      "latest_profile": "creative-helper-clips-review"
+    },
+    {
+      "mode": "cleanup-audit",
+      "kind": "cleanup",
+      "event_count": 10,
+      "candidate_total": 0,
+      "deleted_total": 0,
+      "latest_mode": "weekly-cleanup"
+    }
+  ]
+}

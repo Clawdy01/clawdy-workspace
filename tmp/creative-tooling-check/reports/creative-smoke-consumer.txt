@@ -1,0 +1,3 @@
+smoke: ok
+- review-daylog: events=55 files=167 ok=167 warnings=0 latest=creative-helper-clips-review
+- cleanup-audit: events=10 candidates=0 deleted=0 latest=weekly-cleanup

@@ -18,6 +18,7 @@ from mail_heuristics import (
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATE_DIR = ROOT / 'state'
+CREATIVE_SMOKE = ROOT / 'scripts' / 'creative-smoke.py'
 
 
 def run_json_command(command, default=None, timeout=12):
@@ -109,6 +110,11 @@ def build_summary():
             {'recommended_route': 'noop'},
             35,
         ),
+        'creative_smoke': (
+            ['python3', str(CREATIVE_SMOKE), 'full-cycle-brief', '--format', 'json'],
+            {'ok': False, 'steps': []},
+            45,
+        ),
     }
 
     with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
@@ -128,6 +134,7 @@ def build_summary():
     mail_focus, mail_focus_error = results['mail_focus']
     mail_high_recent, mail_high_recent_error = results['mail_high_recent']
     mail_next_step, mail_next_step_error = results['mail_next_step']
+    creative_smoke, creative_smoke_error = results['creative_smoke']
 
     task_audit = {
         'active': ((status or {}).get('tasks') or {}).get('active', 0),
@@ -153,6 +160,7 @@ def build_summary():
         'mail_focus': mail_focus_error,
         'mail_high_recent': mail_high_recent_error,
         'mail_next_step': mail_next_step_error,
+        'creative_smoke': creative_smoke_error,
     }
 
     return {
@@ -167,6 +175,7 @@ def build_summary():
         'mail_focus': mail_focus,
         'mail_high_recent': mail_high_recent,
         'mail_next_step': mail_next_step,
+        'creative_smoke': creative_smoke,
         'mail': {
             'account': mail_config.get('username', 'onbekend'),
             'host': mail_config.get('host', 'onbekend'),
@@ -190,6 +199,7 @@ def render_text(summary):
     mail_focus = summary.get('mail_focus') or {}
     mail_high_recent = summary.get('mail_high_recent') or {}
     mail_next_step = summary.get('mail_next_step') or {}
+    creative_smoke = summary.get('creative_smoke') or {}
     mail = summary['mail']
 
     lines = []
@@ -210,6 +220,20 @@ def render_text(summary):
         lines.append(
             f"- task audit {task_audit.get('failures', 0)} failures, {task_audit.get('lost', 0)} vermist, {task_audit.get('warnings', 0)} warns"
         )
+    if creative_smoke:
+        smoke_steps = creative_smoke.get('steps') or []
+        smoke_bits = []
+        for step in smoke_steps:
+            if step.get('kind') == 'daylog':
+                smoke_bits.append(
+                    f"{step.get('mode')}: {step.get('files_ok', 0)}/{step.get('files_total', 0)} ok, {step.get('files_warning', 0)} warnings"
+                )
+            elif step.get('kind') == 'cleanup':
+                smoke_bits.append(
+                    f"{step.get('mode')}: cand {step.get('candidate_total', 0)}, del {step.get('deleted_total', 0)}"
+                )
+        smoke_text = '; '.join(smoke_bits) if smoke_bits else 'geen stappen'
+        lines.append(f"- creative smoke: {'ok' if creative_smoke.get('ok') else 'warning'} ({smoke_text})")
     mail_line = f"- mail {mail['account']} via {mail['host']}, last_uid {mail['last_uid']}, notified {mail['tracked_notifications']}"
     recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))
     recent_high_groups = mail_high_recent.get('total_related_group_count', mail_high_recent.get('related_group_count', 0))

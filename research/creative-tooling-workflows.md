@@ -96,6 +96,24 @@ python3 scripts/video-clip.py tmp/creative-tooling-check/sample-video.mp4 \
 - Audio: genereren, converteren, normaliseren
 - Image: klassieke niet-generatieve bewerkingen en verificatie
 - Review housekeeping: `scripts/creative-review.py weekly-cleanup --cleanup-log` kan oude report/daylog-artifacts opruimen én tegelijk een append-vriendelijk JSONL cleanup-log wegschrijven
+- End-to-end smoke-check: `scripts/creative-smoke.py full-cycle` draait nu in één wrapper zowel `review-suite --automation-preset daylog-balanced` als `weekly-cleanup --automation-preset weekly-cleanup-logged`, en leest daarna direct de verse daylog- en cleanup-samenvatting terug
+
+### `scripts/creative-smoke.py`
+Kleine smoke-testwrapper bovenop review/daylog en cleanup-routes.
+
+Voorbeelden:
+```bash
+python3 scripts/creative-smoke.py review-daylog
+python3 scripts/creative-smoke.py cleanup-audit --format json
+python3 scripts/creative-smoke.py full-cycle --format json
+python3 scripts/creative-smoke.py full-cycle-brief
+```
+
+Live geverifieerd op 2026-04-13:
+- `review-daylog` route blijft daylog-events schrijven via `review-suite --automation-preset daylog-balanced`
+- `cleanup-audit` route blijft cleanup-audit via `weekly-cleanup --automation-preset weekly-cleanup-logged` teruglezen
+- nieuwe `full-cycle` route draaide beide stappen achter elkaar en gaf direct gecombineerde JSON-output met verse `creative-review-daylog-20260413.jsonl` en `creative-review-cleanup-log-20260413.jsonl`
+- nieuwe `full-cycle-brief` route gaf compacte statusoutput met alleen pass/fail plus kerngetallen (`events`, `files`, `warnings`, `candidates`, `deleted`), en werkt ook in JSON met `ok: true`
 
 ## Huidige grens
 - Geen bevestigde sterke generatieve image-route voor identity-preserving remakes in deze runtime
@@ -751,6 +769,54 @@ Live geverifieerd op 2026-04-13:
 - daylog-samenvatting op `tmp/creative-tooling-check/reports` gaf `event-count=8`, alle `exit-codes=0`, en aggregate totalen `files_total=24`, `files_ok=24`, `files_warning=0`
 - cleanup-samenvatting op `tmp/creative-review-cleanup-log-test/logs` gaf `event-count=2`, `candidate-total=4`, `deleted-total=2`, met laatste event `weekly-cleanup`
 - JSON-output werkt voor beide routes en bevat ook `latest_event`, `log_dir` en de gebruikte logbestanden
+
+## Smoke-wrapper nu beschikbaar
+`scripts/creative-smoke.py` bundelt een vaste creative-review of cleanup-run direct met een logsamenvatting, zodat cron-nazicht en snelle handmatige checks één kort commando worden.
+
+Ondersteunde routes:
+- `review-daylog`
+- `cleanup-audit`
+- `full-cycle`
+- `full-cycle-brief`
+
+Voorbeelden:
+```bash
+python3 scripts/creative-smoke.py review-daylog --format json
+python3 scripts/creative-smoke.py cleanup-audit --format json --report-dir tmp/creative-review-cleanup-log-test/reports --cleanup-log-dir tmp/creative-review-cleanup-log-test/logs
+python3 scripts/creative-smoke.py full-cycle-brief
+python3 scripts/creative-smoke.py full-cycle-brief --format json --consumer-out tmp/creative-tooling-check/reports/creative-smoke-consumer.json
+python3 scripts/creative-smoke.py full-cycle-brief --consumer-preset board-text
+python3 scripts/creative-smoke.py full-cycle-brief --consumer-preset board-json --format json
+python3 scripts/creative-smoke.py full-cycle-brief --consumer-preset eventlog-jsonl --format json
+```
+
+Live geverifieerd op 2026-04-13:
+- `review-daylog --format json` gaf direct een daglogsamenvatting met `event_count=12`, `files_total=36`, `files_ok=36`, `files_warning=0`
+- `cleanup-audit --format json` gaf direct een cleanup-samenvatting met `event_count=4`, `candidate_total=4`, `deleted_total=2`, laatste event `weekly-cleanup`
+- `full-cycle-brief` gaf compacte statusoutput met alleen pass/fail plus kerngetallen, in tekst én JSON
+- `full-cycle-brief --format json --consumer-out .../creative-smoke-consumer.json` schreef dezelfde compacte smoke-status ook direct weg als consumer-artifact; dezelfde route werkt ook als tekstbestand, en `--consumer-format jsonl --consumer-append` maakt append-vriendelijke eventlogs mogelijk
+- nieuwe vaste `--consumer-preset` routes werken nu ook direct zonder losse padflags: `board-json` schrijft naar `tmp/creative-tooling-check/reports/creative-smoke-consumer.json`, `board-text` naar `.../creative-smoke-consumer.txt`, en `eventlog-jsonl` appendt naar `.../creative-smoke-consumer.jsonl`
+- alle drie preset-routes zijn live geverifieerd op 2026-04-13 met echte `full-cycle-brief` runs plus nacheck van de geschreven artifacts
+- wrapperbug rond optionele flags is direct opgelost door over te schakelen van remainder-parsing naar `parse_known_args()`, zodat `--report-dir` en `--cleanup-log-dir` betrouwbaar doorkomen
+
+Nut:
+- één kort commando voor run + auditcontrole
+- een nog compactere route voor cron-nazicht of statuschecks
+- smoke-status kan nu ook direct landen in een simpel cron- of board-consumerbestand
+- minder kans op verkeerde logmap of losse naverwerking
+
+## Compacte smoke-status nu geland in boards
+`clawdy-brief.py` en `statusboard.py` nemen de compacte creative smoke-status nu direct mee via `creative-smoke.py full-cycle-brief --format json`.
+
+Live geverifieerd op 2026-04-13:
+- `python3 scripts/clawdy-brief.py --json` bevat nu ook `creative_smoke` met `ok: true`
+- `python3 scripts/statusboard.py` toont nu expliciet:
+  - `creative smoke: ok (review-daylog: 108/108 ok, 0 warnings; cleanup-audit: cand 0, del 0)`
+
+Nut:
+- compacte creative-health landt nu in een bestaande board-consumer
+- heartbeat- en statuschecks hoeven die info niet meer apart op te vragen
+- de smoke-output is nu echt onderdeel van het operationele cockpitbeeld
 
 ## Kind-filtering nu beschikbaar
 `scripts/media-sanity-check.py` ondersteunt nu ook `--kind`, zodat batch-checks gericht alleen `audio`, `image` en/of `video` meenemen.

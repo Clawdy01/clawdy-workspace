@@ -61,7 +61,13 @@
 - `scripts/creative-review.py` ondersteunt nu ook cleanup-logrotatie via `--prune-cleanup-log-older-than-days`, inclusief preset-defaults (`balanced=30`, `short-reports=14`, `ci-tight=7`); live geverifieerd op `tmp/creative-review-cleanup-log-rotation-test`, waarbij een oude cleanup-log plus oud report verdwenen en recente files bleven staan
 - `research/creative-tooling-workflows.md` bevat nu ook een concreet cronvoorbeeld voor `weekly-cleanup-logged`, zodat wekelijkse housekeeping met auditlog direct inzetbaar is
 - Nieuwe loginspectie-helper staat nu live: `scripts/creative-log-summary.py` vat creative daylogs en cleanup-logs samen in tekst of JSON, live geverifieerd op bestaande logs in `tmp/creative-tooling-check/reports` en `tmp/creative-review-cleanup-log-test/logs`
-- Volgende stap: desgewenst nog een kleine smoke-testwrapper bovenop review/daylog/cleanup-routes toevoegen
+- Nieuwe smoke-wrapper staat nu live: `scripts/creative-smoke.py` bundelt vaste review/daylog- en cleanup-audit-routes met directe logsamenvatting in één kort commando; live geverifieerd met `review-daylog --format json` en `cleanup-audit --format json`
+- `scripts/creative-smoke.py` ondersteunt nu ook end-to-end mode `full-cycle`, live geverifieerd met `python3 scripts/creative-smoke.py full-cycle --format json` zodat review-suite, cleanup-audit en verse daylog/cleanup-samenvatting in één run samenkomen
+- `scripts/creative-smoke.py` ondersteunt nu ook compacte mode `full-cycle-brief`, live geverifieerd met tekst- en JSON-output zodat cron/statuschecks alleen pass/fail plus kerngetallen hoeven terug te lezen
+- `scripts/clawdy-brief.py` en `scripts/statusboard.py` nemen nu ook direct de compacte creative smoke-samenvatting mee via `creative-smoke.py full-cycle-brief --format json`; live geverifieerd met `clawdy-brief --json` en `statusboard.py`, waarbij `statusboard` nu expliciet `creative smoke: ok (review-daylog: 108/108 ok, 0 warnings; cleanup-audit: cand 0, del 0)` toont
+- `scripts/creative-smoke.py` ondersteunt nu ook `--consumer-out`, `--consumer-format` en `--consumer-append`, zodat compacte smoke-output direct naar een cron- of board-consumerbestand geschreven kan worden; live geverifieerd met `full-cycle-brief` naar `tmp/creative-tooling-check/reports/creative-smoke-consumer.json` en `creative-smoke-consumer.txt`
+- `scripts/creative-smoke.py` ondersteunt nu ook vaste `--consumer-preset` routes (`board-json`, `board-text`, `eventlog-jsonl`) voor de standaard smoke-consumer-artifacts in `tmp/creative-tooling-check/reports/`, live geverifieerd met drie echte `full-cycle-brief` runs inclusief bestandsschrijfcontrole
+- Volgende stap: desgewenst dezelfde consumer-preset route ook aan een vaste cron/producer koppelen
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
@@ -112,6 +118,10 @@
 - Creative review-wrapper verder geautomatiseerd en live geverifieerd: `scripts/creative-review.py` ondersteunt nu ook `--cleanup-log` plus automation-preset `weekly-cleanup-logged`, zodat prune/cleanup-runs hun JSONL audittrail direct naar een vaste logmap kunnen appenden
 - Creative tooling-workflows verder aangescherpt: `research/creative-tooling-workflows.md` bevat nu ook een concreet cronvoorbeeld voor `weekly-cleanup-logged`, zodat wekelijkse cleanup plus auditlog direct planbaar is
 - Creative tooling-workflows verder bruikbaar gemaakt en live geverifieerd: `scripts/creative-log-summary.py` vat bestaande creative daylogs en cleanup-logs samen in tekst of JSON, zodat auditinspectie niet meer handmatig door JSONL hoeft
+- Creative smoke-wrapper verder verdiept en live geverifieerd: `scripts/creative-smoke.py` ondersteunt nu ook end-to-end mode `full-cycle`, zodat creative review-daylog en cleanup-audit als één gecombineerde smoke-run plus samenvatting beschikbaar zijn
+- Creative smoke-wrapper verder aangescherpt en live geverifieerd: `scripts/creative-smoke.py` ondersteunt nu ook compacte mode `full-cycle-brief`, zodat cron/statuschecks alleen pass/fail plus kerngetallen terugkrijgen
+- Creative smoke-wrapper verder automation-vriendelijk gemaakt en live geverifieerd: `scripts/creative-smoke.py` ondersteunt nu ook `--consumer-out`, `--consumer-format` en `--consumer-append`, zodat dezelfde compacte smoke-status direct naar een consumerbestand voor cron/board-ingest kan worden geschreven
+- Creative smoke-wrapper verder gestandaardiseerd en live geverifieerd: `scripts/creative-smoke.py` ondersteunt nu ook vaste `--consumer-preset` routes (`board-json`, `board-text`, `eventlog-jsonl`) zodat standaard consumer-artifacts zonder losse padflags kunnen worden gevuld
 - LAN bind/rate limiting/typing feedback verbeterd
 - Memory research: concrete betere geheugentechnieken beoordeeld en aanbeveling vastgelegd in `research/memory-techniques-recommendation.md`
 - Creative tooling helper gebouwd en live geverifieerd: `scripts/video-clip.py` maakt korte clips plus frame-export uit video
