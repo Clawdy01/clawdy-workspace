@@ -8,26 +8,14 @@ SECRETS = STATE / 'secrets.json'
 MAIL_CONFIG = STATE / 'mail-config.json'
 
 SECRET_ALIASES = {
-    'mail.password': ('mail.password', 'mail_password'),
-    'proton.password': ('proton.password', 'proton_pass_password'),
-    'github.password': ('github.password', 'github_account_password'),
+    'mail.password': (),
+    'proton.password': (),
+    'github.password': (),
 }
 
 
 def _expanded_secret_names(name):
-    names = []
-    seen = set()
-    for candidate in (name, *SECRET_ALIASES.get(name, ())):
-        if candidate and candidate not in seen:
-            names.append(candidate)
-            seen.add(candidate)
-    for canonical, aliases in SECRET_ALIASES.items():
-        if name == canonical or name in aliases:
-            for candidate in (canonical, *aliases):
-                if candidate and candidate not in seen:
-                    names.append(candidate)
-                    seen.add(candidate)
-    return names
+    return [name]
 
 
 def load_secrets():

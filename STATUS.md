@@ -5,7 +5,7 @@
 - Exchange Agenda wordt nu actief gebruikt voor agenda-uitleesroutes.
 
 ## Now
-- Secrets / password workflow opruimen en bruikbaar structureren is nu het primaire spoor
+- Mail workflow slimmer maken is nu het primaire spoor
 - Nulmeting van lokaal bruikbare tooling staat in `research/creative-tooling-baseline.md`
 - De eerste workflow-notitie staat nu in `research/creative-tooling-workflows.md`, met live geteste routes voor clippen, frames exporteren, audio normaliseren en simpele image-afleidingen
 - Eerste helper nu gebouwd en live geverifieerd: `scripts/video-clip.py` maakt korte clips plus frame-export uit video
@@ -63,12 +63,20 @@
 - `scripts/secrets.py` is nu omgezet naar een expliciete compat-shim bovenop `workspace_secrets.py`, inclusief stdlib-compatibele `token_bytes`/`token_hex`/`token_urlsafe`, zodat lokale naamshadowing `import secrets` niet meer breekt; live geverifieerd met `python3 scripts/graph-auth-start.py --tenant-id demo-tenant --client-id demo-client`
 - `scripts/workspace_secrets.py` ondersteunt nu ook canonieke secret-aliassen voor normalisatie (`mail.password`, `proton.password`, `github.password`) terwijl legacy keys blijven werken; `load_mail_config()` leest nu via `mail.password`, zodat consumers veilig gefaseerd kunnen migreren zonder directe rewrite van `state/secrets.json`
 - Eerste consumer-migratie op het secrets-spoor is nu gedaan: `scripts/proton-request-verification-code.py`, `scripts/proton-use-verification-code.py` en `scripts/proton-continue-password-setup.py` lezen nu canoniek via `proton.password` in plaats van directe legacy reads; live geverifieerd met `py_compile`, een alias-check `get_secret('proton.password') is not None -> True`, en `grep` die alleen nog de bewuste alias-definitie in `workspace_secrets.py` teruggeeft
+- Mail- en GitHub-consumers zijn daarna nagekeken: aan de Python-kant loopt mail al canoniek via `load_mail_config()`, en de nagekeken GitHub/Bitwarden automation-consumers tonen geen directe read van `github_account_password`; brede `grep` vond voor mail/GitHub alleen nog de alias-definities in `workspace_secrets.py`
+- Laatste workspacebrede scan buiten `state/`, `tmp/` en `.git/` vond geen verborgen shell/JS-routes die `state/secrets.json` direct lezen of legacy keys `mail_password`, `proton_pass_password` of `github_account_password` consumeren
+- Nieuwe veilige migratie-helper `scripts/secrets-normalize.py` staat nu live voor canonieke sleutelconversie van `state/secrets.json`; dry-run via `python3 scripts/secrets-normalize.py --json` is groen met `ok: true`, `conflicts: []` en voorbereide acties voor `mail.password`, `proton.password` en `github.password`
+- De canonieke JSON-migratie is nu uitgevoerd met `python3 scripts/secrets-normalize.py --apply`; nacheck bevestigt dat `state/secrets.json` alleen nog `mail.password`, `proton.password` en `github.password` bevat, loader-checks voor mail/Proton/GitHub bleven groen, en een kleine aliaslijst-bug in `workspace_secrets.py` is direct hersteld zodat dry-runs nu schoon `actions: []` teruggeven
+- De legacy alias-ondersteuning is nu ook echt verwijderd uit `scripts/workspace_secrets.py`; verificatie bleef groen met schone `py_compile`, `python3 scripts/secrets-normalize.py --json` -> `actions: []`, canonieke loader-checks voor mail/Proton/GitHub, en bevestiging dat `mail_password`, `proton_pass_password` en `github_account_password` nu geen waarde meer teruggeven
+- Gerichte naverificatie op de volledig opgeschoonde loader is nu ook afgerond: brede `py_compile` voor mail/Proton/loader-scripts bleef groen, `python3 scripts/mail-auth-check.py` gaf live `login+select ok`, `python3 scripts/secrets-normalize.py --json` bleef schoon op `actions: []`, legacy lookups voor `mail_password`/`proton_pass_password`/`github_account_password` geven nu expliciet `False`, en de drie Proton-consumers laden nog steeds schoon via `--help`
+- Secrets / password workflow opruimen en bruikbaar structureren is hiermee functioneel afgerond als primair spoor
+- Nieuw primair spoor: mail workflow slimmer maken
+- Eerste concrete stap op dit spoor staat nu live: `scripts/mail-next-step.py` ondersteunt `--current-only`, zodat queue/next-step alleen actuele mailacties tonen zonder stale follow-up of codefallback; `scripts/mail-dispatch.py` exposeert die route nu ook voor `next-step` en `queue`, live geverifieerd met `python3 scripts/mail-next-step.py --current-only --json -n 3` en `python3 scripts/mail-dispatch.py queue --current-only --json`
+- Focus/actualiteitsheuristiek is nu aangescherpt: pure `ter info` mails zonder reply/deadline/hoog-signaal tellen niet meer als `attention_now`, en `mail-focus.py` kiest unread-focus nu eerst alleen uit echte actie-mails. Live geverifieerd met `python3 scripts/mail-dispatch.py queue --current-only --json` -> `recommended_route: noop`, `python3 scripts/mail-dispatch.py focus --json` -> `focus: null`, en `python3 scripts/mail-dispatch.py triage --all --current-only --clusters --json -n 5` -> geen actuele clusters terwijl de GitHub SSH-key notificatie alleen nog als stale info zichtbaar blijft.
 - GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next
-- Mail- en GitHub-consumers stap voor stap naar canonieke secret-namen omzetten nu Proton-consumers over zijn
-- Daarna pas opslagroutes en JSON-sleutels zelf normaliseren
-- Mail workflow slimmer maken
+- Mail workflow verder aanscherpen, waarschijnlijk rond verschil tussen echte reply/deadline-acties en lage-waarde notificatieclusters zodra er weer nieuwe mail binnenkomt
 - Mac-migratie en lokale media/LLM-workflows voorbereiden
 
 ## Blocked
@@ -78,6 +86,7 @@
 ## Done
 - Christian-contexttrack afgerond: interne ondersteuningssamenvatting staat in `research/christian-support-context.md` met achtergrond, rollen, projecten en actuele focus
 - GitHub-track afgerond: private repo bestaat, SSH-auth werkt, eerste push bevestigd, hourly auto-push actief
+- Secrets/password-track afgerond: canonieke secretnamen staan nu als enige in `state/secrets.json`, legacy alias-ondersteuning is verwijderd uit `scripts/workspace_secrets.py`, mail-auth werkt live via de opgeschoonde loader, Proton-consumers laden nog schoon, en legacy sleutelreads geven expliciet niets meer terug
 - Exchange-track eerste echte actie bevestigd: Autodiscover + EWS werken, unread inbox-check gelukt, kalenderroute werkt, en een verouderde GitHub-taak is via EWS op `Completed` gezet en teruggelezen
 - `scripts/exchange-summary.py` aangescherpt zodat de samenvatting notificatie-mail scheidt van actiegerichte unread, afspraken binnen 24 uur telt, overdue actieve taken markeert, en `next_action` daardoor nuttiger kiest
 - Exchange huidig spoor afgerond: summary live geverifieerd, GitHub- en Exchange-taak staan beide op Completed, enige resterende taak in Exchange is nu terecht geparkeerd

@@ -67,8 +67,8 @@ ROUTES = {
     },
     'next-step': {
         'description': 'Bepaal de volgende nuttige mailstap, ook als er geen actuele unread-focus meer is',
-        'args': ['-n/--limit?', '--draft?'],
-        'examples': ['mail-dispatch.py next-step', 'mail-dispatch.py next-step --draft', 'mail-dispatch.py next-step -n 3', 'mail-dispatch.py next-step --json'],
+        'args': ['-n/--limit?', '--draft?', '--current-only?'],
+        'examples': ['mail-dispatch.py next-step', 'mail-dispatch.py next-step --draft', 'mail-dispatch.py next-step --current-only', 'mail-dispatch.py next-step -n 3', 'mail-dispatch.py next-step --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-next-step.py')] + args + (['--json'] if json_mode else []),
     },
     'security-alerts': {
@@ -79,8 +79,8 @@ ROUTES = {
     },
     'queue': {
         'description': 'Toon een korte prioriteitslijst van de beste volgende mailacties',
-        'args': ['-n/--limit?', '--draft?'],
-        'examples': ['mail-dispatch.py queue', 'mail-dispatch.py queue -n 3', 'mail-dispatch.py queue --json'],
+        'args': ['-n/--limit?', '--draft?', '--current-only?'],
+        'examples': ['mail-dispatch.py queue', 'mail-dispatch.py queue --current-only', 'mail-dispatch.py queue -n 3', 'mail-dispatch.py queue --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-next-step.py')] + (([] if ('--limit' in args or '-n' in args) else ['--limit', '3']) + args) + (['--json'] if json_mode else []),
     },
     'review-next': {
@@ -153,7 +153,7 @@ def catalog_payload():
             for name, meta in ROUTES.items()
         ],
         'aliases': ALIASES,
-        'notes': 'Gebruik board voor een snel totaalbeeld, now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, next-step voor de volgende nuttige mailactie inclusief follow-up buiten unread, review-next om die aanbevolen thread meteen open te klappen met context/concept of via --candidate een alternatief uit de queue te openen, thread om één specifieke conversatie compact uit te klappen, triage voor prioritering van unread mail, compacte clusters via --clusters of alleen actuele aandacht via --current-only, latest voor inbox-scan of thread-view en gebruik --actionable als je alleen concrete follow-upwaardige mails wilt zien, of filter direct met --action en --urgency, summary voor alleen nieuwe mail sinds state.',
+        'notes': 'Gebruik board voor een snel totaalbeeld, now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, next-step voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback, review-next om die aanbevolen thread meteen open te klappen met context/concept of via --candidate een alternatief uit de queue te openen, thread om één specifieke conversatie compact uit te klappen, triage voor prioritering van unread mail, compacte clusters via --clusters of alleen actuele aandacht via --current-only, latest voor inbox-scan of thread-view en gebruik --actionable als je alleen concrete follow-upwaardige mails wilt zien, of filter direct met --action en --urgency, summary voor alleen nieuwe mail sinds state.',
     }
 
 

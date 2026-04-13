@@ -152,6 +152,7 @@ def find_focus(limit=10, search_limit=50):
 
     triage = load_triage_window(limit=limit, unread_only=True)
     scope = 'unread'
+    item = None
     if not triage.get('items'):
         scope = 'latest'
         effective_limit = limit
@@ -162,7 +163,7 @@ def find_focus(limit=10, search_limit=50):
             triage = load_triage_window(limit=effective_limit, unread_only=False)
             item = pick_focus_item(triage.get('items'), allow_informational=False, current_only=True)
     else:
-        item = pick_focus_item(triage.get('items'), allow_informational=True)
+        item = pick_focus_item(triage.get('items'), allow_informational=False)
 
     drafts = run_json(
         ['python3', str(MAIL_DRAFTS), '--json', '-n', str(min(search_limit, max(limit, triage.get('count', 0) or limit)))] + (['--all'] if scope == 'latest' else ['--unread']),

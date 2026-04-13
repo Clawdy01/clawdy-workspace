@@ -241,8 +241,35 @@ def attention_window_seconds(message):
 
 
 
+def has_attention_signal(message):
+    message = message or {}
+    action = message.get('action_hint') or suggest_action(message)
+    if is_ephemeral_code_message(message):
+        return False
+    if reply_needed(message):
+        return True
+    if extract_deadline_hint(message):
+        return True
+    if message.get('urgency') == 'high' and action != 'ter info':
+        return True
+    return action in {
+        'login-alert checken',
+        'snel lezen',
+        'account activeren',
+        'deadline checken',
+        'security checken',
+        'financieel checken',
+        'agenda checken',
+        'antwoord overwegen',
+    }
+
+
+
 def needs_attention_now(message, now=None):
     message = message or {}
+    if not has_attention_signal(message):
+        return False
+
     age_seconds = message_age_seconds(message, now=now)
     if age_seconds is None:
         return True

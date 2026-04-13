@@ -164,6 +164,8 @@ def summarize_candidate(candidate):
 def make_focus_candidate(focus_item, focus_draft):
     if not focus_item:
         return None
+    if focus_item.get('stale_attention'):
+        return None
     return {
         'recommended_route': 'review-draft' if focus_draft else 'review-focus',
         'recommended_command': build_focus_command(include_draft=bool(focus_draft)),
@@ -234,7 +236,7 @@ def enrich_group_candidate(candidate):
     return candidate
 
 
-def build_summary(limit=1):
+def build_summary(limit=1, current_only=False):
     limit = max(1, min(limit, 10))
     focus = run_json(['python3', str(MAIL_FOCUS), '--json', '-n', '5'], default={}) or {}
     current = run_json(
@@ -273,17 +275,18 @@ def build_summary(limit=1):
             review_only=False,
         ))
 
-    for group in rank_groups(high_groups, skip_code=True)[:limit]:
-        add_candidate(make_group_candidate(
-            group,
-            'stale-followup',
-            'er is geen actuele mail, maar wel een recente belangrijke follow-up die waarschijnlijk nog review verdient',
-            review_only=True,
-        ))
+    if not current_only:
+        for group in rank_groups(high_groups, skip_code=True)[:limit]:
+            add_candidate(make_group_candidate(
+                group,
+                'stale-followup',
+                'er is geen actuele mail, maar wel een recente belangrijke follow-up die waarschijnlijk nog review verdient',
+                review_only=True,
+            ))
 
-    code_groups = [group for group in rank_groups(high_groups, skip_code=False) if group.get('action_hint') == 'code gebruiken']
-    if code_groups:
-        add_candidate(make_codes_candidate(code_groups[0]))
+        code_groups = [group for group in rank_groups(high_groups, skip_code=False) if group.get('action_hint') == 'code gebruiken']
+        if code_groups:
+            add_candidate(make_codes_candidate(code_groups[0]))
 
     for candidate in candidates[:limit]:
         enrich_group_candidate(candidate)
@@ -296,7 +299,7 @@ def build_summary(limit=1):
         selected_summary = {
             'recommended_route': 'noop',
             'recommended_command': None,
-            'reason': 'geen duidelijke mail-vervolgstap',
+            'reason': 'geen actuele mail-vervolgstap' if current_only else 'geen duidelijke mail-vervolgstap',
             'focus': None,
             'selected_group': None,
             'selected_draft': None,
@@ -321,6 +324,7 @@ def build_summary(limit=1):
         'selected_draft': selected_summary.get('selected_draft'),
         'selected_focus': selected_summary.get('focus'),
         'candidate_count': len(candidates),
+        'current_only': current_only,
         'candidates': alternative_summaries,
     }
 
@@ -374,9 +378,10 @@ def main():
     parser.add_argument('--json', action='store_true')
     parser.add_argument('-n', '--limit', type=int, default=1, help='hoeveel vervolgstappen/alternatieven tonen')
     parser.add_argument('--draft', action='store_true', help='toon bij tekstoutput ook meteen het concept als dat voor de gekozen stap bestaat')
+    parser.add_argument('--current-only', action='store_true', help='toon alleen stappen die nu echt actueel zijn, zonder stale follow-up of codefallback')
     args = parser.parse_args()
 
-    summary = build_summary(limit=args.limit)
+    summary = build_summary(limit=args.limit, current_only=args.current_only)
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:

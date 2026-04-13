@@ -76,7 +76,16 @@
 - `scripts/secrets.py` is nu teruggebracht tot expliciete compat-shim: het hergebruikt de canonieke loader uit `workspace_secrets.py` en exposeert tegelijk stdlib-compatibele `token_bytes`/`token_hex`/`token_urlsafe`, live geverifieerd doordat `python3 scripts/graph-auth-start.py --tenant-id demo-tenant --client-id demo-client` weer werkt ondanks lokale naamshadowing
 - `scripts/workspace_secrets.py` ondersteunt nu ook canonieke secret-aliassen voor normalisatie (`mail.password`, `proton.password`, `github.password`) terwijl legacy keys blijven werken; `load_mail_config()` leest nu via `mail.password`, zodat consumers veilig stapsgewijs kunnen migreren zonder directe state-rewrite
 - Eerste consumer-migratie op dit spoor is nu gedaan: de drie actieve Proton-scripts lezen canoniek via `proton.password`; live geverifieerd met `py_compile`, een alias-check zonder secretoutput, en `grep` die alleen nog de bewuste alias-definitie in `workspace_secrets.py` laat staan
-- Volgende stap: mail- en GitHub-consumers nalopen op directe legacy secret-reads en diezelfde canonieke route geven
+- Mail- en GitHub-consumers zijn nagekeken: mail loopt aan de Python-kant al via `load_mail_config()`, en de nagekeken GitHub/Bitwarden automation-consumers tonen geen directe read van `github_account_password`; brede `grep` vond voor mail/GitHub alleen nog alias-definities in `workspace_secrets.py`
+- Laatste workspacebrede scan buiten `state/`, `tmp/` en `.git/` vond geen verborgen shell/JS-routes die `state/secrets.json` direct lezen of legacy keys consumeren
+- Veilige migratie-helper `scripts/secrets-normalize.py` staat nu live; dry-run (`python3 scripts/secrets-normalize.py --json`) is groen met `ok: true`, `conflicts: []` en een concreet migratieplan voor `mail.password`, `proton.password` en `github.password`
+- Canonieke JSON-migratie is nu uitgevoerd met `python3 scripts/secrets-normalize.py --apply`; `state/secrets.json` bevat alleen nog `mail.password`, `proton.password` en `github.password`, loader-checks voor mail/Proton/GitHub bleven groen, en een nacheck-bug in `SECRET_ALIASES` is direct hersteld zodat dry-runs geen spook-acties meer tonen
+- De legacy alias-ondersteuning is nu ook verwijderd uit `workspace_secrets.py`; verificatie bleef groen met schone `py_compile`, `python3 scripts/secrets-normalize.py --json` -> `actions: []`, canonieke loader-checks voor mail/Proton/GitHub en expliciete bevestiging dat legacy lookups geen waarde meer teruggeven
+- Gerichte naverificatie op de volledig opgeschoonde loader is nu ook afgerond: brede `py_compile` voor mail/Proton/loader-scripts bleef groen, `python3 scripts/mail-auth-check.py` gaf live `login+select ok`, `python3 scripts/secrets-normalize.py --json` bleef schoon op `actions: []`, legacy lookups voor `mail_password`/`proton_pass_password`/`github_account_password` geven nu expliciet `False`, en de drie Proton-consumers laden nog steeds schoon via `--help`
+- Secrets / password workflow opruimen en bruikbaar structureren is hiermee functioneel afgerond als primair spoor
+- Nieuw primair spoor: mail workflow slimmer maken
+- Eerste concrete stap op dit spoor staat nu live: `scripts/mail-next-step.py` ondersteunt `--current-only`, zodat queue/next-step alleen actuele mailacties tonen zonder stale follow-up of codefallback; `scripts/mail-dispatch.py` exposeert die route nu ook voor `next-step` en `queue`, live geverifieerd met `python3 scripts/mail-next-step.py --current-only --json -n 3` en `python3 scripts/mail-dispatch.py queue --current-only --json`
+- Focus/actualiteitsheuristiek is nu aangescherpt: pure `ter info` mails zonder reply/deadline/hoog-signaal tellen niet meer als `attention_now`, en `scripts/mail-focus.py` kiest unread-focus nu eerst alleen uit echte actie-mails. Live geverifieerd met `python3 scripts/mail-dispatch.py queue --current-only --json` -> `recommended_route: noop`, `python3 scripts/mail-dispatch.py focus --json` -> `focus: null`, en `python3 scripts/mail-dispatch.py triage --all --current-only --clusters --json -n 5` -> geen actuele clusters terwijl de GitHub SSH-key notificatie alleen nog als stale info zichtbaar blijft
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
@@ -85,9 +94,7 @@
 - Betere identity-preserving photo edits blijven wel geblokkeerd op een sterkere/lokale modelroute
 
 ## Next
-- Consumers stap voor stap naar canonieke secret-namen omzetten nu alias-resolutie in de loader staat
-- Daarna pas opslagroutes en JSON-sleutels zelf normaliseren
-- Mail workflow slimmer maken nadat secrets/password workflow scherper staat
+- Mail workflow verder aanscherpen, waarschijnlijk rond verschil tussen echte reply/deadline-acties en lage-waarde notificatieclusters zodra er weer nieuwe mail binnenkomt
 - Daarna Mac migratieplan en lokale LLM/media-workflows oppakken
 - Onderzoek naar betere identity-preserving photo edit modellen/workflows
 - Regelmatige research-workflows opzetten voor onderwerpen die Christian wil volgen
@@ -110,6 +117,7 @@
 ## Done
 - Christian contextopbouw via LinkedIn/profielinformatie afgerond als interne ondersteuningscontext in `research/christian-support-context.md`, met achtergrond, rollen, projecten en actuele focus
 - GitHub private repo aangemaakt, SSH-auth ingesteld, eerste push bevestigd, hourly auto-push actief
+- Secrets / password workflow functioneel afgerond: canonieke secretnamen staan nu als enige in `state/secrets.json`, legacy alias-ondersteuning is verwijderd uit `workspace_secrets.py`, mail-auth werkt live via de opgeschoonde loader, Proton-consumers importeren nog schoon, en legacy sleutelreads geven expliciet niets meer terug
 - Exchange SE on-prem basisroute bevestigd: Autodiscover + EWS werken, unread inbox/kalendercheck gelukt, en een verouderde GitHub-taak is succesvol via EWS naar Completed gezet en teruggelezen
 - Exchange summary aangescherpt: onderscheid tussen actiegerichte vs notificatie-unread, signalering van afspraken binnen 24 uur, en overdue actieve taken zodat `next_action` minder snel op ruis blijft hangen
 - Exchange huidige actieve taak afgerond: summary live geverifieerd en Exchange-taak `Exchange SE: mailbox/agenda helper verder uitbouwen` staat nu op Completed
