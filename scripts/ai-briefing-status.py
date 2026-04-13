@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -33,11 +34,21 @@ REQUIRED_PROMPT_MARKERS = [
     'Gebruik eerst web_search breed',
     'val terug op gerichte web_fetch',
     'meerdere primaire bronnen',
+    'filter marketing zonder echte verandering',
+    'Relevant voor Christian',
     "Wat moeten wij hiermee?",
     "Wat ik vandaag het belangrijkst vind",
-    'Relevant voor Christian',
+    'bronnenlijst met URLs',
 ]
 REQUIRED_TOOLS_ALLOW = {'web_search', 'web_fetch'}
+REQUIRED_OUTPUT_MARKERS = [
+    'Wat moeten wij hiermee?',
+    'Wat ik vandaag het belangrijkst vind',
+]
+REQUIRED_OUTPUT_MARKER_ALTERNATIVES = [
+    ('bronnenlijst', 'bronnen'),
+]
+MIN_SOURCE_URLS = 3
 
 
 def load_jobs():
@@ -109,6 +120,20 @@ def parse_cron_hour_minute(expr):
     if not minute_raw.isdigit() or not hour_raw.isdigit():
         return None, None
     return int(hour_raw), int(minute_raw)
+
+
+def previous_expected_run_at(next_run_at, expr):
+    if not next_run_at:
+        return None
+    parts = (expr or '').split()
+    if len(parts) != 5:
+        return None
+    minute_raw, hour_raw, day_raw, month_raw, weekday_raw = parts
+    if not minute_raw.isdigit() or not hour_raw.isdigit():
+        return None
+    if day_raw != '*' or month_raw != '*' or weekday_raw != '*':
+        return None
+    return next_run_at - 24 * 60 * 60 * 1000
 
 
 def audit_next_run(job, next_run_at, now_ms, tz_name):
@@ -213,6 +238,101 @@ def audit_storage(job_id):
     }
 
 
+def audit_uniqueness(jobs, target_job):
+    reasons = []
+    target_id = target_job.get('id')
+    target_name = target_job.get('name')
+    target_schedule = target_job.get('schedule') or {}
+    target_delivery = target_job.get('delivery') or {}
+    target_expr = target_schedule.get('expr')
+    target_tz = target_schedule.get('tz') or DEFAULT_TZ
+    target_channel = target_delivery.get('channel')
+    target_to = str(target_delivery.get('to') or '')
+
+    duplicate_name_jobs = []
+    colliding_delivery_jobs = []
+    for other in jobs:
+        if other.get('id') == target_id:
+            continue
+        other_schedule = other.get('schedule') or {}
+        other_delivery = other.get('delivery') or {}
+        if other.get('name') == target_name:
+            duplicate_name_jobs.append({
+                'id': other.get('id'),
+                'enabled': bool(other.get('enabled')),
+            })
+        if (
+            bool(other.get('enabled'))
+            and other_schedule.get('kind') == 'cron'
+            and other_schedule.get('expr') == target_expr
+            and (other_schedule.get('tz') or DEFAULT_TZ) == target_tz
+            and (other_delivery.get('channel') or '') == target_channel
+            and str(other_delivery.get('to') or '') == target_to
+        ):
+            colliding_delivery_jobs.append({
+                'id': other.get('id'),
+                'name': other.get('name'),
+                'delivery_mode': other_delivery.get('mode'),
+            })
+
+    if duplicate_name_jobs:
+        reasons.append(f"{len(duplicate_name_jobs)} extra job(s) met naam {target_name}")
+    if colliding_delivery_jobs:
+        reasons.append(
+            f"{len(colliding_delivery_jobs)} extra cronjob(s) met zelfde schedule+delivery naar {target_channel}:{target_to}"
+        )
+
+    if reasons:
+        text = '; '.join(reasons)
+    else:
+        text = 'uniqueness ok (geen dubbele jobnaam of delivery-collision)'
+
+    return {
+        'ok': not reasons,
+        'duplicate_name_jobs': duplicate_name_jobs,
+        'colliding_delivery_jobs': colliding_delivery_jobs,
+        'reasons': reasons,
+        'text': text,
+    }
+
+
+def audit_summary_output(summary_text):
+    if not isinstance(summary_text, str) or not summary_text.strip():
+        return {
+            'available': False,
+            'ok': True,
+            'missing_markers': [],
+            'source_url_count': 0,
+            'reasons': [],
+            'text': 'geen briefinginhoud om te auditen',
+        }
+
+    missing_markers = [marker for marker in REQUIRED_OUTPUT_MARKERS if marker not in summary_text]
+    missing_alternative_groups = [
+        list(group)
+        for group in REQUIRED_OUTPUT_MARKER_ALTERNATIVES
+        if not any(marker in summary_text for marker in group)
+    ]
+    source_url_count = len(re.findall(r'https?://\S+', summary_text))
+    reasons = []
+    if missing_markers:
+        reasons.append(f"{len(missing_markers)} verplichte sectie(s) missen")
+    if missing_alternative_groups:
+        reasons.append(f"{len(missing_alternative_groups)} verplichte outputanker(s) missen")
+    if source_url_count < MIN_SOURCE_URLS:
+        reasons.append(f'te weinig bron-URLs ({source_url_count})')
+
+    return {
+        'available': True,
+        'ok': not reasons,
+        'missing_markers': missing_markers,
+        'missing_alternative_groups': missing_alternative_groups,
+        'source_url_count': source_url_count,
+        'reasons': reasons,
+        'text': 'briefing-output ok' if not reasons else '; '.join(reasons),
+    }
+
+
 def summarize_run(run, tz_name=DEFAULT_TZ, now_ms=None):
     if not run:
         return None
@@ -224,6 +344,7 @@ def summarize_run(run, tz_name=DEFAULT_TZ, now_ms=None):
     summary_preview = None
     summary_preview_lines = []
     summary_length_chars = None
+    summary_output_audit = audit_summary_output(summary_text)
     if isinstance(summary_text, str) and summary_text.strip():
         summary_length_chars = len(summary_text)
         summary_preview_lines = [line.strip() for line in summary_text.splitlines() if line.strip()][:3]
@@ -248,6 +369,7 @@ def summarize_run(run, tz_name=DEFAULT_TZ, now_ms=None):
         'summary_length_chars': summary_length_chars,
         'summary_preview_lines': summary_preview_lines,
         'summary_preview': summary_preview,
+        'summary_output_audit': summary_output_audit,
         'error_text': error_text,
     }
 
@@ -413,10 +535,19 @@ def build_status(job_name=TARGET_JOB_NAME):
     success_streak = trailing_streak(finished_runs, lambda run: run.get('status') == 'ok') if finished_runs else 0
     delivery_streak = trailing_streak(finished_runs, lambda run: bool(run.get('delivered'))) if finished_runs else 0
     next_run_at = state.get('nextRunAtMs')
+    previous_run_slot_at = previous_expected_run_at(next_run_at, schedule.get('expr'))
     last_run_at = (last_run or {}).get('runAtMs') or state.get('lastRunAtMs')
     created_at = job.get('createdAtMs')
     updated_at = job.get('updatedAtMs') or created_at
-    first_run_pending = bool(not finished_runs and created_at and next_run_at and created_at < next_run_at)
+    first_run_pending = bool(
+        not finished_runs
+        and created_at
+        and next_run_at
+        and (
+            previous_run_slot_at is None
+            or created_at > previous_run_slot_at
+        )
+    )
     last_run_status = state.get('lastRunStatus') or state.get('lastStatus')
     last_delivery_status = state.get('lastDeliveryStatus')
     consecutive_errors = int(state.get('consecutiveErrors') or 0)
@@ -428,6 +559,7 @@ def build_status(job_name=TARGET_JOB_NAME):
     runtime_audit = audit_runtime(job, tz_name)
     next_run_audit = audit_next_run(job, next_run_at, now_ms, tz_name)
     storage_audit = audit_storage(job['id'])
+    uniqueness_audit = audit_uniqueness(jobs, job)
 
     overdue_grace_ms = 15 * 60 * 1000
     overdue = bool(next_run_at and now_ms > (next_run_at + overdue_grace_ms))
@@ -438,6 +570,10 @@ def build_status(job_name=TARGET_JOB_NAME):
     attention_reasons = []
     if not job.get('enabled'):
         attention_reasons.append('job staat uit')
+    if not finished_runs and previous_run_slot_at and created_at and created_at <= previous_run_slot_at:
+        attention_reasons.append(
+            f'eerste runbewijs ontbreekt sinds vorige geplande slot {fmt_ts(previous_run_slot_at, tz_name)}'
+        )
     if overdue:
         attention_reasons.append(f'volgende run is over tijd ({overdue_hint})')
     if consecutive_errors:
@@ -464,6 +600,11 @@ def build_status(job_name=TARGET_JOB_NAME):
         attention_reasons.append(f"next run: {next_run_audit.get('text')}")
     if not storage_audit.get('ok'):
         attention_reasons.append(f"storage: {storage_audit.get('text')}")
+    if not uniqueness_audit.get('ok'):
+        attention_reasons.append(f"uniqueness: {uniqueness_audit.get('text')}")
+    last_run_output_audit = (last_run_summary or {}).get('summary_output_audit') or {}
+    if last_run_output_audit.get('available') and not last_run_output_audit.get('ok'):
+        attention_reasons.append(f"briefing-output: {last_run_output_audit.get('text')}")
 
     summary = {
         'ok': not attention_reasons,
@@ -482,6 +623,7 @@ def build_status(job_name=TARGET_JOB_NAME):
         'runtime_audit': runtime_audit,
         'next_run_audit': next_run_audit,
         'storage_audit': storage_audit,
+        'uniqueness_audit': uniqueness_audit,
         'state': state,
         'created_at': created_at,
         'created_at_text': fmt_ts(created_at, tz_name),
@@ -520,6 +662,9 @@ def build_status(job_name=TARGET_JOB_NAME):
         'next_run_at': next_run_at,
         'next_run_at_text': fmt_ts(next_run_at, tz_name),
         'next_run_hint': future_hint(next_run_at, now_ms),
+        'previous_run_slot_at': previous_run_slot_at,
+        'previous_run_slot_at_text': fmt_ts(previous_run_slot_at, tz_name),
+        'previous_run_slot_hint': age_hint(previous_run_slot_at, now_ms),
         'proof_due_at': proof_due_at,
         'proof_due_at_text': fmt_ts(proof_due_at, tz_name),
         'proof_due_hint': future_hint(proof_due_at, now_ms),
@@ -590,6 +735,9 @@ def render_text(data):
         storage_audit = data.get('storage_audit') or {}
         if storage_audit.get('text'):
             parts.append(storage_audit.get('text'))
+        uniqueness_audit = data.get('uniqueness_audit') or {}
+        if uniqueness_audit.get('text'):
+            parts.append(uniqueness_audit.get('text'))
         if payload_audit.get('text'):
             parts.append(payload_audit.get('text'))
     runtime_audit = data.get('runtime_audit') or {}
@@ -623,6 +771,11 @@ def render_text(data):
         parts.append(duration_text)
     if last_run_summary.get('summary_preview'):
         parts.append(f"laatste briefing-preview {last_run_summary['summary_preview']}")
+    summary_output_audit = last_run_summary.get('summary_output_audit') or {}
+    if summary_output_audit.get('available'):
+        parts.append(f"output-audit {summary_output_audit.get('text')}")
+        if summary_output_audit.get('source_url_count') is not None:
+            parts.append(f"bron-URLs {summary_output_audit['source_url_count']}")
     if data.get('runs_total'):
         success_bits = []
         if data.get('success_rate_pct') is not None:

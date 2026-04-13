@@ -279,12 +279,15 @@ def render_text(summary):
         runtime_audit = ai_briefing_status.get('runtime_audit') or {}
         next_run_audit = ai_briefing_status.get('next_run_audit') or {}
         storage_audit = ai_briefing_status.get('storage_audit') or {}
+        uniqueness_audit = ai_briefing_status.get('uniqueness_audit') or {}
         if runtime_audit.get('session_target') and runtime_audit.get('wake_mode'):
             ai_bits.append(f"route {runtime_audit['session_target']}/{runtime_audit['wake_mode']} via {runtime_audit.get('agent_id') or 'onbekend'}")
         if next_run_audit.get('text'):
             ai_bits.append(next_run_audit['text'])
         if storage_audit.get('text'):
             ai_bits.append(storage_audit['text'])
+        if uniqueness_audit.get('text'):
+            ai_bits.append(uniqueness_audit['text'])
         payload_audit = ai_briefing_status.get('payload_audit') or {}
         if ai_briefing_status.get('updated_at_hint'):
             fingerprint = payload_audit.get('message_sha256_short')
@@ -311,6 +314,10 @@ def render_text(summary):
             ai_bits.append(duration_text)
         if last_run_summary.get('summary_preview'):
             ai_bits.append(f"preview {last_run_summary['summary_preview']}")
+        summary_output_audit = last_run_summary.get('summary_output_audit') or {}
+        if summary_output_audit.get('available'):
+            ai_bits.append(summary_output_audit.get('text', 'output-audit onbekend'))
+            ai_bits.append(f"bron-URLs {summary_output_audit.get('source_url_count', 0)}")
         if ai_briefing_status.get('runs_total'):
             rate_bits = []
             if ai_briefing_status.get('success_rate_pct') is not None:
