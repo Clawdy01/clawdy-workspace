@@ -85,10 +85,28 @@ def render_text(data, show_preview=False):
             ai_bits.append(ai_briefing_status['proof_text'])
         if ai_briefing_status.get('attention_text'):
             ai_bits.append(f"let op: {ai_briefing_status['attention_text']}")
+        payload_audit = ai_briefing_status.get('payload_audit') or {}
+        if ai_briefing_status.get('updated_at_hint'):
+            fingerprint = payload_audit.get('message_sha256_short')
+            if fingerprint:
+                ai_bits.append(f"config {ai_briefing_status['updated_at_hint']} gewijzigd, hash {fingerprint}")
+            else:
+                ai_bits.append(f"config {ai_briefing_status['updated_at_hint']} gewijzigd")
         if ai_briefing_status.get('next_run_at_text'):
             ai_bits.append(f"volgende {ai_briefing_status['next_run_at_text']}")
         if ai_briefing_status.get('last_run_at_text'):
             ai_bits.append(f"laatste {ai_briefing_status['last_run_at_text']}")
+        last_run_summary = ai_briefing_status.get('last_run_summary') or {}
+        if last_run_summary.get('model'):
+            model_text = last_run_summary['model']
+            if last_run_summary.get('provider'):
+                model_text = f"{last_run_summary['provider']}/{model_text}"
+            ai_bits.append(f"model {model_text}")
+        if last_run_summary.get('duration_text'):
+            duration_text = f"duur {last_run_summary['duration_text']}"
+            if last_run_summary.get('total_tokens') is not None:
+                duration_text += f", {last_run_summary['total_tokens']} tokens"
+            ai_bits.append(duration_text)
         lines.append(f"- ai briefing: {'; '.join(ai_bits)}")
     mail_line = f"- mail: last_uid {mail['last_uid']}, notified {mail['tracked_notifications']} ({mail['account']})"
     recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))
