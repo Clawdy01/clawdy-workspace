@@ -44,24 +44,35 @@ def run_json(command, default=None, timeout=20):
         return default, f'invalid json for {command}: {exc}'
 
 
-def build_board(limit=5):
+def build_board(limit=5, current_only=False, review_worthy_only=False):
+    next_step_command = ['python3', str(MAIL_NEXT_STEP), '--json', '-n', '3']
+    security_alerts_command = ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '5']
+    latest_base_flags = ['--review-worthy'] if review_worthy_only else ['--meaningful']
+    triage_review_flags = ['--review-worthy'] if review_worthy_only else []
+    if current_only:
+        next_step_command.append('--current-only')
+        security_alerts_command.append('--current-only')
+    if review_worthy_only:
+        next_step_command.append('--review-worthy')
+
     jobs = {
-        'latest': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json'], [], 20),
-        'latest_meaningful': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--meaningful'], [], 20),
-        'latest_current': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--meaningful', '--current-only'], [], 20),
-        'latest_threads': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--threads', '--meaningful'], [], 20),
-        'latest_threads_current': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--threads', '--meaningful', '--current-only'], [], 20),
-        'unread': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--unread'], [], 20),
+        'latest': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json'] + (['--review-worthy'] if review_worthy_only else []), [], 20),
+        'latest_meaningful': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json'] + latest_base_flags, [], 20),
+        'latest_current': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json'] + latest_base_flags + ['--current-only'], [], 20),
+        'latest_threads': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--threads'] + latest_base_flags, [], 20),
+        'latest_threads_current': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--threads'] + latest_base_flags + ['--current-only'], [], 20),
+        'unread': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--unread'] + (['--review-worthy'] if review_worthy_only else []), [], 20),
         'summary': (['python3', str(MAIL_SUMMARY), '--json'], {}, 20),
         'drafts': (['python3', str(MAIL_DRAFTS), '--json', '--unread', '-n', str(limit)], {}, 20),
-        'triage': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit)], {}, 20),
-        'triage_current': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--all', '--current-only', '--search-limit', '50'], {}, 25),
-        'triage_reply': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--reply-only'], {}, 20),
-        'triage_high': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--high-only'], {}, 20),
-        'triage_high_latest': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--high-only', '--all', '--search-limit', '50'], {}, 25),
+        'triage': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit)] + triage_review_flags, {}, 20),
+        'triage_meaningful': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--all', '--review-worthy', '--search-limit', '50'], {}, 25),
+        'triage_current': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--all', '--current-only', '--search-limit', '50'] + triage_review_flags, {}, 25),
+        'triage_reply': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--reply-only'] + triage_review_flags, {}, 20),
+        'triage_high': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--high-only'] + triage_review_flags, {}, 20),
+        'triage_high_latest': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--high-only', '--all', '--search-limit', '50'] + triage_review_flags, {}, 25),
         'focus': (['python3', str(MAIL_FOCUS), '--json', '-n', str(limit)], {}, 30),
-        'next_step': (['python3', str(MAIL_NEXT_STEP), '--json', '-n', '3'], {}, 35),
-        'security_alerts': (['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '5'], {}, 35),
+        'next_step': (next_step_command, {}, 35),
+        'security_alerts': (security_alerts_command, {}, 35),
     }
 
     with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
@@ -80,6 +91,7 @@ def build_board(limit=5):
     summary, summary_error = results['summary']
     drafts, drafts_error = results['drafts']
     triage, triage_error = results['triage']
+    triage_meaningful, triage_meaningful_error = results['triage_meaningful']
     triage_current, triage_current_error = results['triage_current']
     triage_reply, triage_reply_error = results['triage_reply']
     triage_high, triage_high_error = results['triage_high']
@@ -97,6 +109,7 @@ def build_board(limit=5):
     summary = summary or {}
     drafts = drafts or {}
     triage = triage or {}
+    triage_meaningful = triage_meaningful or {}
     triage_current = triage_current or {}
     triage_reply = triage_reply or {}
     triage_high = triage_high or {}
@@ -111,6 +124,43 @@ def build_board(limit=5):
         effective_triage_high = triage_high_latest
         effective_triage_high_scope = triage_high_latest.get('scope', 'latest+high')
 
+    if review_worthy_only:
+        unread = [item for item in unread if item.get('review_worthy')]
+        drafts = {
+            **drafts,
+            'drafts': [draft for draft in (drafts.get('drafts') or []) if draft.get('review_worthy')],
+            'draft_count': sum(1 for draft in (drafts.get('drafts') or []) if draft.get('review_worthy')),
+        }
+
+    if current_only:
+        latest = []
+        latest_meaningful = []
+        latest_threads = []
+        unread = [item for item in unread if item.get('attention_now') and not item.get('stale_attention')]
+        unread_uids = {item.get('uid') for item in unread if item.get('uid') is not None}
+        drafts = {
+            **drafts,
+            'drafts': [draft for draft in (drafts.get('drafts') or []) if draft.get('uid') in unread_uids],
+            'draft_count': sum(1 for draft in (drafts.get('drafts') or []) if draft.get('uid') in unread_uids),
+        }
+        triage = {}
+        if effective_triage_high.get('items'):
+            current_high_items = [item for item in (effective_triage_high.get('items') or []) if item.get('attention_now') and not item.get('stale_attention')]
+            effective_triage_high = dict(effective_triage_high)
+            effective_triage_high['items'] = current_high_items
+            effective_triage_high['count'] = len(current_high_items)
+            effective_triage_high['total_count'] = len(current_high_items)
+            effective_triage_high['attention_now_count'] = len(current_high_items)
+            effective_triage_high['total_attention_now_count'] = len(current_high_items)
+            effective_triage_high['stale_attention_count'] = 0
+            effective_triage_high['total_stale_attention_count'] = 0
+            effective_triage_high['related_group_count'] = len(current_high_items)
+            effective_triage_high['total_related_group_count'] = len(current_high_items)
+            effective_triage_high['top_related_groups'] = [
+                group for group in (effective_triage_high.get('top_related_groups') or [])
+                if group.get('attention_now') and not group.get('stale_attention')
+            ]
+
     new_high_count = summary.get('high_count', 0)
     recent_high_count = triage_high_latest.get('total_count', triage_high_latest.get('count', 0)) if triage_high_latest.get('items') else 0
     recent_attention_now_count = triage_high_latest.get('total_attention_now_count', triage_high_latest.get('attention_now_count', 0)) if triage_high_latest.get('items') else 0
@@ -120,6 +170,8 @@ def build_board(limit=5):
         effective_high_count = max(new_high_count, recent_high_count)
 
     return {
+        'current_only': current_only,
+        'review_worthy_only': review_worthy_only,
         'latest_count': len(latest),
         'unread_count': len(unread),
         'new_count': summary.get('new_count', 0),
@@ -135,6 +187,7 @@ def build_board(limit=5):
         'draft_scope': drafts.get('scope', 'unread'),
         'draft_count': drafts.get('draft_count', 0),
         'triage_count': triage.get('count', 0),
+        'triage_meaningful_count': triage_meaningful.get('count', 0),
         'triage_current_count': triage_current.get('count', 0),
         'triage_reply_needed_count': triage.get('reply_needed_count', 0),
         'triage_high_count': effective_triage_high.get('total_count', effective_triage_high.get('count', 0)),
@@ -151,6 +204,7 @@ def build_board(limit=5):
         'new_messages': summary.get('messages', []),
         'drafts': drafts.get('drafts', []),
         'triage': triage.get('items', []),
+        'triage_meaningful': triage_meaningful.get('items', []),
         'triage_current': triage_current.get('items', []),
         'triage_reply': triage_reply.get('items', []),
         'triage_high': effective_triage_high.get('items', []),
@@ -175,6 +229,7 @@ def build_board(limit=5):
                 'summary': summary_error,
                 'drafts': drafts_error,
                 'triage': triage_error,
+                'triage_meaningful': triage_meaningful_error,
                 'triage_current': triage_current_error,
                 'triage_reply': triage_reply_error,
                 'triage_high': triage_high_error,
@@ -214,7 +269,7 @@ def has_current_mail_activity(board):
     return False
 
 
-def render_text(board, show_preview=False, current_only=False):
+def render_text(board, show_preview=False, current_only=False, review_worthy_only=False):
     lines = ['Mailboard']
     has_current_activity = has_current_mail_activity(board)
     triage_high_suffix = ''
@@ -314,7 +369,7 @@ def render_text(board, show_preview=False, current_only=False):
         lines.append(
             f"- {thread_label}: {thread.get('subject', '(geen onderwerp)')} ({thread.get('message_count', 0)}x{variant_suffix}, laatste van {thread.get('latest_from', 'onbekend')}{time_suffix}){format_attachment_hint(thread)}{format_security_alert_hint(thread)}{noise}{stale}"
         )
-    triage_items = board.get('triage_current') or ([] if current_only else (board.get('triage') or []))
+    triage_items = board.get('triage_current') or ([] if current_only else (board.get('triage_meaningful') or []))
     if triage_items:
         item = triage_items[0]
         deadline = f" ⏰{item.get('deadline_hint')}" if item.get('deadline_hint') else ''
@@ -323,7 +378,7 @@ def render_text(board, show_preview=False, current_only=False):
         security = format_security_alert_hint(item)
         burst = f" ({item.get('related_group_size', 0)}x verwant)" if (item.get('related_group_size', 0) or 0) > 1 else ''
         stale = ' [niet actueel]' if item.get('stale_attention') else ''
-        triage_label = 'triage nu' if board.get('triage_current') else 'triage eerst'
+        triage_label = 'triage nu' if board.get('triage_current') else ('triage review' if review_worthy_only else 'triage eerst')
         lines.append(
             f"- {triage_label}: {item['from']} — {item['subject']}{attach}{security} [{item['action_hint']}{' ↩' if item.get('reply_needed') else ''}]{deadline}{burst}{age}{stale}"
         )
@@ -338,8 +393,9 @@ def render_text(board, show_preview=False, current_only=False):
         burst = max(related_burst, exact_burst)
         burst_label = 'verwant' if related_burst > exact_burst else 'soortgelijk'
         burst_suffix = f" ({burst}x {burst_label})" if burst > 1 else ''
+        focus_prefix = 'focus review' if review_worthy_only else 'focus nu'
         focus_line = (
-            f"- focus nu ({board.get('focus_scope', 'mail')}): {item['from']} — {item['subject']}{attach}{security} "
+            f"- {focus_prefix} ({board.get('focus_scope', 'mail')}): {item['from']} — {item['subject']}{attach}{security} "
             f"[{item['action_hint']}{' ↩' if item.get('reply_needed') else ''}]{deadline}{burst_suffix}{age}"
         )
         if item.get('stale_attention'):
@@ -407,14 +463,18 @@ def render_text(board, show_preview=False, current_only=False):
             command_label = 'review command' if review_only or is_stale else 'next-step command'
             lines.append(f"- {command_label}: {next_step.get('recommended_command')}")
     if not current_only:
-        lines.append('- inbox quick view: python3 scripts/mail-dispatch.py latest --meaningful --threads -n 5')
+        quick_view_command = 'python3 scripts/mail-dispatch.py latest --review-worthy --threads -n 5' if review_worthy_only else 'python3 scripts/mail-dispatch.py latest --meaningful --threads -n 5'
+        lines.append(f'- inbox quick view: {quick_view_command}')
         if has_current_activity:
-            lines.append('- inbox now: python3 scripts/mail-dispatch.py now --clusters -n 5')
+            now_command = 'python3 scripts/mail-dispatch.py triage --all --review-worthy --clusters -n 5' if review_worthy_only else 'python3 scripts/mail-dispatch.py now --clusters -n 5'
+            lines.append(f'- inbox now: {now_command}')
     if board['drafts']:
         draft = board['drafts'][0]
         lines.append(f"- concept ({board.get('draft_scope', 'mail')}) klaar voor: {draft['sender']} — {draft['subject']}{format_attachment_hint(draft)}")
     if current_only and not has_current_activity:
         lines.append('- geen actuele mailaandacht')
+    elif review_worthy_only and not has_current_activity and not board.get('next_step', {}).get('candidates'):
+        lines.append('- geen reviewwaardige mailaandacht')
     errors = board.get('errors') or {}
     if errors:
         lines.append(f"- deels gedegradeerd: {', '.join(sorted(errors))}")
@@ -427,13 +487,14 @@ def main():
     parser.add_argument('--json', action='store_true')
     parser.add_argument('--preview', action='store_true', help='toon korte preview bij bovenste mail in tekstoutput')
     parser.add_argument('--current-only', action='store_true', help='onderdruk stale-only tekstregels en toon alleen actuele mailaandacht')
+    parser.add_argument('--review-worthy', action='store_true', help='toon alleen mail die na actualiteitsfiltering nog echt reviewwaardig is')
     args = parser.parse_args()
 
-    board = build_board(limit=max(1, min(args.limit, 20)))
+    board = build_board(limit=max(1, min(args.limit, 20)), current_only=args.current_only, review_worthy_only=args.review_worthy)
     if args.json:
         print(json.dumps(board, ensure_ascii=False, indent=2))
     else:
-        print(render_text(board, show_preview=args.preview, current_only=args.current_only))
+        print(render_text(board, show_preview=args.preview, current_only=args.current_only, review_worthy_only=args.review_worthy))
 
 
 if __name__ == '__main__':

@@ -92,6 +92,27 @@ def summarize_related_groups(groups, limit=None):
     return summaries[:limit] if limit else summaries
 
 
+def collapse_repetitive_stale_items(items):
+    visible = []
+    collapsed = []
+    seen_groups = set()
+    for item in items:
+        key = related_group_key(item)
+        should_collapse = (
+            item.get('stale_attention')
+            and not item.get('review_worthy')
+            and item.get('no_reply')
+            and int(item.get('related_group_size') or 0) > 1
+        )
+        if should_collapse and key in seen_groups:
+            collapsed.append(item)
+            continue
+        if should_collapse:
+            seen_groups.add(key)
+        visible.append(item)
+    return visible, collapsed
+
+
 def run_latest(limit=10, unread_only=True, search_limit=50):
     fetch_limit = max(limit, search_limit)
     cmd = ['python3', str(MAIL_LATEST), '-n', str(fetch_limit), '--json', '--search-limit', str(search_limit)]
@@ -175,7 +196,12 @@ def triage(limit=10, unread_only=True, reply_only=False, high_only=False, curren
     related_groups = summarize_related_groups(filtered_groups)
     top_related_groups = related_groups[:3]
 
-    items = related_groups[:limit] if clusters_only else total_items[:limit]
+    collapsed_items = []
+    visible_items = total_items
+    if not clusters_only:
+        visible_items, collapsed_items = collapse_repetitive_stale_items(total_items)
+
+    items = related_groups[:limit] if clusters_only else visible_items[:limit]
 
     scope = 'unread' if unread_only else 'latest'
     if high_only:
@@ -207,6 +233,8 @@ def triage(limit=10, unread_only=True, reply_only=False, high_only=False, curren
         'groups': related_groups,
         'group_count': len(related_groups),
         'top_related_groups': top_related_groups,
+        'collapsed_item_count': len(collapsed_items),
+        'collapsed_group_count': len({related_group_key(item) for item in collapsed_items}),
         'items': items,
     }
 
@@ -236,6 +264,10 @@ def render_text(result, show_preview=False):
     lines = [
         f"Mail triage ({result.get('scope', 'mail')}): {result.get('count', 0)} items (totaal {result.get('total_count', result.get('count', 0))}), hoog {result.get('high_count', 0)}, reply {result.get('reply_needed_count', 0)}"
     ]
+    if result.get('collapsed_item_count'):
+        lines.append(
+            f"Ingeklapt: {result.get('collapsed_item_count', 0)} stale no-reply item(s) uit {result.get('collapsed_group_count', 0)} cluster(s)"
+        )
     top_groups = result.get('top_related_groups') or []
     if top_groups:
         group_bits = [format_cluster_hint(group, include_age=True) for group in top_groups[:2]]
@@ -251,7 +283,8 @@ def render_text(result, show_preview=False):
         burst = f" ({item.get('related_group_size', 0)}x verwant)" if (item.get('related_group_size', 0) or 0) > 1 else ''
         age = f" ({item.get('age_hint')})" if item.get('age_hint') else ''
         stale = ' [niet actueel]' if item.get('stale_attention') else ''
-        line = f"{urgency} #{item.get('uid', '?')} {item.get('from', 'onbekend')}: {item.get('subject', '(geen onderwerp)')}{attach}{security} [{item.get('action_hint', 'ter info')}{reply}]{deadline}{burst}{age}{stale}"
+        collapsed = ' [cluster samengeklapt]' if item.get('stale_attention') and not item.get('review_worthy') and item.get('no_reply') and (item.get('related_group_size', 0) or 0) > 1 else ''
+        line = f"{urgency} #{item.get('uid', '?')} {item.get('from', 'onbekend')}: {item.get('subject', '(geen onderwerp)')}{attach}{security} [{item.get('action_hint', 'ter info')}{reply}]{deadline}{burst}{age}{stale}{collapsed}"
         if show_preview and item.get('preview'):
             line += f" — {item['preview'][:140]}"
         lines.append(line)
