@@ -95,18 +95,94 @@ def duration_hint(ms):
     return f'{seconds}s'
 
 
-def summarize_run(run):
+def parse_cron_hour_minute(expr):
+    parts = (expr or '').split()
+    if len(parts) != 5:
+        return None, None
+    minute_raw, hour_raw = parts[0], parts[1]
+    if not minute_raw.isdigit() or not hour_raw.isdigit():
+        return None, None
+    return int(hour_raw), int(minute_raw)
+
+
+def audit_next_run(job, next_run_at, now_ms, tz_name):
+    reasons = []
+    if not job.get('enabled'):
+        return {
+            'ok': True,
+            'expected_hour': None,
+            'expected_minute': None,
+            'next_run_local_hour': None,
+            'next_run_local_minute': None,
+            'hours_until_next_run': None,
+            'reasons': reasons,
+            'text': 'job uit, next-run audit niet relevant',
+        }
+
+    schedule_expr = ((job.get('schedule') or {}).get('expr')) or ''
+    expected_hour, expected_minute = parse_cron_hour_minute(schedule_expr)
+    hours_until_next_run = None
+    next_run_local_hour = None
+    next_run_local_minute = None
+
+    if not next_run_at:
+        reasons.append('nextRunAtMs ontbreekt')
+    else:
+        next_dt = datetime.fromtimestamp(next_run_at / 1000, tz=timezone.utc).astimezone(ZoneInfo(tz_name))
+        next_run_local_hour = next_dt.hour
+        next_run_local_minute = next_dt.minute
+        hours_until_next_run = round((next_run_at - now_ms) / 3600000, 1)
+        if expected_hour is not None and next_dt.hour != expected_hour:
+            reasons.append(f'next run uur is {next_dt.hour:02d}:{next_dt.minute:02d}')
+        if expected_minute is not None and next_dt.minute != expected_minute:
+            reasons.append(f'next run minuut is {next_dt.hour:02d}:{next_dt.minute:02d}')
+        if hours_until_next_run < -0.1:
+            reasons.append(f'next run ligt {abs(hours_until_next_run):.1f} uur in het verleden')
+        elif hours_until_next_run > 36:
+            reasons.append(f'next run ligt verdacht ver weg ({hours_until_next_run:.1f} uur)')
+
+    text = 'next run slot ok'
+    if reasons:
+        text = '; '.join(reasons)
+    elif next_run_at:
+        text = f'next run slot ok ({fmt_ts(next_run_at, tz_name)})'
+
+    return {
+        'ok': not reasons,
+        'expected_hour': expected_hour,
+        'expected_minute': expected_minute,
+        'next_run_local_hour': next_run_local_hour,
+        'next_run_local_minute': next_run_local_minute,
+        'hours_until_next_run': hours_until_next_run,
+        'reasons': reasons,
+        'text': text,
+    }
+
+
+def summarize_run(run, tz_name=DEFAULT_TZ, now_ms=None):
     if not run:
         return None
     usage = run.get('usage') or {}
-    error_text = run.get('summary') or run.get('error') or run.get('deliveryError')
+    summary_text = run.get('summary')
+    error_text = summary_text or run.get('error') or run.get('deliveryError')
     if isinstance(error_text, str):
         error_text = ' '.join(error_text.split())[:240]
+    summary_preview = None
+    summary_preview_lines = []
+    summary_length_chars = None
+    if isinstance(summary_text, str) and summary_text.strip():
+        summary_length_chars = len(summary_text)
+        summary_preview_lines = [line.strip() for line in summary_text.splitlines() if line.strip()][:3]
+        if summary_preview_lines:
+            summary_preview = ' | '.join(summary_preview_lines)[:280]
+    run_at = run.get('runAtMs')
     return {
         'status': run.get('status'),
         'delivered': bool(run.get('delivered')),
         'delivery_status': run.get('deliveryStatus'),
-        'run_at': run.get('runAtMs'),
+        'run_at': run_at,
+        'run_at_text': fmt_ts(run_at, tz_name),
+        'run_at_hint': age_hint(run_at, now_ms) if now_ms is not None else None,
         'duration_ms': run.get('durationMs'),
         'duration_text': duration_hint(run.get('durationMs')),
         'model': run.get('model'),
@@ -115,6 +191,9 @@ def summarize_run(run):
         'total_tokens': usage.get('total_tokens'),
         'input_tokens': usage.get('input_tokens'),
         'output_tokens': usage.get('output_tokens'),
+        'summary_length_chars': summary_length_chars,
+        'summary_preview_lines': summary_preview_lines,
+        'summary_preview': summary_preview,
         'error_text': error_text,
     }
 
@@ -263,9 +342,13 @@ def build_status(job_name=TARGET_JOB_NAME):
     last_run = finished_runs[-1] if finished_runs else None
     last_delivered = delivered_runs[-1] if delivered_runs else None
     last_success = successful_runs[-1] if successful_runs else None
-    last_run_summary = summarize_run(last_run)
-    last_success_summary = summarize_run(last_success)
-    last_delivered_summary = summarize_run(last_delivered)
+    last_run_summary = summarize_run(last_run, tz_name=tz_name, now_ms=now_ms)
+    last_success_summary = summarize_run(last_success, tz_name=tz_name, now_ms=now_ms)
+    last_delivered_summary = summarize_run(last_delivered, tz_name=tz_name, now_ms=now_ms)
+    recent_runs_summary = [
+        summarize_run(run, tz_name=tz_name, now_ms=now_ms)
+        for run in finished_runs[-3:]
+    ]
     success_rate = (len(successful_runs) / len(finished_runs)) if finished_runs else None
     delivery_rate = (len(delivered_runs) / len(finished_runs)) if finished_runs else None
     success_streak = trailing_streak(finished_runs, lambda run: run.get('status') == 'ok') if finished_runs else 0
@@ -284,6 +367,7 @@ def build_status(job_name=TARGET_JOB_NAME):
     proof_text = 'runlog aanwezig' if run_file_exists else 'runlog nog niet aangemaakt'
     payload_audit = audit_payload(job)
     runtime_audit = audit_runtime(job, tz_name)
+    next_run_audit = audit_next_run(job, next_run_at, now_ms, tz_name)
 
     overdue_grace_ms = 15 * 60 * 1000
     overdue = bool(next_run_at and now_ms > (next_run_at + overdue_grace_ms))
@@ -315,6 +399,8 @@ def build_status(job_name=TARGET_JOB_NAME):
         attention_reasons.append(f"prompt/config: {payload_audit.get('text')}")
     if not runtime_audit.get('ok'):
         attention_reasons.append(f"schedule/delivery: {runtime_audit.get('text')}")
+    if not next_run_audit.get('ok'):
+        attention_reasons.append(f"next run: {next_run_audit.get('text')}")
 
     summary = {
         'ok': not attention_reasons,
@@ -331,6 +417,7 @@ def build_status(job_name=TARGET_JOB_NAME):
         'schedule_tz': tz_name,
         'payload_audit': payload_audit,
         'runtime_audit': runtime_audit,
+        'next_run_audit': next_run_audit,
         'state': state,
         'created_at': created_at,
         'created_at_text': fmt_ts(created_at, tz_name),
@@ -357,6 +444,7 @@ def build_status(job_name=TARGET_JOB_NAME):
         'last_run_summary': last_run_summary,
         'last_success_summary': last_success_summary,
         'last_delivered_summary': last_delivered_summary,
+        'recent_runs_summary': recent_runs_summary,
         'last_run_status': last_run_status,
         'last_delivery_status': last_delivery_status,
         'consecutive_errors': consecutive_errors,
@@ -387,7 +475,25 @@ def build_status(job_name=TARGET_JOB_NAME):
         status_text = f"eerste run nog niet geweest, eerste run {summary['next_run_hint']}"
     else:
         status_text = f"nog geen runbewijs, volgende run {summary['next_run_hint']}"
+
+    readiness_phase = 'attention'
+    readiness_text = 'let op vereist'
+    if not attention_reasons:
+        if not finished_runs:
+            readiness_phase = 'ready-for-first-run'
+            readiness_text = 'klaar voor eerste run'
+        elif len(finished_runs) < 3:
+            readiness_phase = 'proving'
+            readiness_text = f'bewijs verzamelen ({len(finished_runs)}/3 runs)'
+        else:
+            readiness_phase = 'proved'
+            readiness_text = f'runbewijs aanwezig ({len(finished_runs)} runs)'
+    elif finished_runs:
+        readiness_text = f'runbewijs met aandachtspunt ({len(finished_runs)} runs)'
+
     summary['text'] = status_text
+    summary['readiness_phase'] = readiness_phase
+    summary['readiness_text'] = readiness_text
     return summary
 
 
@@ -396,6 +502,8 @@ def render_text(data):
         return data.get('text', 'AI-briefingstatus onbekend')
     parts = [f"AI-briefing: {'aan' if data.get('enabled') else 'uit'}"]
     parts.append(data.get('text', 'onbekend'))
+    if data.get('readiness_text'):
+        parts.append(data['readiness_text'])
     if data.get('delivery_text'):
         parts.append(f"naar {data['delivery_text']}")
     if data.get('proof_text'):
@@ -407,6 +515,9 @@ def render_text(data):
         runtime_audit = data.get('runtime_audit') or {}
         if runtime_audit.get('text'):
             parts.append(runtime_audit.get('text'))
+        next_run_audit = data.get('next_run_audit') or {}
+        if next_run_audit.get('text'):
+            parts.append(next_run_audit.get('text'))
         if payload_audit.get('text'):
             parts.append(payload_audit.get('text'))
     runtime_audit = data.get('runtime_audit') or {}
@@ -436,6 +547,8 @@ def render_text(data):
         if token_text:
             duration_text += f", {token_text}"
         parts.append(duration_text)
+    if last_run_summary.get('summary_preview'):
+        parts.append(f"laatste briefing-preview {last_run_summary['summary_preview']}")
     if data.get('runs_total'):
         success_bits = []
         if data.get('success_rate_pct') is not None:
@@ -448,6 +561,23 @@ def render_text(data):
             success_bits.append(f"delivery-streak {data['delivery_streak']}")
         if success_bits:
             parts.append(', '.join(success_bits))
+    recent_runs_summary = data.get('recent_runs_summary') or []
+    if recent_runs_summary:
+        recent_bits = []
+        for run in recent_runs_summary[-3:]:
+            run_bits = [run.get('status') or 'onbekend']
+            if run.get('delivered'):
+                run_bits.append('afgeleverd')
+            if run.get('run_at_hint'):
+                run_bits.append(run['run_at_hint'])
+            elif run.get('run_at_text'):
+                run_bits.append(run['run_at_text'])
+            if run.get('duration_text'):
+                run_bits.append(run['duration_text'])
+            if run.get('error_text') and run.get('status') != 'ok':
+                run_bits.append(run['error_text'])
+            recent_bits.append(' / '.join(run_bits))
+        parts.append(f"recente runs: {'; '.join(recent_bits)}")
     if last_run_summary.get('error_text') and data.get('attention_text'):
         parts.append(f"laatste fout {last_run_summary['error_text']}")
     return ' | '.join(parts)

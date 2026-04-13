@@ -268,6 +268,8 @@ def render_text(summary):
         lines.append(f"- creative smoke: {'ok' if creative_smoke.get('ok') else 'warning'} ({smoke_text})")
     if ai_briefing_status:
         ai_bits = [ai_briefing_status.get('text', 'onbekend')]
+        if ai_briefing_status.get('readiness_text'):
+            ai_bits.append(ai_briefing_status['readiness_text'])
         if ai_briefing_status.get('delivery_text'):
             ai_bits.append(f"naar {ai_briefing_status['delivery_text']}")
         if ai_briefing_status.get('proof_text'):
@@ -275,8 +277,11 @@ def render_text(summary):
         if ai_briefing_status.get('attention_text'):
             ai_bits.append(f"let op: {ai_briefing_status['attention_text']}")
         runtime_audit = ai_briefing_status.get('runtime_audit') or {}
+        next_run_audit = ai_briefing_status.get('next_run_audit') or {}
         if runtime_audit.get('session_target') and runtime_audit.get('wake_mode'):
             ai_bits.append(f"route {runtime_audit['session_target']}/{runtime_audit['wake_mode']} via {runtime_audit.get('agent_id') or 'onbekend'}")
+        if next_run_audit.get('text'):
+            ai_bits.append(next_run_audit['text'])
         payload_audit = ai_briefing_status.get('payload_audit') or {}
         if ai_briefing_status.get('updated_at_hint'):
             fingerprint = payload_audit.get('message_sha256_short')
@@ -299,6 +304,8 @@ def render_text(summary):
             if last_run_summary.get('total_tokens') is not None:
                 duration_text += f", {last_run_summary['total_tokens']} tokens"
             ai_bits.append(duration_text)
+        if last_run_summary.get('summary_preview'):
+            ai_bits.append(f"preview {last_run_summary['summary_preview']}")
         if ai_briefing_status.get('runs_total'):
             rate_bits = []
             if ai_briefing_status.get('success_rate_pct') is not None:
@@ -309,6 +316,21 @@ def render_text(summary):
                 rate_bits.append(f"streak {ai_briefing_status['success_streak']}")
             if rate_bits:
                 ai_bits.append(', '.join(rate_bits))
+        recent_runs = ai_briefing_status.get('recent_runs_summary') or []
+        if recent_runs:
+            recent_bits = []
+            for run in recent_runs[-2:]:
+                run_bits = [run.get('status') or 'onbekend']
+                if run.get('delivered'):
+                    run_bits.append('afgeleverd')
+                if run.get('run_at_hint'):
+                    run_bits.append(run['run_at_hint'])
+                elif run.get('run_at_text'):
+                    run_bits.append(run['run_at_text'])
+                if run.get('duration_text'):
+                    run_bits.append(run['duration_text'])
+                recent_bits.append(' / '.join(run_bits))
+            ai_bits.append(f"recente runs {'; '.join(recent_bits)}")
         lines.append(f"- ai briefing: {'; '.join(ai_bits)}")
     mail_line = f"- mail {mail['account']} via {mail['host']}, last_uid {mail['last_uid']}, notified {mail['tracked_notifications']}"
     recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))
