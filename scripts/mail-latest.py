@@ -257,6 +257,74 @@ def matches_exact_or_substring(value, filters):
 
 
 
+def summarize_suppressed_rows(rows, limit=3):
+    summaries = []
+    for row in rows or []:
+        reason = None
+        if row.get('ephemeral_code'):
+            reason = 'tijdelijke code-mail'
+        elif row.get('self_message'):
+            reason = 'eigen mail'
+        elif is_test_message(row):
+            reason = 'testmail'
+        else:
+            attention_now = needs_attention_now(row)
+            review_worthy = message_needs_review(row)
+            if not attention_now and not review_worthy:
+                reason = 'niet actueel en niet reviewwaardig'
+            elif not attention_now:
+                reason = 'niet actueel'
+            elif not review_worthy:
+                reason = 'niet reviewwaardig'
+        if not reason:
+            continue
+        summaries.append({
+            'uid': row.get('uid'),
+            'from': row.get('from') or row.get('sender_display') or row.get('sender_email') or 'onbekend',
+            'subject': row.get('subject') or '(geen onderwerp)',
+            'action_hint': row.get('action_hint') or 'ter info',
+            'age_hint': row.get('age_hint'),
+            'reason': reason,
+        })
+        if len(summaries) >= limit:
+            break
+    return summaries
+
+
+
+def summarize_suppressed_threads(rows, limit=3):
+    summaries = []
+    for thread in group_threads(rows, limit=max(limit * 3, 10)):
+        reason = None
+        if thread.get('ephemeral_only'):
+            reason = 'tijdelijke code-thread'
+        elif thread.get('expected_security_change') and thread.get('security_alert_summary'):
+            reason = 'verwachte bekende securitywijziging'
+        elif thread.get('no_reply_only') and not thread.get('reply_needed') and not thread.get('deadline_hint') and not thread.get('review_worthy'):
+            reason = 'no-reply zonder vervolgsignaal'
+        elif not thread.get('attention_now') and not thread.get('review_worthy'):
+            reason = 'niet actueel en niet reviewwaardig'
+        elif not thread.get('attention_now'):
+            reason = 'niet actueel'
+        elif not thread.get('review_worthy'):
+            reason = 'niet reviewwaardig'
+        if not reason:
+            continue
+        summaries.append({
+            'latest_uid': thread.get('latest_uid'),
+            'from': thread.get('latest_from') or (thread.get('participants') or ['onbekend'])[0],
+            'subject': thread.get('subject') or '(geen onderwerp)',
+            'action_hint': thread.get('action_hint') or 'ter info',
+            'latest_age_hint': thread.get('latest_age_hint'),
+            'message_count': thread.get('message_count') or 1,
+            'reason': reason,
+        })
+        if len(summaries) >= limit:
+            break
+    return summaries
+
+
+
 def fetch_latest(
     limit,
     unread_only=False,
@@ -270,6 +338,7 @@ def fetch_latest(
     subject_filters=None,
     action_filters=None,
     urgency_filters=None,
+    explain_empty=False,
 ):
     sender_filters = [clean(value).lower() for value in (sender_filters or []) if clean(value)]
     subject_filters = [clean(value).lower() for value in (subject_filters or []) if clean(value)]
@@ -334,11 +403,13 @@ def fetch_latest(
     M.logout()
 
     rows.sort(key=lambda row: (row.get('date_ts') is None, -(row.get('date_ts') or 0), -int(row.get('uid') or 0)))
+    source_rows = list(rows)
 
     if meaningful_only:
         rows = [row for row in rows if is_meaningful_message(row)]
     if actionable_only:
         rows = [row for row in rows if is_actionable_message(row)]
+    filtered_rows = list(rows)
     if current_only:
         rows = [row for row in rows if row.get('attention_now')]
     if review_worthy_only:
@@ -350,8 +421,38 @@ def fetch_latest(
             grouped = [thread for thread in grouped if thread.get('review_worthy')]
         if current_only:
             grouped = [thread for thread in grouped if thread.get('attention_now')]
-        return grouped[:limit]
-    return rows[:limit]
+        result_rows = grouped[:limit]
+    else:
+        result_rows = rows[:limit]
+
+    if not explain_empty:
+        return result_rows
+
+    filtered_attention_now_count = sum(1 for row in filtered_rows if row.get('attention_now'))
+    filtered_review_worthy_count = sum(1 for row in filtered_rows if message_needs_review(row))
+    return {
+        'items': result_rows,
+        'count': len(result_rows),
+        'threads': threads,
+        'filters': {
+            'unread_only': unread_only,
+            'meaningful_only': meaningful_only,
+            'actionable_only': actionable_only,
+            'current_only': current_only,
+            'review_worthy_only': review_worthy_only,
+            'sender_filters': sender_filters,
+            'subject_filters': subject_filters,
+            'action_filters': action_filters,
+            'urgency_filters': urgency_filters,
+        },
+        'scanned_count': len(source_rows),
+        'filtered_count': len(filtered_rows),
+        'attention_now_count': filtered_attention_now_count,
+        'review_worthy_count': filtered_review_worthy_count,
+        'suppressed_groups': [] if result_rows else (
+            summarize_suppressed_threads(filtered_rows, limit=3) if threads else summarize_suppressed_rows(filtered_rows, limit=3)
+        ),
+    }
 
 
 def render(rows, show_preview=False, threads=False):
@@ -405,6 +506,7 @@ def main():
     parser.add_argument('--action', action='append', help='filter op action_hint, bijvoorbeeld "antwoord overwegen" of "security checken"')
     parser.add_argument('--urgency', action='append', help='filter op urgency, bijvoorbeeld high of normal')
     parser.add_argument('--search-limit', type=int, default=50, help='kijk verder terug als filters of current-only aan staan en de bovenste mails vooral noise of oude alerts zijn')
+    parser.add_argument('--explain-empty', action='store_true', help='leg bij lege current/review-resultaten compact uit welke recente mails of threads bewust zijn onderdrukt')
     args = parser.parse_args()
     rows = fetch_latest(
         max(1, min(args.limit, 20)),
@@ -419,7 +521,26 @@ def main():
         subject_filters=args.subject,
         action_filters=args.action,
         urgency_filters=args.urgency,
+        explain_empty=args.explain_empty,
     )
+    if args.explain_empty:
+        if args.json:
+            print(json.dumps(rows, ensure_ascii=False, indent=2))
+        else:
+            items = rows.get('items') or []
+            text = render(items, show_preview=args.preview, threads=args.threads)
+            if not items and rows.get('suppressed_groups'):
+                lines = [text]
+                for index, group in enumerate(rows.get('suppressed_groups')[:3], start=1):
+                    sender = group.get('from') or 'onbekend'
+                    subject = group.get('subject') or '(geen onderwerp)'
+                    age = group.get('latest_age_hint') or group.get('age_hint')
+                    age_suffix = f" ({age})" if age else ''
+                    count_suffix = f" x{group.get('message_count')}" if group.get('message_count') else ''
+                    lines.append(f"- suppressed{index}: {sender}: {subject}{count_suffix}{age_suffix} | reason={group.get('reason')}")
+                text = '\n'.join(lines)
+            print(text)
+        return
     if args.json:
         print(json.dumps(rows, ensure_ascii=False, indent=2))
     else:

@@ -132,6 +132,40 @@ def load_meaningful_threads(limit, search_limit, current_only=False):
 
 
 
+def summarize_suppressed_items(items, limit=3):
+    summaries = []
+    for item in items or []:
+        reason = None
+        if item.get('ephemeral_code'):
+            reason = 'tijdelijke code-mail'
+        elif item.get('self_message') or is_self_message(item):
+            reason = 'eigen mail'
+        elif is_test_message(item):
+            reason = 'testmail'
+        else:
+            attention_now = needs_attention_now(item)
+            review_worthy = message_needs_review(item)
+            if not attention_now and not review_worthy:
+                reason = 'niet actueel en niet reviewwaardig'
+            elif not attention_now:
+                reason = 'niet actueel'
+            elif not review_worthy:
+                reason = 'niet reviewwaardig'
+        if not reason:
+            continue
+        summaries.append({
+            'from': item.get('from') or item.get('sender_display') or item.get('sender_email') or 'onbekend',
+            'subject': item.get('subject') or '(geen onderwerp)',
+            'action_hint': item.get('action_hint') or 'ter info',
+            'age_hint': item.get('age_hint'),
+            'reason': reason,
+        })
+        if len(summaries) >= limit:
+            break
+    return summaries
+
+
+
 def thread_is_useful_fallback(thread, current_only=False):
     thread = thread or {}
     if not thread:
@@ -204,6 +238,10 @@ def find_focus(limit=10, search_limit=50):
             if meaningful_threads:
                 fallback_scope = 'meaningful'
 
+    suppressed_groups = summarize_suppressed_items(items, limit=3) if not item and not meaningful_threads else []
+    attention_now_count = sum(1 for candidate in items if needs_attention_now(candidate))
+    review_worthy_count = sum(1 for candidate in items if message_needs_review(candidate))
+
     burst_window = load_burst_window(scope, limit, search_limit)
 
     burst_items = (burst_window or {}).get('items') or items
@@ -221,6 +259,8 @@ def find_focus(limit=10, search_limit=50):
         'triage_count': triage.get('count', 0),
         'reply_needed_count': triage.get('reply_needed_count', 0),
         'high_count': triage.get('high_count', 0),
+        'attention_now_count': attention_now_count,
+        'review_worthy_count': review_worthy_count,
         'search_limit': search_limit,
         'skipped_ephemeral_count': skipped_ephemeral,
         'focus': focus_item,
@@ -229,6 +269,7 @@ def find_focus(limit=10, search_limit=50):
         'draft': draft,
         'fallback_scope': fallback_scope,
         'fallback_thread': meaningful_threads[0] if meaningful_threads else None,
+        'suppressed_groups': suppressed_groups,
     }
 
 
@@ -250,9 +291,23 @@ def render_text(result, show_preview=False, show_draft=False):
                 'Geen directe mail-focus, '
                 f"maar {label} is: {participants} — {fallback.get('subject', '(geen onderwerp)')} ({fallback.get('message_count', 0)}x{time_suffix}){stale}."
             )
+        suppressed = result.get('suppressed_groups') or []
         if skipped:
-            return f'Geen duidelijke mail-focus gevonden, laatste window is vooral code-mail ({skipped}).'
-        return 'Geen duidelijke mail-focus gevonden.'
+            message = f'Geen duidelijke mail-focus gevonden, laatste window is vooral code-mail ({skipped}).'
+        else:
+            message = 'Geen duidelijke mail-focus gevonden.'
+        if suppressed:
+            preview_bits = []
+            for group in suppressed[:2]:
+                label = f"{group.get('from')} — {group.get('subject')}"
+                if group.get('age_hint'):
+                    label += f" ({group.get('age_hint')})"
+                label += f": {group.get('reason')}"
+                preview_bits.append(label)
+            remaining = max(0, len(suppressed) - 2)
+            suffix = f' +{remaining} meer' if remaining else ''
+            message += f" Onderdrukt: {'; '.join(preview_bits)}{suffix}."
+        return message
 
     action = item.get('action_hint') or 'ter info'
     reply = ' ↩' if item.get('reply_needed') else ''

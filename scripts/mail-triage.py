@@ -92,6 +92,41 @@ def summarize_related_groups(groups, limit=None):
     return summaries[:limit] if limit else summaries
 
 
+def summarize_suppressed_items(rows, limit=3):
+    summaries = []
+    for row in rows or []:
+        reason = None
+        if row.get('ephemeral_code'):
+            reason = 'tijdelijke code-mail'
+        elif row.get('self_message'):
+            reason = 'eigen mail'
+        elif is_test_message(row):
+            reason = 'testmail'
+        elif row.get('expected_security_change') and row.get('security_alert_details'):
+            reason = 'verwachte bekende securitywijziging'
+        elif row.get('no_reply') and not row.get('reply_needed') and not row.get('deadline_hint') and not row.get('review_worthy'):
+            reason = 'no-reply zonder vervolgsignaal'
+        elif not row.get('attention_now') and not row.get('review_worthy'):
+            reason = 'niet actueel en niet reviewwaardig'
+        elif not row.get('attention_now'):
+            reason = 'niet actueel'
+        elif not row.get('review_worthy'):
+            reason = 'niet reviewwaardig'
+        if not reason:
+            continue
+        summaries.append({
+            'uid': row.get('uid'),
+            'from': row.get('from') or row.get('sender_display') or row.get('sender_email') or 'onbekend',
+            'subject': row.get('subject') or '(geen onderwerp)',
+            'action_hint': row.get('action_hint') or 'ter info',
+            'age_hint': format_recency_hint(row.get('date_ts')),
+            'reason': reason,
+        })
+        if len(summaries) >= limit:
+            break
+    return summaries
+
+
 def collapse_repetitive_stale_items(items):
     visible = []
     collapsed = []
@@ -133,7 +168,7 @@ def run_latest(limit=10, unread_only=True, search_limit=50):
         raise SystemExit(f'Invalid JSON from mail-latest: {exc}\n{proc.stdout}')
 
 
-def triage(limit=10, unread_only=True, reply_only=False, high_only=False, current_only=False, review_worthy_only=False, search_limit=50, clusters_only=False):
+def triage(limit=10, unread_only=True, reply_only=False, high_only=False, current_only=False, review_worthy_only=False, search_limit=50, clusters_only=False, explain_empty=False):
     rows = run_latest(limit=limit, unread_only=unread_only, search_limit=search_limit)
     items = []
     for row in rows:
@@ -171,6 +206,8 @@ def triage(limit=10, unread_only=True, reply_only=False, high_only=False, curren
             -int(item.get('uid') or 0),
         )
     )
+
+    candidate_items = list(items)
 
     if high_only:
         items = [item for item in items if item.get('urgency') == 'high']
@@ -213,7 +250,7 @@ def triage(limit=10, unread_only=True, reply_only=False, high_only=False, curren
     if review_worthy_only:
         scope += '+review-worthy'
 
-    return {
+    result = {
         'scope': scope,
         'mode': 'clusters' if clusters_only else 'items',
         'count': len(items),
@@ -237,13 +274,23 @@ def triage(limit=10, unread_only=True, reply_only=False, high_only=False, curren
         'collapsed_group_count': len({related_group_key(item) for item in collapsed_items}),
         'items': items,
     }
+    if explain_empty:
+        result['suppressed_groups'] = [] if items else summarize_suppressed_items(candidate_items, limit=3)
+    return result
 
 
 def render_text(result, show_preview=False):
     items = result.get('items') or []
     if result.get('mode') == 'clusters':
         if not items:
-            return f"Mail clusters ({result.get('scope', 'mail')}): 0 clusters"
+            lines = [f"Mail clusters ({result.get('scope', 'mail')}): 0 clusters"]
+            for index, group in enumerate((result.get('suppressed_groups') or [])[:3], start=1):
+                sender = group.get('from') or 'onbekend'
+                subject = group.get('subject') or '(geen onderwerp)'
+                age = group.get('age_hint') or group.get('latest_age_hint')
+                age_suffix = f" ({age})" if age else ''
+                lines.append(f"- suppressed{index}: {sender}: {subject}{age_suffix} | reason={group.get('reason')}")
+            return '\n'.join(lines)
 
         lines = [
             f"Mail clusters ({result.get('scope', 'mail')}): {result.get('count', 0)} clusters (totaal {result.get('group_count', result.get('count', 0))}), hoge mails {result.get('total_high_count', 0)} (actueel {result.get('total_high_attention_now_count', 0)}, niet actueel {result.get('total_high_stale_attention_count', 0)}), reply {result.get('total_reply_needed_count', 0)}"
@@ -259,7 +306,14 @@ def render_text(result, show_preview=False):
         return '\n'.join(lines)
 
     if not items:
-        return f"Mail triage ({result.get('scope', 'mail')}): 0 items, hoog 0, reply 0"
+        lines = [f"Mail triage ({result.get('scope', 'mail')}): 0 items, hoog 0, reply 0"]
+        for index, group in enumerate((result.get('suppressed_groups') or [])[:3], start=1):
+            sender = group.get('from') or 'onbekend'
+            subject = group.get('subject') or '(geen onderwerp)'
+            age = group.get('age_hint') or group.get('latest_age_hint')
+            age_suffix = f" ({age})" if age else ''
+            lines.append(f"- suppressed{index}: {sender}: {subject}{age_suffix} | reason={group.get('reason')}")
+        return '\n'.join(lines)
 
     lines = [
         f"Mail triage ({result.get('scope', 'mail')}): {result.get('count', 0)} items (totaal {result.get('total_count', result.get('count', 0))}), hoog {result.get('high_count', 0)}, reply {result.get('reply_needed_count', 0)}"
@@ -303,6 +357,7 @@ def main():
     parser.add_argument('--review-worthy', action='store_true', help='toon alleen mails of clusters die na actualiteitsfiltering nog echt reviewwaardig zijn')
     parser.add_argument('--clusters', '--clusters-only', dest='clusters', action='store_true', help='toon gegroepeerde mailclusters in plaats van losse mails')
     parser.add_argument('--search-limit', type=int, default=50, help='kijk verder terug in recente mail om burst/urgentie beter samen te vatten')
+    parser.add_argument('--explain-empty', action='store_true', help='leg bij lege current/review-triage compact uit welke recente mails bewust zijn onderdrukt')
     args = parser.parse_args()
 
     result = triage(
@@ -314,6 +369,7 @@ def main():
         review_worthy_only=args.review_worthy,
         search_limit=max(1, min(args.search_limit, 200)),
         clusters_only=args.clusters,
+        explain_empty=args.explain_empty,
     )
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))

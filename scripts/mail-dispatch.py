@@ -37,8 +37,8 @@ ROUTES = {
     },
     'latest': {
         'description': 'Laatste mails snel bekijken, optioneel gegroepeerd per thread of gefilterd op actie, urgency, actualiteit, reviewwaardigheid, afzender of onderwerp',
-        'args': ['-n/--limit?', '--preview?', '--unread?', '--meaningful?', '--actionable?', '--current-only?', '--review-worthy?', '--threads?', '--sender <tekst>?', '--subject <tekst>?', '--action <tekst>?', '--urgency <tekst>?', '--search-limit <n>?'],
-        'examples': ['mail-dispatch.py latest', 'mail-dispatch.py latest --unread -n 10', 'mail-dispatch.py latest --actionable --threads -n 5', 'mail-dispatch.py latest --meaningful --current-only --threads -n 5', 'mail-dispatch.py latest --review-worthy --threads -n 5', 'mail-dispatch.py latest --action "security checken" --urgency high', 'mail-dispatch.py latest --sender Proton --subject verification'],
+        'args': ['-n/--limit?', '--preview?', '--unread?', '--meaningful?', '--actionable?', '--current-only?', '--review-worthy?', '--threads?', '--explain-empty?', '--sender <tekst>?', '--subject <tekst>?', '--action <tekst>?', '--urgency <tekst>?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py latest', 'mail-dispatch.py latest --unread -n 10', 'mail-dispatch.py latest --actionable --threads -n 5', 'mail-dispatch.py latest --meaningful --current-only --threads -n 5', 'mail-dispatch.py latest --review-worthy --threads -n 5', 'mail-dispatch.py latest --review-worthy --threads --explain-empty -n 5', 'mail-dispatch.py latest --action "security checken" --urgency high', 'mail-dispatch.py latest --sender Proton --subject verification'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-latest.py')] + args + (['--json'] if json_mode else []),
     },
     'drafts': {
@@ -49,8 +49,8 @@ ROUTES = {
     },
     'triage': {
         'description': 'Prioriteer ongelezen of recente mail met actiehints en reply-signalen, met automatische samenklap van herhalende stale no-reply ruis',
-        'args': ['-n/--limit?', '--all?/--recent?', '--preview?', '--reply-only?', '--high-only?', '--current-only?', '--review-worthy?', '--clusters?', '--search-limit <n>?'],
-        'examples': ['mail-dispatch.py triage', 'mail-dispatch.py triage --recent --preview', 'mail-dispatch.py triage --reply-only', 'mail-dispatch.py triage --recent --current-only', 'mail-dispatch.py triage --recent --review-worthy', 'mail-dispatch.py triage --recent --clusters'],
+        'args': ['-n/--limit?', '--all?/--recent?', '--preview?', '--reply-only?', '--high-only?', '--current-only?', '--review-worthy?', '--clusters?', '--search-limit <n>?', '--explain-empty?'],
+        'examples': ['mail-dispatch.py triage', 'mail-dispatch.py triage --recent --preview', 'mail-dispatch.py triage --reply-only', 'mail-dispatch.py triage --recent --current-only', 'mail-dispatch.py triage --recent --review-worthy', 'mail-dispatch.py triage --recent --review-worthy --explain-empty', 'mail-dispatch.py triage --recent --clusters'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-triage.py')] + args + (['--json'] if json_mode else []),
     },
     'now': {
@@ -153,7 +153,7 @@ def catalog_payload():
             for name, meta in ROUTES.items()
         ],
         'aliases': ALIASES,
-        'notes': 'Gebruik board voor een snel totaalbeeld, eventueel met --current-only voor alleen actuele aandacht of met --review-worthy voor alleen nog zinnige reviewmail. Gebruik now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, next-step voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback, review-next om die aanbevolen thread meteen open te klappen met context/concept, via --candidate een alternatief uit de queue te openen en met --current-only of --review-worthy de kandidaatset strakker te maken, thread om één specifieke conversatie compact uit te klappen en gebruik --review-worthy als je alleen nog zinnige reviewthreads wilt zien, triage voor prioritering van unread mail, waarbij herhalende stale no-reply ruis in itemmode automatisch wordt samengeklapt, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, security-alerts voor account- of loginmeldingen en gebruik daar --current-only als je recente reviewfallback wilt uitsluiten, latest voor inbox-scan of thread-view en gebruik --actionable als je alleen concrete follow-upwaardige mails wilt zien, of filter direct met --action en --urgency, summary voor alleen nieuwe mail sinds state.',
+        'notes': 'Gebruik board voor een snel totaalbeeld, eventueel met --current-only voor alleen actuele aandacht of met --review-worthy voor alleen nog zinnige reviewmail. Gebruik now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, next-step voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback, review-next om die aanbevolen thread meteen open te klappen met context/concept, via --candidate een alternatief uit de queue te openen en met --current-only of --review-worthy de kandidaatset strakker te maken, thread om één specifieke conversatie compact uit te klappen en gebruik --review-worthy als je alleen nog zinnige reviewthreads wilt zien, triage voor prioritering van unread mail, waarbij herhalende stale no-reply ruis in itemmode automatisch wordt samengeklapt, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, en voeg ook daar --explain-empty toe als je lege resultaten compact wilt laten verklaren. Security-alerts gebruik je voor account- of loginmeldingen en daar sluit --current-only recente reviewfallback uit. Latest gebruik je voor inbox-scan of thread-view en daar helpt --explain-empty ook bij lege current/review-filters. Summary blijft voor alleen nieuwe mail sinds state.',
     }
 
 

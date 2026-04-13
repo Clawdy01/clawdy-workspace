@@ -269,6 +269,20 @@ def has_current_mail_activity(board):
     return False
 
 
+def summarize_suppressed_hint(group):
+    group = group or {}
+    label = group.get('label') or group.get('sender') or group.get('sender_email') or 'onbekend'
+    subject = group.get('subject') or '(geen onderwerp)'
+    action = group.get('action_hint') or 'mail checken'
+    reason = group.get('reason') or 'onderdrukt'
+    age = group.get('age_hint') or group.get('latest_age_hint')
+    age_suffix = f" ({age})" if age else ''
+    count = group.get('count') or 1
+    count_suffix = f" x{count}" if count and count > 1 else ''
+    return f"{label} — {subject} [{action}]{count_suffix}{age_suffix} | {reason}"
+
+
+
 def render_text(board, show_preview=False, current_only=False, review_worthy_only=False):
     lines = ['Mailboard']
     has_current_activity = has_current_mail_activity(board)
@@ -475,6 +489,19 @@ def render_text(board, show_preview=False, current_only=False, review_worthy_onl
         lines.append('- geen actuele mailaandacht')
     elif review_worthy_only and not has_current_activity and not board.get('next_step', {}).get('candidates'):
         lines.append('- geen reviewwaardige mailaandacht')
+
+    next_step_suppressed = (board.get('next_step') or {}).get('suppressed_groups') or []
+    security_suppressed = (board.get('security_alerts') or {}).get('suppressed_groups') or []
+    if not has_current_activity and next_step_suppressed:
+        preview = '; '.join(summarize_suppressed_hint(group) for group in next_step_suppressed[:2])
+        remaining = max(0, len(next_step_suppressed) - 2)
+        suffix = f" +{remaining} meer" if remaining else ''
+        lines.append(f"- onderdrukt next-step: {preview}{suffix}")
+    if not has_current_activity and security_suppressed:
+        preview = '; '.join(summarize_suppressed_hint(group) for group in security_suppressed[:2])
+        remaining = max(0, len(security_suppressed) - 2)
+        suffix = f" +{remaining} meer" if remaining else ''
+        lines.append(f"- onderdrukt security: {preview}{suffix}")
     errors = board.get('errors') or {}
     if errors:
         lines.append(f"- deels gedegradeerd: {', '.join(sorted(errors))}")
