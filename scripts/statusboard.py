@@ -79,6 +79,12 @@ def render_text(data, show_preview=False):
         lines.append(f"- creative smoke: {'ok' if creative_smoke.get('ok') else 'warning'} ({smoke_text})")
     if ai_briefing_status:
         ai_bits = [ai_briefing_status.get('text', 'onbekend')]
+        if ai_briefing_status.get('delivery_text'):
+            ai_bits.append(f"naar {ai_briefing_status['delivery_text']}")
+        if ai_briefing_status.get('proof_text'):
+            ai_bits.append(ai_briefing_status['proof_text'])
+        if ai_briefing_status.get('attention_text'):
+            ai_bits.append(f"let op: {ai_briefing_status['attention_text']}")
         if ai_briefing_status.get('next_run_at_text'):
             ai_bits.append(f"volgende {ai_briefing_status['next_run_at_text']}")
         if ai_briefing_status.get('last_run_at_text'):
