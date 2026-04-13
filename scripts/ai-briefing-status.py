@@ -40,6 +40,12 @@ REQUIRED_PROMPT_MARKERS = [
     "Wat ik vandaag het belangrijkst vind",
     'bronnenlijst met URLs',
 ]
+REQUIRED_FORMAT_MARKERS = [
+    'in het Nederlands',
+    'Lever in dit formaat: titel',
+    'wat is er nieuw',
+    'waarom is dit belangrijk',
+]
 REQUIRED_TOOLS_ALLOW = {'web_search', 'web_fetch'}
 REQUIRED_OUTPUT_MARKERS = [
     'Wat moeten wij hiermee?',
@@ -387,17 +393,68 @@ def trailing_streak(runs, predicate):
 def load_runs(job_id):
     path = RUNS_DIR / f'{job_id}.jsonl'
     if not path.exists():
-        return []
+        return {
+            'path': str(path),
+            'exists': False,
+            'rows': [],
+            'total_lines': 0,
+            'invalid_lines': 0,
+        }
     rows = []
-    for line in path.read_text().splitlines():
-        line = line.strip()
+    total_lines = 0
+    invalid_lines = 0
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.strip()
         if not line:
             continue
+        total_lines += 1
         try:
             rows.append(json.loads(line))
         except json.JSONDecodeError:
+            invalid_lines += 1
             continue
-    return rows
+    return {
+        'path': str(path),
+        'exists': True,
+        'rows': rows,
+        'total_lines': total_lines,
+        'invalid_lines': invalid_lines,
+    }
+
+
+def audit_runlog(runlog_info, finished_runs):
+    exists = bool((runlog_info or {}).get('exists'))
+    total_lines = int((runlog_info or {}).get('total_lines') or 0)
+    invalid_lines = int((runlog_info or {}).get('invalid_lines') or 0)
+    rows = (runlog_info or {}).get('rows') or []
+    reasons = []
+
+    if not exists:
+        text = 'runlog nog niet aanwezig'
+    else:
+        if total_lines == 0:
+            reasons.append('runlog bestaat maar is leeg')
+        if invalid_lines:
+            reasons.append(f'runlog heeft {invalid_lines} onleesbare regel(s)')
+        if total_lines > 0 and not rows:
+            reasons.append('runlog bevat geen leesbare events')
+        text = 'runlog ok'
+        if reasons:
+            text = '; '.join(reasons)
+        else:
+            text = f'runlog ok ({len(rows)} events, {len(finished_runs)} finished)'
+
+    return {
+        'ok': not reasons,
+        'exists': exists,
+        'path': (runlog_info or {}).get('path'),
+        'total_lines': total_lines,
+        'invalid_lines': invalid_lines,
+        'readable_events': len(rows),
+        'finished_events': len(finished_runs),
+        'reasons': reasons,
+        'text': text,
+    }
 
 
 def audit_payload(job):
@@ -405,8 +462,10 @@ def audit_payload(job):
     message = payload.get('message') or ''
     missing_categories = [marker for marker in REQUIRED_CATEGORY_MARKERS if marker not in message]
     missing_prompt_markers = [marker for marker in REQUIRED_PROMPT_MARKERS if marker not in message]
+    missing_format_markers = [marker for marker in REQUIRED_FORMAT_MARKERS if marker not in message]
     tools_allow = set(payload.get('toolsAllow') or [])
     missing_tools = sorted(REQUIRED_TOOLS_ALLOW - tools_allow)
+    unexpected_tools = sorted(tools_allow - REQUIRED_TOOLS_ALLOW)
     timeout_seconds = int(payload.get('timeoutSeconds') or 0)
     message_sha256 = hashlib.sha256(message.encode('utf-8')).hexdigest() if message else None
     light_context = bool(payload.get('lightContext'))
@@ -416,8 +475,12 @@ def audit_payload(job):
         reasons.append(f"{len(missing_categories)} briefingcategorie(ën) missen")
     if missing_prompt_markers:
         reasons.append(f"{len(missing_prompt_markers)} promptanker(s) missen")
+    if missing_format_markers:
+        reasons.append(f"{len(missing_format_markers)} formaat/taal-anker(s) missen")
     if missing_tools:
         reasons.append(f"toolsAllow mist {', '.join(missing_tools)}")
+    if unexpected_tools:
+        reasons.append(f"toolsAllow bevat extra tool(s): {', '.join(unexpected_tools)}")
     if timeout_seconds < 300:
         reasons.append(f'timeoutSeconds te laag ({timeout_seconds})')
     if payload.get('kind') != 'agentTurn':
@@ -433,7 +496,9 @@ def audit_payload(job):
         'ok': not reasons,
         'missing_categories': missing_categories,
         'missing_prompt_markers': missing_prompt_markers,
+        'missing_format_markers': missing_format_markers,
         'missing_tools_allow': missing_tools,
+        'unexpected_tools_allow': unexpected_tools,
         'timeout_seconds': timeout_seconds,
         'light_context': light_context,
         'tools_allow': sorted(tools_allow),
@@ -515,8 +580,9 @@ def build_status(job_name=TARGET_JOB_NAME):
     state = job.get('state') or {}
     delivery = job.get('delivery') or {}
     tz_name = schedule.get('tz') or DEFAULT_TZ
-    run_file_exists = (RUNS_DIR / f"{job['id']}.jsonl").exists()
-    runs = load_runs(job['id'])
+    runlog_info = load_runs(job['id'])
+    run_file_exists = runlog_info.get('exists', False)
+    runs = runlog_info.get('rows') or []
     finished_runs = [run for run in runs if run.get('action') == 'finished']
     delivered_runs = [run for run in finished_runs if run.get('delivered')]
     successful_runs = [run for run in finished_runs if run.get('status') == 'ok']
@@ -559,6 +625,7 @@ def build_status(job_name=TARGET_JOB_NAME):
     runtime_audit = audit_runtime(job, tz_name)
     next_run_audit = audit_next_run(job, next_run_at, now_ms, tz_name)
     storage_audit = audit_storage(job['id'])
+    runlog_audit = audit_runlog(runlog_info, finished_runs)
     uniqueness_audit = audit_uniqueness(jobs, job)
 
     overdue_grace_ms = 15 * 60 * 1000
@@ -600,6 +667,8 @@ def build_status(job_name=TARGET_JOB_NAME):
         attention_reasons.append(f"next run: {next_run_audit.get('text')}")
     if not storage_audit.get('ok'):
         attention_reasons.append(f"storage: {storage_audit.get('text')}")
+    if not runlog_audit.get('ok'):
+        attention_reasons.append(f"runlog: {runlog_audit.get('text')}")
     if not uniqueness_audit.get('ok'):
         attention_reasons.append(f"uniqueness: {uniqueness_audit.get('text')}")
     last_run_output_audit = (last_run_summary or {}).get('summary_output_audit') or {}
@@ -623,6 +692,7 @@ def build_status(job_name=TARGET_JOB_NAME):
         'runtime_audit': runtime_audit,
         'next_run_audit': next_run_audit,
         'storage_audit': storage_audit,
+        'runlog_audit': runlog_audit,
         'uniqueness_audit': uniqueness_audit,
         'state': state,
         'created_at': created_at,
@@ -735,6 +805,9 @@ def render_text(data):
         storage_audit = data.get('storage_audit') or {}
         if storage_audit.get('text'):
             parts.append(storage_audit.get('text'))
+        runlog_audit = data.get('runlog_audit') or {}
+        if runlog_audit.get('text'):
+            parts.append(runlog_audit.get('text'))
         uniqueness_audit = data.get('uniqueness_audit') or {}
         if uniqueness_audit.get('text'):
             parts.append(uniqueness_audit.get('text'))

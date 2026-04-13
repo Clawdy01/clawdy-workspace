@@ -112,6 +112,7 @@ def render_text(data, show_preview=False):
         runtime_audit = ai_briefing_status.get('runtime_audit') or {}
         next_run_audit = ai_briefing_status.get('next_run_audit') or {}
         storage_audit = ai_briefing_status.get('storage_audit') or {}
+        runlog_audit = ai_briefing_status.get('runlog_audit') or {}
         uniqueness_audit = ai_briefing_status.get('uniqueness_audit') or {}
         if runtime_audit.get('session_target') and runtime_audit.get('wake_mode'):
             ai_bits.append(f"route {runtime_audit['session_target']}/{runtime_audit['wake_mode']} via {runtime_audit.get('agent_id') or 'onbekend'}")
@@ -119,6 +120,8 @@ def render_text(data, show_preview=False):
             ai_bits.append(next_run_audit['text'])
         if storage_audit.get('text'):
             ai_bits.append(storage_audit['text'])
+        if runlog_audit.get('text'):
+            ai_bits.append(runlog_audit['text'])
         if uniqueness_audit.get('text'):
             ai_bits.append(uniqueness_audit['text'])
         payload_audit = ai_briefing_status.get('payload_audit') or {}
@@ -129,9 +132,15 @@ def render_text(data, show_preview=False):
             else:
                 ai_bits.append(f"config {ai_briefing_status['updated_at_hint']} gewijzigd")
         if ai_briefing_status.get('next_run_at_text'):
-            ai_bits.append(f"volgende {ai_briefing_status['next_run_at_text']}")
+            next_run_text = f"volgende {ai_briefing_status['next_run_at_text']}"
+            if ai_briefing_status.get('next_run_hint'):
+                next_run_text += f" ({ai_briefing_status['next_run_hint']})"
+            ai_bits.append(next_run_text)
         if ai_briefing_status.get('proof_due_at_text'):
-            ai_bits.append(f"bewijs uiterlijk {ai_briefing_status['proof_due_at_text']}")
+            proof_due_text = f"bewijs uiterlijk {ai_briefing_status['proof_due_at_text']}"
+            if ai_briefing_status.get('proof_due_hint'):
+                proof_due_text += f" ({ai_briefing_status['proof_due_hint']})"
+            ai_bits.append(proof_due_text)
         if ai_briefing_status.get('last_run_at_text'):
             ai_bits.append(f"laatste {ai_briefing_status['last_run_at_text']}")
         last_run_summary = ai_briefing_status.get('last_run_summary') or {}
