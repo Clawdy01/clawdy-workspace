@@ -81,9 +81,14 @@ def pick_candidate(summary, candidate_index):
     return candidates[candidate_index - 1], len(candidates)
 
 
-def build_payload(limit=3, messages=8, preview=False, meaningful=False, candidate_index=1):
+def build_payload(limit=3, messages=8, preview=False, meaningful=False, candidate_index=1, current_only=False, review_worthy_only=False):
     effective_limit = max(limit, candidate_index)
-    summary = run_json(['python3', str(MAIL_NEXT_STEP), '--json', '--limit', str(effective_limit)], 'mail-next-step') or {}
+    summary_command = ['python3', str(MAIL_NEXT_STEP), '--json', '--limit', str(effective_limit)]
+    if current_only:
+        summary_command.append('--current-only')
+    if review_worthy_only:
+        summary_command.append('--review-worthy')
+    summary = run_json(summary_command, 'mail-next-step') or {}
     if summary.get('recommended_route') == 'noop':
         return {
             'summary': summary,
@@ -230,6 +235,8 @@ def main():
     parser.add_argument('--preview', action='store_true', help='toon previews per bericht')
     parser.add_argument('--draft', action='store_true', help='toon bestaand concept als dat er is')
     parser.add_argument('--meaningful', action='store_true', help='forceer betekenisvolle threadselectie bij de review lookup')
+    parser.add_argument('--current-only', action='store_true', help='open alleen een reviewroute als mail-next-step nog een actuele kandidaat heeft')
+    parser.add_argument('--review-worthy', action='store_true', help='open alleen kandidaten die na actualiteitsfiltering nog reviewwaardig zijn')
     parser.add_argument('--candidate', type=int, default=1, help='open kandidaat N uit mail-next-step in plaats van altijd de eerste')
     args = parser.parse_args()
 
@@ -239,6 +246,8 @@ def main():
         preview=args.preview,
         meaningful=args.meaningful,
         candidate_index=max(1, min(args.candidate, 10)),
+        current_only=args.current_only,
+        review_worthy_only=args.review_worthy,
     )
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))

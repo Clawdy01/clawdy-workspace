@@ -183,6 +183,8 @@ def should_offer_stale_followup(group):
     group = group or {}
     if not group.get('stale_attention'):
         return True
+    if not group.get('review_worthy'):
+        return False
     if group.get('reply_needed') or group.get('deadline_hint'):
         return True
     if int(group.get('unread_count') or 0) > 0:
@@ -277,7 +279,7 @@ def enrich_group_candidate(candidate):
     return candidate
 
 
-def build_summary(limit=1, current_only=False):
+def build_summary(limit=1, current_only=False, review_worthy_only=False):
     limit = max(1, min(limit, 10))
     focus = run_json(['python3', str(MAIL_FOCUS), '--json', '-n', '5'], default={}) or {}
     current = run_json(
@@ -332,7 +334,7 @@ def build_summary(limit=1, current_only=False):
             ))
 
         code_groups = [group for group in rank_groups(high_groups, skip_code=False) if group.get('action_hint') == 'code gebruiken']
-        if code_groups:
+        if code_groups and not review_worthy_only:
             add_candidate(make_codes_candidate(code_groups[0]))
 
     for candidate in candidates[:limit]:
@@ -346,7 +348,7 @@ def build_summary(limit=1, current_only=False):
         selected_summary = {
             'recommended_route': 'noop',
             'recommended_command': None,
-            'reason': 'geen actuele mail-vervolgstap' if current_only else 'geen duidelijke mail-vervolgstap',
+            'reason': 'geen actuele mail-vervolgstap' if current_only else ('geen reviewwaardige mail-vervolgstap' if review_worthy_only else 'geen duidelijke mail-vervolgstap'),
             'focus': None,
             'selected_group': None,
             'selected_draft': None,
@@ -374,6 +376,7 @@ def build_summary(limit=1, current_only=False):
         'selected_focus': selected_summary.get('focus'),
         'candidate_count': len(candidates),
         'current_only': current_only,
+        'review_worthy_only': review_worthy_only,
         'candidates': alternative_summaries,
     }
 
@@ -428,9 +431,10 @@ def main():
     parser.add_argument('-n', '--limit', type=int, default=1, help='hoeveel vervolgstappen/alternatieven tonen')
     parser.add_argument('--draft', action='store_true', help='toon bij tekstoutput ook meteen het concept als dat voor de gekozen stap bestaat')
     parser.add_argument('--current-only', action='store_true', help='toon alleen stappen die nu echt actueel zijn, zonder stale follow-up of codefallback')
+    parser.add_argument('--review-worthy', action='store_true', help='sla code-only/noise fallback over en toon alleen nog reviewwaardige vervolgstappen')
     args = parser.parse_args()
 
-    summary = build_summary(limit=args.limit, current_only=args.current_only)
+    summary = build_summary(limit=args.limit, current_only=args.current_only, review_worthy_only=args.review_worthy)
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:

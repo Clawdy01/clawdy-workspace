@@ -107,6 +107,19 @@ ACTIVATION_PATTERNS = [
     r'\bfinish creating your account\b',
 ]
 
+ACCOUNT_CHANGE_PATTERNS = [
+    r'\bssh authentication public key was added\b',
+    r'\bssh key was added\b',
+    r'\bpublic key was added\b',
+    r'\bnew ssh authentication public key\b',
+    r'\bpassword (?:was )?changed\b',
+    r'\bemail address (?:was )?changed\b',
+    r'\bsecurity settings (?:were )?updated\b',
+    r'\bpasskey (?:was )?added\b',
+    r'\bbackup codes? (?:were )?generated\b',
+    r'\btwo-factor authentication (?:was )?(?:enabled|disabled|turned on|turned off)\b',
+]
+
 
 @lru_cache(maxsize=1)
 def mailbox_username():
@@ -229,6 +242,8 @@ def attention_window_seconds(message):
 
     if is_ephemeral_code_message(message):
         return 6 * 3600
+    if is_account_change_confirmation(message):
+        return 24 * 3600
     if action in {'login-alert checken', 'security checken', 'account activeren'}:
         return 12 * 3600
     if extract_deadline_hint(message):
@@ -246,6 +261,8 @@ def has_attention_signal(message):
     action = message.get('action_hint') or suggest_action(message)
     if is_ephemeral_code_message(message):
         return False
+    if is_account_change_confirmation(message):
+        return True
     if reply_needed(message):
         return True
     if extract_deadline_hint(message):
@@ -470,6 +487,11 @@ def is_ephemeral_code_message(message):
     return any(re.search(pattern, haystack, flags=re.I) for pattern in EPHEMERAL_CODE_PATTERNS)
 
 
+def is_account_change_confirmation(message):
+    haystack = message_content_haystack(message)
+    return any(re.search(pattern, haystack, flags=re.I) for pattern in ACCOUNT_CHANGE_PATTERNS)
+
+
 def is_no_reply_message(message):
     haystack = message_haystack(message)
     return any(re.search(pattern, haystack, flags=re.I) for pattern in NO_REPLY_PATTERNS)
@@ -530,6 +552,8 @@ def suggest_action(message):
         return 'code gebruiken'
     if any(term in haystack for term in ['new device logged in', 'unknown browser', 'suspicious login', 'new sign in', 'new login']):
         return 'login-alert checken'
+    if is_account_change_confirmation(message):
+        return 'security checken'
     if any(re.search(pattern, haystack, flags=re.I) for pattern in ACTIVATION_PATTERNS):
         return 'account activeren'
     if any(term in haystack for term in ['factuur', 'invoice', 'payment', 'betaal', 'subscription']):

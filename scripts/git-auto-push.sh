@@ -4,6 +4,10 @@ set -euo pipefail
 REPO="/home/clawdy/.openclaw/workspace"
 LOCK="/tmp/clawdy-git-auto-push.lock"
 SSH_KEY="/home/clawdy/.ssh/id_ed25519_github_clawdy"
+python3 - <<'PY'
+from scripts.workspace_secrets import materialize_github_ssh_key
+materialize_github_ssh_key('/home/clawdy/.ssh/id_ed25519_github_clawdy')
+PY
 BRANCH="$(git -C "$REPO" branch --show-current)"
 SSH_CMD="ssh -i $SSH_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 
