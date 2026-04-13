@@ -3,7 +3,7 @@
 ## Execution guardrails
 - Operationele werklijst staat ook in Exchange Taken; KANBAN blijft de lokale bron voor structuur en prioriteit.
 - Eén primair spoor tegelijk. Alleen het primaire spoor krijgt actieve bouwtijd totdat het klaar of echt geblokkeerd is.
-- Huidig primair spoor: Creative tooling/workflows verdiepen voor image/audio/video
+- Huidig primair spoor: Secrets / password workflow opruimen en bruikbaar structureren
 - Parallel mag alleen voor klein onderhoud of wanneer het primaire spoor extern wacht.
 - Als het primaire spoor leeg is of extern wacht, herbeoordeel proactief taken, geparkeerde taken en backlog op wat nu wel uitgevoerd kan worden.
 - Elk actief spoor moet een concrete definition of done hebben.
@@ -18,7 +18,7 @@
 - Photo editing / image workflows: alleen opnieuw actief zodra er een echte bruikbare modelroute beschikbaar is
 
 ## Now
-- Creative tooling/workflows verdiepen voor image/audio/video is nu het primaire spoor
+- Secrets / password workflow opruimen en bruikbaar structureren is nu het primaire spoor
 - Eerste nulmeting vastgelegd in `research/creative-tooling-baseline.md` met bevestigde lokale CLI-routes voor ffmpeg, ImageMagick, sox en yt-dlp
 - Kleine interne workflow-notitie staat nu in `research/creative-tooling-workflows.md`, met live geteste paden voor video-clippen, frame-export, audio-normalisatie en simpele image-afleidingen
 - Eerste helper staat nu live: `scripts/video-clip.py` voor video-clip + frame-export, lokaal geverifieerd op synthetische testvideo
@@ -67,7 +67,16 @@
 - `scripts/clawdy-brief.py` en `scripts/statusboard.py` nemen nu ook direct de compacte creative smoke-samenvatting mee via `creative-smoke.py full-cycle-brief --format json`; live geverifieerd met `clawdy-brief --json` en `statusboard.py`, waarbij `statusboard` nu expliciet `creative smoke: ok (review-daylog: 108/108 ok, 0 warnings; cleanup-audit: cand 0, del 0)` toont
 - `scripts/creative-smoke.py` ondersteunt nu ook `--consumer-out`, `--consumer-format` en `--consumer-append`, zodat compacte smoke-output direct naar een cron- of board-consumerbestand geschreven kan worden; live geverifieerd met `full-cycle-brief` naar `tmp/creative-tooling-check/reports/creative-smoke-consumer.json` en `creative-smoke-consumer.txt`
 - `scripts/creative-smoke.py` ondersteunt nu ook vaste `--consumer-preset` routes (`board-json`, `board-text`, `eventlog-jsonl`) voor de standaard smoke-consumer-artifacts in `tmp/creative-tooling-check/reports/`, live geverifieerd met drie echte `full-cycle-brief` runs inclusief bestandsschrijfcontrole
-- Volgende stap: desgewenst dezelfde consumer-preset route ook aan een vaste cron/producer koppelen
+- `scripts/creative-smoke.py` ondersteunt nu ook `--consumer-bundle` (`board-pair`, `board-suite`), zodat één smoke-run meerdere standaard consumer-artifacts tegelijk kan vullen; live geverifieerd met `full-cycle-brief --format json --consumer-bundle board-suite` plus artifact-nacheck op JSON, tekst en JSONL
+- `scripts/creative-smoke-producer.py` gebruikt nu die bundels voor producer-modes `board` en `all`, zodat die routes nog maar één volledige smoke-run per publicatie hoeven te doen; live geverifieerd met `creative-smoke-producer.py board --quiet` en `all --quiet`
+- `research/creative-tooling-workflows.md` bevat nu ook concrete cronvoorbeelden voor `creative-smoke-producer.py board` en `all`, zodat periodieke board-publicatie of board+eventlog direct planbaar is
+- Creative tooling/workflows is functioneel afgerond als primair spoor: producerroute en board-integratie zijn live bevestigd met `python3 scripts/creative-smoke-producer.py all --quiet` en `python3 scripts/statusboard.py`, inclusief `creative smoke: ok`
+- Nieuw primair spoor: secrets / password workflow opruimen en bruikbaar structureren nu Bitwarden werkt
+- Eerste discovery op dit spoor staat in `research/secrets-password-workflow-round-1.md`: confirmed opslagpunten, actieve consumers en een directe opruimkans rond de dubbele loaders `scripts/workspace_secrets.py` en `scripts/secrets.py`
+- `scripts/secrets.py` is nu teruggebracht tot expliciete compat-shim: het hergebruikt de canonieke loader uit `workspace_secrets.py` en exposeert tegelijk stdlib-compatibele `token_bytes`/`token_hex`/`token_urlsafe`, live geverifieerd doordat `python3 scripts/graph-auth-start.py --tenant-id demo-tenant --client-id demo-client` weer werkt ondanks lokale naamshadowing
+- `scripts/workspace_secrets.py` ondersteunt nu ook canonieke secret-aliassen voor normalisatie (`mail.password`, `proton.password`, `github.password`) terwijl legacy keys blijven werken; `load_mail_config()` leest nu via `mail.password`, zodat consumers veilig stapsgewijs kunnen migreren zonder directe state-rewrite
+- Eerste consumer-migratie op dit spoor is nu gedaan: de drie actieve Proton-scripts lezen canoniek via `proton.password`; live geverifieerd met `py_compile`, een alias-check zonder secretoutput, en `grep` die alleen nog de bewuste alias-definitie in `workspace_secrets.py` laat staan
+- Volgende stap: mail- en GitHub-consumers nalopen op directe legacy secret-reads en diezelfde canonieke route geven
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
@@ -76,7 +85,9 @@
 - Betere identity-preserving photo edits blijven wel geblokkeerd op een sterkere/lokale modelroute
 
 ## Next
-- Secrets/workflows verder opruimen nu Bitwarden werkt
+- Consumers stap voor stap naar canonieke secret-namen omzetten nu alias-resolutie in de loader staat
+- Daarna pas opslagroutes en JSON-sleutels zelf normaliseren
+- Mail workflow slimmer maken nadat secrets/password workflow scherper staat
 - Daarna Mac migratieplan en lokale LLM/media-workflows oppakken
 - Onderzoek naar betere identity-preserving photo edit modellen/workflows
 - Regelmatige research-workflows opzetten voor onderwerpen die Christian wil volgen
@@ -122,6 +133,9 @@
 - Creative smoke-wrapper verder aangescherpt en live geverifieerd: `scripts/creative-smoke.py` ondersteunt nu ook compacte mode `full-cycle-brief`, zodat cron/statuschecks alleen pass/fail plus kerngetallen terugkrijgen
 - Creative smoke-wrapper verder automation-vriendelijk gemaakt en live geverifieerd: `scripts/creative-smoke.py` ondersteunt nu ook `--consumer-out`, `--consumer-format` en `--consumer-append`, zodat dezelfde compacte smoke-status direct naar een consumerbestand voor cron/board-ingest kan worden geschreven
 - Creative smoke-wrapper verder gestandaardiseerd en live geverifieerd: `scripts/creative-smoke.py` ondersteunt nu ook vaste `--consumer-preset` routes (`board-json`, `board-text`, `eventlog-jsonl`) zodat standaard consumer-artifacts zonder losse padflags kunnen worden gevuld
+- Creative smoke-wrapper verder producer-vriendelijk gemaakt en live geverifieerd: `scripts/creative-smoke.py` ondersteunt nu ook `--consumer-bundle` (`board-pair`, `board-suite`), zodat één compacte smoke-run meerdere standaard consumer-artifacts tegelijk publiceert
+- Creative smoke-producer verder efficiënter gemaakt en live geverifieerd: `scripts/creative-smoke-producer.py` laat `board` en `all` nu op één gebundelde smoke-run steunen in plaats van meerdere losse child-runs
+- Creative tooling/workflows als primair spoor afgerond en board-ready bevestigd: `creative-smoke-producer.py all --quiet` en `statusboard.py` tonen nu live een groene `creative smoke` status, waarna KANBAN/STATUS direct zijn omgeschakeld naar het volgende primaire spoor
 - LAN bind/rate limiting/typing feedback verbeterd
 - Memory research: concrete betere geheugentechnieken beoordeeld en aanbeveling vastgelegd in `research/memory-techniques-recommendation.md`
 - Creative tooling helper gebouwd en live geverifieerd: `scripts/video-clip.py` maakt korte clips plus frame-export uit video

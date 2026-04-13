@@ -26,6 +26,10 @@ CONSUMER_PRESETS = {
         'append': True,
     },
 }
+CONSUMER_BUNDLES = {
+    'board-pair': ['board-json', 'board-text'],
+    'board-suite': ['board-json', 'board-text', 'eventlog-jsonl'],
+}
 
 MODES = {
     'review-daylog': {
@@ -72,14 +76,18 @@ def resolve_consumer_settings(args, *, default_format):
     return output_path, output_format, append
 
 
-def emit_output(text=None, payload=None, *, output_format='text', output_path=None, append=False):
+def render_output(text=None, payload=None, *, output_format='text'):
     if output_format == 'json':
-        rendered = json.dumps(payload, ensure_ascii=False, indent=2) + '\n'
+        return json.dumps(payload, ensure_ascii=False, indent=2) + '\n'
     elif output_format == 'jsonl':
-        rendered = json.dumps(payload, ensure_ascii=False) + '\n'
+        return json.dumps(payload, ensure_ascii=False) + '\n'
     else:
-        rendered = text if text.endswith('\n') else text + '\n'
+        if text is None:
+            text = json.dumps(payload, ensure_ascii=False, indent=2)
+        return text if text.endswith('\n') else text + '\n'
 
+
+def write_output(rendered, *, output_path=None, append=False):
     if output_path:
         path = Path(output_path).expanduser().resolve()
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -87,7 +95,29 @@ def emit_output(text=None, payload=None, *, output_format='text', output_path=No
         with path.open(mode, encoding='utf-8') as handle:
             handle.write(rendered)
 
+
+def emit_output(text=None, payload=None, *, output_format='text', output_path=None, append=False):
+    rendered = render_output(text=text, payload=payload, output_format=output_format)
+
+    write_output(rendered, output_path=output_path, append=append)
+
     sys.stdout.write(rendered)
+
+
+def emit_output_with_bundle(text=None, payload=None, *, stdout_format='text', stdout_output_path=None, stdout_append=False, consumer_bundle=None):
+    emit_output(
+        text=text,
+        payload=payload,
+        output_format=stdout_format,
+        output_path=stdout_output_path,
+        append=stdout_append,
+    )
+    if not consumer_bundle:
+        return
+    for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
+        preset = CONSUMER_PRESETS[preset_name]
+        rendered = render_output(text=text, payload=payload, output_format=preset['format'])
+        write_output(rendered, output_path=str(preset['path']), append=preset['append'])
 
 
 
@@ -243,6 +273,7 @@ def main():
     parser.add_argument('--summary-limit', type=int, default=1, help='Beperk de logsamenvatting tot de laatste N logbestanden')
     parser.add_argument('--consumer-out', help='Schrijf de uiteindelijke smoke-uitvoer ook weg naar een bestand voor cron/board-consumers')
     parser.add_argument('--consumer-preset', choices=sorted(CONSUMER_PRESETS), help='Gebruik een vaste producer/consumer-route voor veelgebruikte consumer-artifacts')
+    parser.add_argument('--consumer-bundle', choices=sorted(CONSUMER_BUNDLES), help='Schrijf dezelfde smoke-status in één run weg naar een vaste set consumer-presets')
     parser.add_argument('--consumer-format', choices=['text', 'json', 'jsonl'], help='Outputformaat voor --consumer-out; default volgt --format, behalve text bij niet-JSON stdout')
     parser.add_argument('--consumer-append', action='store_true', help='Append naar bestaand consumer-bestand in plaats van overschrijven')
     args, extra = parser.parse_known_args()
@@ -276,20 +307,29 @@ def main():
 
         if mode.get('brief'):
             payload = build_brief_payload(args.mode, step_results)
+            text = render_text_brief(payload)
             default_consumer_format = args.format if args.format == 'json' else 'text'
             consumer_output_path, consumer_output_format, consumer_append = resolve_consumer_settings(
                 args,
                 default_format=default_consumer_format,
             )
             if args.format == 'json':
-                emit_output(payload=payload, output_format='json', output_path=consumer_output_path, append=consumer_append)
+                emit_output_with_bundle(
+                    text=text,
+                    payload=payload,
+                    stdout_format='json',
+                    stdout_output_path=consumer_output_path,
+                    stdout_append=consumer_append,
+                    consumer_bundle=args.consumer_bundle,
+                )
                 return
-            emit_output(
-                text=render_text_brief(payload),
+            emit_output_with_bundle(
+                text=text,
                 payload=payload,
-                output_format=consumer_output_format,
-                output_path=consumer_output_path,
-                append=consumer_append,
+                stdout_format=consumer_output_format,
+                stdout_output_path=consumer_output_path,
+                stdout_append=consumer_append,
+                consumer_bundle=args.consumer_bundle,
             )
             return
 
@@ -305,20 +345,28 @@ def main():
                 for item in step_results
             ],
         }
+        text = '\n'.join(render_text_step(item).rstrip('\n') for item in step_results) + '\n'
         consumer_output_path, consumer_output_format, consumer_append = resolve_consumer_settings(
             args,
             default_format=args.format if args.format == 'json' else 'text',
         )
         if args.format == 'json':
-            emit_output(payload=payload, output_format='json', output_path=consumer_output_path, append=consumer_append)
+            emit_output_with_bundle(
+                text=text,
+                payload=payload,
+                stdout_format='json',
+                stdout_output_path=consumer_output_path,
+                stdout_append=consumer_append,
+                consumer_bundle=args.consumer_bundle,
+            )
             return
-        text = '\n'.join(render_text_step(item).rstrip('\n') for item in step_results) + '\n'
-        emit_output(
+        emit_output_with_bundle(
             text=text,
             payload=payload,
-            output_format=consumer_output_format,
-            output_path=consumer_output_path,
-            append=consumer_append,
+            stdout_format=consumer_output_format,
+            stdout_output_path=consumer_output_path,
+            stdout_append=consumer_append,
+            consumer_bundle=args.consumer_bundle,
         )
         return
 
@@ -344,21 +392,30 @@ def main():
         'summary_command': result['summary_command'],
         'summary': result['summary'],
     }
+    text = render_text_step(result)
 
     consumer_output_path, consumer_output_format, consumer_append = resolve_consumer_settings(
         args,
         default_format=args.format if args.format == 'json' else 'text',
     )
     if args.format == 'json':
-        emit_output(payload=payload, output_format='json', output_path=consumer_output_path, append=consumer_append)
+        emit_output_with_bundle(
+            text=text,
+            payload=payload,
+            stdout_format='json',
+            stdout_output_path=consumer_output_path,
+            stdout_append=consumer_append,
+            consumer_bundle=args.consumer_bundle,
+        )
         return
 
-    emit_output(
-        text=render_text_step(result),
+    emit_output_with_bundle(
+        text=text,
         payload=payload,
-        output_format=consumer_output_format,
-        output_path=consumer_output_path,
-        append=consumer_append,
+        stdout_format=consumer_output_format,
+        stdout_output_path=consumer_output_path,
+        stdout_append=consumer_append,
+        consumer_bundle=args.consumer_bundle,
     )
 
 

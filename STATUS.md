@@ -5,7 +5,7 @@
 - Exchange Agenda wordt nu actief gebruikt voor agenda-uitleesroutes.
 
 ## Now
-- Creative tooling/workflows voor image/audio/video is nu het primaire spoor
+- Secrets / password workflow opruimen en bruikbaar structureren is nu het primaire spoor
 - Nulmeting van lokaal bruikbare tooling staat in `research/creative-tooling-baseline.md`
 - De eerste workflow-notitie staat nu in `research/creative-tooling-workflows.md`, met live geteste routes voor clippen, frames exporteren, audio normaliseren en simpele image-afleidingen
 - Eerste helper nu gebouwd en live geverifieerd: `scripts/video-clip.py` maakt korte clips plus frame-export uit video
@@ -54,12 +54,21 @@
 - `scripts/clawdy-brief.py` en `scripts/statusboard.py` nemen nu ook direct de compacte creative smoke-samenvatting mee via `creative-smoke.py full-cycle-brief --format json`; live geverifieerd met `clawdy-brief --json` en `statusboard.py`, waarbij `statusboard` nu expliciet `creative smoke: ok (review-daylog: 108/108 ok, 0 warnings; cleanup-audit: cand 0, del 0)` toont
 - `scripts/creative-smoke.py` ondersteunt nu ook `--consumer-out`, `--consumer-format` en `--consumer-append`, zodat compacte smoke-output direct naar een cron- of board-consumerbestand geschreven kan worden; live geverifieerd met `full-cycle-brief` naar `tmp/creative-tooling-check/reports/creative-smoke-consumer.json` en `creative-smoke-consumer.txt`
 - `scripts/creative-smoke.py` ondersteunt nu ook vaste `--consumer-preset` routes (`board-json`, `board-text`, `eventlog-jsonl`) voor de standaard smoke-consumer-artifacts in `tmp/creative-tooling-check/reports/`, live geverifieerd met drie echte `full-cycle-brief` runs inclusief bestandsschrijfcontrole
-- Volgende stap is desgewenst dezelfde consumer-preset route aan een vaste cron/producer te koppelen
+- `scripts/creative-smoke.py` ondersteunt nu ook `--consumer-bundle` (`board-pair`, `board-suite`), zodat één smoke-run meerdere standaard consumer-artifacts tegelijk kan vullen; live geverifieerd met `full-cycle-brief --format json --consumer-bundle board-suite` plus artifact-nacheck van JSON, tekst en JSONL
+- Nieuwe producer-wrapper staat nu live: `scripts/creative-smoke-producer.py` koppelt vaste producer-modes (`board`, `eventlog`, `all`) direct aan consumer-bundles/presets, zodat cron later alleen nog één korte producer-call hoeft te doen; live geverifieerd met `creative-smoke-producer.py board --quiet` en `all --quiet`
+- `research/creative-tooling-workflows.md` bevat nu ook concrete cronvoorbeelden voor `creative-smoke-producer.py board` en `all`, zodat periodieke board-publicatie of board+eventlog direct planbaar is
+- Creative tooling/workflows is nu afgerond als primair spoor: live herbevestigd met `python3 scripts/creative-smoke-producer.py all --quiet` en `python3 scripts/statusboard.py`, inclusief groene `creative smoke` boardregel
+- Nieuw primair spoor: secrets / password workflow opruimen en bruikbaar structureren nu Bitwarden werkt
+- Eerste discovery hiervoor staat nu in `research/secrets-password-workflow-round-1.md`, inclusief confirmed opslagpunten, actieve consumers en de directe cleanup-kandidaat rond de dubbele loaders `scripts/workspace_secrets.py` en `scripts/secrets.py`
+- `scripts/secrets.py` is nu omgezet naar een expliciete compat-shim bovenop `workspace_secrets.py`, inclusief stdlib-compatibele `token_bytes`/`token_hex`/`token_urlsafe`, zodat lokale naamshadowing `import secrets` niet meer breekt; live geverifieerd met `python3 scripts/graph-auth-start.py --tenant-id demo-tenant --client-id demo-client`
+- `scripts/workspace_secrets.py` ondersteunt nu ook canonieke secret-aliassen voor normalisatie (`mail.password`, `proton.password`, `github.password`) terwijl legacy keys blijven werken; `load_mail_config()` leest nu via `mail.password`, zodat consumers veilig gefaseerd kunnen migreren zonder directe rewrite van `state/secrets.json`
+- Eerste consumer-migratie op het secrets-spoor is nu gedaan: `scripts/proton-request-verification-code.py`, `scripts/proton-use-verification-code.py` en `scripts/proton-continue-password-setup.py` lezen nu canoniek via `proton.password` in plaats van directe legacy reads; live geverifieerd met `py_compile`, een alias-check `get_secret('proton.password') is not None -> True`, en `grep` die alleen nog de bewuste alias-definitie in `workspace_secrets.py` teruggeeft
 - GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next
+- Mail- en GitHub-consumers stap voor stap naar canonieke secret-namen omzetten nu Proton-consumers over zijn
+- Daarna pas opslagroutes en JSON-sleutels zelf normaliseren
 - Mail workflow slimmer maken
-- Secrets / password workflow netter maken
 - Mac-migratie en lokale media/LLM-workflows voorbereiden
 
 ## Blocked
@@ -117,3 +126,5 @@
 - `scripts/creative-smoke.py` verder aangescherpt en live getest met compacte mode `full-cycle-brief`, zodat cron/statuschecks alleen pass/fail plus kerngetallen terugkrijgen
 - `scripts/creative-smoke.py` verder automation-vriendelijk gemaakt en live getest met `--consumer-out`, `--consumer-format` en `--consumer-append`, zodat dezelfde compacte smoke-status direct naar een consumerbestand voor cron/board-ingest kan worden geschreven
 - `scripts/creative-smoke.py` verder gestandaardiseerd en live getest met vaste `--consumer-preset` routes (`board-json`, `board-text`, `eventlog-jsonl`), zodat standaard consumerbestanden zonder losse padflags gevuld kunnen worden
+- `scripts/creative-smoke.py` verder producer-vriendelijk gemaakt en live getest met `--consumer-bundle` (`board-pair`, `board-suite`), zodat één compacte smoke-run meerdere standaard consumerbestanden tegelijk publiceert
+- Creative tooling/workflows als primair spoor afgerond en boardsync bevestigd: `creative-smoke-producer.py all --quiet` en `statusboard.py` tonen live een groene `creative smoke` status

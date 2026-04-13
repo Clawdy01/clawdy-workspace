@@ -1,27 +1,35 @@
 #!/usr/bin/env python3
-import json
-from pathlib import Path
+"""Compat shim.
 
-ROOT = Path('/home/clawdy/.openclaw/workspace')
-STATE = ROOT / 'state'
-SECRETS = STATE / 'secrets.json'
-MAIL_CONFIG = STATE / 'mail-config.json'
+Keeps older workspace secret-loader imports working while also behaving enough like
+Python's stdlib ``secrets`` module that scripts in this directory do not break when
+``import secrets`` resolves here first.
+"""
 
+import base64
+import binascii
+import os
 
-def load_secrets():
-    try:
-        return json.loads(SECRETS.read_text())
-    except Exception:
-        return {}
+from workspace_secrets import get_secret, load_mail_config, load_secrets
 
-
-def load_mail_config():
-    config = json.loads(MAIL_CONFIG.read_text())
-    secrets = load_secrets()
-    if 'mail_password' in secrets:
-        config['password'] = secrets['mail_password']
-    return config
+DEFAULT_ENTROPY = 32
 
 
-def get_secret(name, default=None):
-    return load_secrets().get(name, default)
+def _randbytes(nbytes: int | None = None) -> bytes:
+    if nbytes is None:
+        nbytes = DEFAULT_ENTROPY
+    if nbytes < 0:
+        raise ValueError('nbytes must be non-negative')
+    return os.urandom(nbytes)
+
+
+def token_bytes(nbytes: int | None = None) -> bytes:
+    return _randbytes(nbytes)
+
+
+def token_hex(nbytes: int | None = None) -> str:
+    return binascii.hexlify(_randbytes(nbytes)).decode('ascii')
+
+
+def token_urlsafe(nbytes: int | None = None) -> str:
+    return base64.urlsafe_b64encode(_randbytes(nbytes)).rstrip(b'=').decode('ascii')

@@ -25,7 +25,7 @@ def load_mailbox_address():
 def load_password(explicit_password=None):
     if explicit_password:
         return explicit_password
-    value = get_secret('proton_pass_password')
+    value = get_secret('proton.password')
     return value or None
 
 

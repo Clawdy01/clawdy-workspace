@@ -788,6 +788,7 @@ python3 scripts/creative-smoke.py full-cycle-brief --format json --consumer-out 
 python3 scripts/creative-smoke.py full-cycle-brief --consumer-preset board-text
 python3 scripts/creative-smoke.py full-cycle-brief --consumer-preset board-json --format json
 python3 scripts/creative-smoke.py full-cycle-brief --consumer-preset eventlog-jsonl --format json
+python3 scripts/creative-smoke.py full-cycle-brief --format json --consumer-bundle board-suite
 ```
 
 Live geverifieerd op 2026-04-13:
@@ -796,7 +797,8 @@ Live geverifieerd op 2026-04-13:
 - `full-cycle-brief` gaf compacte statusoutput met alleen pass/fail plus kerngetallen, in tekst én JSON
 - `full-cycle-brief --format json --consumer-out .../creative-smoke-consumer.json` schreef dezelfde compacte smoke-status ook direct weg als consumer-artifact; dezelfde route werkt ook als tekstbestand, en `--consumer-format jsonl --consumer-append` maakt append-vriendelijke eventlogs mogelijk
 - nieuwe vaste `--consumer-preset` routes werken nu ook direct zonder losse padflags: `board-json` schrijft naar `tmp/creative-tooling-check/reports/creative-smoke-consumer.json`, `board-text` naar `.../creative-smoke-consumer.txt`, en `eventlog-jsonl` appendt naar `.../creative-smoke-consumer.jsonl`
-- alle drie preset-routes zijn live geverifieerd op 2026-04-13 met echte `full-cycle-brief` runs plus nacheck van de geschreven artifacts
+- nieuwe `--consumer-bundle board-suite` schrijft in één smoke-run meteen alle drie standaard consumer-artifacts weg, zodat een vaste cron/producer niet drie losse runs hoeft te doen
+- `full-cycle-brief --format json --consumer-bundle board-suite` is live geverifieerd met nacheck van alle drie geschreven artifacts plus stdout-JSON
 - wrapperbug rond optionele flags is direct opgelost door over te schakelen van remainder-parsing naar `parse_known_args()`, zodat `--report-dir` en `--cleanup-log-dir` betrouwbaar doorkomen
 
 Nut:
@@ -804,6 +806,47 @@ Nut:
 - een nog compactere route voor cron-nazicht of statuschecks
 - smoke-status kan nu ook direct landen in een simpel cron- of board-consumerbestand
 - minder kans op verkeerde logmap of losse naverwerking
+
+## Vaste producer-wrapper nu beschikbaar
+`scripts/creative-smoke-producer.py` koppelt de nieuwe consumer-presets aan korte producer-modes, zodat een cron of andere producer straks niet meer alle smoke-details hoeft te kennen.
+
+Producer-modes:
+- `board` → draait één smoke-run met bundle `board-pair` en vult zo tegelijk `board-json` en `board-text`
+- `eventlog` → appendt naar `eventlog-jsonl`
+- `all` → draait één smoke-run met bundle `board-suite` en vult zo tegelijk JSON, tekst en eventlog
+
+Voorbeelden:
+```bash
+python3 scripts/creative-smoke-producer.py board --quiet
+python3 scripts/creative-smoke-producer.py eventlog --quiet
+python3 scripts/creative-smoke-producer.py all --quiet
+```
+
+Voorbeeld-cronregels:
+```bash
+*/30 * * * * cd /home/clawdy/.openclaw/workspace && python3 scripts/creative-smoke-producer.py board --quiet
+15 */2 * * * cd /home/clawdy/.openclaw/workspace && python3 scripts/creative-smoke-producer.py all --quiet
+```
+
+Aanbeveling:
+- gebruik `board` voor lichte, frequente board-publicatie
+- gebruik `all` alleen als ook de appendende JSONL-eventlog periodiek moet worden bijgewerkt
+
+Live geverifieerd op 2026-04-13:
+- `board --quiet` gaf groen terug met één producer-step:
+  - `full-cycle-brief --consumer-bundle board-pair --format json: exit=0`
+- `eventlog --quiet` gaf groen terug:
+  - `full-cycle-brief --consumer-preset eventlog-jsonl --format json: exit=0`
+- `all --quiet` gaf groen terug met één producer-step:
+  - `full-cycle-brief --consumer-bundle board-suite --format json: exit=0`
+- artifacts bevestigd in `tmp/creative-tooling-check/reports/creative-smoke-consumer.{json,txt,jsonl}`
+- een eerste producer-wrapperbug slikte `--quiet` door naar child-flags; direct hersteld door over te schakelen naar `parse_known_args()`
+
+Nut:
+- één stabiele producer-call voor cron of andere automation
+- minder kans dat een consumer-preset verkeerd of onvolledig wordt aangeroepen
+- board/all-producers hoeven nu niet meer meerdere volledige smoke-runs achter elkaar te doen
+- producer en consumer zijn nu als vaste lagen gescheiden
 
 ## Compacte smoke-status nu geland in boards
 `clawdy-brief.py` en `statusboard.py` nemen de compacte creative smoke-status nu direct mee via `creative-smoke.py full-cycle-brief --format json`.

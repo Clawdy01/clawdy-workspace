@@ -21,3 +21,29 @@
     }
   ]
 }
+{
+  "mode": "full-cycle-brief",
+  "ok": true,
+  "steps": [
+    {
+      "mode": "review-daylog",
+      "kind": "daylog",
+      "event_count": 68,
+      "files_total": 204,
+      "files_ok": 204,
+      "files_warning": 0,
+      "latest_profile": "creative-helper-clips-review"
+    },
+    {
+      "mode": "cleanup-audit",
+      "kind": "cleanup",
+      "event_count": 14,
+      "candidate_total": 0,
+      "deleted_total": 0,
+      "latest_mode": "weekly-cleanup"
+    }
+  ]
+}
+{"mode": "full-cycle-brief", "ok": true, "steps": [{"mode": "review-daylog", "kind": "daylog", "event_count": 76, "files_total": 228, "files_ok": 228, "files_warning": 0, "latest_profile": "creative-helper-clips-review"}, {"mode": "cleanup-audit", "kind": "cleanup", "event_count": 16, "candidate_total": 0, "deleted_total": 0, "latest_mode": "weekly-cleanup"}]}
+{"mode": "full-cycle-brief", "ok": true, "steps": [{"mode": "review-daylog", "kind": "daylog", "event_count": 84, "files_total": 252, "files_ok": 252, "files_warning": 0, "latest_profile": "creative-helper-clips-review"}, {"mode": "cleanup-audit", "kind": "cleanup", "event_count": 18, "candidate_total": 0, "deleted_total": 0, "latest_mode": "weekly-cleanup"}]}
+{"mode": "full-cycle-brief", "ok": true, "steps": [{"mode": "review-daylog", "kind": "daylog", "event_count": 88, "files_total": 264, "files_ok": 264, "files_warning": 0, "latest_profile": "creative-helper-clips-review"}, {"mode": "cleanup-audit", "kind": "cleanup", "event_count": 19, "candidate_total": 0, "deleted_total": 0, "latest_mode": "weekly-cleanup"}]}
