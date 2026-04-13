@@ -73,8 +73,8 @@ ROUTES = {
     },
     'security-alerts': {
         'description': 'Vat actuele en recente security-alert mailclusters samen, met directe review-command',
-        'args': ['-n/--limit?'],
-        'examples': ['mail-dispatch.py security-alerts', 'mail-dispatch.py security-alerts -n 3', 'mail-dispatch.py security-alerts --json'],
+        'args': ['-n/--limit?', '--current-only?'],
+        'examples': ['mail-dispatch.py security-alerts', 'mail-dispatch.py security-alerts --current-only', 'mail-dispatch.py security-alerts -n 3', 'mail-dispatch.py security-alerts --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-security-alerts.py')] + args + (['--json'] if json_mode else []),
     },
     'queue': {
@@ -153,7 +153,7 @@ def catalog_payload():
             for name, meta in ROUTES.items()
         ],
         'aliases': ALIASES,
-        'notes': 'Gebruik board voor een snel totaalbeeld, now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, next-step voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback, review-next om die aanbevolen thread meteen open te klappen met context/concept, via --candidate een alternatief uit de queue te openen en met --current-only of --review-worthy de kandidaatset strakker te maken, thread om één specifieke conversatie compact uit te klappen en gebruik --review-worthy als je alleen nog zinnige reviewthreads wilt zien, triage voor prioritering van unread mail, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, latest voor inbox-scan of thread-view en gebruik --actionable als je alleen concrete follow-upwaardige mails wilt zien, of filter direct met --action en --urgency, summary voor alleen nieuwe mail sinds state.',
+        'notes': 'Gebruik board voor een snel totaalbeeld, now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, next-step voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback, review-next om die aanbevolen thread meteen open te klappen met context/concept, via --candidate een alternatief uit de queue te openen en met --current-only of --review-worthy de kandidaatset strakker te maken, thread om één specifieke conversatie compact uit te klappen en gebruik --review-worthy als je alleen nog zinnige reviewthreads wilt zien, triage voor prioritering van unread mail, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, security-alerts voor account- of loginmeldingen en gebruik daar --current-only als je recente reviewfallback wilt uitsluiten, latest voor inbox-scan of thread-view en gebruik --actionable als je alleen concrete follow-upwaardige mails wilt zien, of filter direct met --action en --urgency, summary voor alleen nieuwe mail sinds state.',
     }
 
 

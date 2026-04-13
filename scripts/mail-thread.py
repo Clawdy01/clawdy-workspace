@@ -20,6 +20,7 @@ from mail_heuristics import (
     format_security_alert_hint,
     format_span_hint,
     group_needs_review,
+    security_group_key,
     summarize_security_alerts,
 )
 
@@ -206,7 +207,10 @@ def thread_key_for(row):
     action = ' '.join((row.get('action_hint') or '').split()).lower()
     urgency = ' '.join((row.get('urgency') or '').split()).lower()
     date_ts = row.get('date_ts') or 0
+    security_key = security_group_key(row)
 
+    if sender and action and security_key:
+        return f'security::{sender}::{action}::{security_key}'
     if sender and action and row.get('no_reply') and urgency == 'high':
         bucket = int(date_ts // (6 * 3600)) if date_ts else 0
         return f'alert::{sender}::{action}::{bucket}'

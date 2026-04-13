@@ -124,6 +124,32 @@ def rank_groups(groups, *, skip_code=False, prefer_current=False):
     return sorted(groups, key=lambda item: group_score(item, prefer_current=prefer_current), reverse=True)
 
 
+def collapse_parallel_security_groups(groups):
+    collapsed = []
+    seen_security_streams = set()
+    for group in groups or []:
+        sender = (group.get('sender_email') or group.get('sender') or group.get('from') or '').strip().lower()
+        action = (group.get('action_hint') or '').strip().lower()
+        should_collapse = bool(
+            sender
+            and action == 'security checken'
+            and group.get('security_alert_summary')
+            and group.get('no_reply_only')
+            and not group.get('reply_needed')
+            and not group.get('deadline_hint')
+        )
+        if not should_collapse:
+            collapsed.append(group)
+            continue
+
+        stream_key = (sender, action)
+        if stream_key in seen_security_streams:
+            continue
+        seen_security_streams.add(stream_key)
+        collapsed.append(group)
+    return collapsed
+
+
 def candidate_key(candidate):
     focus = candidate.get('focus') or {}
     group = candidate.get('selected_group') or {}
@@ -297,8 +323,8 @@ def build_summary(limit=1, current_only=False, review_worthy_only=False):
 
     focus_item = focus.get('focus') or {}
     focus_draft = focus.get('draft') or {}
-    current_groups = current.get('groups') or current.get('items') or []
-    high_groups = high.get('groups') or high.get('items') or []
+    current_groups = collapse_parallel_security_groups(current.get('groups') or current.get('items') or [])
+    high_groups = collapse_parallel_security_groups(high.get('groups') or high.get('items') or [])
 
     candidates = []
     seen = set()

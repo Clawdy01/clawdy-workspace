@@ -72,10 +72,37 @@ def is_security_group(group):
     return action in SECURITY_ACTIONS
 
 
+def collapse_parallel_security_groups(groups):
+    collapsed = []
+    seen_security_streams = set()
+    for group in groups or []:
+        sender = (group.get('sender_email') or group.get('sender') or group.get('from') or '').strip().lower()
+        action = (group.get('action_hint') or '').strip().lower()
+        should_collapse = bool(
+            sender
+            and action == 'security checken'
+            and group.get('security_alert_summary')
+            and group.get('no_reply_only')
+            and not group.get('reply_needed')
+            and not group.get('deadline_hint')
+        )
+        if not should_collapse:
+            collapsed.append(group)
+            continue
+
+        stream_key = (sender, action)
+        if stream_key in seen_security_streams:
+            continue
+        seen_security_streams.add(stream_key)
+        collapsed.append(group)
+    return collapsed
+
+
+
 def filter_security_groups(groups):
     seen = set()
     filtered = []
-    for group in groups or []:
+    for group in collapse_parallel_security_groups(groups):
         if not is_security_group(group):
             continue
         if not (group.get('attention_now') or group.get('review_worthy')):
@@ -106,15 +133,15 @@ def summarize_group(group):
     }
 
 
-def build_summary(limit=5):
+def build_summary(limit=5, current_only=False):
     limit = max(1, min(limit, 10))
     current = run_json(
-        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--high-only', '--clusters', '-n', str(limit), '--search-limit', '50'],
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--review-worthy', '--clusters', '-n', str(limit), '--search-limit', '50'],
         default={},
         timeout=30,
     ) or {}
     recent = run_json(
-        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--high-only', '--clusters', '-n', str(limit), '--search-limit', '50'],
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--review-worthy', '--clusters', '-n', str(limit), '--search-limit', '50'],
         default={},
         timeout=30,
     ) or {}
@@ -125,11 +152,14 @@ def build_summary(limit=5):
     current_keys = {group_key(group) for group in current_groups}
     recent_only_groups = [group for group in recent_groups if group_key(group) not in current_keys]
 
-    selected = current_groups[0] if current_groups else (recent_only_groups[0] if recent_only_groups else None)
+    selected = current_groups[0] if current_groups else (None if current_only else (recent_only_groups[0] if recent_only_groups else None))
     selected_summary = summarize_group(selected) if selected else None
 
     recommended_route = 'noop'
-    reason = 'geen duidelijke security-alert mailcluster'
+    if current_only:
+        reason = 'geen actuele security-alert mailcluster'
+    else:
+        reason = 'geen duidelijke security-alert mailcluster'
     if selected:
         if selected.get('attention_now') and not selected.get('stale_attention'):
             recommended_route = 'security-alert-now'
@@ -139,6 +169,7 @@ def build_summary(limit=5):
             reason = 'er is geen actuele alert, maar wel een recente security-alert cluster om kort na te lopen'
 
     return {
+        'current_only': current_only,
         'current_count': len(current_groups),
         'recent_count': len(recent_groups),
         'recent_only_count': len(recent_only_groups),
@@ -149,7 +180,7 @@ def build_summary(limit=5):
         'reason': reason,
         'selected_group': selected_summary,
         'current_groups': [summarize_group(group) for group in current_groups[:limit]],
-        'recent_groups': [summarize_group(group) for group in recent_groups[:limit]],
+        'recent_groups': [] if current_only else [summarize_group(group) for group in recent_groups[:limit]],
     }
 
 
@@ -183,9 +214,10 @@ def main():
     parser = argparse.ArgumentParser(description='Vat actuele en recente security-alert mailclusters samen')
     parser.add_argument('--json', action='store_true')
     parser.add_argument('-n', '--limit', type=int, default=5)
+    parser.add_argument('--current-only', action='store_true', help='toon alleen security-alerts die nu nog actueel aandacht vragen')
     args = parser.parse_args()
 
-    summary = build_summary(limit=args.limit)
+    summary = build_summary(limit=args.limit, current_only=args.current_only)
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:

@@ -19,6 +19,7 @@ from mail_heuristics import (
     message_needs_review,
     needs_attention_now,
     reply_needed,
+    security_group_key,
     suggest_action,
     summarize_security_alerts,
 )
@@ -41,6 +42,9 @@ def related_group_key(item):
     sender = (item.get('sender_email') or item.get('from') or '').strip().lower()
     action = (item.get('action_hint') or '').strip().lower()
     urgency = (item.get('urgency') or '').strip().lower()
+    security_key = security_group_key(item)
+    if sender and action and security_key:
+        return ('sender-action-security', sender, action, security_key)
     if sender and action:
         return ('sender-action', sender, action, urgency)
     return ('subject', sender, normalize_subject(item.get('subject')), urgency)

@@ -17,8 +17,9 @@ from mail_heuristics import (
     format_recency_hint,
     format_security_alert_hint,
     format_span_hint,
-    is_ephemeral_code_message,
+    group_needs_review,
     is_actionable_message,
+    is_ephemeral_code_message,
     is_meaningful_message,
     is_no_reply_message,
     is_self_message,
@@ -27,9 +28,9 @@ from mail_heuristics import (
     needs_attention_now,
     reply_needed,
     sanitize_preview,
+    security_group_key,
     suggest_action,
     summarize_security_alerts,
-    group_needs_review,
 )
 
 
@@ -142,7 +143,10 @@ def thread_key_for(row):
     action = clean(row.get('action_hint')).lower()
     urgency = clean(row.get('urgency')).lower()
     date_ts = row.get('date_ts') or 0
+    security_key = security_group_key(row)
 
+    if sender and action and security_key:
+        return f'security::{sender}::{action}::{security_key}'
     if sender and action and row.get('no_reply') and urgency == 'high':
         bucket = int(date_ts // (6 * 3600)) if date_ts else 0
         return f'alert::{sender}::{action}::{bucket}'

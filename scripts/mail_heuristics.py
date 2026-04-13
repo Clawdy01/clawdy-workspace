@@ -389,24 +389,57 @@ def extract_security_alert_details(message):
         if when:
             details['event_time'] = when
 
+    ssh_key_match = re.search(
+        r'\b(?:the following )?SSH (?:authentication )?(?:public )?key was added to your account:\s*([^\s]+)\s+(SHA256:[A-Za-z0-9+/=._-]+)',
+        haystack,
+        flags=re.I,
+    )
+    if ssh_key_match:
+        key_name = ssh_key_match.group(1).strip()
+        fingerprint = ssh_key_match.group(2).strip()
+        if key_name:
+            details['ssh_key_name'] = key_name
+        if fingerprint:
+            details['ssh_key_fingerprint'] = fingerprint
+
     return details
+
+
+def security_group_key(message):
+    message = message or {}
+    details = message.get('security_alert_details') or extract_security_alert_details(message)
+
+    if is_account_change_confirmation(message):
+        fingerprint = details.get('ssh_key_fingerprint')
+        if fingerprint:
+            return f'ssh-fingerprint::{fingerprint.lower()}'
+        key_name = details.get('ssh_key_name')
+        if key_name:
+            return f'ssh-key::{key_name.lower()}'
+
+    return ''
+
 
 
 def summarize_security_alerts(messages):
     ips = []
     devices = []
     browsers = []
+    ssh_keys = []
     for message in messages or []:
         details = message.get('security_alert_details') or extract_security_alert_details(message)
         ip = details.get('ip_address')
         device = details.get('device_type')
         browser = details.get('browser')
+        ssh_key = details.get('ssh_key_name')
         if ip and ip not in ips:
             ips.append(ip)
         if device and device not in devices:
             devices.append(device)
         if browser and browser not in browsers:
             browsers.append(browser)
+        if ssh_key and ssh_key not in ssh_keys:
+            ssh_keys.append(ssh_key)
 
     summary = []
     if ips:
@@ -414,6 +447,11 @@ def summarize_security_alerts(messages):
         if len(ips) > 2:
             shown += f' +{len(ips) - 2}'
         summary.append(f'IP {shown}')
+    if ssh_keys:
+        shown = ', '.join(ssh_keys[:2])
+        if len(ssh_keys) > 2:
+            shown += f' +{len(ssh_keys) - 2}'
+        summary.append(f'SSH key {shown}')
     if devices:
         shown = ', '.join(devices[:2])
         if len(devices) > 2:
@@ -439,6 +477,8 @@ def format_security_alert_hint(message):
     parts = []
     if details.get('ip_address'):
         parts.append(details['ip_address'])
+    if details.get('ssh_key_name'):
+        parts.append(details['ssh_key_name'])
     if details.get('device_type'):
         parts.append(details['device_type'])
     elif details.get('browser'):
