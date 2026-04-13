@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -51,6 +52,11 @@ REQUIRED_TOOLS_ALLOW = {'web_search', 'web_fetch'}
 REQUIRED_OUTPUT_MARKERS = [
     'Wat moeten wij hiermee?',
     'Wat ik vandaag het belangrijkst vind',
+]
+REQUIRED_OUTPUT_ITEM_MARKERS = [
+    'titel:',
+    'wat is er nieuw',
+    'waarom is dit belangrijk',
 ]
 REQUIRED_OUTPUT_MARKER_ALTERNATIVES = [
     ('bronnenlijst', 'bronnen'),
@@ -175,6 +181,24 @@ def previous_expected_run_at(next_run_at, expr):
     return next_run_at - 24 * 60 * 60 * 1000
 
 
+def expected_next_run_at(now_ms, expr, tz_name):
+    hour, minute = parse_cron_hour_minute(expr)
+    parts = (expr or '').split()
+    if hour is None or minute is None or len(parts) != 5:
+        return None
+    _, _, day_raw, month_raw, weekday_raw = parts
+    if day_raw != '*' or month_raw != '*' or weekday_raw != '*':
+        return None
+
+    tz = ZoneInfo(tz_name)
+    now_dt = datetime.fromtimestamp(now_ms / 1000, tz=timezone.utc).astimezone(tz)
+    candidate = now_dt.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if candidate.timestamp() * 1000 <= now_ms:
+        from datetime import timedelta
+        candidate = candidate + timedelta(days=1)
+    return int(candidate.astimezone(timezone.utc).timestamp() * 1000)
+
+
 def audit_next_run(job, next_run_at, now_ms, tz_name):
     reasons = []
     if not job.get('enabled'):
@@ -194,6 +218,8 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
     hours_until_next_run = None
     next_run_local_hour = None
     next_run_local_minute = None
+    expected_next_run = expected_next_run_at(now_ms, schedule_expr, tz_name)
+    next_run_delta_ms = None
 
     if not next_run_at:
         reasons.append('nextRunAtMs ontbreekt')
@@ -210,6 +236,12 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
             reasons.append(f'next run ligt {abs(hours_until_next_run):.1f} uur in het verleden')
         elif hours_until_next_run > 36:
             reasons.append(f'next run ligt verdacht ver weg ({hours_until_next_run:.1f} uur)')
+        if expected_next_run is not None:
+            next_run_delta_ms = next_run_at - expected_next_run
+            if abs(next_run_delta_ms) > 60 * 1000:
+                reasons.append(
+                    f"next run slot wijkt {duration_hint(abs(next_run_delta_ms))} af van verwacht {fmt_ts(expected_next_run, tz_name)}"
+                )
 
     text = 'next run slot ok'
     if reasons:
@@ -224,6 +256,10 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
         'next_run_local_hour': next_run_local_hour,
         'next_run_local_minute': next_run_local_minute,
         'hours_until_next_run': hours_until_next_run,
+        'expected_next_run_at': expected_next_run,
+        'expected_next_run_at_text': fmt_ts(expected_next_run, tz_name),
+        'next_run_delta_ms': next_run_delta_ms,
+        'next_run_delta_text': duration_hint(abs(next_run_delta_ms)) if next_run_delta_ms is not None else None,
         'reasons': reasons,
         'text': text,
     }
@@ -341,6 +377,9 @@ def audit_summary_output(summary_text):
             'available': False,
             'ok': True,
             'missing_markers': [],
+            'item_marker_counts': {},
+            'item_count': 0,
+            'item_marker_min_count': 0,
             'source_url_count': 0,
             'source_urls': [],
             'source_domains': [],
@@ -354,11 +393,17 @@ def audit_summary_output(summary_text):
         }
 
     normalized_text = summary_text.lower()
-    missing_markers = [marker for marker in REQUIRED_OUTPUT_MARKERS if marker not in summary_text]
+    missing_markers = [marker for marker in REQUIRED_OUTPUT_MARKERS if marker.lower() not in normalized_text]
+    item_marker_counts = {
+        marker: normalized_text.count(marker.lower())
+        for marker in REQUIRED_OUTPUT_ITEM_MARKERS
+    }
+    item_count = item_marker_counts.get('titel:', 0)
+    item_marker_min_count = min(item_marker_counts.values()) if item_marker_counts else 0
     missing_alternative_groups = [
         list(group)
         for group in REQUIRED_OUTPUT_MARKER_ALTERNATIVES
-        if not any(marker in summary_text for marker in group)
+        if not any(marker.lower() in normalized_text for marker in group)
     ]
     source_urls = re.findall(r'https?://\S+', summary_text)
     source_domains = sorted({
@@ -382,6 +427,11 @@ def audit_summary_output(summary_text):
     reasons = []
     if missing_markers:
         reasons.append(f"{len(missing_markers)} verplichte sectie(s) missen")
+    if item_marker_min_count < 3:
+        reasons.append(
+            'te weinig briefingitems met titel/nieuw/belangrijk-structuur '
+            f"(min {item_marker_min_count}, verwacht minstens 3)"
+        )
     if missing_alternative_groups:
         reasons.append(f"{len(missing_alternative_groups)} verplichte outputanker(s) missen")
     if source_url_count < MIN_SOURCE_URLS:
@@ -394,15 +444,19 @@ def audit_summary_output(summary_text):
         reasons.append(f'te weinig briefingcategorieën zichtbaar ({category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)})')
 
     ok_text = (
-        f'briefing-output ok ({source_url_count} URLs, '
+        f'briefing-output ok ({item_count} items, {source_url_count} URLs, '
         f'{source_domain_count} domeinen, {primary_source_domain_count} primaire bron-domeinen, '
-        f"{category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)} categorie-thema's zichtbaar)"
+        f"{category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)} categorie-thema's zichtbaar, "
+        f"complete structuur {item_marker_min_count}x)"
     )
 
     return {
         'available': True,
         'ok': not reasons,
         'missing_markers': missing_markers,
+        'item_marker_counts': item_marker_counts,
+        'item_count': item_count,
+        'item_marker_min_count': item_marker_min_count,
         'missing_alternative_groups': missing_alternative_groups,
         'source_url_count': source_url_count,
         'source_urls': source_urls,
@@ -910,6 +964,25 @@ def build_status(job_name=TARGET_JOB_NAME):
     return summary
 
 
+def render_summary_audit_text(data):
+    if not data.get('available'):
+        return data.get('text', 'geen briefinginhoud om te auditen')
+    parts = [data.get('text', 'briefing-output onbekend')]
+    if data.get('source_url_count') is not None:
+        parts.append(f"bron-URLs {data['source_url_count']}")
+    if data.get('source_domain_count') is not None:
+        parts.append(f"brondomeinen {data['source_domain_count']}")
+    if data.get('primary_source_domain_count') is not None:
+        parts.append(f"primaire brondomeinen {data['primary_source_domain_count']}")
+    if data.get('category_theme_count') is not None:
+        parts.append(f"categorie-thema's {data['category_theme_count']}/{len(CATEGORY_THEME_KEYWORDS)}")
+    if data.get('item_marker_min_count') is not None:
+        parts.append(f"structuur {data['item_marker_min_count']}x")
+    if data.get('reasons'):
+        parts.append('redenen: ' + '; '.join(data['reasons']))
+    return ' | '.join(parts)
+
+
 def render_text(data):
     if not data.get('found'):
         return data.get('text', 'AI-briefingstatus onbekend')
@@ -979,6 +1052,8 @@ def render_text(data):
     summary_output_audit = last_run_summary.get('summary_output_audit') or {}
     if summary_output_audit.get('available'):
         parts.append(f"output-audit {summary_output_audit.get('text')}")
+        if summary_output_audit.get('item_count') is not None:
+            parts.append(f"items {summary_output_audit['item_count']}")
         if summary_output_audit.get('source_url_count') is not None:
             parts.append(f"bron-URLs {summary_output_audit['source_url_count']}")
         if summary_output_audit.get('category_theme_count') is not None:
@@ -1021,7 +1096,24 @@ def main():
     parser = argparse.ArgumentParser(description='Status van dagelijkse AI-briefing cronjob')
     parser.add_argument('--json', action='store_true', help='geef JSON-output')
     parser.add_argument('--job-name', default=TARGET_JOB_NAME, help='cronjobnaam')
+    parser.add_argument('--summary-file', help='audit alleen briefing-output uit bestand')
+    parser.add_argument('--summary-stdin', action='store_true', help='audit alleen briefing-output van stdin')
     args = parser.parse_args()
+
+    if args.summary_file and args.summary_stdin:
+        raise SystemExit('kies óf --summary-file óf --summary-stdin')
+
+    if args.summary_file or args.summary_stdin:
+        if args.summary_file:
+            summary_text = Path(args.summary_file).read_text(encoding='utf-8')
+        else:
+            summary_text = sys.stdin.read()
+        data = audit_summary_output(summary_text)
+        if args.json:
+            print(json.dumps(data, ensure_ascii=False, indent=2))
+        else:
+            print(render_summary_audit_text(data))
+        return
 
     data = build_status(job_name=args.job_name)
     if args.json:

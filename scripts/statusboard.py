@@ -162,6 +162,7 @@ def render_text(data, show_preview=False):
         summary_output_audit = last_run_summary.get('summary_output_audit') or {}
         if summary_output_audit.get('available'):
             ai_bits.append(summary_output_audit.get('text', 'output-audit onbekend'))
+            ai_bits.append(f"items {summary_output_audit.get('item_count', 0)}")
             ai_bits.append(f"bron-URLs {summary_output_audit.get('source_url_count', 0)}")
             ai_bits.append(
                 f"brondomeinen {summary_output_audit.get('source_domain_count', 0)}, primair {summary_output_audit.get('primary_source_domain_count', 0)}"

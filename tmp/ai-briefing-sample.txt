@@ -1,0 +1,22 @@
+Titel: OpenAI brengt iets nieuws
+Wat is er nieuw: Een nieuwe capability-update met concrete impact.
+Waarom is dit belangrijk: Dit verandert toolingkeuzes.
+
+Titel: Nieuwe open-source inference stack
+Wat is er nieuw: vLLM en Hugging Face brengen verbeteringen.
+Waarom is dit belangrijk: Lokale deployment wordt praktischer.
+
+Titel: Agent workflow versnelt coding
+Wat is er nieuw: Nieuwe automation-route voor coding agents.
+Waarom is dit belangrijk: Minder handwerk in researchflows.
+
+Wat moeten wij hiermee?
+Kies een kleine proef.
+
+Wat ik vandaag het belangrijkst vind
+De agent-workflow.
+
+Bronnenlijst met URLs:
+https://openai.com/index/example
+https://huggingface.co/blog/example
+https://github.com/example/project
