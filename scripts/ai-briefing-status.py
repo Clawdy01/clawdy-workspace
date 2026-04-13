@@ -35,6 +35,7 @@ REQUIRED_PROMPT_MARKERS = [
     'val terug op gerichte web_fetch',
     'meerdere primaire bronnen',
     'filter marketing zonder echte verandering',
+    'focus op echt nieuwe ontwikkelingen uit de afgelopen 48 uur',
     'Relevant voor Christian',
     "Wat moeten wij hiermee?",
     "Wat ik vandaag het belangrijkst vind",
@@ -55,6 +56,38 @@ REQUIRED_OUTPUT_MARKER_ALTERNATIVES = [
     ('bronnenlijst', 'bronnen'),
 ]
 MIN_SOURCE_URLS = 3
+PRIMARY_SOURCE_DOMAINS = {
+    'openai.com',
+    'anthropic.com',
+    'googleblog.com',
+    'deepmind.google',
+    'ai.google.dev',
+    'developers.googleblog.com',
+    'about.fb.com',
+    'ai.meta.com',
+    'meta.com',
+    'microsoft.com',
+    'news.microsoft.com',
+    'huggingface.co',
+    'stability.ai',
+    'runwayml.com',
+    'midjourney.com',
+    'elevenlabs.io',
+    'x.ai',
+    'mistral.ai',
+    'github.com',
+    'arxiv.org',
+}
+CATEGORY_THEME_KEYWORDS = [
+    ('frontier-modelupdates', ['frontier', 'modelupdate', 'model update', 'modelrelease', 'model release', 'gpt', 'claude', 'gemini']),
+    ('tools-productfeatures', ['tool', 'productfeature', 'product feature', 'feature', 'assistant', 'workspace', 'copilot']),
+    ('open-source-tooling', ['open-source', 'open source', 'hugging face', 'huggingface', 'llama', 'mistral', 'inference', 'vllm', 'ollama']),
+    ('agents-automation-coding', ['agent', 'automation', 'workflow', 'coding', 'codegen', 'repo', 'tool calling']),
+    ('multimodal-voice-image-video-local', ['multimodal', 'voice', 'audio', 'image', 'video', 'vision', 'on-device', 'on device', 'local model', 'lokale ai']),
+    ('research-capabilities', ['research', 'paper', 'benchmark', 'capabilit', 'doorbraak', 'arxiv']),
+    ('enterprise-security-regulatory', ['enterprise', 'security', 'regulatory', 'compliance', 'governance', 'policy', 'privacy']),
+]
+MIN_CATEGORY_THEME_COVERAGE = 3
 
 
 def load_jobs():
@@ -309,17 +342,43 @@ def audit_summary_output(summary_text):
             'ok': True,
             'missing_markers': [],
             'source_url_count': 0,
+            'source_urls': [],
+            'source_domains': [],
+            'source_domain_count': 0,
+            'primary_source_domains': [],
+            'primary_source_domain_count': 0,
+            'category_theme_hits': [],
+            'category_theme_count': 0,
             'reasons': [],
             'text': 'geen briefinginhoud om te auditen',
         }
 
+    normalized_text = summary_text.lower()
     missing_markers = [marker for marker in REQUIRED_OUTPUT_MARKERS if marker not in summary_text]
     missing_alternative_groups = [
         list(group)
         for group in REQUIRED_OUTPUT_MARKER_ALTERNATIVES
         if not any(marker in summary_text for marker in group)
     ]
-    source_url_count = len(re.findall(r'https?://\S+', summary_text))
+    source_urls = re.findall(r'https?://\S+', summary_text)
+    source_domains = sorted({
+        re.sub(r'^www\.', '', url.split('/')[2].lower())
+        for url in source_urls
+        if len(url.split('/')) > 2 and url.split('/')[2]
+    })
+    primary_source_domains = sorted({
+        domain for domain in source_domains
+        if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
+    })
+    source_url_count = len(source_urls)
+    source_domain_count = len(source_domains)
+    primary_source_domain_count = len(primary_source_domains)
+    category_theme_hits = [
+        name
+        for name, keywords in CATEGORY_THEME_KEYWORDS
+        if any(keyword in normalized_text for keyword in keywords)
+    ]
+    category_theme_count = len(category_theme_hits)
     reasons = []
     if missing_markers:
         reasons.append(f"{len(missing_markers)} verplichte sectie(s) missen")
@@ -327,6 +386,18 @@ def audit_summary_output(summary_text):
         reasons.append(f"{len(missing_alternative_groups)} verplichte outputanker(s) missen")
     if source_url_count < MIN_SOURCE_URLS:
         reasons.append(f'te weinig bron-URLs ({source_url_count})')
+    if source_url_count and source_domain_count < 2:
+        reasons.append(f'te weinig unieke brondomeinen ({source_domain_count})')
+    if source_url_count and primary_source_domain_count < 1:
+        reasons.append('geen herkenbare primaire bron tussen URLs')
+    if category_theme_count < MIN_CATEGORY_THEME_COVERAGE:
+        reasons.append(f'te weinig briefingcategorieën zichtbaar ({category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)})')
+
+    ok_text = (
+        f'briefing-output ok ({source_url_count} URLs, '
+        f'{source_domain_count} domeinen, {primary_source_domain_count} primaire bron-domeinen, '
+        f"{category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)} categorie-thema's zichtbaar)"
+    )
 
     return {
         'available': True,
@@ -334,8 +405,15 @@ def audit_summary_output(summary_text):
         'missing_markers': missing_markers,
         'missing_alternative_groups': missing_alternative_groups,
         'source_url_count': source_url_count,
+        'source_urls': source_urls,
+        'source_domains': source_domains,
+        'source_domain_count': source_domain_count,
+        'primary_source_domains': primary_source_domains,
+        'primary_source_domain_count': primary_source_domain_count,
+        'category_theme_hits': category_theme_hits,
+        'category_theme_count': category_theme_count,
         'reasons': reasons,
-        'text': 'briefing-output ok' if not reasons else '; '.join(reasons),
+        'text': ok_text if not reasons else '; '.join(reasons),
     }
 
 
@@ -452,6 +530,53 @@ def audit_runlog(runlog_info, finished_runs):
         'invalid_lines': invalid_lines,
         'readable_events': len(rows),
         'finished_events': len(finished_runs),
+        'reasons': reasons,
+        'text': text,
+    }
+
+
+def audit_proof_freshness(updated_at, finished_runs, successful_runs, delivered_runs, first_run_pending, tz_name):
+    latest_finished_at = ((finished_runs or [])[-1] or {}).get('runAtMs') if finished_runs else None
+    latest_success_at = ((successful_runs or [])[-1] or {}).get('runAtMs') if successful_runs else None
+    latest_delivered_at = ((delivered_runs or [])[-1] or {}).get('runAtMs') if delivered_runs else None
+
+    stale_finished = bool(updated_at and latest_finished_at and updated_at > latest_finished_at)
+    stale_success = bool(updated_at and latest_success_at and updated_at > latest_success_at)
+    stale_delivered = bool(updated_at and latest_delivered_at and updated_at > latest_delivered_at)
+
+    reasons = []
+    if not finished_runs:
+        text = 'geen runbewijs voor huidige config'
+        if first_run_pending:
+            text = 'eerste runbewijs voor huidige config nog in afwachting'
+    elif stale_finished:
+        reasons.append(
+            f"config nieuwer dan laatste run ({fmt_ts(updated_at, tz_name)} > {fmt_ts(latest_finished_at, tz_name)})"
+        )
+        text = 'runbewijs verouderd voor huidige config'
+    else:
+        text = 'runbewijs actueel voor huidige config'
+
+    if finished_runs and stale_success:
+        reasons.append('laatste succesvolle run is nog van oudere config')
+    if finished_runs and delivered_runs and stale_delivered:
+        reasons.append('laatste afgeleverde run is nog van oudere config')
+
+    if reasons:
+        text = '; '.join([text] + reasons)
+
+    return {
+        'ok': first_run_pending or (bool(finished_runs) and not stale_finished),
+        'has_run_proof': bool(finished_runs),
+        'latest_finished_at': latest_finished_at,
+        'latest_finished_at_text': fmt_ts(latest_finished_at, tz_name),
+        'latest_success_at': latest_success_at,
+        'latest_success_at_text': fmt_ts(latest_success_at, tz_name),
+        'latest_delivered_at': latest_delivered_at,
+        'latest_delivered_at_text': fmt_ts(latest_delivered_at, tz_name),
+        'stale_finished': stale_finished,
+        'stale_success': stale_success,
+        'stale_delivered': stale_delivered,
         'reasons': reasons,
         'text': text,
     }
@@ -627,6 +752,7 @@ def build_status(job_name=TARGET_JOB_NAME):
     storage_audit = audit_storage(job['id'])
     runlog_audit = audit_runlog(runlog_info, finished_runs)
     uniqueness_audit = audit_uniqueness(jobs, job)
+    proof_freshness = audit_proof_freshness(updated_at, finished_runs, successful_runs, delivered_runs, first_run_pending, tz_name)
 
     overdue_grace_ms = 15 * 60 * 1000
     overdue = bool(next_run_at and now_ms > (next_run_at + overdue_grace_ms))
@@ -671,6 +797,8 @@ def build_status(job_name=TARGET_JOB_NAME):
         attention_reasons.append(f"runlog: {runlog_audit.get('text')}")
     if not uniqueness_audit.get('ok'):
         attention_reasons.append(f"uniqueness: {uniqueness_audit.get('text')}")
+    if finished_runs and not proof_freshness.get('ok'):
+        attention_reasons.append(f"proof freshness: {proof_freshness.get('text')}")
     last_run_output_audit = (last_run_summary or {}).get('summary_output_audit') or {}
     if last_run_output_audit.get('available') and not last_run_output_audit.get('ok'):
         attention_reasons.append(f"briefing-output: {last_run_output_audit.get('text')}")
@@ -694,6 +822,7 @@ def build_status(job_name=TARGET_JOB_NAME):
         'storage_audit': storage_audit,
         'runlog_audit': runlog_audit,
         'uniqueness_audit': uniqueness_audit,
+        'proof_freshness': proof_freshness,
         'state': state,
         'created_at': created_at,
         'created_at_text': fmt_ts(created_at, tz_name),
@@ -811,6 +940,9 @@ def render_text(data):
         uniqueness_audit = data.get('uniqueness_audit') or {}
         if uniqueness_audit.get('text'):
             parts.append(uniqueness_audit.get('text'))
+        proof_freshness = data.get('proof_freshness') or {}
+        if proof_freshness.get('text'):
+            parts.append(proof_freshness.get('text'))
         if payload_audit.get('text'):
             parts.append(payload_audit.get('text'))
     runtime_audit = data.get('runtime_audit') or {}
@@ -849,6 +981,8 @@ def render_text(data):
         parts.append(f"output-audit {summary_output_audit.get('text')}")
         if summary_output_audit.get('source_url_count') is not None:
             parts.append(f"bron-URLs {summary_output_audit['source_url_count']}")
+        if summary_output_audit.get('category_theme_count') is not None:
+            parts.append(f"categorie-thema's {summary_output_audit['category_theme_count']}/{len(CATEGORY_THEME_KEYWORDS)}")
     if data.get('runs_total'):
         success_bits = []
         if data.get('success_rate_pct') is not None:
