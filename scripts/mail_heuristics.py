@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import base64
+import binascii
+import hashlib
 import json
 import re
 from datetime import UTC, datetime
@@ -131,6 +134,88 @@ def mailbox_username():
     return (config.get('username') or '').strip().lower()
 
 
+def _normalize_ssh_fingerprint(value):
+    value = (value or '').strip()
+    if not value:
+        return ''
+    return value.lower()
+
+
+@lru_cache(maxsize=1)
+def known_local_ssh_keys():
+    ssh_dir = Path('/home/clawdy/.ssh')
+    keys = []
+    for path in sorted(ssh_dir.glob('*.pub')):
+        try:
+            parts = path.read_text().strip().split()
+        except Exception:
+            continue
+        if len(parts) < 2:
+            continue
+
+        try:
+            decoded = base64.b64decode(parts[1].encode(), validate=True)
+        except (ValueError, binascii.Error):
+            continue
+
+        fingerprint = 'SHA256:' + base64.b64encode(hashlib.sha256(decoded).digest()).decode().rstrip('=')
+        comment = ' '.join(parts[2:]).strip()
+        names = []
+        seen_names = set()
+        for candidate in [comment, path.stem]:
+            candidate = (candidate or '').strip()
+            lowered = candidate.lower()
+            if candidate and lowered not in seen_names:
+                names.append(candidate)
+                seen_names.add(lowered)
+
+        keys.append({
+            'path': str(path),
+            'fingerprint': fingerprint,
+            'comment': comment,
+            'names': names,
+            'names_lower': [name.lower() for name in names],
+        })
+    return tuple(keys)
+
+
+def find_known_local_ssh_key_match(message):
+    details = (message or {}).get('security_alert_details') or extract_security_alert_details(message or {})
+    fingerprint = _normalize_ssh_fingerprint(details.get('ssh_key_fingerprint'))
+    key_name = (details.get('ssh_key_name') or '').strip().lower()
+
+    if not fingerprint and not key_name:
+        return {}
+
+    for known_key in known_local_ssh_keys():
+        if fingerprint and _normalize_ssh_fingerprint(known_key.get('fingerprint')) == fingerprint:
+            return {
+                'match_type': 'fingerprint',
+                'path': known_key.get('path'),
+                'comment': known_key.get('comment'),
+                'fingerprint': known_key.get('fingerprint'),
+            }
+        if key_name and key_name in (known_key.get('names_lower') or []):
+            return {
+                'match_type': 'name',
+                'path': known_key.get('path'),
+                'comment': known_key.get('comment'),
+                'fingerprint': known_key.get('fingerprint'),
+            }
+
+    return {}
+
+
+def is_expected_security_change_message(message):
+    message = message or {}
+    if not is_account_change_confirmation(message):
+        return False
+    details = message.get('security_alert_details') or extract_security_alert_details(message)
+    if not details.get('ssh_key_fingerprint') and not details.get('ssh_key_name'):
+        return False
+    return bool(find_known_local_ssh_key_match(message))
+
+
 def _haystack(*parts):
     return ' '.join((part or '').strip().lower() for part in parts if part)
 
@@ -260,6 +345,8 @@ def has_attention_signal(message):
     message = message or {}
     action = message.get('action_hint') or suggest_action(message)
     if is_ephemeral_code_message(message):
+        return False
+    if is_expected_security_change_message(message):
         return False
     if is_account_change_confirmation(message):
         return True
@@ -656,6 +743,8 @@ def message_needs_review(message):
         return True
     if message.get('reply_needed') or message.get('deadline_hint'):
         return True
+    if message.get('expected_security_change') or is_expected_security_change_message(message):
+        return False
 
     action = message.get('action_hint') or suggest_action(message)
     stale = message.get('stale_attention')
@@ -673,9 +762,11 @@ def group_needs_review(group):
     group = group or {}
     if group.get('attention_now'):
         return True
-    if int(group.get('unread_count') or 0) > 0:
-        return True
     if group.get('reply_needed') or group.get('deadline_hint'):
+        return True
+    if group.get('expected_security_change'):
+        return False
+    if int(group.get('unread_count') or 0) > 0:
         return True
 
     action = group.get('action_hint') or 'ter info'

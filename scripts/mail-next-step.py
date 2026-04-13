@@ -188,6 +188,37 @@ def summarize_candidate(candidate):
     }
 
 
+def suppression_reason(group, *, current_only=False, review_worthy_only=False):
+    group = group or {}
+    if current_only and not group.get('attention_now'):
+        return 'niet actueel'
+    if group.get('expected_security_change'):
+        return 'verwachte bekende securitywijziging'
+    if review_worthy_only and not group.get('review_worthy'):
+        return 'niet reviewwaardig'
+    if group.get('stale_attention') and not group.get('review_worthy'):
+        return 'niet actueel en niet reviewwaardig'
+    if group.get('no_reply_only') and not group.get('reply_needed') and not group.get('deadline_hint'):
+        return 'no-reply zonder vervolgsignaal'
+    if group.get('action_hint') == 'code gebruiken':
+        return 'alleen codeverkeer'
+    return 'geen duidelijke vervolgstap'
+
+
+def summarize_suppressed_group(group, *, current_only=False, review_worthy_only=False):
+    group = group or {}
+    return {
+        'label': group.get('sender') or group.get('from') or group.get('latest_from'),
+        'subject': group.get('latest_subject') or group.get('subject'),
+        'action_hint': group.get('action_hint'),
+        'age_hint': group.get('latest_age_hint') or group.get('age_hint'),
+        'stale_attention': bool(group.get('stale_attention')),
+        'security_alert_summary': group.get('security_alert_summary'),
+        'count': group.get('count') or group.get('message_count') or 1,
+        'reason': suppression_reason(group, current_only=current_only, review_worthy_only=review_worthy_only),
+    }
+
+
 def make_focus_candidate(focus_item, focus_draft):
     if not focus_item:
         return None
@@ -370,7 +401,25 @@ def build_summary(limit=1, current_only=False, review_worthy_only=False):
     selected_summary = summarize_candidate(selected) if selected else {}
     alternative_summaries = [summarize_candidate(candidate) for candidate in candidates[:limit]]
 
+    suppressed_groups = []
     if not selected:
+        fallback_groups = current_groups if current_only else high_groups
+        if review_worthy_only:
+            fallback_groups = [group for group in fallback_groups if not group.get('review_worthy')]
+        for group in rank_groups(fallback_groups, skip_code=False, prefer_current=current_only):
+            if group.get('attention_now') and not current_only:
+                continue
+            summary = summarize_suppressed_group(
+                group,
+                current_only=current_only,
+                review_worthy_only=review_worthy_only,
+            )
+            if any(existing.get('label') == summary.get('label') and existing.get('subject') == summary.get('subject') and existing.get('reason') == summary.get('reason') for existing in suppressed_groups):
+                continue
+            suppressed_groups.append(summary)
+            if len(suppressed_groups) >= limit:
+                break
+
         selected_summary = {
             'recommended_route': 'noop',
             'recommended_command': None,
@@ -404,6 +453,7 @@ def build_summary(limit=1, current_only=False, review_worthy_only=False):
         'current_only': current_only,
         'review_worthy_only': review_worthy_only,
         'candidates': alternative_summaries,
+        'suppressed_groups': suppressed_groups,
     }
 
 
@@ -448,6 +498,10 @@ def render_text(summary, show_alternatives=False):
                 alt_command_label = 'review-command' if candidate.get('review_only') or candidate.get('stale_attention') else 'command'
                 line += f" | {alt_command_label}={candidate.get('recommended_command')}"
             lines.append(line)
+    if not candidates:
+        for index, group in enumerate((summary.get('suppressed_groups') or [])[:3], start=1):
+            hint = format_next_step_candidate_hint(group, include_age=True) or 'onbekend'
+            lines.append(f"- suppressed{index}={hint} | reason={group.get('reason')}")
     return '\n'.join(lines)
 
 

@@ -8,9 +8,9 @@ from pathlib import Path
 from mail_heuristics import (
     format_attachment_hint,
     format_security_alert_hint,
-    is_actionable_message,
     is_self_message,
     is_test_message,
+    message_needs_review,
     needs_attention_now,
     summarize_security_alerts,
 )
@@ -94,7 +94,9 @@ def pick_focus_item(items, allow_informational=True, current_only=False):
             continue
         if current_only and not needs_attention_now(item):
             continue
-        if allow_informational or is_actionable_message(item):
+        if allow_informational:
+            return item
+        if message_needs_review(item):
             return item
     return None
 

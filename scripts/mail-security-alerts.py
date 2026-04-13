@@ -98,7 +98,6 @@ def collapse_parallel_security_groups(groups):
     return collapsed
 
 
-
 def filter_security_groups(groups):
     seen = set()
     filtered = []
@@ -115,6 +114,21 @@ def filter_security_groups(groups):
     return filtered
 
 
+def suppression_reason(group, *, current_only=False):
+    group = group or {}
+    if current_only and not group.get('attention_now'):
+        return 'niet actueel'
+    if group.get('expected_security_change'):
+        return 'verwachte bekende securitywijziging'
+    if not group.get('review_worthy'):
+        if group.get('stale_attention'):
+            return 'niet actueel en niet reviewwaardig'
+        return 'niet reviewwaardig'
+    if group.get('no_reply_only') and not group.get('reply_needed') and not group.get('deadline_hint'):
+        return 'no-reply zonder vervolgsignaal'
+    return 'geen duidelijke security-alert vervolgstap'
+
+
 def summarize_group(group):
     return {
         'sender': group.get('sender') or group.get('from'),
@@ -127,10 +141,17 @@ def summarize_group(group):
         'stale_attention': bool(group.get('stale_attention')),
         'attention_now': bool(group.get('attention_now')),
         'review_worthy': bool(group.get('review_worthy')),
+        'expected_security_change': bool(group.get('expected_security_change')),
         'security_alert_summary': group.get('security_alert_summary'),
         'latest_uid': group.get('latest_uid'),
         'recommended_command': build_thread_command(group),
     }
+
+
+def summarize_suppressed_group(group, *, current_only=False):
+    summary = summarize_group(group)
+    summary['reason'] = suppression_reason(group, current_only=current_only)
+    return summary
 
 
 def build_summary(limit=5, current_only=False):
@@ -145,15 +166,40 @@ def build_summary(limit=5, current_only=False):
         default={},
         timeout=30,
     ) or {}
+    raw_current = run_json(
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--clusters', '-n', str(limit * 2), '--search-limit', '50'],
+        default={},
+        timeout=30,
+    ) or {}
+    raw_recent = run_json(
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--clusters', '-n', str(limit * 2), '--search-limit', '50'],
+        default={},
+        timeout=30,
+    ) or {}
 
     current_groups = filter_security_groups(current.get('groups') or current.get('items') or [])
     recent_groups = filter_security_groups(recent.get('groups') or recent.get('items') or [])
+    raw_current_groups = [group for group in collapse_parallel_security_groups(raw_current.get('groups') or raw_current.get('items') or []) if is_security_group(group)]
+    raw_recent_groups = [group for group in collapse_parallel_security_groups(raw_recent.get('groups') or raw_recent.get('items') or []) if is_security_group(group)]
 
     current_keys = {group_key(group) for group in current_groups}
     recent_only_groups = [group for group in recent_groups if group_key(group) not in current_keys]
 
     selected = current_groups[0] if current_groups else (None if current_only else (recent_only_groups[0] if recent_only_groups else None))
     selected_summary = summarize_group(selected) if selected else None
+
+    suppressed_groups = []
+    seen_suppressed = set()
+    raw_groups = raw_current_groups if current_only else raw_recent_groups
+    visible_keys = {group_key(group) for group in (current_groups if current_only else recent_groups)}
+    for group in raw_groups:
+        key = group_key(group)
+        if key in visible_keys or key in seen_suppressed:
+            continue
+        seen_suppressed.add(key)
+        suppressed_groups.append(summarize_suppressed_group(group, current_only=current_only))
+        if len(suppressed_groups) >= limit:
+            break
 
     recommended_route = 'noop'
     if current_only:
@@ -175,12 +221,14 @@ def build_summary(limit=5, current_only=False):
         'recent_only_count': len(recent_only_groups),
         'stale_count': sum(1 for group in recent_groups if group.get('stale_attention')),
         'attention_now_count': sum(1 for group in current_groups if group.get('attention_now') and not group.get('stale_attention')),
+        'suppressed_count': len(suppressed_groups),
         'recommended_route': recommended_route,
         'recommended_command': selected_summary.get('recommended_command') if selected_summary else None,
         'reason': reason,
         'selected_group': selected_summary,
         'current_groups': [summarize_group(group) for group in current_groups[:limit]],
         'recent_groups': [] if current_only else [summarize_group(group) for group in recent_groups[:limit]],
+        'suppressed_groups': suppressed_groups,
     }
 
 
@@ -200,13 +248,16 @@ def render_group(group):
 def render_text(summary):
     lines = ['Mail security alerts']
     lines.append(
-        f"- current={summary.get('current_count', 0)}, recent={summary.get('recent_count', 0)}, stale={summary.get('stale_count', 0)}, reason={summary.get('reason')}"
+        f"- current={summary.get('current_count', 0)}, recent={summary.get('recent_count', 0)}, stale={summary.get('stale_count', 0)}, suppressed={summary.get('suppressed_count', 0)}, reason={summary.get('reason')}"
     )
     selected = summary.get('selected_group')
     if selected:
         lines.append(f"- selected={render_group(selected)}")
     if summary.get('recommended_command'):
         lines.append(f"- command={summary.get('recommended_command')}")
+    if not selected:
+        for index, group in enumerate((summary.get('suppressed_groups') or [])[:3], start=1):
+            lines.append(f"- suppressed{index}={render_group(group)} | reason={group.get('reason')}")
     return '\n'.join(lines)
 
 

@@ -262,6 +262,7 @@ def build_threads(rows):
             'attachment_names': [],
             'security_alert_details': [],
             'security_alert_summary': '',
+            'expected_security_change': True,
             'attention_now': False,
             'stale_attention': False,
             'no_reply_only': True,
@@ -297,6 +298,7 @@ def build_threads(rows):
                 thread['attachment_names'].append(name)
         if row.get('security_alert_details'):
             thread['security_alert_details'].append(row['security_alert_details'])
+        thread['expected_security_change'] = thread['expected_security_change'] and bool(row.get('expected_security_change'))
         current_ts = row.get('date_ts')
         oldest_ts = thread.get('oldest_date_ts')
         if current_ts is not None and (oldest_ts is None or current_ts < oldest_ts):

@@ -75,6 +75,7 @@ def summarize_related_groups(groups, limit=None):
             'deadline_hint': next((item.get('deadline_hint') for item in items if item.get('deadline_hint')), None),
             'no_reply_only': all(item.get('no_reply') for item in items),
             'unread_count': sum(1 for item in items if item.get('unread')),
+            'expected_security_change': bool(items) and all(item.get('expected_security_change') for item in items),
         }
         summary['review_worthy'] = group_needs_review(summary)
         summaries.append(summary)
@@ -122,6 +123,7 @@ def triage(limit=10, unread_only=True, reply_only=False, high_only=False, curren
         item['reply_needed'] = reply_needed(item)
         item['attention_now'] = needs_attention_now(item)
         item['stale_attention'] = not item['attention_now']
+        item['expected_security_change'] = bool(item.get('expected_security_change'))
         item['review_worthy'] = message_needs_review(item)
         if is_self_message(item):
             continue

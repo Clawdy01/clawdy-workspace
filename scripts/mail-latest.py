@@ -13,6 +13,7 @@ from mail_heuristics import (
     detect_urgency,
     extract_deadline_hint,
     extract_security_alert_details,
+    find_known_local_ssh_key_match,
     format_attachment_hint,
     format_recency_hint,
     format_security_alert_hint,
@@ -182,6 +183,7 @@ def group_threads(rows, limit):
             'deadline_hint': row.get('deadline_hint'),
             'security_alert_details': [],
             'security_alert_summary': '',
+            'expected_security_change': True,
             'oldest_date': row.get('date'),
             'oldest_date_ts': row.get('date_ts'),
             'attention_now': False,
@@ -224,6 +226,7 @@ def group_threads(rows, limit):
             thread['action_hint'] = row.get('action_hint')
         if row.get('security_alert_details'):
             thread['security_alert_details'].append(row['security_alert_details'])
+        thread['expected_security_change'] = thread['expected_security_change'] and bool(row.get('expected_security_change'))
         thread['attention_now'] = thread['attention_now'] or needs_attention_now(row)
 
     thread_list = list(threads.values())
@@ -313,6 +316,8 @@ def fetch_latest(
         row['action_hint'] = suggest_action(row)
         row['reply_needed'] = reply_needed(row)
         row['security_alert_details'] = extract_security_alert_details(row)
+        row['known_local_ssh_key_match'] = find_known_local_ssh_key_match(row)
+        row['expected_security_change'] = bool(row['known_local_ssh_key_match'])
         row['age_hint'] = format_recency_hint(row.get('date_ts'))
         row['attention_now'] = needs_attention_now(row)
         row['stale_attention'] = not row['attention_now']
