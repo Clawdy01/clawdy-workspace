@@ -95,6 +95,7 @@ python3 scripts/video-clip.py tmp/creative-tooling-check/sample-video.mp4 \
 - Video: clippen, transcoderen, frames trekken, snelle inspectie
 - Audio: genereren, converteren, normaliseren
 - Image: klassieke niet-generatieve bewerkingen en verificatie
+- Review housekeeping: `scripts/creative-review.py weekly-cleanup --cleanup-log` kan oude report/daylog-artifacts opruimen én tegelijk een append-vriendelijk JSONL cleanup-log wegschrijven
 
 ## Huidige grens
 - Geen bevestigde sterke generatieve image-route voor identity-preserving remakes in deze runtime
@@ -675,8 +676,81 @@ Nut:
 - minder kans op drift tussen report/daylog-routes en cleanupbeleid
 - snelle inzet voor zowel dagelijkse logging als strakkere CI-artifacts
 
-## Aanbevolen volgende stap
-- Kleine follow-up: desgewenst nog een wekelijkse cleanup-only wrapper of voorbeeld-cronregel toevoegen voor deze automation-presets
+## Cleanup-only route nu beschikbaar
+`scripts/creative-review.py` ondersteunt nu ook een echte cleanup-only route, zodat periodieke housekeeping geen review-mode meer hoeft mee te geven.
+
+Nieuwe route:
+- `cleanup-only`
+
+Voorbeelden:
+```bash
+python3 scripts/creative-review.py cleanup-only --cleanup-preset balanced --format json
+python3 scripts/creative-review.py cleanup-only --cleanup-preset short-reports --prune-apply
+```
+
+Live geverifieerd op 2026-04-13:
+- `cleanup-only --cleanup-preset balanced --format json` gaf een geldige prune-samenvatting met `report=7`, `daylog=14`
+- verificatierun bleef veilig dry-run met `apply: false`
+
+Voorbeeld cronregel (wekelijks opschonen):
+```cron
+17 3 * * 1 cd /home/clawdy/.openclaw/workspace && python3 scripts/creative-review.py cleanup-only --cleanup-preset balanced --prune-apply >> /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/reports/creative-review-cleanup.log 2>&1
+```
+
+## Cleanup-logrotatie nu beschikbaar
+`scripts/creative-review.py` kan cleanup-logs nu ook zelf roteren binnen dezelfde prune-flow.
+
+Nieuwe vlag:
+- `--prune-cleanup-log-older-than-days`
+
+Preset-defaults:
+- `balanced` → cleanup-logs 30 dagen
+- `short-reports` → cleanup-logs 14 dagen
+- `ci-tight` → cleanup-logs 7 dagen
+
+Voorbeeld:
+```bash
+python3 scripts/creative-review.py cleanup-only --cleanup-preset balanced --cleanup-log --cleanup-log-dir tmp/creative-review-cleanup-log-rotation-test/logs --report-dir tmp/creative-review-cleanup-log-rotation-test/reports --prune-apply --format json
+```
+
+Live geverifieerd op 2026-04-13:
+- oud report (`10` dagen) werd verwijderd
+- oude cleanup-log (`40` dagen) werd verwijderd
+- recent report (`1` dag) bleef staan
+- recente cleanup-log (`2` dagen) bleef staan
+- de actuele cleanup-run schreef daarna zelf weer naar `creative-review-cleanup-log-20260413.jsonl`
+
+## Wekelijkse cleanup met auditlog via cron
+`weekly-cleanup-logged` bundelt nu een echte apply-run, balanced retentie en append-vriendelijk JSON cleanup-log in één cronvriendelijke route.
+
+Voorbeeld cronregel:
+```cron
+17 3 * * 1 cd /home/clawdy/.openclaw/workspace && python3 scripts/creative-review.py weekly-cleanup --automation-preset weekly-cleanup-logged --cleanup-log-dir /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/reports >> /home/clawdy/.openclaw/workspace/tmp/creative-tooling-check/reports/creative-review-weekly-cleanup.log 2>&1
+```
+
+Praktisch effect:
+- ruimt oude reports, daglogs en cleanup-logs op volgens preset `balanced`
+- schrijft tegelijk JSONL audit-events naar `creative-review-cleanup-log-YYYYMMDD.jsonl`
+- houdt stdout/stderr apart beschikbaar in een gewone cron-logfile voor snelle foutinspectie
+
+## Auditlog-inspectie nu beschikbaar
+`scripts/creative-log-summary.py` vat bestaande creative daylogs en cleanup-logs samen zonder handmatig JSONL te hoeven lezen.
+
+Ondersteunde routes:
+- `daylog` → telt review-events, profielen, exit-codes en totalen per mediatype
+- `cleanup` → telt cleanup-events, kandidaat-artifacts, deletes en laatste cleanup-run
+
+Voorbeelden:
+```bash
+python3 scripts/creative-log-summary.py daylog --log-dir tmp/creative-tooling-check/reports
+python3 scripts/creative-log-summary.py cleanup --log-dir tmp/creative-review-cleanup-log-test/logs
+python3 scripts/creative-log-summary.py daylog --log-dir tmp/creative-tooling-check/reports --format json
+```
+
+Live geverifieerd op 2026-04-13:
+- daylog-samenvatting op `tmp/creative-tooling-check/reports` gaf `event-count=8`, alle `exit-codes=0`, en aggregate totalen `files_total=24`, `files_ok=24`, `files_warning=0`
+- cleanup-samenvatting op `tmp/creative-review-cleanup-log-test/logs` gaf `event-count=2`, `candidate-total=4`, `deleted-total=2`, met laatste event `weekly-cleanup`
+- JSON-output werkt voor beide routes en bevat ook `latest_event`, `log_dir` en de gebruikte logbestanden
 
 ## Kind-filtering nu beschikbaar
 `scripts/media-sanity-check.py` ondersteunt nu ook `--kind`, zodat batch-checks gericht alleen `audio`, `image` en/of `video` meenemen.

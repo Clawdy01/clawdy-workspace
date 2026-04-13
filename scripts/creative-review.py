@@ -14,14 +14,17 @@ CLEANUP_PRESETS = {
     'balanced': {
         'prune_report_older_than_days': 7,
         'prune_daylog_older_than_days': 14,
+        'prune_cleanup_log_older_than_days': 30,
     },
     'short-reports': {
         'prune_report_older_than_days': 2,
         'prune_daylog_older_than_days': 7,
+        'prune_cleanup_log_older_than_days': 14,
     },
     'ci-tight': {
         'prune_report_older_than_days': 1,
         'prune_daylog_older_than_days': 3,
+        'prune_cleanup_log_older_than_days': 7,
     },
 }
 
@@ -42,6 +45,12 @@ AUTOMATION_PRESETS = {
         'timestamped': True,
         'prune_after_write': True,
         'cleanup_preset': 'ci-tight',
+    },
+    'weekly-cleanup-logged': {
+        'cleanup_log': True,
+        'cleanup_preset': 'balanced',
+        'prune_apply': True,
+        'format': 'json',
     },
 }
 
@@ -106,6 +115,14 @@ SUITES = {
     ],
 }
 
+CLEANUP_ONLY_MODES = {
+    'cleanup-only': {},
+    'weekly-cleanup': {
+        'cleanup_preset': 'balanced',
+        'prune_apply': True,
+    },
+}
+
 
 def slugify(name: str) -> str:
     return name.replace('_', '-').replace(' ', '-').lower()
@@ -117,29 +134,54 @@ def utc_day_stamp() -> str:
 
 
 
-def list_prune_candidates(base_dir: Path, older_than_days: int, *, report_older_than_days: int | None = None, daylog_older_than_days: int | None = None):
+def list_prune_candidates(
+    base_dir: Path,
+    older_than_days: int,
+    *,
+    report_older_than_days: int | None = None,
+    daylog_older_than_days: int | None = None,
+    cleanup_log_dir: Path | None = None,
+    cleanup_log_older_than_days: int | None = None,
+):
     now = datetime.now(timezone.utc)
     retention_days = {
         'report': older_than_days if report_older_than_days is None else report_older_than_days,
         'daylog': older_than_days if daylog_older_than_days is None else daylog_older_than_days,
+        'cleanup-log': older_than_days if cleanup_log_older_than_days is None else cleanup_log_older_than_days,
     }
     pattern_groups = {
-        'report': [
-            'creative-review-*.jsonl',
-            'creative-review-*.json',
-            'creative-review-*.txt',
-        ],
-        'daylog': [
-            'creative-review-daylog-*.jsonl',
-        ],
+        'report': {
+            'base_dir': base_dir,
+            'patterns': [
+                'creative-review-*.jsonl',
+                'creative-review-*.json',
+                'creative-review-*.txt',
+            ],
+        },
+        'daylog': {
+            'base_dir': base_dir,
+            'patterns': [
+                'creative-review-daylog-*.jsonl',
+            ],
+        },
+        'cleanup-log': {
+            'base_dir': cleanup_log_dir or base_dir,
+            'patterns': [
+                'creative-review-cleanup-log-*.jsonl',
+            ],
+        },
     }
     seen = set()
     candidates = []
-    for artifact_kind, patterns in pattern_groups.items():
+    for artifact_kind, config in pattern_groups.items():
         cutoff = now - timedelta(days=retention_days[artifact_kind])
-        for pattern in patterns:
-            for path in sorted(base_dir.glob(pattern)):
-                if artifact_kind == 'report' and path.name.startswith('creative-review-daylog-'):
+        artifact_base_dir = config['base_dir']
+        for pattern in config['patterns']:
+            for path in sorted(artifact_base_dir.glob(pattern)):
+                if artifact_kind == 'report' and (
+                    path.name.startswith('creative-review-daylog-')
+                    or path.name.startswith('creative-review-cleanup-log-')
+                ):
                     continue
                 resolved = path.resolve()
                 if resolved in seen or not path.is_file():
@@ -167,6 +209,12 @@ def resolve_prune_base_dir(args):
 
 
 
+def resolve_cleanup_log_dir(args, base_dir: Path):
+    cleanup_log_dir = args.cleanup_log_dir
+    return Path(cleanup_log_dir).expanduser().resolve() if cleanup_log_dir else base_dir
+
+
+
 def render_prune_payload(payload, output_format):
     if output_format == 'jsonl':
         print(json.dumps(payload, ensure_ascii=False))
@@ -183,7 +231,8 @@ def render_prune_payload(payload, output_format):
             print(
                 'retention-days: '
                 f"reports={payload['retention_days']['report']}, "
-                f"daylogs={payload['retention_days']['daylog']}"
+                f"daylogs={payload['retention_days']['daylog']}, "
+                f"cleanup_logs={payload['retention_days']['cleanup-log']}"
             )
         for item in payload['candidates']:
             print(
@@ -191,6 +240,22 @@ def render_prune_payload(payload, output_format):
                 f"(kind={item['artifact_kind']}, retain_days={item['retain_days']}, "
                 f"modified_at={item['modified_at']}, age_days={item['age_days']})"
             )
+
+
+def write_cleanup_log(args, payload, base_dir: Path):
+    if not args.cleanup_log:
+        return None
+    log_dir = Path(args.cleanup_log_dir).expanduser().resolve() if args.cleanup_log_dir else base_dir
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f'creative-review-cleanup-log-{utc_day_stamp()}.jsonl'
+    log_payload = {
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+        'mode': args.mode,
+        **payload,
+    }
+    with log_path.open('a', encoding='utf-8') as handle:
+        handle.write(json.dumps(log_payload, ensure_ascii=False) + '\n')
+    return log_path
 
 
 
@@ -214,6 +279,20 @@ def apply_cleanup_preset(args):
         args.prune_report_older_than_days = preset['prune_report_older_than_days']
     if args.prune_daylog_older_than_days is None:
         args.prune_daylog_older_than_days = preset['prune_daylog_older_than_days']
+    if args.prune_cleanup_log_older_than_days is None:
+        args.prune_cleanup_log_older_than_days = preset['prune_cleanup_log_older_than_days']
+    return args
+
+
+
+def apply_cleanup_only_mode_defaults(args):
+    defaults = CLEANUP_ONLY_MODES.get(args.mode, {})
+    if not defaults:
+        return args
+    if args.cleanup_preset is None and defaults.get('cleanup_preset'):
+        args.cleanup_preset = defaults['cleanup_preset']
+    if not args.prune_apply and defaults.get('prune_apply'):
+        args.prune_apply = True
     return args
 
 
@@ -221,20 +300,27 @@ def apply_cleanup_preset(args):
 def run_prune(args, *, emit=True):
     base_dir = resolve_prune_base_dir(args)
     base_dir.mkdir(parents=True, exist_ok=True)
+    cleanup_log_dir = resolve_cleanup_log_dir(args, base_dir)
+    cleanup_log_dir.mkdir(parents=True, exist_ok=True)
     report_older_than_days = args.prune_report_older_than_days
     daylog_older_than_days = args.prune_daylog_older_than_days
+    cleanup_log_older_than_days = args.prune_cleanup_log_older_than_days
     candidates = list_prune_candidates(
         base_dir,
         args.prune_older_than_days,
         report_older_than_days=report_older_than_days,
         daylog_older_than_days=daylog_older_than_days,
+        cleanup_log_dir=cleanup_log_dir,
+        cleanup_log_older_than_days=cleanup_log_older_than_days,
     )
     payload = {
         'report_dir': str(base_dir),
+        'cleanup_log_dir': str(cleanup_log_dir),
         'older_than_days': args.prune_older_than_days,
         'retention_days': {
             'report': args.prune_older_than_days if report_older_than_days is None else report_older_than_days,
             'daylog': args.prune_older_than_days if daylog_older_than_days is None else daylog_older_than_days,
+            'cleanup-log': args.prune_older_than_days if cleanup_log_older_than_days is None else cleanup_log_older_than_days,
         },
         'candidate_count': len(candidates),
         'candidates': candidates,
@@ -244,6 +330,9 @@ def run_prune(args, *, emit=True):
         for item in candidates:
             Path(item['path']).unlink(missing_ok=True)
         payload['deleted_count'] = len(candidates)
+    log_path = write_cleanup_log(args, payload, base_dir)
+    if log_path is not None:
+        payload['cleanup_log_path'] = str(log_path)
     if emit:
         render_prune_payload(payload, args.format)
     return payload
@@ -288,8 +377,8 @@ def build_command(mode_name, args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Kleine wrapper rond media-sanity-check voor vaste creative review- en strict-routes.')
-    parser.add_argument('mode', choices=sorted(list(MODES) + list(SUITES)), help='Welke vaste review-, strict- of suite-route je wilt draaien')
+    parser = argparse.ArgumentParser(description='Kleine wrapper rond media-sanity-check voor vaste creative review-, strict- en cleanup-routes.')
+    parser.add_argument('mode', choices=sorted(list(MODES) + list(SUITES) + list(CLEANUP_ONLY_MODES)), help='Welke vaste review-, strict-, suite- of cleanup-route je wilt draaien')
     parser.add_argument('--format', choices=['text', 'json', 'jsonl'], help='Forceer stdout-formaat; default hangt af van mode')
     parser.add_argument('--summary-only', action='store_true', help='Gebruik compacte summary-only output waar relevant')
     parser.add_argument('--automation-preset', choices=sorted(AUTOMATION_PRESETS), help='Pas een vaste automation-combinatie toe voor report/daylog plus cleanup')
@@ -305,25 +394,32 @@ def main():
     parser.add_argument('--prune-older-than-days', type=int, default=7, help='Selecteer report/daylog artifacts ouder dan dit aantal dagen, tenzij een specifiek retain-override is gezet')
     parser.add_argument('--prune-report-older-than-days', type=int, help='Overschrijf prune-retentie alleen voor timestamped/per-run reports')
     parser.add_argument('--prune-daylog-older-than-days', type=int, help='Overschrijf prune-retentie alleen voor daglogs')
+    parser.add_argument('--prune-cleanup-log-older-than-days', type=int, help='Overschrijf prune-retentie alleen voor cleanup-logbestanden')
     parser.add_argument('--prune-apply', action='store_true', help='Verwijder prune-kandidaten echt in plaats van alleen tonen')
+    parser.add_argument('--cleanup-log', action='store_true', help='Append prune/cleanup-samenvattingen als JSONL naar een vast cleanup-logbestand')
+    parser.add_argument('--cleanup-log-dir', help='Overschrijf de standaard map voor cleanup-logartifacts')
     args, extra = parser.parse_known_args()
 
     if extra and extra[0] == '--':
         extra = extra[1:]
     args.extra = extra
     args = apply_automation_preset(args)
+    args = apply_cleanup_only_mode_defaults(args)
     args = apply_cleanup_preset(args)
 
     if args.daylog and (args.timestamped or args.append or args.report_dir):
         parser.error('--daylog gebruikt zijn eigen append-daglog; combineer niet met --timestamped, --append of --report-dir')
+    is_cleanup_only = args.mode in CLEANUP_ONLY_MODES
     if args.prune and args.mode in SUITES:
         parser.error('--prune werkt op de reports-map en niet samen met suite-executie')
+    if is_cleanup_only and (args.report or args.daylog or args.timestamped or args.append or args.prune_after_write):
+        parser.error('cleanup-only combineert niet met report/daylog schrijfmodi of --prune-after-write')
     if args.prune and (args.report or args.daylog or args.timestamped or args.append or args.prune_after_write):
         parser.error('--prune combineert niet met report/daylog schrijfmodi of --prune-after-write')
     if args.prune_after_write and not (args.report or args.daylog):
         parser.error('--prune-after-write vereist --report of --daylog')
 
-    if args.prune:
+    if args.prune or is_cleanup_only:
         run_prune(args)
         raise SystemExit(0)
 
