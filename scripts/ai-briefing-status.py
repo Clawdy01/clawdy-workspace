@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -18,6 +19,7 @@ EXPECTED_DELIVERY_MODE = 'announce'
 EXPECTED_SESSION_TARGET = 'isolated'
 EXPECTED_WAKE_MODE = 'now'
 EXPECTED_AGENT_ID = 'main'
+EXPECTED_SESSION_KEY = f'agent:{EXPECTED_AGENT_ID}:{EXPECTED_DELIVERY_CHANNEL}:direct:{EXPECTED_DELIVERY_TO}'
 REQUIRED_CATEGORY_MARKERS = [
     '1) frontier modelreleases en modelupdates',
     '2) nieuwe AI-tools en productfeatures',
@@ -75,10 +77,14 @@ def future_hint(ms, now_ms):
     minutes = delta // 60
     if minutes < 60:
         return f'over {minutes} min'
-    hours = minutes // 60
-    if hours < 48:
+    hours, remaining_minutes = divmod(minutes, 60)
+    if hours < 24:
+        if remaining_minutes:
+            return f'over {hours}u {remaining_minutes}m'
         return f'over {hours} uur'
-    days = hours // 24
+    days, remaining_hours = divmod(hours, 24)
+    if days < 7 and remaining_hours:
+        return f'over {days} d {remaining_hours} u'
     return f'over {days} d'
 
 
@@ -154,6 +160,54 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
         'next_run_local_hour': next_run_local_hour,
         'next_run_local_minute': next_run_local_minute,
         'hours_until_next_run': hours_until_next_run,
+        'reasons': reasons,
+        'text': text,
+    }
+
+
+def audit_storage(job_id):
+    reasons = []
+    jobs_exists = JOBS_PATH.exists()
+    runs_dir_exists = RUNS_DIR.exists()
+    runs_dir_is_dir = RUNS_DIR.is_dir()
+    run_file = RUNS_DIR / f'{job_id}.jsonl'
+    run_parent = run_file.parent
+
+    jobs_readable = jobs_exists and JOBS_PATH.is_file()
+    runs_dir_writable = False
+    run_parent_writable = False
+
+    if not jobs_exists:
+        reasons.append('jobs.json ontbreekt')
+    elif not JOBS_PATH.is_file():
+        reasons.append('jobs.json is geen bestand')
+
+    if not runs_dir_exists:
+        reasons.append('cron/runs ontbreekt')
+    elif not runs_dir_is_dir:
+        reasons.append('cron/runs is geen map')
+
+    if runs_dir_exists and runs_dir_is_dir:
+        runs_dir_writable = run_parent.is_dir() and os.access(run_parent, os.W_OK)
+        run_parent_writable = runs_dir_writable
+        if not runs_dir_writable:
+            reasons.append('cron/runs niet schrijfbaar')
+
+    text = 'storage ok'
+    if reasons:
+        text = '; '.join(reasons)
+    elif run_parent_writable:
+        text = 'storage ok (jobs.json aanwezig, cron/runs schrijfbaar)'
+
+    return {
+        'ok': not reasons,
+        'jobs_exists': jobs_exists,
+        'jobs_readable': jobs_readable,
+        'runs_dir_exists': runs_dir_exists,
+        'runs_dir_is_dir': runs_dir_is_dir,
+        'runs_dir_writable': runs_dir_writable,
+        'run_parent_writable': run_parent_writable,
+        'run_file_path': str(run_file),
         'reasons': reasons,
         'text': text,
     }
@@ -282,6 +336,7 @@ def audit_runtime(job, tz_name):
     session_target = job.get('sessionTarget') or 'onbekend'
     wake_mode = job.get('wakeMode') or 'onbekend'
     agent_id = job.get('agentId') or 'onbekend'
+    session_key = job.get('sessionKey') or 'onbekend'
 
     if schedule.get('kind') != 'cron':
         reasons.append(f"schedule.kind is {schedule.get('kind') or 'onbekend'}")
@@ -301,6 +356,8 @@ def audit_runtime(job, tz_name):
         reasons.append(f"wakeMode is {wake_mode}")
     if agent_id != EXPECTED_AGENT_ID:
         reasons.append(f"agentId is {agent_id}")
+    if session_key != EXPECTED_SESSION_KEY:
+        reasons.append(f"sessionKey is {session_key}")
 
     return {
         'ok': not reasons,
@@ -313,8 +370,10 @@ def audit_runtime(job, tz_name):
         'session_target': session_target,
         'wake_mode': wake_mode,
         'agent_id': agent_id,
+        'session_key': session_key,
+        'expected_session_key': EXPECTED_SESSION_KEY,
         'reasons': reasons,
-        'text': 'schedule/delivery/execution ok' if not reasons else '; '.join(reasons),
+        'text': 'schedule/delivery/execution/session ok' if not reasons else '; '.join(reasons),
     }
 
 
@@ -368,11 +427,13 @@ def build_status(job_name=TARGET_JOB_NAME):
     payload_audit = audit_payload(job)
     runtime_audit = audit_runtime(job, tz_name)
     next_run_audit = audit_next_run(job, next_run_at, now_ms, tz_name)
+    storage_audit = audit_storage(job['id'])
 
     overdue_grace_ms = 15 * 60 * 1000
     overdue = bool(next_run_at and now_ms > (next_run_at + overdue_grace_ms))
     overdue_by_ms = max(0, now_ms - next_run_at) if overdue and next_run_at else 0
     overdue_hint = age_hint(now_ms - overdue_by_ms, now_ms) if overdue_by_ms else None
+    proof_due_at = (next_run_at + overdue_grace_ms) if next_run_at and not finished_runs else None
 
     attention_reasons = []
     if not job.get('enabled'):
@@ -401,6 +462,8 @@ def build_status(job_name=TARGET_JOB_NAME):
         attention_reasons.append(f"schedule/delivery: {runtime_audit.get('text')}")
     if not next_run_audit.get('ok'):
         attention_reasons.append(f"next run: {next_run_audit.get('text')}")
+    if not storage_audit.get('ok'):
+        attention_reasons.append(f"storage: {storage_audit.get('text')}")
 
     summary = {
         'ok': not attention_reasons,
@@ -418,6 +481,7 @@ def build_status(job_name=TARGET_JOB_NAME):
         'payload_audit': payload_audit,
         'runtime_audit': runtime_audit,
         'next_run_audit': next_run_audit,
+        'storage_audit': storage_audit,
         'state': state,
         'created_at': created_at,
         'created_at_text': fmt_ts(created_at, tz_name),
@@ -456,6 +520,9 @@ def build_status(job_name=TARGET_JOB_NAME):
         'next_run_at': next_run_at,
         'next_run_at_text': fmt_ts(next_run_at, tz_name),
         'next_run_hint': future_hint(next_run_at, now_ms),
+        'proof_due_at': proof_due_at,
+        'proof_due_at_text': fmt_ts(proof_due_at, tz_name),
+        'proof_due_hint': future_hint(proof_due_at, now_ms),
         'last_run_at': last_run_at,
         'last_run_at_text': fmt_ts(last_run_at, tz_name),
         'last_run_hint': age_hint(last_run_at, now_ms),
@@ -473,6 +540,8 @@ def build_status(job_name=TARGET_JOB_NAME):
             status_text += f", laatste {summary['last_run_hint']}"
     elif first_run_pending:
         status_text = f"eerste run nog niet geweest, eerste run {summary['next_run_hint']}"
+        if summary.get('proof_due_hint'):
+            status_text += f", bewijs verwacht {summary['proof_due_hint']}"
     else:
         status_text = f"nog geen runbewijs, volgende run {summary['next_run_hint']}"
 
@@ -518,6 +587,9 @@ def render_text(data):
         next_run_audit = data.get('next_run_audit') or {}
         if next_run_audit.get('text'):
             parts.append(next_run_audit.get('text'))
+        storage_audit = data.get('storage_audit') or {}
+        if storage_audit.get('text'):
+            parts.append(storage_audit.get('text'))
         if payload_audit.get('text'):
             parts.append(payload_audit.get('text'))
     runtime_audit = data.get('runtime_audit') or {}
@@ -531,6 +603,8 @@ def render_text(data):
             parts.append(f"config {data['updated_at_hint']} gewijzigd")
     if data.get('next_run_at_text'):
         parts.append(f"volgende {data['next_run_at_text']}")
+    if data.get('proof_due_at_text'):
+        parts.append(f"bewijs verwacht uiterlijk {data['proof_due_at_text']}")
     if data.get('last_run_at_text'):
         parts.append(f"laatste {data['last_run_at_text']}")
     last_run_summary = data.get('last_run_summary') or {}
