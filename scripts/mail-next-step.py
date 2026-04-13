@@ -338,17 +338,36 @@ def enrich_group_candidate(candidate):
 
 def build_summary(limit=1, current_only=False, review_worthy_only=False):
     limit = max(1, min(limit, 10))
-    focus = run_json(['python3', str(MAIL_FOCUS), '--json', '-n', '5'], default={}) or {}
+
+    focus_command = ['python3', str(MAIL_FOCUS), '--json', '-n', '5']
+    if current_only:
+        focus_command.append('--current-only')
+    if review_worthy_only:
+        focus_command.append('--review-worthy')
+    focus = run_json(focus_command, default={}) or {}
+
     current = run_json(
         ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--clusters', '-n', '5', '--search-limit', '50'],
         default={},
     ) or {}
+    high_command = ['python3', str(MAIL_TRIAGE), '--json', '--all', '--high-only', '--clusters', '-n', '5', '--search-limit', '50']
+    if review_worthy_only:
+        high_command.append('--review-worthy')
     high = run_json(
+        high_command,
+        default={},
+    ) or {}
+    raw_high = run_json(
         ['python3', str(MAIL_TRIAGE), '--json', '--all', '--high-only', '--clusters', '-n', '5', '--search-limit', '50'],
         default={},
     ) or {}
+
+    security_command = ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '3']
+    if current_only:
+        security_command.append('--current-only')
+    security_command.append('--explain-empty')
     security_alerts = run_json(
-        ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '3'],
+        security_command,
         default={},
     ) or {}
 
@@ -356,6 +375,7 @@ def build_summary(limit=1, current_only=False, review_worthy_only=False):
     focus_draft = focus.get('draft') or {}
     current_groups = collapse_parallel_security_groups(current.get('groups') or current.get('items') or [])
     high_groups = collapse_parallel_security_groups(high.get('groups') or high.get('items') or [])
+    raw_high_groups = collapse_parallel_security_groups(raw_high.get('groups') or raw_high.get('items') or [])
 
     candidates = []
     seen = set()
@@ -405,6 +425,7 @@ def build_summary(limit=1, current_only=False, review_worthy_only=False):
     if not selected:
         fallback_groups = current_groups if current_only else high_groups
         if review_worthy_only:
+            fallback_groups = raw_high_groups if not current_only else current_groups
             fallback_groups = [group for group in fallback_groups if not group.get('review_worthy')]
         for group in rank_groups(fallback_groups, skip_code=False, prefer_current=current_only):
             if group.get('attention_now') and not current_only:

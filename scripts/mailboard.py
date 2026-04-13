@@ -45,8 +45,18 @@ def run_json(command, default=None, timeout=20):
 
 
 def build_board(limit=5, current_only=False, review_worthy_only=False):
+    def latest_items(payload):
+        if isinstance(payload, dict):
+            return payload.get('items') or []
+        return payload or []
+
+    def latest_suppressed(payload):
+        if isinstance(payload, dict):
+            return payload.get('suppressed_groups') or []
+        return []
+
     next_step_command = ['python3', str(MAIL_NEXT_STEP), '--json', '-n', '3']
-    security_alerts_command = ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '5']
+    security_alerts_command = ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '5', '--explain-empty']
     latest_base_flags = ['--review-worthy'] if review_worthy_only else ['--meaningful']
     triage_review_flags = ['--review-worthy'] if review_worthy_only else []
     if current_only:
@@ -58,9 +68,9 @@ def build_board(limit=5, current_only=False, review_worthy_only=False):
     jobs = {
         'latest': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json'] + (['--review-worthy'] if review_worthy_only else []), [], 20),
         'latest_meaningful': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json'] + latest_base_flags, [], 20),
-        'latest_current': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json'] + latest_base_flags + ['--current-only'], [], 20),
+        'latest_current': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json'] + latest_base_flags + ['--current-only', '--explain-empty'], {}, 20),
         'latest_threads': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--threads'] + latest_base_flags, [], 20),
-        'latest_threads_current': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--threads'] + latest_base_flags + ['--current-only'], [], 20),
+        'latest_threads_current': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--threads'] + latest_base_flags + ['--current-only', '--explain-empty'], {}, 20),
         'unread': (['python3', str(MAIL_LATEST), '-n', str(limit), '--json', '--unread'] + (['--review-worthy'] if review_worthy_only else []), [], 20),
         'summary': (['python3', str(MAIL_SUMMARY), '--json'], {}, 20),
         'drafts': (['python3', str(MAIL_DRAFTS), '--json', '--unread', '-n', str(limit)], {}, 20),
@@ -102,9 +112,11 @@ def build_board(limit=5, current_only=False, review_worthy_only=False):
 
     latest = latest or []
     latest_meaningful = latest_meaningful or []
-    latest_current = latest_current or []
+    latest_current_payload = latest_current or {}
     latest_threads = latest_threads or []
-    latest_threads_current = latest_threads_current or []
+    latest_threads_current_payload = latest_threads_current or {}
+    latest_current = latest_items(latest_current_payload)
+    latest_threads_current = latest_items(latest_threads_current_payload)
     unread = unread or []
     summary = summary or {}
     drafts = drafts or {}
@@ -200,6 +212,8 @@ def build_board(limit=5, current_only=False, review_worthy_only=False):
         'latest_current': latest_current,
         'latest_threads': latest_threads,
         'latest_threads_current': latest_threads_current,
+        'latest_current_suppressed': latest_suppressed(latest_current_payload),
+        'latest_threads_current_suppressed': latest_suppressed(latest_threads_current_payload),
         'unread': unread,
         'new_messages': summary.get('messages', []),
         'drafts': drafts.get('drafts', []),
@@ -271,7 +285,7 @@ def has_current_mail_activity(board):
 
 def summarize_suppressed_hint(group):
     group = group or {}
-    label = group.get('label') or group.get('sender') or group.get('sender_email') or 'onbekend'
+    label = group.get('label') or group.get('sender') or group.get('from') or group.get('sender_email') or 'onbekend'
     subject = group.get('subject') or '(geen onderwerp)'
     action = group.get('action_hint') or 'mail checken'
     reason = group.get('reason') or 'onderdrukt'
@@ -492,6 +506,18 @@ def render_text(board, show_preview=False, current_only=False, review_worthy_onl
 
     next_step_suppressed = (board.get('next_step') or {}).get('suppressed_groups') or []
     security_suppressed = (board.get('security_alerts') or {}).get('suppressed_groups') or []
+    latest_suppressed = board.get('latest_current_suppressed') or []
+    latest_thread_suppressed = board.get('latest_threads_current_suppressed') or []
+    if not has_current_activity and latest_suppressed:
+        preview = '; '.join(summarize_suppressed_hint(group) for group in latest_suppressed[:2])
+        remaining = max(0, len(latest_suppressed) - 2)
+        suffix = f" +{remaining} meer" if remaining else ''
+        lines.append(f"- onderdrukt latest: {preview}{suffix}")
+    if not has_current_activity and latest_thread_suppressed:
+        preview = '; '.join(summarize_suppressed_hint(group) for group in latest_thread_suppressed[:2])
+        remaining = max(0, len(latest_thread_suppressed) - 2)
+        suffix = f" +{remaining} meer" if remaining else ''
+        lines.append(f"- onderdrukt threads: {preview}{suffix}")
     if not has_current_activity and next_step_suppressed:
         preview = '; '.join(summarize_suppressed_hint(group) for group in next_step_suppressed[:2])
         remaining = max(0, len(next_step_suppressed) - 2)

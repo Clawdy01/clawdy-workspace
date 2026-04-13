@@ -140,11 +140,18 @@ def build_payload(limit=3, messages=8, preview=False, meaningful=False, candidat
     return payload
 
 
-def render_text(payload, *, show_preview=False, show_draft=False, alt_limit=2):
+def render_text(payload, *, show_preview=False, show_draft=False, show_explain_empty=False, alt_limit=2):
     summary = payload.get('summary') or {}
     selected_candidate = payload.get('selected_candidate') or {}
     if summary.get('recommended_route') == 'noop':
-        return 'Geen duidelijke volgende mail-review.'
+        if not show_explain_empty:
+            return 'Geen duidelijke volgende mail-review.'
+        lines = ['Mail review next']
+        lines.append(f"- next=noop, reason={summary.get('reason') or 'geen duidelijke volgende mail-review'}")
+        for index, group in enumerate((summary.get('suppressed_groups') or [])[:3], start=1):
+            hint = format_next_step_candidate_hint(group, include_age=True) or 'onbekend'
+            lines.append(f"- suppressed{index}={hint} | reason={group.get('reason')}")
+        return '\n'.join(lines)
 
     route = selected_candidate.get('recommended_route') or summary.get('recommended_route')
     reason = selected_candidate.get('reason') or summary.get('reason')
@@ -237,6 +244,7 @@ def main():
     parser.add_argument('--meaningful', action='store_true', help='forceer betekenisvolle threadselectie bij de review lookup')
     parser.add_argument('--current-only', action='store_true', help='open alleen een reviewroute als mail-next-step nog een actuele kandidaat heeft')
     parser.add_argument('--review-worthy', action='store_true', help='open alleen kandidaten die na actualiteitsfiltering nog reviewwaardig zijn')
+    parser.add_argument('--explain-empty', action='store_true', help='leg bij een lege reviewroute compact uit welke kandidaten bewust zijn onderdrukt')
     parser.add_argument('--candidate', type=int, default=1, help='open kandidaat N uit mail-next-step in plaats van altijd de eerste')
     args = parser.parse_args()
 
@@ -252,7 +260,7 @@ def main():
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
-        print(render_text(payload, show_preview=args.preview, show_draft=args.draft, alt_limit=max(0, args.limit - 1)))
+        print(render_text(payload, show_preview=args.preview, show_draft=args.draft, show_explain_empty=args.explain_empty, alt_limit=max(0, args.limit - 1)))
 
 
 if __name__ == '__main__':
