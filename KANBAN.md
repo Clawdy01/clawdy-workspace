@@ -3,7 +3,7 @@
 ## Execution guardrails
 - Operationele werklijst staat ook in Exchange Taken; KANBAN blijft de lokale bron voor structuur en prioriteit.
 - Eén primair spoor tegelijk. Alleen het primaire spoor krijgt actieve bouwtijd totdat het klaar of echt geblokkeerd is.
-- Huidig primair spoor: Secrets / password workflow opruimen en bruikbaar structureren
+- Huidig primair spoor: mail workflow slimmer maken
 - Parallel mag alleen voor klein onderhoud of wanneer het primaire spoor extern wacht.
 - Als het primaire spoor leeg is of extern wacht, herbeoordeel proactief taken, geparkeerde taken en backlog op wat nu wel uitgevoerd kan worden.
 - Elk actief spoor moet een concrete definition of done hebben.
@@ -18,7 +18,7 @@
 - Photo editing / image workflows: alleen opnieuw actief zodra er een echte bruikbare modelroute beschikbaar is
 
 ## Now
-- Secrets / password workflow opruimen en bruikbaar structureren is nu het primaire spoor
+- Mail workflow slimmer maken is nu het primaire spoor
 - Eerste nulmeting vastgelegd in `research/creative-tooling-baseline.md` met bevestigde lokale CLI-routes voor ffmpeg, ImageMagick, sox en yt-dlp
 - Kleine interne workflow-notitie staat nu in `research/creative-tooling-workflows.md`, met live geteste paden voor video-clippen, frame-export, audio-normalisatie en simpele image-afleidingen
 - Eerste helper staat nu live: `scripts/video-clip.py` voor video-clip + frame-export, lokaal geverifieerd op synthetische testvideo
@@ -86,6 +86,10 @@
 - Nieuw primair spoor: mail workflow slimmer maken
 - Eerste concrete stap op dit spoor staat nu live: `scripts/mail-next-step.py` ondersteunt `--current-only`, zodat queue/next-step alleen actuele mailacties tonen zonder stale follow-up of codefallback; `scripts/mail-dispatch.py` exposeert die route nu ook voor `next-step` en `queue`, live geverifieerd met `python3 scripts/mail-next-step.py --current-only --json -n 3` en `python3 scripts/mail-dispatch.py queue --current-only --json`
 - Focus/actualiteitsheuristiek is nu aangescherpt: pure `ter info` mails zonder reply/deadline/hoog-signaal tellen niet meer als `attention_now`, en `scripts/mail-focus.py` kiest unread-focus nu eerst alleen uit echte actie-mails. Live geverifieerd met `python3 scripts/mail-dispatch.py queue --current-only --json` -> `recommended_route: noop`, `python3 scripts/mail-dispatch.py focus --json` -> `focus: null`, en `python3 scripts/mail-dispatch.py triage --all --current-only --clusters --json -n 5` -> geen actuele clusters terwijl de GitHub SSH-key notificatie alleen nog als stale info zichtbaar blijft
+- Stale no-reply notificatieclusters zonder unread/reply/deadline worden nu ook uit `mail-next-step.py` gefilterd voordat `queue` of `next-step` nog een follow-up aanraden; `mail-triage.py` voegt daarvoor groepssignalen toe (`reply_needed`, `deadline_hint`, `no_reply_only`, `unread_count`). Live geverifieerd met `python3 -m py_compile scripts/mail-triage.py scripts/mail-next-step.py`, `python3 scripts/mail-dispatch.py next-step --json` -> `recommended_route: noop`, en `python3 scripts/mail-dispatch.py queue --json -n 3` -> `recommended_route: noop` terwijl de oude stale Bitwarden-loginalert niet meer als nuttige vervolgstap terugkomt
+- Reviewwaardigheid is nu ook expliciet gemaakt voor stale no-reply threads/clusters: `mail_heuristics.py` heeft `group_needs_review()`, en `mail-triage.py` plus `mail-latest.py` annoteren nu `review_worthy` zodat oude Bitwarden/GitHub code- en alertthreads niet meer als betekenisvolle fallback of thread-overzicht blijven rondzingen. Live geverifieerd met `python3 -m py_compile scripts/mail_heuristics.py scripts/mail-triage.py scripts/mail-focus.py scripts/mail-latest.py`, `python3 scripts/mail-latest.py --json --meaningful --threads -n 10 --search-limit 50` -> `[]`, `python3 scripts/mail-dispatch.py focus --json` bleef schoon op `focus: null`, en clusteroutput toont nu expliciet `review_worthy: false` voor de stale no-reply restclusters
+- `scripts/mail-security-alerts.py` filtert nu ook stale security-clusters op `review_worthy`, zodat oude Bitwarden login-alerts niet meer via de security-alert fallback in `mail-next-step.py` terugkomen; live geverifieerd met `python3 -m py_compile scripts/mail-security-alerts.py scripts/mail-next-step.py`, `python3 scripts/mail-security-alerts.py --json` -> `recommended_route: noop`, en `python3 scripts/mail-dispatch.py next-step --json -n 5` -> `recommended_route: noop`
+- `scripts/mail-latest.py` ondersteunt nu ook `--review-worthy`, zodat losse latest-overzichten en threadlists direct dezelfde actualiteitsfilter kunnen toepassen en oude no-reply/code-noise niet meer in review-overzichten blijft hangen. Live geverifieerd met `python3 scripts/mail-dispatch.py latest --review-worthy --threads --json -n 10 --search-limit 50`, `python3 scripts/mail-dispatch.py latest --review-worthy --json -n 10 --search-limit 50` (beide nu leeg op de huidige mailbox), plus `python3 scripts/mail-latest.py --help` waarin de nieuwe vlag zichtbaar is
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
@@ -94,7 +98,7 @@
 - Betere identity-preserving photo edits blijven wel geblokkeerd op een sterkere/lokale modelroute
 
 ## Next
-- Mail workflow verder aanscherpen, waarschijnlijk rond verschil tussen echte reply/deadline-acties en lage-waarde notificatieclusters zodra er weer nieuwe mail binnenkomt
+- Mail workflow verder aanscherpen, nu waarschijnlijk rond wat nog wél als reviewwaardig telt zodra er weer nieuwe mail binnenkomt na de nieuwe filter op stale no-reply notificatieclusters
 - Daarna Mac migratieplan en lokale LLM/media-workflows oppakken
 - Onderzoek naar betere identity-preserving photo edit modellen/workflows
 - Regelmatige research-workflows opzetten voor onderwerpen die Christian wil volgen

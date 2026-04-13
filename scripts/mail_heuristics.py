@@ -586,6 +586,42 @@ def is_actionable_message(message, include_ephemeral=False):
     }
 
 
+def message_needs_review(message):
+    message = message or {}
+    if message.get('attention_now'):
+        return True
+    if message.get('reply_needed') or message.get('deadline_hint'):
+        return True
+
+    action = message.get('action_hint') or suggest_action(message)
+    stale = message.get('stale_attention')
+    if stale is None:
+        stale = is_stale_attention(message)
+    if stale:
+        return False
+    if is_no_reply_message(message) and action in {'ter info', 'code gebruiken'}:
+        return False
+    return action != 'ter info'
+
+
+
+def group_needs_review(group):
+    group = group or {}
+    if group.get('attention_now'):
+        return True
+    if int(group.get('unread_count') or 0) > 0:
+        return True
+    if group.get('reply_needed') or group.get('deadline_hint'):
+        return True
+
+    action = group.get('action_hint') or 'ter info'
+    if group.get('stale_attention'):
+        return False
+    if group.get('no_reply_only') and action in {'ter info', 'code gebruiken'}:
+        return False
+    return action != 'ter info'
+
+
 def format_stale_attention_hint(message):
     if not message:
         return ''

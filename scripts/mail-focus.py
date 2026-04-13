@@ -136,13 +136,7 @@ def thread_is_useful_fallback(thread, current_only=False):
         return False
     if current_only:
         return bool(thread.get('attention_now'))
-    if thread.get('reply_needed') or thread.get('deadline_hint'):
-        return True
-    if not thread.get('no_reply_only'):
-        return True
-    if thread.get('urgency') == 'high' and not thread.get('stale_attention'):
-        return True
-    return False
+    return bool(thread.get('review_worthy'))
 
 
 

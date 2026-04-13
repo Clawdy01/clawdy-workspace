@@ -12,6 +12,7 @@ SCRIPTS = ROOT / 'scripts'
 MAIL_FOCUS = SCRIPTS / 'mail-focus.py'
 MAIL_TRIAGE = SCRIPTS / 'mail-triage.py'
 MAIL_THREAD = SCRIPTS / 'mail-thread.py'
+MAIL_SECURITY_ALERTS = SCRIPTS / 'mail-security-alerts.py'
 
 
 def run_json(command, default=None, timeout=20):
@@ -178,8 +179,24 @@ def make_focus_candidate(focus_item, focus_draft):
     }
 
 
+def should_offer_stale_followup(group):
+    group = group or {}
+    if not group.get('stale_attention'):
+        return True
+    if group.get('reply_needed') or group.get('deadline_hint'):
+        return True
+    if int(group.get('unread_count') or 0) > 0:
+        return True
+    if group.get('no_reply_only'):
+        return False
+    return True
+
+
+
 def make_group_candidate(group, route_name, reason, *, review_only=False):
     if not group:
+        return None
+    if review_only and not should_offer_stale_followup(group):
         return None
     return {
         'recommended_route': route_name,
@@ -197,11 +214,35 @@ def make_group_candidate(group, route_name, reason, *, review_only=False):
 def make_codes_candidate(group):
     if not group:
         return None
+    if group.get('stale_attention') and not should_offer_stale_followup(group):
+        return None
     return {
         'recommended_route': 'check-codes',
         'recommended_command': build_codes_command(group),
         'reason': 'de resterende hoge mail lijkt vooral verificatiecode-verkeer',
         'review_only': bool(group.get('stale_attention')),
+        'focus': None,
+        'focus_draft': None,
+        'selected_group': group,
+        'selected_draft': None,
+        'thread_review': None,
+    }
+
+
+def make_security_alert_candidate(alert_summary):
+    alert_summary = alert_summary or {}
+    group = alert_summary.get('selected_group') or {}
+    command = alert_summary.get('recommended_command')
+    route = alert_summary.get('recommended_route')
+    reason = alert_summary.get('reason')
+    if not group or not command or not route or route == 'noop':
+        return None
+    review_only = bool(group.get('stale_attention'))
+    return {
+        'recommended_route': route,
+        'recommended_command': command,
+        'reason': reason,
+        'review_only': review_only,
         'focus': None,
         'focus_draft': None,
         'selected_group': group,
@@ -247,6 +288,10 @@ def build_summary(limit=1, current_only=False):
         ['python3', str(MAIL_TRIAGE), '--json', '--all', '--high-only', '--clusters', '-n', '5', '--search-limit', '50'],
         default={},
     ) or {}
+    security_alerts = run_json(
+        ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '3'],
+        default={},
+    ) or {}
 
     focus_item = focus.get('focus') or {}
     focus_draft = focus.get('draft') or {}
@@ -276,6 +321,8 @@ def build_summary(limit=1, current_only=False):
         ))
 
     if not current_only:
+        add_candidate(make_security_alert_candidate(security_alerts))
+
         for group in rank_groups(high_groups, skip_code=True)[:limit]:
             add_candidate(make_group_candidate(
                 group,
@@ -315,6 +362,8 @@ def build_summary(limit=1, current_only=False):
         'high_group_count': high.get('group_count', 0),
         'high_attention_now_count': high.get('attention_now_count', 0),
         'high_stale_attention_count': high.get('stale_attention_count', 0),
+        'security_alert_count': security_alerts.get('recent_count', 0),
+        'security_alert_attention_now_count': security_alerts.get('attention_now_count', 0),
         'recommended_route': selected_summary.get('recommended_route', 'noop'),
         'recommended_command': selected_summary.get('recommended_command'),
         'reason': selected_summary.get('reason', 'geen duidelijke mail-vervolgstap'),
@@ -336,7 +385,7 @@ def render_text(summary, show_alternatives=False):
         f"- next={summary.get('recommended_route')}, mode={action_mode}, reason={summary.get('reason')}"
     )
     lines.append(
-        f"- current_groups={summary.get('current_group_count')}, current_attention={summary.get('current_attention_now_count')}, high_groups={summary.get('high_group_count')}, stale_high={summary.get('high_stale_attention_count')}"
+        f"- current_groups={summary.get('current_group_count')}, current_attention={summary.get('current_attention_now_count')}, high_groups={summary.get('high_group_count')}, stale_high={summary.get('high_stale_attention_count')}, security_alerts={summary.get('security_alert_count', 0)}"
     )
     focus = summary.get('selected_focus') or summary.get('focus') or {}
     if focus:

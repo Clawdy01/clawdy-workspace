@@ -23,11 +23,13 @@ from mail_heuristics import (
     is_no_reply_message,
     is_self_message,
     is_test_message,
+    message_needs_review,
     needs_attention_now,
     reply_needed,
     sanitize_preview,
     suggest_action,
     summarize_security_alerts,
+    group_needs_review,
 )
 
 
@@ -228,6 +230,7 @@ def group_threads(rows, limit):
         thread['latest_age_hint'] = format_recency_hint(thread.get('latest_date_ts'))
         thread['span_hint'] = format_span_hint(thread.get('oldest_date_ts'), thread.get('latest_date_ts'))
         thread['stale_attention'] = not thread.get('attention_now', False)
+        thread['review_worthy'] = group_needs_review(thread)
     return thread_list[:limit]
 
 
@@ -255,6 +258,7 @@ def fetch_latest(
     search_limit=None,
     threads=False,
     current_only=False,
+    review_worthy_only=False,
     sender_filters=None,
     subject_filters=None,
     action_filters=None,
@@ -328,9 +332,16 @@ def fetch_latest(
         rows = [row for row in rows if is_actionable_message(row)]
     if current_only:
         rows = [row for row in rows if row.get('attention_now')]
+    if review_worthy_only:
+        rows = [row for row in rows if message_needs_review(row)]
 
     if threads:
-        return group_threads(rows, limit)
+        grouped = group_threads(rows, limit=max(limit, search_limit or limit))
+        if meaningful_only or actionable_only or review_worthy_only:
+            grouped = [thread for thread in grouped if thread.get('review_worthy')]
+        if current_only:
+            grouped = [thread for thread in grouped if thread.get('attention_now')]
+        return grouped[:limit]
     return rows[:limit]
 
 
@@ -378,6 +389,7 @@ def main():
     parser.add_argument('--meaningful', action='store_true', help='sla vluchtige/noisy mail over, maar behoud belangrijke geautomatiseerde alerts in de inbox-scan')
     parser.add_argument('--actionable', action='store_true', help='toon alleen mails/threads met duidelijke actiehint, reply-signaal, deadline of belangrijke alert')
     parser.add_argument('--current-only', action='store_true', help='toon alleen mails/threads die volgens de heuristiek nog actueel aandacht vragen')
+    parser.add_argument('--review-worthy', action='store_true', help='toon alleen mails/threads die na actualiteitsfiltering nog echt reviewwaardig zijn')
     parser.add_argument('--threads', action='store_true', help='groepeer recente mails op onderwerp/thread zodat drukke conversaties compacter zichtbaar zijn')
     parser.add_argument('--sender', action='append', help='filter op afzendernaam of e-mailadres, herhaalbaar')
     parser.add_argument('--subject', action='append', help='filter op onderwerptekst, herhaalbaar')
@@ -393,6 +405,7 @@ def main():
         search_limit=max(1, min(args.search_limit, 200)),
         threads=args.threads,
         current_only=args.current_only,
+        review_worthy_only=args.review_worthy,
         sender_filters=args.sender,
         subject_filters=args.subject,
         action_filters=args.action,

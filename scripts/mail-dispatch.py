@@ -36,9 +36,9 @@ ROUTES = {
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-summary.py')] + (['--preview'] if '--preview' in args else []) + (['--json'] if json_mode else []),
     },
     'latest': {
-        'description': 'Laatste mails snel bekijken, optioneel gegroepeerd per thread of gefilterd op actie, urgency, actualiteit, afzender of onderwerp',
-        'args': ['-n/--limit?', '--preview?', '--unread?', '--meaningful?', '--actionable?', '--current-only?', '--threads?', '--sender <tekst>?', '--subject <tekst>?', '--action <tekst>?', '--urgency <tekst>?', '--search-limit <n>?'],
-        'examples': ['mail-dispatch.py latest', 'mail-dispatch.py latest --unread -n 10', 'mail-dispatch.py latest --actionable --threads -n 5', 'mail-dispatch.py latest --meaningful --current-only --threads -n 5', 'mail-dispatch.py latest --action "security checken" --urgency high', 'mail-dispatch.py latest --sender Proton --subject verification'],
+        'description': 'Laatste mails snel bekijken, optioneel gegroepeerd per thread of gefilterd op actie, urgency, actualiteit, reviewwaardigheid, afzender of onderwerp',
+        'args': ['-n/--limit?', '--preview?', '--unread?', '--meaningful?', '--actionable?', '--current-only?', '--review-worthy?', '--threads?', '--sender <tekst>?', '--subject <tekst>?', '--action <tekst>?', '--urgency <tekst>?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py latest', 'mail-dispatch.py latest --unread -n 10', 'mail-dispatch.py latest --actionable --threads -n 5', 'mail-dispatch.py latest --meaningful --current-only --threads -n 5', 'mail-dispatch.py latest --review-worthy --threads -n 5', 'mail-dispatch.py latest --action "security checken" --urgency high', 'mail-dispatch.py latest --sender Proton --subject verification'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-latest.py')] + args + (['--json'] if json_mode else []),
     },
     'drafts': {

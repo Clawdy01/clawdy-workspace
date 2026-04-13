@@ -78,6 +78,8 @@ def filter_security_groups(groups):
     for group in groups or []:
         if not is_security_group(group):
             continue
+        if not (group.get('attention_now') or group.get('review_worthy')):
+            continue
         key = group_key(group)
         if key in seen:
             continue
@@ -97,6 +99,7 @@ def summarize_group(group):
         'latest_age_hint': group.get('latest_age_hint') or group.get('age_hint'),
         'stale_attention': bool(group.get('stale_attention')),
         'attention_now': bool(group.get('attention_now')),
+        'review_worthy': bool(group.get('review_worthy')),
         'security_alert_summary': group.get('security_alert_summary'),
         'latest_uid': group.get('latest_uid'),
         'recommended_command': build_thread_command(group),

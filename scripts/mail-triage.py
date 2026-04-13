@@ -19,6 +19,7 @@ from mail_heuristics import (
     reply_needed,
     suggest_action,
     summarize_security_alerts,
+    group_needs_review,
 )
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
@@ -50,7 +51,7 @@ def summarize_related_groups(groups, limit=None):
         if not items:
             continue
         latest = max(items, key=lambda item: (item.get('date_ts') or 0, int(item.get('uid') or 0)))
-        summaries.append({
+        summary = {
             'from': latest.get('from'),
             'sender': latest.get('from'),
             'sender_email': latest.get('sender_email'),
@@ -65,7 +66,13 @@ def summarize_related_groups(groups, limit=None):
             'security_alert_summary': summarize_security_alerts(items),
             'attention_now': any(needs_attention_now(item) for item in items),
             'stale_attention': not any(needs_attention_now(item) for item in items),
-        })
+            'reply_needed': any(item.get('reply_needed') for item in items),
+            'deadline_hint': next((item.get('deadline_hint') for item in items if item.get('deadline_hint')), None),
+            'no_reply_only': all(item.get('no_reply') for item in items),
+            'unread_count': sum(1 for item in items if item.get('unread')),
+        }
+        summary['review_worthy'] = group_needs_review(summary)
+        summaries.append(summary)
 
     summaries.sort(
         key=lambda group: (
