@@ -17,6 +17,28 @@ ROOT = Path('/home/clawdy/.openclaw/workspace')
 BRIEF = ROOT / 'scripts' / 'clawdy-brief.py'
 
 
+def extract_json_document(text):
+    text = (text or '').strip()
+    if not text:
+        raise json.JSONDecodeError('Expecting value', text, 0)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.lstrip()
+        if not stripped.startswith(('{', '[')):
+            continue
+        candidate = '\n'.join(lines[index:]).strip()
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+    raise json.JSONDecodeError('Expecting value', text, 0)
+
+
 def run_brief_json():
     try:
         proc = subprocess.run(
@@ -31,7 +53,7 @@ def run_brief_json():
         raise SystemExit('clawdy-brief timed out')
     if proc.returncode != 0:
         raise SystemExit(proc.stderr.strip() or proc.stdout.strip() or f'clawdy-brief failed: {proc.returncode}')
-    return json.loads(proc.stdout)
+    return extract_json_document(proc.stdout)
 
 
 def render_text(data, show_preview=False):
@@ -85,6 +107,9 @@ def render_text(data, show_preview=False):
             ai_bits.append(ai_briefing_status['proof_text'])
         if ai_briefing_status.get('attention_text'):
             ai_bits.append(f"let op: {ai_briefing_status['attention_text']}")
+        runtime_audit = ai_briefing_status.get('runtime_audit') or {}
+        if runtime_audit.get('session_target') and runtime_audit.get('wake_mode'):
+            ai_bits.append(f"route {runtime_audit['session_target']}/{runtime_audit['wake_mode']} via {runtime_audit.get('agent_id') or 'onbekend'}")
         payload_audit = ai_briefing_status.get('payload_audit') or {}
         if ai_briefing_status.get('updated_at_hint'):
             fingerprint = payload_audit.get('message_sha256_short')
@@ -107,6 +132,16 @@ def render_text(data, show_preview=False):
             if last_run_summary.get('total_tokens') is not None:
                 duration_text += f", {last_run_summary['total_tokens']} tokens"
             ai_bits.append(duration_text)
+        if ai_briefing_status.get('runs_total'):
+            rate_bits = []
+            if ai_briefing_status.get('success_rate_pct') is not None:
+                rate_bits.append(f"succes {ai_briefing_status['success_rate_pct']:.1f}%")
+            if ai_briefing_status.get('delivery_rate_pct') is not None:
+                rate_bits.append(f"delivery {ai_briefing_status['delivery_rate_pct']:.1f}%")
+            if ai_briefing_status.get('success_streak'):
+                rate_bits.append(f"streak {ai_briefing_status['success_streak']}")
+            if rate_bits:
+                ai_bits.append(', '.join(rate_bits))
         lines.append(f"- ai briefing: {'; '.join(ai_bits)}")
     mail_line = f"- mail: last_uid {mail['last_uid']}, notified {mail['tracked_notifications']} ({mail['account']})"
     recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))

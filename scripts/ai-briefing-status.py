@@ -15,6 +15,9 @@ EXPECTED_SCHEDULE_EXPR = '0 9 * * *'
 EXPECTED_DELIVERY_CHANNEL = 'telegram'
 EXPECTED_DELIVERY_TO = '16584407'
 EXPECTED_DELIVERY_MODE = 'announce'
+EXPECTED_SESSION_TARGET = 'isolated'
+EXPECTED_WAKE_MODE = 'now'
+EXPECTED_AGENT_ID = 'main'
 REQUIRED_CATEGORY_MARKERS = [
     '1) frontier modelreleases en modelupdates',
     '2) nieuwe AI-tools en productfeatures',
@@ -96,6 +99,9 @@ def summarize_run(run):
     if not run:
         return None
     usage = run.get('usage') or {}
+    error_text = run.get('summary') or run.get('error') or run.get('deliveryError')
+    if isinstance(error_text, str):
+        error_text = ' '.join(error_text.split())[:240]
     return {
         'status': run.get('status'),
         'delivered': bool(run.get('delivered')),
@@ -109,7 +115,18 @@ def summarize_run(run):
         'total_tokens': usage.get('total_tokens'),
         'input_tokens': usage.get('input_tokens'),
         'output_tokens': usage.get('output_tokens'),
+        'error_text': error_text,
     }
+
+
+def trailing_streak(runs, predicate):
+    streak = 0
+    for run in reversed(runs):
+        if predicate(run):
+            streak += 1
+        else:
+            break
+    return streak
 
 
 def load_runs(job_id):
@@ -150,6 +167,10 @@ def audit_payload(job):
         reasons.append(f'timeoutSeconds te laag ({timeout_seconds})')
     if payload.get('kind') != 'agentTurn':
         reasons.append(f"payload.kind is {payload.get('kind') or 'onbekend'}")
+    if 'bronnenlijst met URLs' not in message:
+        reasons.append('bronnenlijst met URLs ontbreekt')
+    if 'Als er weinig echt nieuws is, zeg dat eerlijk' not in message:
+        reasons.append('eerlijke low-news instructie ontbreekt')
     if not light_context:
         reasons.append('lightContext staat uit')
 
@@ -179,6 +200,9 @@ def audit_runtime(job, tz_name):
     delivery_channel = delivery.get('channel') or 'onbekend'
     delivery_to = str(delivery.get('to') or 'onbekend')
     delivery_mode = delivery.get('mode')
+    session_target = job.get('sessionTarget') or 'onbekend'
+    wake_mode = job.get('wakeMode') or 'onbekend'
+    agent_id = job.get('agentId') or 'onbekend'
 
     if schedule.get('kind') != 'cron':
         reasons.append(f"schedule.kind is {schedule.get('kind') or 'onbekend'}")
@@ -192,6 +216,12 @@ def audit_runtime(job, tz_name):
         reasons.append(f"delivery target is {delivery_to}")
     if delivery_mode != EXPECTED_DELIVERY_MODE:
         reasons.append(f"delivery mode is {delivery_mode or 'onbekend'}")
+    if session_target != EXPECTED_SESSION_TARGET:
+        reasons.append(f"sessionTarget is {session_target}")
+    if wake_mode != EXPECTED_WAKE_MODE:
+        reasons.append(f"wakeMode is {wake_mode}")
+    if agent_id != EXPECTED_AGENT_ID:
+        reasons.append(f"agentId is {agent_id}")
 
     return {
         'ok': not reasons,
@@ -201,8 +231,11 @@ def audit_runtime(job, tz_name):
         'delivery_channel': delivery_channel,
         'delivery_to': delivery_to,
         'delivery_mode': delivery_mode,
+        'session_target': session_target,
+        'wake_mode': wake_mode,
+        'agent_id': agent_id,
         'reasons': reasons,
-        'text': 'schedule/delivery ok' if not reasons else '; '.join(reasons),
+        'text': 'schedule/delivery/execution ok' if not reasons else '; '.join(reasons),
     }
 
 
@@ -233,6 +266,10 @@ def build_status(job_name=TARGET_JOB_NAME):
     last_run_summary = summarize_run(last_run)
     last_success_summary = summarize_run(last_success)
     last_delivered_summary = summarize_run(last_delivered)
+    success_rate = (len(successful_runs) / len(finished_runs)) if finished_runs else None
+    delivery_rate = (len(delivered_runs) / len(finished_runs)) if finished_runs else None
+    success_streak = trailing_streak(finished_runs, lambda run: run.get('status') == 'ok') if finished_runs else 0
+    delivery_streak = trailing_streak(finished_runs, lambda run: bool(run.get('delivered'))) if finished_runs else 0
     next_run_at = state.get('nextRunAtMs')
     last_run_at = (last_run or {}).get('runAtMs') or state.get('lastRunAtMs')
     created_at = job.get('createdAtMs')
@@ -261,9 +298,19 @@ def build_status(job_name=TARGET_JOB_NAME):
     if consecutive_errors:
         attention_reasons.append(f'{consecutive_errors} opeenvolgende cronfout(en)')
     if last_run_status and last_run_status != 'ok':
-        attention_reasons.append(f'laatste runstatus {last_run_status}')
+        error_text = (last_run_summary or {}).get('error_text')
+        if error_text:
+            attention_reasons.append(f'laatste runstatus {last_run_status}: {error_text}')
+        else:
+            attention_reasons.append(f'laatste runstatus {last_run_status}')
     if finished_runs and delivery.get('mode') not in (None, 'none') and last_delivery_status not in (None, 'delivered', 'not-requested'):
-        attention_reasons.append(f'laatste delivery-status {last_delivery_status}')
+        delivery_error_text = (last_run or {}).get('deliveryError') or (last_run_summary or {}).get('error_text')
+        if isinstance(delivery_error_text, str):
+            delivery_error_text = ' '.join(delivery_error_text.split())[:240]
+        if delivery_error_text:
+            attention_reasons.append(f'laatste delivery-status {last_delivery_status}: {delivery_error_text}')
+        else:
+            attention_reasons.append(f'laatste delivery-status {last_delivery_status}')
     if not payload_audit.get('ok'):
         attention_reasons.append(f"prompt/config: {payload_audit.get('text')}")
     if not runtime_audit.get('ok'):
@@ -296,6 +343,12 @@ def build_status(job_name=TARGET_JOB_NAME):
         'runs_total': len(finished_runs),
         'runs_ok': len(successful_runs),
         'runs_delivered': len(delivered_runs),
+        'success_rate': success_rate,
+        'delivery_rate': delivery_rate,
+        'success_rate_pct': round(success_rate * 100, 1) if success_rate is not None else None,
+        'delivery_rate_pct': round(delivery_rate * 100, 1) if delivery_rate is not None else None,
+        'success_streak': success_streak,
+        'delivery_streak': delivery_streak,
         'has_run_proof': bool(finished_runs),
         'first_run_pending': first_run_pending,
         'last_run': last_run,
@@ -324,6 +377,8 @@ def build_status(job_name=TARGET_JOB_NAME):
         status_text = f"{len(successful_runs)}/{len(finished_runs)} runs ok"
         if delivered_runs:
             status_text += f", {len(delivered_runs)} afgeleverd"
+        if success_streak:
+            status_text += f", streak {success_streak}"
         if last_run_summary and last_run_summary.get('duration_text'):
             status_text += f", laatste duur {last_run_summary['duration_text']}"
         if last_run_at:
@@ -354,6 +409,9 @@ def render_text(data):
             parts.append(runtime_audit.get('text'))
         if payload_audit.get('text'):
             parts.append(payload_audit.get('text'))
+    runtime_audit = data.get('runtime_audit') or {}
+    if runtime_audit.get('session_target') and runtime_audit.get('wake_mode'):
+        parts.append(f"route {runtime_audit['session_target']}/{runtime_audit['wake_mode']} via {runtime_audit.get('agent_id') or 'onbekend'}")
     if data.get('updated_at_hint'):
         fingerprint = payload_audit.get('message_sha256_short')
         if fingerprint:
@@ -378,6 +436,20 @@ def render_text(data):
         if token_text:
             duration_text += f", {token_text}"
         parts.append(duration_text)
+    if data.get('runs_total'):
+        success_bits = []
+        if data.get('success_rate_pct') is not None:
+            success_bits.append(f"succes {data['success_rate_pct']:.1f}%")
+        if data.get('delivery_rate_pct') is not None:
+            success_bits.append(f"delivery {data['delivery_rate_pct']:.1f}%")
+        if data.get('success_streak'):
+            success_bits.append(f"streak {data['success_streak']}")
+        if data.get('delivery_streak'):
+            success_bits.append(f"delivery-streak {data['delivery_streak']}")
+        if success_bits:
+            parts.append(', '.join(success_bits))
+    if last_run_summary.get('error_text') and data.get('attention_text'):
+        parts.append(f"laatste fout {last_run_summary['error_text']}")
     return ' | '.join(parts)
 
 
