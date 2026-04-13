@@ -81,7 +81,7 @@ MAIL_DRAFTS = ROOT / 'scripts' / 'mail-drafts.py'
 MAIL_LATEST = ROOT / 'scripts' / 'mail-latest.py'
 
 
-def pick_focus_item(items, allow_informational=True, current_only=False):
+def pick_focus_item(items, allow_informational=True, current_only=False, review_worthy_only=False):
     items = items or []
     if not items:
         return None
@@ -94,7 +94,7 @@ def pick_focus_item(items, allow_informational=True, current_only=False):
             continue
         if current_only and not needs_attention_now(item):
             continue
-        if allow_informational:
+        if allow_informational and not review_worthy_only:
             return item
         if message_needs_review(item):
             return item
@@ -176,7 +176,7 @@ def thread_is_useful_fallback(thread, current_only=False):
 
 
 
-def find_focus(limit=10, search_limit=50):
+def find_focus(limit=10, search_limit=50, current_only=False, review_worthy_only=False):
     limit = max(1, min(limit, 20))
     search_limit = max(limit, min(search_limit, 200))
 
@@ -187,13 +187,28 @@ def find_focus(limit=10, search_limit=50):
         scope = 'latest'
         effective_limit = limit
         triage = load_triage_window(limit=effective_limit, unread_only=False)
-        item = pick_focus_item(triage.get('items'), allow_informational=False, current_only=True)
+        item = pick_focus_item(
+            triage.get('items'),
+            allow_informational=False,
+            current_only=current_only,
+            review_worthy_only=review_worthy_only,
+        )
         while not item and triage.get('count', 0) >= effective_limit and effective_limit < search_limit:
             effective_limit = min(search_limit, effective_limit * 2)
             triage = load_triage_window(limit=effective_limit, unread_only=False)
-            item = pick_focus_item(triage.get('items'), allow_informational=False, current_only=True)
+            item = pick_focus_item(
+                triage.get('items'),
+                allow_informational=False,
+                current_only=current_only,
+                review_worthy_only=review_worthy_only,
+            )
     else:
-        item = pick_focus_item(triage.get('items'), allow_informational=False)
+        item = pick_focus_item(
+            triage.get('items'),
+            allow_informational=False,
+            current_only=current_only,
+            review_worthy_only=review_worthy_only,
+        )
 
     drafts = run_json(
         ['python3', str(MAIL_DRAFTS), '--json', '-n', str(min(search_limit, max(limit, triage.get('count', 0) or limit)))] + (['--all'] if scope == 'latest' else ['--unread']),
@@ -201,7 +216,12 @@ def find_focus(limit=10, search_limit=50):
     )
 
     if scope != 'unread':
-        item = pick_focus_item(triage.get('items'), allow_informational=False, current_only=True)
+        item = pick_focus_item(
+            triage.get('items'),
+            allow_informational=False,
+            current_only=current_only,
+            review_worthy_only=review_worthy_only,
+        )
 
     draft = None
     if item:
@@ -230,7 +250,7 @@ def find_focus(limit=10, search_limit=50):
         ]
         if meaningful_threads:
             fallback_scope = 'current'
-        else:
+        elif not current_only:
             meaningful_threads = [
                 thread for thread in load_meaningful_threads(limit, search_limit, current_only=False)
                 if thread_is_useful_fallback(thread, current_only=False)
@@ -268,6 +288,8 @@ def find_focus(limit=10, search_limit=50):
         'focus_related_burst_count': len(related_items),
         'draft': draft,
         'fallback_scope': fallback_scope,
+        'current_only': current_only,
+        'review_worthy_only': review_worthy_only,
         'fallback_thread': meaningful_threads[0] if meaningful_threads else None,
         'suppressed_groups': suppressed_groups,
     }
@@ -292,10 +314,16 @@ def render_text(result, show_preview=False, show_draft=False):
                 f"maar {label} is: {participants} — {fallback.get('subject', '(geen onderwerp)')} ({fallback.get('message_count', 0)}x{time_suffix}){stale}."
             )
         suppressed = result.get('suppressed_groups') or []
-        if skipped:
+        if result.get('current_only'):
+            message = 'Geen actuele mail-focus gevonden.'
+        elif result.get('review_worthy_only'):
+            message = 'Geen reviewwaardige mail-focus gevonden.'
+        elif skipped:
             message = f'Geen duidelijke mail-focus gevonden, laatste window is vooral code-mail ({skipped}).'
         else:
             message = 'Geen duidelijke mail-focus gevonden.'
+        if skipped and (result.get('current_only') or result.get('review_worthy_only')):
+            message += f' Laatste window bevat vooral code-mail ({skipped}).'
         if suppressed:
             preview_bits = []
             for group in suppressed[:2]:
@@ -342,9 +370,16 @@ def main():
     parser.add_argument('--json', action='store_true')
     parser.add_argument('--preview', action='store_true')
     parser.add_argument('--draft', action='store_true', help='toon ook het bijpassende conceptantwoord als beschikbaar')
+    parser.add_argument('--current-only', action='store_true', help='toon alleen een focus die nu echt aandacht vraagt')
+    parser.add_argument('--review-worthy', action='store_true', help='toon alleen een focus die nog reviewwaardig is')
     args = parser.parse_args()
 
-    result = find_focus(limit=args.limit, search_limit=args.search_limit)
+    result = find_focus(
+        limit=args.limit,
+        search_limit=args.search_limit,
+        current_only=args.current_only,
+        review_worthy_only=args.review_worthy,
+    )
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:

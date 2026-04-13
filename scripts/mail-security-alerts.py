@@ -154,7 +154,7 @@ def summarize_suppressed_group(group, *, current_only=False):
     return summary
 
 
-def build_summary(limit=5, current_only=False):
+def build_summary(limit=5, current_only=False, explain_empty=False):
     limit = max(1, min(limit, 10))
     current = run_json(
         ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--review-worthy', '--clusters', '-n', str(limit), '--search-limit', '50'],
@@ -228,7 +228,7 @@ def build_summary(limit=5, current_only=False):
         'selected_group': selected_summary,
         'current_groups': [summarize_group(group) for group in current_groups[:limit]],
         'recent_groups': [] if current_only else [summarize_group(group) for group in recent_groups[:limit]],
-        'suppressed_groups': suppressed_groups,
+        'suppressed_groups': suppressed_groups if explain_empty or selected_summary else [],
     }
 
 
@@ -266,9 +266,10 @@ def main():
     parser.add_argument('--json', action='store_true')
     parser.add_argument('-n', '--limit', type=int, default=5)
     parser.add_argument('--current-only', action='store_true', help='toon alleen security-alerts die nu nog actueel aandacht vragen')
+    parser.add_argument('--explain-empty', action='store_true', help='leg bij lege security-alert resultaten compact uit welke clusters bewust zijn onderdrukt')
     args = parser.parse_args()
 
-    summary = build_summary(limit=args.limit, current_only=args.current_only)
+    summary = build_summary(limit=args.limit, current_only=args.current_only, explain_empty=args.explain_empty)
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:

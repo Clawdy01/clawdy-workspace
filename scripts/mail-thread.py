@@ -354,19 +354,20 @@ def matches_filter(thread, *, uid_filter=None, sender_filter=None, subject_filte
 
 
 def pick_thread(threads, *, uid_filter=None, sender_filter=None, subject_filter=None, action_filter=None, current_only=False, review_worthy_only=False):
-    filtered = [
+    matching = [
         thread for thread in threads
         if matches_filter(thread, uid_filter=uid_filter, sender_filter=sender_filter, subject_filter=subject_filter, action_filter=action_filter)
     ]
+    filtered = matching
     if review_worthy_only:
         filtered = [thread for thread in filtered if thread.get('review_worthy')]
     if current_only:
         current = [thread for thread in filtered if thread.get('attention_now')]
-        return (current[0], filtered) if current else (None, filtered)
+        return (current[0], filtered, matching) if current else (None, filtered, matching)
     preferred = [thread for thread in filtered if thread.get('review_worthy')]
     if preferred:
-        return preferred[0], filtered
-    return (filtered[0], filtered) if filtered else (None, filtered)
+        return preferred[0], filtered, matching
+    return (filtered[0], filtered, matching) if filtered else (None, filtered, matching)
 
 
 def attach_action_links(thread):
@@ -387,6 +388,38 @@ def attach_action_links(thread):
     return thread
 
 
+def summarize_suppressed_threads(threads, limit=3):
+    summaries = []
+    for thread in threads or []:
+        reason = None
+        if thread.get('ephemeral_only'):
+            reason = 'tijdelijke code-thread'
+        elif thread.get('expected_security_change') and thread.get('security_alert_summary'):
+            reason = 'verwachte bekende securitywijziging'
+        elif thread.get('no_reply_only') and not thread.get('reply_needed') and not thread.get('deadline_hint') and not thread.get('review_worthy'):
+            reason = 'no-reply zonder vervolgsignaal'
+        elif not thread.get('attention_now') and not thread.get('review_worthy'):
+            reason = 'niet actueel en niet reviewwaardig'
+        elif not thread.get('attention_now'):
+            reason = 'niet actueel'
+        elif not thread.get('review_worthy'):
+            reason = 'niet reviewwaardig'
+        if not reason:
+            continue
+        summaries.append({
+            'latest_uid': thread.get('latest_uid'),
+            'from': thread.get('latest_from') or (thread.get('participants') or ['onbekend'])[0],
+            'subject': thread.get('subject') or '(geen onderwerp)',
+            'action_hint': thread.get('action_hint') or 'ter info',
+            'latest_age_hint': thread.get('latest_age_hint'),
+            'message_count': thread.get('message_count') or 1,
+            'reason': reason,
+        })
+        if len(summaries) >= limit:
+            break
+    return summaries
+
+
 def shell_join(parts):
     return ' '.join(shlex.quote(str(part)) for part in parts)
 
@@ -401,6 +434,11 @@ def render_text(result, show_preview=False, show_draft=False, message_limit=8):
         lines.append(f"- next={route}, reason={reason}")
         if command:
             lines.append(f"- check={command}")
+        for item in result.get('suppressed_groups') or []:
+            age = f" ({item.get('latest_age_hint')})" if item.get('latest_age_hint') else ''
+            lines.append(
+                f"- suppressed #{item.get('latest_uid')} {item.get('from')}: {item.get('subject')} [{item.get('action_hint')}] x{item.get('message_count')}{age} -> {item.get('reason')}"
+            )
         return '\n'.join(lines)
 
     participants = ', '.join((thread.get('participants') or [])[:3]) or (thread.get('latest_from') or 'onbekend')
@@ -465,6 +503,7 @@ def main():
     parser.add_argument('--messages', type=int, default=8, help='hoeveel berichten uit de gekozen thread tonen')
     parser.add_argument('--preview', action='store_true', help='toon ook previews per bericht')
     parser.add_argument('--draft', action='store_true', help='toon ook een bestaand concept dat bij deze thread hoort')
+    parser.add_argument('--explain-empty', action='store_true', help='leg bij lege current/review-resultaten compact uit welke threads bewust zijn onderdrukt')
     parser.add_argument('--json', action='store_true')
     args = parser.parse_args()
 
@@ -477,7 +516,7 @@ def main():
         unread_only=args.unread,
     )
     threads = build_threads(rows)
-    thread, filtered_threads = pick_thread(
+    thread, filtered_threads, matching_threads = pick_thread(
         threads,
         uid_filter=args.uid,
         sender_filter=args.sender,
@@ -556,6 +595,7 @@ def main():
         'recommended_route': recommended_route,
         'recommended_command': recommended_command,
         'reason': reason,
+        'suppressed_groups': summarize_suppressed_threads(filtered_threads or matching_threads, limit=3) if args.explain_empty and not thread else [],
     }
 
     if args.json:

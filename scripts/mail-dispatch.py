@@ -60,9 +60,9 @@ ROUTES = {
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-triage.py')] + with_defaults(args, '--all', '--current-only') + (['--json'] if json_mode else []),
     },
     'focus': {
-        'description': 'Kies de ene beste mail om nu als eerste op te pakken, optioneel met conceptantwoord',
-        'args': ['-n/--limit?', '--preview?', '--draft?'],
-        'examples': ['mail-dispatch.py focus', 'mail-dispatch.py focus --draft', 'mail-dispatch.py focus --json'],
+        'description': 'Kies de ene beste mail om nu als eerste op te pakken, optioneel current-only, review-worthy of met conceptantwoord',
+        'args': ['-n/--limit?', '--preview?', '--draft?', '--current-only?', '--review-worthy?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py focus', 'mail-dispatch.py focus --draft', 'mail-dispatch.py focus --current-only', 'mail-dispatch.py focus --review-worthy', 'mail-dispatch.py focus --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-focus.py')] + args + (['--json'] if json_mode else []),
     },
     'next-step': {
@@ -73,8 +73,8 @@ ROUTES = {
     },
     'security-alerts': {
         'description': 'Vat actuele en recente security-alert mailclusters samen, met directe review-command',
-        'args': ['-n/--limit?', '--current-only?'],
-        'examples': ['mail-dispatch.py security-alerts', 'mail-dispatch.py security-alerts --current-only', 'mail-dispatch.py security-alerts -n 3', 'mail-dispatch.py security-alerts --json'],
+        'args': ['-n/--limit?', '--current-only?', '--explain-empty?'],
+        'examples': ['mail-dispatch.py security-alerts', 'mail-dispatch.py security-alerts --current-only', 'mail-dispatch.py security-alerts --explain-empty', 'mail-dispatch.py security-alerts -n 3', 'mail-dispatch.py security-alerts --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-security-alerts.py')] + args + (['--json'] if json_mode else []),
     },
     'queue': {
@@ -91,8 +91,8 @@ ROUTES = {
     },
     'thread': {
         'description': 'Klap één recente mailthread compact uit, met filters op afzender/onderwerp/actie, reviewwaardigheid en optioneel conceptantwoord',
-        'args': ['-n/--limit?', '--search-limit <n>?', '--meaningful?', '--current-only?', '--review-worthy?', '--unread?', '--uid <n>?', '--sender <text>?', '--subject <text>?', '--action <text>?', '--messages <n>?', '--preview?', '--draft?'],
-        'examples': ['mail-dispatch.py thread', 'mail-dispatch.py thread --meaningful --current-only', 'mail-dispatch.py thread --review-worthy', 'mail-dispatch.py thread --sender bitwarden --draft', 'mail-dispatch.py thread --subject factuur --messages 5'],
+        'args': ['-n/--limit?', '--search-limit <n>?', '--meaningful?', '--current-only?', '--review-worthy?', '--unread?', '--uid <n>?', '--sender <text>?', '--subject <text>?', '--action <text>?', '--messages <n>?', '--preview?', '--draft?', '--explain-empty?'],
+        'examples': ['mail-dispatch.py thread', 'mail-dispatch.py thread --meaningful --current-only', 'mail-dispatch.py thread --review-worthy', 'mail-dispatch.py thread --review-worthy --explain-empty', 'mail-dispatch.py thread --sender bitwarden --draft', 'mail-dispatch.py thread --subject factuur --messages 5'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-thread.py')] + args + (['--json'] if json_mode else []),
     },
     'codes': {
@@ -153,7 +153,7 @@ def catalog_payload():
             for name, meta in ROUTES.items()
         ],
         'aliases': ALIASES,
-        'notes': 'Gebruik board voor een snel totaalbeeld, eventueel met --current-only voor alleen actuele aandacht of met --review-worthy voor alleen nog zinnige reviewmail. Gebruik now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, next-step voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback, review-next om die aanbevolen thread meteen open te klappen met context/concept, via --candidate een alternatief uit de queue te openen en met --current-only of --review-worthy de kandidaatset strakker te maken, thread om één specifieke conversatie compact uit te klappen en gebruik --review-worthy als je alleen nog zinnige reviewthreads wilt zien, triage voor prioritering van unread mail, waarbij herhalende stale no-reply ruis in itemmode automatisch wordt samengeklapt, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, en voeg ook daar --explain-empty toe als je lege resultaten compact wilt laten verklaren. Security-alerts gebruik je voor account- of loginmeldingen en daar sluit --current-only recente reviewfallback uit. Latest gebruik je voor inbox-scan of thread-view en daar helpt --explain-empty ook bij lege current/review-filters. Summary blijft voor alleen nieuwe mail sinds state.',
+        'notes': 'Gebruik board voor een snel totaalbeeld, eventueel met --current-only voor alleen actuele aandacht of met --review-worthy voor alleen nog zinnige reviewmail. Gebruik now voor wat nu echt aandacht vraagt, focus voor de ene beste eerstvolgende mail, desnoods met --current-only voor alleen actuele focus of --review-worthy voor alleen nog zinvolle reviewfocus. Next-step gebruik je voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback. Review-next klapt die aanbevolen thread meteen open met context/concept, via --candidate open je een alternatief uit de queue en met --current-only of --review-worthy maak je de kandidaatset strakker. Thread klapt één specifieke conversatie compact uit, gebruik --review-worthy als je alleen nog zinnige reviewthreads wilt zien, plus --explain-empty als je lege threadselectie wilt laten verklaren. Triage gebruik je voor prioritering van unread mail, waarbij herhalende stale no-reply ruis in itemmode automatisch wordt samengeklapt, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, en voeg ook daar --explain-empty toe als je lege resultaten compact wilt laten verklaren. Security-alerts gebruik je voor account- of loginmeldingen, daar sluit --current-only recente reviewfallback uit, en met --explain-empty zie je welke securityclusters bewust zijn onderdrukt. Latest gebruik je voor inbox-scan of thread-view en daar helpt --explain-empty ook bij lege current/review-filters. Summary blijft voor alleen nieuwe mail sinds state.',
     }
 
 
