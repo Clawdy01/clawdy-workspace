@@ -4,9 +4,12 @@ import email
 import json
 import pathlib
 import re
+from collections import OrderedDict
+from datetime import UTC, datetime
 from email.header import decode_header
-from email.utils import parseaddr
+from email.utils import parseaddr, parsedate_to_datetime
 
+from mail_heuristics import format_recency_hint
 from mail_imap import open_inbox
 
 BASE = pathlib.Path('/home/clawdy/.openclaw/workspace/state')
@@ -20,6 +23,7 @@ BLOCKED_CODE_PATTERNS = [
     r'^\d{4}$',
     r'^(?:0?\d|1[0-2])(?:[0-5]\d)$',
 ]
+CURRENT_WINDOW_SECONDS = 6 * 3600
 
 
 def dh(v):
@@ -111,7 +115,71 @@ def find_codes(text, patterns):
     return hits
 
 
-def fetch_codes(limit=15, sender_filter=None, subject_filter=None):
+def parse_date_timestamp(value):
+    value = clean(value)
+    if not value:
+        return None
+    try:
+        dt = parsedate_to_datetime(value)
+    except (TypeError, ValueError, IndexError, OverflowError):
+        return None
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt.timestamp()
+
+
+def normalize_subject(value):
+    value = clean(value or '')
+    while True:
+        updated = re.sub(r'^(?:(?:re|fw|fwd|aw|sv)\s*:\s*)+', '', value, flags=re.I).strip()
+        if updated == value:
+            break
+        value = updated
+    return value or '(geen onderwerp)'
+
+
+def is_current_code(row, now=None):
+    date_ts = row.get('date_ts')
+    if date_ts is None:
+        return True
+    now_dt = now.astimezone(UTC) if isinstance(now, datetime) else datetime.now(UTC)
+    age_seconds = max(0, int(now_dt.timestamp() - date_ts))
+    return age_seconds <= CURRENT_WINDOW_SECONDS
+
+
+def finalize_row(row):
+    row['current'] = is_current_code(row)
+    row['age_hint'] = format_recency_hint(row.get('date_ts'))
+    row['code_count'] = len(row.get('codes') or [])
+    return row
+
+
+def collapse_rows(rows):
+    groups = OrderedDict()
+    for row in rows:
+        key = f"{clean(row.get('sender_email')).lower()}::{normalize_subject(row.get('subject'))}"
+        current = groups.get(key)
+        if current is None:
+            grouped = dict(row)
+            grouped['group_key'] = key
+            grouped['duplicate_count'] = 1
+            grouped['collapsed_count'] = 0
+            grouped['codes'] = list(row.get('codes') or [])[:5]
+            groups[key] = finalize_row(grouped)
+            continue
+
+        current['duplicate_count'] += 1
+        current['collapsed_count'] = current['duplicate_count'] - 1
+        for code in row.get('codes') or []:
+            if code not in current['codes']:
+                current['codes'].append(code)
+        current['codes'] = current['codes'][:5]
+    return [finalize_row(row) for row in groups.values()]
+
+
+def fetch_codes(limit=15, sender_filter=None, subject_filter=None, collapse=True, current_only=False):
     M = open_inbox(readonly=True)
     status, data = M.uid('search', None, 'ALL')
     if status != 'OK':
@@ -145,27 +213,77 @@ def fetch_codes(limit=15, sender_filter=None, subject_filter=None):
         else:
             include = bool(verification_likely)
         if include:
-            rows.append({
+            rows.append(finalize_row({
                 'uid': uid,
                 'from': sender,
+                'sender_email': clean(sender_email),
                 'subject': subject,
+                'subject_normalized': normalize_subject(subject),
                 'date': clean(dh(msg.get('Date'))),
+                'date_ts': parse_date_timestamp(dh(msg.get('Date'))),
                 'codes': codes[:5],
                 'verification_likely': verification_likely,
                 'snippet': body[:240],
-            })
+                'duplicate_count': 1,
+                'collapsed_count': 0,
+            }))
     M.logout()
-    return rows
+    result_rows = collapse_rows(rows) if collapse else rows
+    if current_only:
+        result_rows = [row for row in result_rows if row.get('current')]
+    return result_rows
 
 
-def render(rows):
+def summarize_suppressed_row(row):
+    return {
+        'uid': row.get('uid'),
+        'from': row.get('from'),
+        'sender_email': row.get('sender_email'),
+        'subject': row.get('subject'),
+        'codes': row.get('codes') or [],
+        'duplicate_count': row.get('duplicate_count') or 1,
+        'collapsed_count': row.get('collapsed_count') or 0,
+        'age_hint': row.get('age_hint'),
+        'current': bool(row.get('current')),
+        'reason': 'niet actueel',
+    }
+
+
+
+def render(rows, current_only=False):
     if not rows:
-        return 'Geen verificatiecodes gevonden'
-    lines = [f'Verificatiecodes ({len(rows)})']
+        return 'Geen actuele verificatiecodes gevonden' if current_only else 'Geen verificatiecodes gevonden'
+    total_messages = sum(int(row.get('duplicate_count') or 1) for row in rows)
+    lines = [f"Verificatiecodes ({len(rows)} groepen, {total_messages} mails)"]
     for row in rows:
         code_text = ', '.join(row['codes']) if row['codes'] else 'geen code gevonden'
-        lines.append(f"- #{row['uid']} {row['from']}: {row['subject']} [{code_text}]")
+        details = []
+        if row.get('age_hint'):
+            details.append(row['age_hint'])
+        if row.get('duplicate_count', 1) > 1:
+            details.append(f"{row['duplicate_count']} vergelijkbare mails")
+        detail_text = f" ({'; '.join(details)})" if details else ''
+        lines.append(f"- #{row['uid']} {row['from']}: {row['subject']} [{code_text}]{detail_text}")
     return '\n'.join(lines)
+
+
+
+def build_response(rows, *, current_only=False, explain_empty=False, fallback_rows=None, sender_filter=None, subject_filter=None):
+    payload = {
+        'items': rows,
+        'count': len(rows),
+        'filters': {
+            'current_only': current_only,
+            'sender': sender_filter,
+            'subject': subject_filter,
+        },
+        'suppressed_groups': [],
+    }
+    if explain_empty and not rows and current_only:
+        fallback_rows = fallback_rows or []
+        payload['suppressed_groups'] = [summarize_suppressed_row(row) for row in fallback_rows[:3] if not row.get('current')]
+    return payload
+
 
 
 def main():
@@ -174,12 +292,56 @@ def main():
     parser.add_argument('--json', action='store_true')
     parser.add_argument('--sender')
     parser.add_argument('--subject')
+    parser.add_argument('--all', action='store_true', help='toon alle matches zonder samenklappen per vergelijkbare mailgroep')
+    parser.add_argument('--current-only', action='store_true', help='toon alleen nog actuele verificatiecodes (standaardvenster: 6 uur)')
+    parser.add_argument('--explain-empty', action='store_true', help='leg bij lege current-only codechecks compact uit welke codegroepen bewust zijn onderdrukt')
     args = parser.parse_args()
-    rows = fetch_codes(limit=max(1, min(args.limit, 50)), sender_filter=args.sender, subject_filter=args.subject)
+    limit = max(1, min(args.limit, 50))
+    fallback_rows = fetch_codes(
+        limit=limit,
+        sender_filter=args.sender,
+        subject_filter=args.subject,
+        collapse=not args.all,
+        current_only=False,
+    ) if (args.explain_empty and args.current_only) else None
+    rows = fallback_rows if (fallback_rows is not None and not args.current_only) else fetch_codes(
+        limit=limit,
+        sender_filter=args.sender,
+        subject_filter=args.subject,
+        collapse=not args.all,
+        current_only=args.current_only,
+    )
+    if fallback_rows is not None and args.current_only:
+        rows = [row for row in fallback_rows if row.get('current')]
+    if args.explain_empty:
+        payload = build_response(
+            rows,
+            current_only=args.current_only,
+            explain_empty=True,
+            fallback_rows=fallback_rows,
+            sender_filter=args.sender,
+            subject_filter=args.subject,
+        )
+        if args.json:
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+        else:
+            text = render(rows, current_only=args.current_only)
+            if not rows and payload.get('suppressed_groups'):
+                lines = [text]
+                for index, group in enumerate(payload['suppressed_groups'], start=1):
+                    code_text = ', '.join(group.get('codes') or []) or 'geen code gevonden'
+                    age = group.get('age_hint')
+                    age_suffix = f" ({age})" if age else ''
+                    count = group.get('duplicate_count') or 1
+                    count_suffix = f"; {count} vergelijkbare mails" if count > 1 else ''
+                    lines.append(f"- suppressed{index}: {group.get('from')}: {group.get('subject')} [{code_text}]{age_suffix}{count_suffix} | reason={group.get('reason')}")
+                text = '\n'.join(lines)
+            print(text)
+        return
     if args.json:
         print(json.dumps(rows, ensure_ascii=False, indent=2))
     else:
-        print(render(rows))
+        print(render(rows, current_only=args.current_only))
 
 
 if __name__ == '__main__':

@@ -5,7 +5,11 @@
 - Exchange Agenda wordt nu actief gebruikt voor agenda-uitleesroutes.
 
 ## Now
-- Mail workflow slimmer maken is nu het primaire spoor
+- Dagelijkse AI research-briefing en research-workflows opzetten is nu het primaire spoor
+- Dagelijkse AI-update om 09:00 Europe/Amsterdam staat live via cron `daily-ai-update`
+- De briefing is nu bewust breed en grondig, met vaste sectie `Wat moeten wij hiermee?`
+- Eerste run-bewijsroute staat nu live: `scripts/ai-briefing-status.py` leest de `daily-ai-update` cronjob plus runlogstatus uit, en `scripts/clawdy-brief.py`/`scripts/statusboard.py` tonen nu expliciet of er al runbewijs is, hoeveel runs/afleveringen gelukt zijn en wanneer de volgende briefing gepland staat. Live geverifieerd met `python3 scripts/ai-briefing-status.py --json`, `python3 scripts/clawdy-brief.py --json` en `python3 scripts/statusboard.py`.
+- Mailflow is operationeel genoeg en is geen actief optimalisatiespoor meer; use first, fix on issue
 - Nulmeting van lokaal bruikbare tooling staat in `research/creative-tooling-baseline.md`
 - De eerste workflow-notitie staat nu in `research/creative-tooling-workflows.md`, met live geteste routes voor clippen, frames exporteren, audio normaliseren en simpele image-afleidingen
 - Eerste helper nu gebouwd en live geverifieerd: `scripts/video-clip.py` maakt korte clips plus frame-export uit video
@@ -109,11 +113,15 @@
 - `scripts/mail-next-step.py` gebruikt nu ook dezelfde filtercontext als de onderliggende focus/security-routes: `--current-only` wordt doorgegeven aan `mail-focus.py` en `mail-security-alerts.py`, `--review-worthy` gaat nu ook mee naar `mail-focus.py` en de high-cluster scan, en security-alert fallback draait meteen met `--explain-empty` zodat noop-samenvattingen niet uit sync raken met de gekozen filtermode. Live geverifieerd met `python3 /usr/lib/python3.12/py_compile.py scripts/mail-next-step.py scripts/mail-review-next.py scripts/mail-dispatch.py scripts/mail-focus.py scripts/mail-security-alerts.py`, `python3 scripts/mail-dispatch.py next-step --current-only --json -n 3`, `python3 scripts/mail-dispatch.py next-step --review-worthy --json -n 3` en `python3 scripts/mail-dispatch.py review-next --review-worthy --explain-empty -n 3`; alle drie bleven netjes noop-consistent op de huidige mailbox.
 - Reviewwaardige noop-uitleg is nu ook consequent in `next-step` en `board`: `scripts/mail-next-step.py` toont in `--review-worthy` mode weer expliciet onderdrukte Bitwarden-clusters via fallback op ruwe high-clusters, en `scripts/mailboard.py` haalt security-alerts nu standaard met `--explain-empty` op zodat reviewwaardige board-noops ook onderdrukte GitHub/Bitwarden-securityruis met reden tonen. Live geverifieerd met `python3 -m py_compile scripts/mail-next-step.py scripts/mailboard.py`, `python3 scripts/mail-dispatch.py next-step --review-worthy --json -n 5` en `python3 scripts/mail-dispatch.py board --review-worthy --json -n 5`.
 - `scripts/mailboard.py --current-only` maakt lege boardchecks nu ook verklarend via suppressed latest/thread-context, zodat `geen actuele mailaandacht` direct de bewust weggefilterde GitHub/Bitwarden-ruis met reden laat zien in tekst en JSON. Live geverifieerd met `python3 -m py_compile scripts/mailboard.py`, `python3 scripts/mail-dispatch.py board --current-only -n 5` en `python3 scripts/mail-dispatch.py board --current-only --json -n 5`.
+- `scripts/mail-verification-codes.py` klapt vergelijkbare verificatiemails nu standaard samen per afzender/onderwerp en ondersteunt `--current-only`, zodat oude Bitwarden-codebursts niet meer als drie losse resultaten terugkomen en de route ook alleen nog actuele codes kan tonen. `scripts/mail-dispatch.py` exposeert die flags nu ook voor `codes`. Live geverifieerd met `python3 -m py_compile scripts/mail-verification-codes.py scripts/mail-dispatch.py`, `python3 scripts/mail-dispatch.py codes --json -n 5` (nu 1 gegroepeerde hit met 3 codes) en `python3 scripts/mail-dispatch.py codes --current-only --json -n 5` (nu terecht leeg op de huidige mailbox).
+- `scripts/mail-verification-codes.py` ondersteunt nu ook `--explain-empty`, zodat lege `codes --current-only` checks compact tonen welke oudere codegroepen bewust zijn onderdrukt; `scripts/mail-dispatch.py` exposeert die vlag nu ook. Live geverifieerd met `python3 /usr/lib/python3.12/py_compile.py scripts/mail-verification-codes.py scripts/mail-dispatch.py`, `python3 scripts/mail-dispatch.py codes --current-only --explain-empty -n 5` en dezelfde route in JSON; huidige mailbox toont nu expliciet de oudere Bitwarden-codegroep met reden `niet actueel`.
+- `scripts/mail-dispatch.py` documenteert nu ook `now --explain-empty`, zodat de actuele-mailroute in catalogus/notities zichtbaar maakt hoe je een lege actuele mailbox direct met onderdrukte ruis kunt laten verklaren. Live geverifieerd met `python3 scripts/mail-dispatch.py catalog --json` en `python3 scripts/mail-dispatch.py now --explain-empty --json -n 5`, waarbij de route nu expliciet in de catalogus staat en op de huidige mailbox onderdrukte Bitwarden-loginruis toont.
 - GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next
-- Mail workflow verder aanscherpen, nu vooral rond wat na de nieuwe stale-notificatiefilter nog wél reviewwaardig blijft zodra er weer nieuwe mail binnenkomt
+- Dagelijkse AI-briefing een paar runs laten bewijzen en daarna gericht bijstellen op relevantie en bruikbaarheid
 - Mac-migratie en lokale media/LLM-workflows voorbereiden
+- Mailflow alleen weer oppakken als gebruik concrete problemen blootlegt
 
 ## Blocked
 - Goede beeldgeneratie-route ontbreekt nog in deze runtime, dus betere image-remakes wachten op sterkere/lokale modelroute

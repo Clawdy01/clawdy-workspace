@@ -3,7 +3,7 @@
 ## Execution guardrails
 - Operationele werklijst staat ook in Exchange Taken; KANBAN blijft de lokale bron voor structuur en prioriteit.
 - Eén primair spoor tegelijk. Alleen het primaire spoor krijgt actieve bouwtijd totdat het klaar of echt geblokkeerd is.
-- Huidig primair spoor: mail workflow slimmer maken
+- Huidig primair spoor: dagelijkse AI research-briefing en research-workflows opzetten
 - Parallel mag alleen voor klein onderhoud of wanneer het primaire spoor extern wacht.
 - Als het primaire spoor leeg is of extern wacht, herbeoordeel proactief taken, geparkeerde taken en backlog op wat nu wel uitgevoerd kan worden.
 - Elk actief spoor moet een concrete definition of done hebben.
@@ -18,7 +18,11 @@
 - Photo editing / image workflows: alleen opnieuw actief zodra er een echte bruikbare modelroute beschikbaar is
 
 ## Now
-- Mail workflow slimmer maken is nu het primaire spoor
+- Dagelijkse AI research-briefing en research-workflows opzetten is nu het primaire spoor
+- Dagelijkse AI-update om 09:00 Europe/Amsterdam is ingepland via cron `daily-ai-update`
+- De briefing is aangescherpt naar grondige brede scan met vaste sectie `Wat moeten wij hiermee?`
+- Eerste run-bewijsroute staat nu live: `scripts/ai-briefing-status.py` leest cronjob + runlogstatus van `daily-ai-update`, en `scripts/clawdy-brief.py` plus `scripts/statusboard.py` tonen nu expliciet of er al runbewijs is, hoeveel runs/afleveringen zijn gelukt en wanneer de volgende briefing gepland staat; live geverifieerd met `python3 scripts/ai-briefing-status.py --json`, `python3 scripts/clawdy-brief.py --json` en `python3 scripts/statusboard.py`
+- Mailflow is niet langer een actief bouwspoor; route is nu use-first en alleen verbeteren bij echte frictie of concrete issues
 - Eerste nulmeting vastgelegd in `research/creative-tooling-baseline.md` met bevestigde lokale CLI-routes voor ffmpeg, ImageMagick, sox en yt-dlp
 - Kleine interne workflow-notitie staat nu in `research/creative-tooling-workflows.md`, met live geteste paden voor video-clippen, frame-export, audio-normalisatie en simpele image-afleidingen
 - Eerste helper staat nu live: `scripts/video-clip.py` voor video-clip + frame-export, lokaal geverifieerd op synthetische testvideo
@@ -122,6 +126,9 @@
 - `scripts/mail-next-step.py` gebruikt nu ook dezelfde filtercontext als de onderliggende focus/security-routes: `--current-only` wordt doorgegeven aan `mail-focus.py` en `mail-security-alerts.py`, `--review-worthy` gaat nu ook mee naar `mail-focus.py` en de high-cluster scan, en security-alert fallback draait meteen met `--explain-empty` zodat noop-samenvattingen niet uit sync raken met de gekozen filtermode. Live geverifieerd met `python3 /usr/lib/python3.12/py_compile.py scripts/mail-next-step.py scripts/mail-review-next.py scripts/mail-dispatch.py scripts/mail-focus.py scripts/mail-security-alerts.py`, `python3 scripts/mail-dispatch.py next-step --current-only --json -n 3`, `python3 scripts/mail-dispatch.py next-step --review-worthy --json -n 3` en `python3 scripts/mail-dispatch.py review-next --review-worthy --explain-empty -n 3`; alle drie bleven netjes noop-consistent op de huidige mailbox.
 - Reviewwaardige noop-uitleg is nu ook consequent op board/next-step: `scripts/mail-next-step.py` valt in `--review-worthy` mode voor onderdrukte kandidaten terug op de ruwe high-clusters in plaats van een al leeggefilterde set, en `scripts/mailboard.py` vraagt security-alerts nu standaard met `--explain-empty` op zodat lege reviewboards ook onderdrukte securityruis tonen. Live geverifieerd met `python3 -m py_compile scripts/mail-next-step.py scripts/mailboard.py`, `python3 scripts/mail-dispatch.py next-step --review-worthy --json -n 5` en `python3 scripts/mail-dispatch.py board --review-worthy --json -n 5`, waarbij Bitwarden/GitHub-ruis nu expliciet met reden zichtbaar blijft onder `suppressed_groups`.
 - `scripts/mailboard.py --current-only` legt nu ook suppressed latest/thread-context uit wanneer het board verder leeg is, zodat `geen actuele mailaandacht` niet meer blind voelt maar direct de bewust onderdrukte GitHub/Bitwarden-ruis met reden toont. Live geverifieerd met `python3 -m py_compile scripts/mailboard.py`, `python3 scripts/mail-dispatch.py board --current-only -n 5` en `python3 scripts/mail-dispatch.py board --current-only --json -n 5`.
+- `scripts/mail-verification-codes.py` klapt vergelijkbare verificatiemails nu standaard samen per afzender/onderwerp en ondersteunt `--current-only`, zodat oude Bitwarden-codebursts niet meer als drie losse hits terugkomen en alleen nog actuele codes kunnen worden opgevraagd. `scripts/mail-dispatch.py` exposeert die nieuwe flags nu ook voor route `codes`. Live geverifieerd met `python3 -m py_compile scripts/mail-verification-codes.py scripts/mail-dispatch.py`, `python3 scripts/mail-dispatch.py codes --json -n 5` (nu 1 gegroepeerde Bitwarden-hit met 3 codes) en `python3 scripts/mail-dispatch.py codes --current-only --json -n 5` (nu terecht leeg op de huidige mailbox).
+- `scripts/mail-verification-codes.py` ondersteunt nu ook `--explain-empty`, zodat lege `codes --current-only` checks compact tonen welke oudere codegroepen bewust zijn onderdrukt; `scripts/mail-dispatch.py` exposeert die vlag nu ook. Live geverifieerd met `python3 /usr/lib/python3.12/py_compile.py scripts/mail-verification-codes.py scripts/mail-dispatch.py`, `python3 scripts/mail-dispatch.py codes --current-only --explain-empty -n 5` en dezelfde route in JSON; huidige mailbox toont nu expliciet de oudere Bitwarden-codegroep met reden `niet actueel`.
+- `scripts/mail-dispatch.py` documenteert nu ook `now --explain-empty`, zodat de actuele-mailroute in catalogus/notities zichtbaar maakt hoe je een lege actuele mailbox direct met onderdrukte ruis kunt laten verklaren. Live geverifieerd met `python3 scripts/mail-dispatch.py catalog --json` en `python3 scripts/mail-dispatch.py now --explain-empty --json -n 5`, waarbij de route nu expliciet in de catalogus staat en op de huidige mailbox onderdrukte Bitwarden-loginruis toont.
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
@@ -130,8 +137,9 @@
 - Betere identity-preserving photo edits blijven wel geblokkeerd op een sterkere/lokale modelroute
 
 ## Next
-- Mail workflow verder aanscherpen, nu waarschijnlijk rond wat nog wél als reviewwaardig telt zodra er weer nieuwe mail binnenkomt
+- Dagelijkse AI-briefing een paar runs laten bewijzen en daarna eventueel verder aanscherpen op relevantie/focus
 - Daarna Mac migratieplan en lokale LLM/media-workflows oppakken
+- Mailflow alleen oppakken als gebruik in de praktijk concrete problemen laat zien
 - Onderzoek naar betere identity-preserving photo edit modellen/workflows
 - Regelmatige research-workflows opzetten voor onderwerpen die Christian wil volgen
 
@@ -145,7 +153,7 @@
 - Betaalworkflow / debitcard-regels vastleggen voordat die koppeling er komt
 - Regelmatige research-workflows opzetten voor onderwerpen die Christian wil volgen
 - Herhalende taken expliciet omzetten naar skills/scripts/workflows in plaats van losse eenmalige oplossingen
-- Mailbox, kalender en taken verder integreren in bruikbare routines
+- Mailbox, kalender en taken verder integreren in bruikbare routines, maar alleen probleemgedreven en niet als actief optimalisatiespoor
 
 ## Parked
 - Ski-foto edit, opnieuw oppakken met betere modelroute

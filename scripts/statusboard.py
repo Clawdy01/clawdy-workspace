@@ -46,6 +46,7 @@ def render_text(data, show_preview=False):
     mail_high_recent = data.get('mail_high_recent') or {}
     mail_next_step = data.get('mail_next_step') or {}
     creative_smoke = data.get('creative_smoke') or {}
+    ai_briefing_status = data.get('ai_briefing_status') or {}
     mail = data['mail']
     session = status.get('session') or {}
 
@@ -76,6 +77,13 @@ def render_text(data, show_preview=False):
                 smoke_bits.append(f"{step.get('mode')}: cand {step.get('candidate_total', 0)}, del {step.get('deleted_total', 0)}")
         smoke_text = '; '.join(smoke_bits) if smoke_bits else 'geen stappen'
         lines.append(f"- creative smoke: {'ok' if creative_smoke.get('ok') else 'warning'} ({smoke_text})")
+    if ai_briefing_status:
+        ai_bits = [ai_briefing_status.get('text', 'onbekend')]
+        if ai_briefing_status.get('next_run_at_text'):
+            ai_bits.append(f"volgende {ai_briefing_status['next_run_at_text']}")
+        if ai_briefing_status.get('last_run_at_text'):
+            ai_bits.append(f"laatste {ai_briefing_status['last_run_at_text']}")
+        lines.append(f"- ai briefing: {'; '.join(ai_bits)}")
     mail_line = f"- mail: last_uid {mail['last_uid']}, notified {mail['tracked_notifications']} ({mail['account']})"
     recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))
     recent_high_groups = mail_high_recent.get('total_related_group_count', mail_high_recent.get('related_group_count', 0))

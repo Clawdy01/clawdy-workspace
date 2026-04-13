@@ -19,6 +19,7 @@ from mail_heuristics import (
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATE_DIR = ROOT / 'state'
 CREATIVE_SMOKE = ROOT / 'scripts' / 'creative-smoke.py'
+AI_BRIEFING_STATUS = ROOT / 'scripts' / 'ai-briefing-status.py'
 
 
 def run_json_command(command, default=None, timeout=12):
@@ -115,6 +116,11 @@ def build_summary():
             {'ok': False, 'steps': []},
             45,
         ),
+        'ai_briefing_status': (
+            ['python3', str(AI_BRIEFING_STATUS), '--json'],
+            {'ok': False, 'found': False, 'text': 'onbekend'},
+            10,
+        ),
     }
 
     with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
@@ -135,6 +141,7 @@ def build_summary():
     mail_high_recent, mail_high_recent_error = results['mail_high_recent']
     mail_next_step, mail_next_step_error = results['mail_next_step']
     creative_smoke, creative_smoke_error = results['creative_smoke']
+    ai_briefing_status, ai_briefing_status_error = results['ai_briefing_status']
 
     task_audit = {
         'active': ((status or {}).get('tasks') or {}).get('active', 0),
@@ -161,6 +168,7 @@ def build_summary():
         'mail_high_recent': mail_high_recent_error,
         'mail_next_step': mail_next_step_error,
         'creative_smoke': creative_smoke_error,
+        'ai_briefing_status': ai_briefing_status_error,
     }
 
     return {
@@ -176,6 +184,7 @@ def build_summary():
         'mail_high_recent': mail_high_recent,
         'mail_next_step': mail_next_step,
         'creative_smoke': creative_smoke,
+        'ai_briefing_status': ai_briefing_status,
         'mail': {
             'account': mail_config.get('username', 'onbekend'),
             'host': mail_config.get('host', 'onbekend'),
@@ -200,6 +209,7 @@ def render_text(summary):
     mail_high_recent = summary.get('mail_high_recent') or {}
     mail_next_step = summary.get('mail_next_step') or {}
     creative_smoke = summary.get('creative_smoke') or {}
+    ai_briefing_status = summary.get('ai_briefing_status') or {}
     mail = summary['mail']
 
     lines = []
@@ -234,6 +244,13 @@ def render_text(summary):
                 )
         smoke_text = '; '.join(smoke_bits) if smoke_bits else 'geen stappen'
         lines.append(f"- creative smoke: {'ok' if creative_smoke.get('ok') else 'warning'} ({smoke_text})")
+    if ai_briefing_status:
+        ai_bits = [ai_briefing_status.get('text', 'onbekend')]
+        if ai_briefing_status.get('next_run_at_text'):
+            ai_bits.append(f"volgende {ai_briefing_status['next_run_at_text']}")
+        if ai_briefing_status.get('last_run_at_text'):
+            ai_bits.append(f"laatste {ai_briefing_status['last_run_at_text']}")
+        lines.append(f"- ai briefing: {'; '.join(ai_bits)}")
     mail_line = f"- mail {mail['account']} via {mail['host']}, last_uid {mail['last_uid']}, notified {mail['tracked_notifications']}"
     recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))
     recent_high_groups = mail_high_recent.get('total_related_group_count', mail_high_recent.get('related_group_count', 0))
