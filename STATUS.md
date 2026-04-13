@@ -38,7 +38,11 @@
 - `scripts/creative-review.py` biedt nu korte wrapper-commando's voor vaste creative review- en strict-routes, inclusief optionele rapportartifacts in `tmp/creative-tooling-check/reports/`; live geverifieerd op `mixed-review` en `helper-clips-strict --report --timestamped`
 - `scripts/creative-review.py` ondersteunt nu ook suites `review-suite` en `strict-suite`, zodat alle vaste creative review- of strict-routes in één run kunnen worden afgewerkt inclusief timestamped rapportartifacts per subrun; live geverifieerd op de lokale testlayout
 - `scripts/creative-review.py` ondersteunt nu ook `--daylog`, zodat review- en strictroutes compacte JSONL summary-events per UTC-dag naar één append-vriendelijk daglogartifact schrijven; live geverifieerd met `python3 scripts/creative-review.py review-suite --daylog` op `tmp/creative-tooling-check/reports/creative-review-daylog-20260412.jsonl`
-- Volgende stap is wrapper desgewenst uitbreiden met artifact-pruning voor terugkerende sanity-checks en oudere timestamped/daglog-artifacts
+- `scripts/creative-review.py` ondersteunt nu ook artifact-pruning via `--prune`, `--prune-older-than-days`, `--prune-apply` en automatische opschoning na writes via `--prune-after-write`; live geverifieerd met een tijdelijke reports-map waarin oude `creative-review-*` artifacts na een verse report-run direct zijn opgeschoond
+- `scripts/creative-review.py` ondersteunt nu ook aparte prune-retentie voor timestamped/per-run reports versus daglogs via `--prune-report-older-than-days` en `--prune-daylog-older-than-days`; live geverifieerd met `py_compile`, een JSON dry-run en een apply-run op een tijdelijke testmap waarbij alleen het oude per-run report werd verwijderd
+- `scripts/creative-review.py` ondersteunt nu ook cleanup-presets (`balanced`, `short-reports`, `ci-tight`) voor vaste prune-combinaties; opnieuw live geverifieerd met `py_compile`, een JSON dry-run en een apply-run op `tmp/creative-review-cleanup-preset-test`, waarbij oude artifacts volgens presetretentie zijn opgeschoond en recente artifacts bleven staan
+- `scripts/creative-review.py` ondersteunt nu ook cronvriendelijke `--automation-preset` combinaties (`daylog-balanced`, `timestamped-short`, `timestamped-ci`) die report/daylog, prune-after-write en cleanup-preset bundelen; live geverifieerd met `review-suite --automation-preset daylog-balanced` en `mixed-review --automation-preset timestamped-ci --format json`
+- Volgende stap is desgewenst nog een wekelijkse cleanup-only wrapper of voorbeeld-cronregel toevoegen voor deze automation-presets
 - GitHub is afgerond als actief spoor; alleen nog onderhoud via auto-push
 
 ## Next
@@ -91,3 +95,5 @@
 - `scripts/media-sanity-check.py` nog preciezer gemaakt en live getest met `--include` glob-patterns, zodat batch-runs direct op gewenste artifactgroepen kunnen worden beperkt
 - `scripts/media-sanity-check.py` nog sneller bruikbaar gemaakt voor terugkerende lokale scanroutes en live getest met `--dir-alias`, zodat veelgebruikte creative-tooling mappen en submappen kort aanspreekbaar zijn
 - `scripts/creative-review.py` verder CI-vriendelijk gemaakt en live getest met suites `review-suite` en `strict-suite`, inclusief timestamped rapportartifacts per subrun
+- `scripts/creative-review.py` verder opschoonvriendelijk gemaakt en live getest met artifact-pruning via `--prune` en automatische opschoning na report/daylog writes via `--prune-after-write`
+- `scripts/creative-review.py` verder aangescherpt en live getest met aparte prune-retentie voor per-run reports versus daglogs via `--prune-report-older-than-days` en `--prune-daylog-older-than-days`

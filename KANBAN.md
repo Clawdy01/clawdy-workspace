@@ -51,12 +51,16 @@
 - `scripts/creative-review.py` biedt nu korte wrapper-commando's voor vaste creative review- en strict-routes, inclusief optionele rapportartifacts in `tmp/creative-tooling-check/reports/`; live geverifieerd op `mixed-review` en `helper-clips-strict --report --timestamped`
 - `scripts/creative-review.py` ondersteunt nu ook suites `review-suite` en `strict-suite`, zodat alle vaste creative review- of strict-routes in één run kunnen worden afgewerkt inclusief timestamped rapportartifacts per subrun; live geverifieerd op de lokale testlayout
 - `scripts/creative-review.py` ondersteunt nu ook `--daylog`, zodat review- en strictroutes compacte JSONL summary-events per UTC-dag naar één append-vriendelijk daglogartifact schrijven; live geverifieerd met `python3 scripts/creative-review.py review-suite --daylog` op `tmp/creative-tooling-check/reports/creative-review-daylog-20260412.jsonl`
-- Volgende stap: wrapper desgewenst uitbreiden met artifact-pruning voor terugkerende sanity-checks en oudere timestamped/daglog-artifacts
+- `scripts/creative-review.py` ondersteunt nu ook artifact-pruning via `--prune`, `--prune-older-than-days`, `--prune-apply` en automatische opschoning na writes via `--prune-after-write`; live geverifieerd met een tijdelijke reports-map waarin oude `creative-review-*` artifacts na een verse report-run direct zijn opgeschoond
+- `scripts/creative-review.py` ondersteunt nu ook aparte prune-retentie voor timestamped/per-run reports versus daglogs via `--prune-report-older-than-days` en `--prune-daylog-older-than-days`; live geverifieerd met `py_compile`, een dry-run in JSON-mode en een apply-run op een tijdelijke testmap waarbij alleen het oude per-run report werd verwijderd en de daglogs bleven staan
+- `scripts/creative-review.py` ondersteunt nu ook cleanup-presets (`balanced`, `short-reports`, `ci-tight`) voor vaste prune-combinaties; opnieuw live geverifieerd met `py_compile`, een JSON dry-run en een apply-run op `tmp/creative-review-cleanup-preset-test`, waarbij oude artifacts volgens presetretentie zijn opgeschoond en recente artifacts bleven staan
+- `scripts/creative-review.py` ondersteunt nu ook cronvriendelijke `--automation-preset` combinaties (`daylog-balanced`, `timestamped-short`, `timestamped-ci`) die report/daylog, prune-after-write en cleanup-preset bundelen; live geverifieerd met `review-suite --automation-preset daylog-balanced` en `mixed-review --automation-preset timestamped-ci --format json`
+- Volgende stap: desgewenst nog een wekelijkse cleanup-only wrapper of voorbeeld-cronregel toevoegen voor deze automation-presets
 - GitHub: draait nu als onderhoud via automatische push, geen actief primair spoor meer
 - Photo editing / image workflows: generatieve identity-preserving edits blijven geparkeerd tot betere model/hardware-route
 
 ## Blocked
-- Geen harde blocker op het huidige creative-tooling spoor; nulmeting, workflow-inventaris, helper-thresholds, presets, batch-check, warnings-only, summary-by-kind, exclude-filters, include-filters, naamfilters, artifact-scan profielen, include-gedreven artifactprofielen, herbruikbare exclude-sets, herbruikbare include-sets, dir-aliasen, workflowprofielen, kleine wrapper-commando's, suite-wrapper-runs, daglogmodus, strikte fail-profielen, mixed batch-fail-profielen, rapport-output naar artifact, timestamped output, append-mode, JSONL-reportmode en compacte stdout-JSONL zijn bevestigd en helperbouw kan lokaal doorgaan
+- Geen harde blocker op het huidige creative-tooling spoor; nulmeting, workflow-inventaris, helper-thresholds, presets, batch-check, warnings-only, summary-by-kind, exclude-filters, include-filters, naamfilters, artifact-scan profielen, include-gedreven artifactprofielen, herbruikbare exclude-sets, herbruikbare include-sets, dir-aliasen, workflowprofielen, kleine wrapper-commando's, suite-wrapper-runs, daglogmodus, veilige prune-routes, strikte fail-profielen, mixed batch-fail-profielen, rapport-output naar artifact, timestamped output, append-mode, JSONL-reportmode en compacte stdout-JSONL zijn bevestigd en helperbouw kan lokaal doorgaan
 - Betere identity-preserving photo edits blijven wel geblokkeerd op een sterkere/lokale modelroute
 
 ## Next
@@ -96,6 +100,8 @@
 - Brede toolset voor media/docs/debug geïnstalleerd
 - Basis browser automation met Playwright + headless Chromium werkt
 - Control UI bruikbaar via SSH tunnel
+- Creative review-wrapper verder bruikbaar gemaakt en live geverifieerd: `scripts/creative-review.py` ondersteunt nu artifact-pruning via `--prune` en automatische opschoning na report/daylog writes via `--prune-after-write`
+- Creative review-wrapper verder aangescherpt en live geverifieerd: `scripts/creative-review.py` ondersteunt nu ook aparte prune-retentie voor per-run reports versus daglogs via `--prune-report-older-than-days` en `--prune-daylog-older-than-days`
 - LAN bind/rate limiting/typing feedback verbeterd
 - Memory research: concrete betere geheugentechnieken beoordeeld en aanbeveling vastgelegd in `research/memory-techniques-recommendation.md`
 - Creative tooling helper gebouwd en live geverifieerd: `scripts/video-clip.py` maakt korte clips plus frame-export uit video

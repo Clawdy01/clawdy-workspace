@@ -582,8 +582,101 @@ Nut:
 - terugkerende creative checks kunnen nu naar één append-vriendelijk dagartifact loggen zonder per run losse timestamp-bestanden te maken
 - suites bouwen zo een compact dagspoor op dat makkelijk te tailen of later te verwerken is
 
+## Artifact-pruning nu beschikbaar
+`scripts/creative-review.py` ondersteunt nu ook een veilige prune-route voor oudere creative-review artifacts en daglogs.
+
+Nieuwe opties:
+- `--prune`
+- `--prune-older-than-days N`
+- `--prune-apply`
+
+Gedrag:
+- standaard is prune een dry-run en toont alleen kandidaten
+- selecteert creative-review timestamped rapporten en daglogs in de reports-map
+- echte verwijdering gebeurt alleen met expliciet `--prune-apply`
+
+Voorbeeld:
+```bash
+python3 scripts/creative-review.py mixed-review --prune --prune-older-than-days 7 --format json
+```
+
+Live geverifieerd op 2026-04-13:
+- dry-run met `--prune-older-than-days 0 --format json` gaf een geldige kandidaatlijst terug voor oudere creative-review artifacts in `tmp/creative-tooling-check/reports`
+- bevestigde velden: `report_dir`, `candidate_count`, `candidates`, `apply`
+- geen bestanden verwijderd tijdens verificatie (`apply: false`)
+
+## Aparte prune-retentie voor daglogs en per-run reports nu beschikbaar
+`scripts/creative-review.py` ondersteunt nu ook aparte prune-retentie voor gewone creative-review rapporten versus daglogs.
+
+Nieuwe opties:
+- `--prune-report-older-than-days N`
+- `--prune-daylog-older-than-days N`
+
+Gedrag:
+- beide opties overrulen alleen hun eigen artifactsoort
+- zonder override blijft `--prune-older-than-days` de gedeelde fallback
+- prune-output vermeldt nu ook `artifact_kind` en `retain_days` per kandidaat
+
+Voorbeelden:
+```bash
+python3 scripts/creative-review.py mixed-review --prune --prune-report-older-than-days 2 --prune-daylog-older-than-days 14 --format json
+python3 scripts/creative-review.py mixed-review --report --timestamped --prune-after-write --prune-report-older-than-days 2 --prune-daylog-older-than-days 14
+```
+
+Live geverifieerd op 2026-04-13:
+- `py_compile` op `scripts/creative-review.py` bleef groen
+- dry-run op een tijdelijke testmap liet aparte retentievelden zien in JSON-output
+- apply-run met `--prune-report-older-than-days 2 --prune-daylog-older-than-days 4` verwijderde alleen het oude per-run report, terwijl beide daglogs bleven staan
+
+Nut:
+- daglogs kunnen langer bewaard blijven dan losse timestamped run-artifacts
+- cron- of CI-runs kunnen agressiever opruimen zonder het compacte dagspoor kwijt te raken
+
+## Cleanup-presets nu beschikbaar
+`scripts/creative-review.py` ondersteunt nu ook vaste cleanup-presets voor veelgebruikte prune-combinaties.
+
+Beschikbare presets:
+- `balanced` → reports 7 dagen, daglogs 14 dagen
+- `short-reports` → reports 2 dagen, daglogs 7 dagen
+- `ci-tight` → reports 1 dag, daglogs 3 dagen
+
+Voorbeelden:
+```bash
+python3 scripts/creative-review.py mixed-review --prune --cleanup-preset short-reports --format json
+python3 scripts/creative-review.py mixed-review --report --timestamped --prune-after-write --cleanup-preset ci-tight
+```
+
+Live geverifieerd op 2026-04-13:
+- dry-run met `--cleanup-preset short-reports --format json` gaf correcte retentievelden terug: `report=2`, `daylog=7`
+- `--report --timestamped --prune-after-write --cleanup-preset ci-tight` draaide schoon en liet daarna prune-retentie `report=1`, `daylog=3` zien
+- geen prune-kandidaten in de verificatierun, dus `deleted_count: 0`
+
+## Automation-presets nu beschikbaar
+`scripts/creative-review.py` ondersteunt nu ook `--automation-preset`, zodat terugkerende cron- of CI-runs niet steeds losse flags voor report/daylog, timestamping, prune-after-write en cleanup-preset hoeven te stapelen.
+
+Beschikbare automation-presets:
+- `daylog-balanced` → zet `--daylog`, `--prune-after-write` en `--cleanup-preset balanced`
+- `timestamped-short` → zet `--report --timestamped --prune-after-write --cleanup-preset short-reports`
+- `timestamped-ci` → zet `--report --timestamped --prune-after-write --cleanup-preset ci-tight`
+
+Voorbeelden:
+```bash
+python3 scripts/creative-review.py review-suite --automation-preset daylog-balanced
+python3 scripts/creative-review.py mixed-review --automation-preset timestamped-ci --format json
+```
+
+Live geverifieerd op 2026-04-13:
+- `review-suite --automation-preset daylog-balanced` draaide alle vier review-routes schoon en appende naar `tmp/creative-tooling-check/reports/creative-review-daylog-20260413.jsonl`
+- `mixed-review --automation-preset timestamped-ci --format json` schreef schoon een timestamped JSON-report naar `tmp/creative-tooling-check/reports/creative-review-mixed-review-20260413T000535Z.json`
+- de ingebouwde prune-pass draaide direct mee met retentie `report=1`, `daylog=3` en vond in de verificatierun geen opruimkandidaten
+
+Nut:
+- cronvriendelijke vaste combinaties zonder losse flagstapels
+- minder kans op drift tussen report/daylog-routes en cleanupbeleid
+- snelle inzet voor zowel dagelijkse logging als strakkere CI-artifacts
+
 ## Aanbevolen volgende stap
-- Kleine follow-up: artifact-pruning toevoegen voor oudere timestamped reports of overtollige daglogs
+- Kleine follow-up: desgewenst nog een wekelijkse cleanup-only wrapper of voorbeeld-cronregel toevoegen voor deze automation-presets
 
 ## Kind-filtering nu beschikbaar
 `scripts/media-sanity-check.py` ondersteunt nu ook `--kind`, zodat batch-checks gericht alleen `audio`, `image` en/of `video` meenemen.
