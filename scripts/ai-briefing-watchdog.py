@@ -196,6 +196,7 @@ def main() -> int:
         'proof_qualified_runs': proof_qualified_runs,
         'required_qualified_runs': required_qualified_runs,
         'proof_requirement_met': proof_qualified_runs >= required_qualified_runs,
+        'proof_target_due_at': status.get('proof_target_due_at'),
         'job_name': status.get('job_name'),
         'next_run_at_text': status.get('next_run_at_text'),
         'proof_due_at_text': status.get('proof_due_at_text'),

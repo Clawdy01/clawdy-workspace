@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path('/home/clawdy/.openclaw')
 JOBS_PATH = ROOT / 'cron' / 'jobs.json'
 RUNS_DIR = ROOT / 'cron' / 'runs'
+AGENTS_DIR = ROOT / 'agents'
 DEFAULT_TZ = 'Europe/Amsterdam'
 TARGET_JOB_NAME = 'daily-ai-update'
 EXPECTED_SCHEDULE_EXPR = '0 9 * * *'
@@ -488,6 +489,68 @@ def split_summary_item_blocks(summary_text):
         block = part.strip()
         if block:
             blocks.append('Titel: ' + block)
+    if blocks:
+        return blocks
+
+    lines = summary_text.splitlines()
+    category_heading_re = re.compile(r'^\s*\d+\)\s+')
+    title_re = re.compile(r'(?im)^titel:\s*(.+)$')
+    category_start = None
+    stop_section_markers = {
+        'wat moeten wij hiermee?',
+        'wat ik vandaag het belangrijkst vind',
+        'bronnenlijst',
+        'bronnen',
+    }
+    for index, raw_line in enumerate(lines):
+        line = raw_line.strip()
+        if category_heading_re.match(line):
+            category_start = index
+            continue
+        lowered = line.lower()
+        if category_start is not None and lowered in stop_section_markers:
+            break
+        if category_start is None or not lowered.startswith('bron:'):
+            continue
+
+        title = None
+        search_index = index - 1
+        while search_index > category_start:
+            candidate = lines[search_index].strip()
+            candidate_lower = candidate.lower()
+            if not candidate:
+                search_index -= 1
+                continue
+            if candidate.startswith('-') or candidate_lower.startswith('relevant voor christian'):
+                break
+            if candidate_lower.startswith(('bron:', 'wat is er nieuw', 'waarom is dit belangrijk')):
+                search_index -= 1
+                continue
+            if category_heading_re.match(candidate):
+                break
+            match = title_re.search(candidate)
+            title = match.group(1).strip() if match else candidate
+            break
+        if not title:
+            continue
+
+        end = len(lines)
+        for next_index in range(index + 1, len(lines)):
+            candidate = lines[next_index].strip()
+            candidate_lower = candidate.lower()
+            if category_heading_re.match(candidate) or candidate_lower in stop_section_markers:
+                end = next_index
+                break
+            if candidate_lower.startswith('bron:'):
+                end = next_index
+                break
+
+        block_lines = [f'Titel: {title}']
+        if index < end:
+            block_lines.extend(lines[index:end])
+        block = '\n'.join(line.rstrip() for line in block_lines).strip()
+        if block and block not in blocks:
+            blocks.append(block)
     return blocks
 
 
@@ -641,8 +704,6 @@ def audit_summary_output(summary_text, reference_ms=None):
         marker: normalized_text.count(marker.lower())
         for marker in REQUIRED_OUTPUT_ITEM_MARKERS
     }
-    item_count = item_marker_counts.get('titel:', 0)
-    item_marker_min_count = min(item_marker_counts.values()) if item_marker_counts else 0
     missing_alternative_groups = [
         list(group)
         for group in REQUIRED_OUTPUT_MARKER_ALTERNATIVES
@@ -668,6 +729,11 @@ def audit_summary_output(summary_text, reference_ms=None):
     primary_source_domain_count = len(primary_source_domains)
     primary_source_family_count = len(primary_source_families)
     item_blocks = split_summary_item_blocks(summary_text)
+    item_count = len(item_blocks)
+    effective_item_marker_counts = dict(item_marker_counts)
+    effective_item_marker_counts['titel:'] = max(effective_item_marker_counts.get('titel:', 0), item_count)
+    item_marker_min_count = min(effective_item_marker_counts.values()) if effective_item_marker_counts else 0
+    item_marker_counts = effective_item_marker_counts
     item_titles = [title for title in (extract_item_title(block) for block in item_blocks) if title]
     title_entries = []
     for title in item_titles:
@@ -921,8 +987,22 @@ def summarize_run(run, tz_name=DEFAULT_TZ, now_ms=None):
     if not run:
         return None
     usage = run.get('usage') or {}
-    summary_text = run.get('summary')
-    error_text = summary_text or run.get('error') or run.get('deliveryError')
+    run_summary_text = run.get('summary')
+    session_summary = load_session_final_text(run.get('sessionId'), preferred_agent_id=EXPECTED_AGENT_ID)
+    summary_text = run_summary_text
+    summary_source = 'runlog.summary'
+    summary_path = None
+    session_summary_length_chars = None
+    session_summary_invalid_lines = None
+    if session_summary and session_summary.get('text'):
+        session_text = session_summary['text']
+        session_summary_length_chars = session_summary.get('length_chars')
+        session_summary_invalid_lines = session_summary.get('invalid_lines')
+        if not isinstance(summary_text, str) or len(session_text) > len(summary_text):
+            summary_text = session_text
+            summary_source = 'session.final_text'
+            summary_path = session_summary.get('path')
+    error_text = run_summary_text or run.get('error') or run.get('deliveryError')
     if isinstance(error_text, str):
         error_text = ' '.join(error_text.split())[:240]
     summary_preview = None
@@ -950,6 +1030,11 @@ def summarize_run(run, tz_name=DEFAULT_TZ, now_ms=None):
         'total_tokens': usage.get('total_tokens'),
         'input_tokens': usage.get('input_tokens'),
         'output_tokens': usage.get('output_tokens'),
+        'summary_source': summary_source,
+        'summary_path': summary_path,
+        'run_summary_length_chars': len(run_summary_text) if isinstance(run_summary_text, str) else None,
+        'session_summary_length_chars': session_summary_length_chars,
+        'session_summary_invalid_lines': session_summary_invalid_lines,
         'summary_length_chars': summary_length_chars,
         'summary_preview_lines': summary_preview_lines,
         'summary_preview': summary_preview,
@@ -966,6 +1051,64 @@ def trailing_streak(runs, predicate):
         else:
             break
     return streak
+
+
+def find_session_path(session_id, preferred_agent_id=None):
+    if not session_id:
+        return None
+    candidate_paths = []
+    if preferred_agent_id:
+        candidate_paths.append(AGENTS_DIR / preferred_agent_id / 'sessions' / f'{session_id}.jsonl')
+    candidate_paths.extend(sorted(AGENTS_DIR.glob(f'*/sessions/{session_id}.jsonl')))
+    seen = set()
+    for candidate in candidate_paths:
+        candidate_str = str(candidate)
+        if candidate_str in seen:
+            continue
+        seen.add(candidate_str)
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def load_session_final_text(session_id, preferred_agent_id=None):
+    path = find_session_path(session_id, preferred_agent_id=preferred_agent_id)
+    if not path:
+        return None
+    last_text = None
+    total_lines = 0
+    invalid_lines = 0
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        total_lines += 1
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            invalid_lines += 1
+            continue
+        if row.get('type') != 'message':
+            continue
+        message = row.get('message') or {}
+        if message.get('role') != 'assistant':
+            continue
+        text_chunks = [
+            chunk.get('text', '')
+            for chunk in (message.get('content') or [])
+            if chunk.get('type') == 'text' and chunk.get('text')
+        ]
+        if text_chunks:
+            last_text = '\n'.join(text_chunks)
+    if not last_text:
+        return None
+    return {
+        'path': str(path),
+        'text': last_text,
+        'length_chars': len(last_text),
+        'total_lines': total_lines,
+        'invalid_lines': invalid_lines,
+    }
 
 
 def load_runs(job_id):
@@ -1636,6 +1779,8 @@ def render_text(data):
         parts.append(duration_text)
     if last_run_summary.get('summary_preview'):
         parts.append(f"laatste briefing-preview {last_run_summary['summary_preview']}")
+    if last_run_summary.get('summary_source'):
+        parts.append(f"briefingbron {last_run_summary['summary_source']}")
     summary_output_audit = last_run_summary.get('summary_output_audit') or {}
     if summary_output_audit.get('available'):
         parts.append(f"output-audit {summary_output_audit.get('text')}")

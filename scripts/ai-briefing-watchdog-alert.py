@@ -3,6 +3,7 @@ import argparse
 import json
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
@@ -35,8 +36,8 @@ MODE_REQUIREMENTS = {
     'preflight': 0,
     'proof-check': 1,
     'proof-progress': 3,
+    'proof-target-check': 3,
 }
-
 
 def run_watchdog(timeout_seconds: int, require_qualified_runs: int) -> dict:
     cmd = [
@@ -76,11 +77,20 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append(f"volgende run {data['next_run_at_text']}")
     if data.get('proof_due_at_text'):
         bits.append(f"bewijs uiterlijk {data['proof_due_at_text']}")
-    if data.get('proof_target_due_at_text') and mode == 'proof-progress':
+    if data.get('proof_target_due_at_text') and mode in {'proof-progress', 'proof-target-check'}:
         bits.append(f"bewijsdoel {data['proof_target_due_at_text']}")
     if reasons:
         bits.append('redenen: ' + '; '.join(reasons[:3]))
     return ' | '.join(bits)
+
+
+def should_suppress_before_proof_deadline(data: dict) -> bool:
+    proof_target_due_at = data.get('proof_target_due_at')
+    if not proof_target_due_at:
+        return False
+
+    now_ms = int(datetime.now(tz=timezone.utc).timestamp() * 1000)
+    return now_ms < int(proof_target_due_at)
 
 
 def main() -> int:
@@ -95,6 +105,9 @@ def main() -> int:
         require_qualified_runs = MODE_REQUIREMENTS[args.mode]
 
     data = run_watchdog(args.timeout, max(0, require_qualified_runs))
+    if args.mode == 'proof-target-check' and should_suppress_before_proof_deadline(data):
+        print('NO_REPLY')
+        return 0
     if data.get('ok'):
         print('NO_REPLY')
         return 0
