@@ -1,0 +1,54 @@
+Dagelijkse AI-update, woensdag 15 april 2026
+
+Korte intro: dit sample test dat twee URLs van hetzelfde domein niet stil als echte broncorroboratie tellen.
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI licht nieuwe eval-aanpak toe
+Bron: https://openai.com/index/openai-evals-update/ https://openai.com/index/safety-approach/
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI koppelt een nieuwe eval-uitleg aan een safety-uitleg, maar beide URLs komen uit dezelfde bronfamilie en hetzelfde domein.
+Waarom is dit belangrijk: Dit lijkt multi-source, maar levert geen onafhankelijke corroboratie op.
+Relevant voor Christian: Nuttig om te voorkomen dat de briefing zichzelf te makkelijk groen keurt op twee links van één site.
+
+2) nieuwe AI-tools en productfeatures
+Titel: GitHub toont nieuwe Copilot-agentflows
+Bron: https://github.com/features/copilot https://github.com/features/models
+Datum: 2026-04-14
+Wat is er nieuw: GitHub beschrijft twee gerelateerde routes, maar beide verwijzen naar hetzelfde domein en dezelfde publicatiefamilie.
+Waarom is dit belangrijk: Zonder domeindiversiteit blijft dit feitelijk één bronlijn.
+Relevant voor Christian: Goed testgeval voor strengere briefingcorroboratie in topitems.
+
+3) belangrijke researchdoorbraken of capabilities
+Titel: Anthropic bundelt twee posts over model-evals
+Bron: https://www.anthropic.com/news/evals-overview https://www.anthropic.com/news/evals-methodology
+Datum: 2026-04-14
+Wat is er nieuw: Anthropic publiceert twee relevante pagina's, maar nog steeds binnen hetzelfde domein.
+Waarom is dit belangrijk: Ook dit moet niet tellen als echte multi-domain onderbouwing.
+Relevant voor Christian: Houdt de top 3 van de briefing eerlijker en minder gevoelig voor broninflatie.
+
+4) agents/automation/coding workflows
+Geen relevante nieuwe items.
+
+5) multimodal, voice, image, video en on-device/lokale AI
+Geen relevante nieuwe items.
+
+6) open-source modellen/frameworks/inference tooling
+Geen relevante nieuwe items.
+
+7) enterprise/security/regulatory ontwikkelingen alleen als ze praktische impact hebben
+Geen relevante nieuwe items.
+
+Wat moeten wij hiermee?
+- Laat de audit onderscheiden tussen meerdere URLs en meerdere domeinen.
+- Voorkom dat één publisher met twee pagina's als echte corroboratie meetelt.
+
+Wat ik vandaag het belangrijkst vind
+- Topitems moeten niet alleen twee links hebben, maar ook echte bronspreiding.
+
+bronnenlijst met URLs
+https://openai.com/index/openai-evals-update/
+https://openai.com/index/safety-approach/
+https://github.com/features/copilot
+https://github.com/features/models
+https://www.anthropic.com/news/evals-overview
+https://www.anthropic.com/news/evals-methodology

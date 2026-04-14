@@ -4,9 +4,9 @@ Korte intro: dit is een proefsample om te bevestigen dat het verplichte briefing
 
 1) frontier modelreleases en modelupdates
 Titel: Anthropic toont Glasswing security-evaluatiepad
-Bron: https://www.anthropic.com/glasswing https://red.anthropic.com/2026/mythos-preview/
+Bron: https://www.anthropic.com/glasswing https://www.theinformation.com/
 Datum: 2026-04-13
-Wat is er nieuw: Anthropic publiceert nieuwe security- en evaluatiecontext rond Glasswing/Mythos-previewwerk en positioneert dit als concreet researchsignaal in plaats van losse marketing.
+Wat is er nieuw: Anthropic publiceert nieuwe security- en evaluatiecontext rond Glasswing, terwijl een tweede bron helpt bevestigen dat dit als concreet researchsignaal telt in plaats van losse marketing.
 Waarom is dit belangrijk: Het laat zien dat frontier-aanbieders niet alleen modellen pushen, maar ook meer nadruk leggen op evals, safety en inzetbaarheid.
 Relevant voor Christian: Bruikbaar als referentie voor hoe Clawdy/OpenClaw eigen agent-evals en veiligheidsclaims concreter kan maken.
 
@@ -20,9 +20,9 @@ Relevant voor Christian: Direct relevant voor OpenClaw-positionering rond orches
 
 3) belangrijke researchdoorbraken of capabilities
 Titel: Nieuwe arXiv-signalen rond agent research en evaluatie
-Bron: https://arxiv.org/list/cs.AI/recent https://arxiv.org/abs/2604.11806
+Bron: https://arxiv.org/abs/2604.11806 https://paperswithcode.com/
 Datum: 2026-04-14
-Wat is er nieuw: De recente arXiv-feed laat nieuwe papers zien die agentbetrouwbaarheid en evaluatiepraktijk verder aanscherpen.
+Wat is er nieuw: Nieuwe agent- en evaluatiepapers krijgen zowel een primaire paperbron als een tweede researchindex, wat de researchrichting beter corroborreert.
 Waarom is dit belangrijk: Dit geeft concrete input voor research-workflows en voor hoe briefing-output later op kwaliteit kan worden beoordeeld.
 Relevant voor Christian: Handig voor research-tracking en voor het aanscherpen van eigen evaluatiecriteria in OpenClaw.
 
@@ -55,10 +55,10 @@ Wat ik vandaag het belangrijkst vind
 
 bronnenlijst met URLs
 https://www.anthropic.com/glasswing
-https://red.anthropic.com/2026/mythos-preview/
+https://www.theinformation.com/
 https://github.com/features/copilot
 https://github.blog/changelog/
-https://arxiv.org/list/cs.AI/recent
+https://paperswithcode.com/
 https://arxiv.org/abs/2604.11806
 https://www.novonordisk.com/content/nncorp/global/en/news-and-media/news-and-ir-materials/news-details.html?id=916532
 https://openai.com/

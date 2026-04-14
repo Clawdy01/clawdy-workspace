@@ -169,6 +169,7 @@ MIN_TOP3_EVIDENCED_ITEMS_FOR_STRONG_SIGNAL = 3
 FRESH_ITEM_MAX_AGE_HOURS = 48
 MIN_FRESH_TOP3_ITEMS_FOR_STRONG_SIGNAL = 2
 MIN_TOP3_MULTI_SOURCE_ITEMS_FOR_STRONG_SIGNAL = 3
+MIN_TOP3_MULTI_DOMAIN_SOURCE_ITEMS_FOR_STRONG_SIGNAL = 3
 PROOF_TARGET_RUNS = 3
 
 MONTH_NAME_TO_NUMBER = {
@@ -706,6 +707,8 @@ def analyze_source_line_issues(line):
         issues.append('hoekhaken')
     if any(char in body for char in ('"', "'", '“', '”', '‘', '’')):
         issues.append('aanhalingstekens')
+    if '`' in body:
+        issues.append('backticks')
     if any(source_url_has_trailing_punctuation(url) for url in urls):
         issues.append('url_leesteken')
     if 'update-datum' in lower:
@@ -738,6 +741,7 @@ def format_issue_counts(counter):
         'haakjes': 'haakjes',
         'hoekhaken': 'hoekhaken',
         'aanhalingstekens': 'aanhalingstekens',
+        'backticks': 'backticks',
         'url_leesteken': 'URL-leesteken',
         'update_datum': 'update-datum',
         'extra_context': 'extra context',
@@ -987,25 +991,6 @@ def audit_summary_output(summary_text, reference_ms=None):
         urls if is_valid else []
         for urls, is_valid in zip(block_source_line_urls, block_valid_source_line)
     ]
-    block_source_counts = [len(urls) for urls in block_source_urls]
-    block_valid_source_url_counts = [len(urls) for urls in block_valid_source_urls]
-    block_unique_source_url_counts = [len(set(urls)) for urls in block_valid_source_urls]
-    items_with_source_count = sum(1 for count in block_source_counts if count > 0)
-    items_without_source_count = max(0, len(item_blocks) - items_with_source_count)
-    items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts if count >= 2)
-    items_with_valid_source_line_count = sum(1 for is_valid in block_valid_source_line if is_valid)
-    items_with_invalid_source_line_count = sum(1 for is_invalid in block_invalid_source_line if is_invalid)
-    items_missing_source_line_count = sum(1 for has_line in block_has_source_line if not has_line)
-    first3_items_with_source_count = sum(1 for count in block_source_counts[:3] if count > 0)
-    first3_items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts[:3] if count >= 2)
-    first3_items_with_valid_source_line_count = sum(1 for is_valid in block_valid_source_line[:3] if is_valid)
-    first3_items_with_invalid_source_line_count = sum(1 for is_invalid in block_invalid_source_line[:3] if is_invalid)
-    source_urls = [url for urls in block_valid_source_urls for url in urls]
-    unique_source_urls = sorted(set(source_urls))
-    source_url_count = len(source_urls)
-    unique_source_url_count = len(unique_source_urls)
-    first3_source_urls = [url for urls in block_valid_source_urls[:3] for url in urls]
-    first3_unique_source_url_count = len(set(first3_source_urls))
     block_source_domains = [
         sorted({
             re.sub(r'^www\.', '', url.split('/')[2].lower())
@@ -1014,6 +999,30 @@ def audit_summary_output(summary_text, reference_ms=None):
         })
         for urls in block_valid_source_urls
     ]
+    block_unique_source_domain_counts = [len(domains) for domains in block_source_domains]
+    block_source_counts = [len(urls) for urls in block_source_urls]
+    block_valid_source_url_counts = [len(urls) for urls in block_valid_source_urls]
+    block_unique_source_url_counts = [len(set(urls)) for urls in block_valid_source_urls]
+    items_with_source_count = sum(1 for count in block_source_counts if count > 0)
+    items_without_source_count = max(0, len(item_blocks) - items_with_source_count)
+    items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts if count >= 2)
+    items_with_multi_domain_sources_count = sum(1 for count in block_unique_source_domain_counts if count >= 2)
+    items_with_valid_source_line_count = sum(1 for is_valid in block_valid_source_line if is_valid)
+    items_with_invalid_source_line_count = sum(1 for is_invalid in block_invalid_source_line if is_invalid)
+    items_missing_source_line_count = sum(1 for has_line in block_has_source_line if not has_line)
+    first3_items_with_source_count = sum(1 for count in block_source_counts[:3] if count > 0)
+    first3_items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts[:3] if count >= 2)
+    first3_items_with_multi_domain_sources_count = sum(
+        1 for count in block_unique_source_domain_counts[:3] if count >= 2
+    )
+    first3_items_with_valid_source_line_count = sum(1 for is_valid in block_valid_source_line[:3] if is_valid)
+    first3_items_with_invalid_source_line_count = sum(1 for is_invalid in block_invalid_source_line[:3] if is_invalid)
+    source_urls = [url for urls in block_valid_source_urls for url in urls]
+    unique_source_urls = sorted(set(source_urls))
+    source_url_count = len(source_urls)
+    unique_source_url_count = len(unique_source_urls)
+    first3_source_urls = [url for urls in block_valid_source_urls[:3] for url in urls]
+    first3_unique_source_url_count = len(set(first3_source_urls))
     source_domains = sorted({domain for domains in block_source_domains for domain in domains})
     source_domain_count = len(source_domains)
     first3_source_domains = sorted({domain for domains in block_source_domains[:3] for domain in domains})
@@ -1132,6 +1141,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         title
         for title, unique_source_count in zip(block_titles[:3], block_unique_source_url_counts[:3])
         if unique_source_count < 2
+    ][:3]
+    top3_missing_multi_domain_source_examples = [
+        title
+        for title, unique_domain_count in zip(block_titles[:3], block_unique_source_domain_counts[:3])
+        if unique_domain_count < 2
     ][:3]
     top3_missing_primary_source_examples = [
         title
@@ -1293,6 +1307,14 @@ def audit_summary_output(summary_text, reference_ms=None):
         if top3_missing_multi_source_examples:
             reason += f": {', '.join(top3_missing_multi_source_examples)}"
         reasons.append(reason)
+    if item_count >= 3 and first3_items_with_multi_domain_sources_count < MIN_TOP3_MULTI_DOMAIN_SOURCE_ITEMS_FOR_STRONG_SIGNAL:
+        reason = (
+            'te weinig top-3 items met bron-URLs uit meerdere domeinen '
+            f'({first3_items_with_multi_domain_sources_count}/3, verwacht minstens {MIN_TOP3_MULTI_DOMAIN_SOURCE_ITEMS_FOR_STRONG_SIGNAL})'
+        )
+        if top3_missing_multi_domain_source_examples:
+            reason += f": {', '.join(top3_missing_multi_domain_source_examples)}"
+        reasons.append(reason)
     if source_url_count and source_domain_count < 2:
         reasons.append(f'te weinig unieke brondomeinen ({source_domain_count})')
     if item_count >= 3 and first3_source_domain_count < 2:
@@ -1355,7 +1377,9 @@ def audit_summary_output(summary_text, reference_ms=None):
         f'titels {unique_item_title_count}/{item_count} uniek, items met juiste labelvolgorde {items_with_exact_field_order_count}/{item_count}, items met bron {items_with_source_count}/{item_count}, '
         f'geldige Bron:-regels {items_with_valid_source_line_count}/{item_count}, '
         f'items met meerdere bron-URLs {items_with_multiple_sources_count}/{item_count}, '
+        f'items met multi-domein bronregels {items_with_multi_domain_sources_count}/{item_count}, '
         f'top3 bron-URLs {first3_unique_source_url_count}/3 uniek, top3 met meerdere bron-URLs {first3_items_with_multiple_sources_count}/3, '
+        f'top3 met multi-domein bronregels {first3_items_with_multi_domain_sources_count}/3, '
         f'top3 met primaire bron {first3_items_with_primary_source_count}/3, '
         f'{source_domain_count} domeinen, top3 {first3_source_domain_count} domeinen, '
         f'top3 primaire bron-domeinen {first3_primary_source_domain_count}, {primary_source_domain_count} primaire bron-domeinen, '
@@ -1400,6 +1424,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'items_without_source_count': items_without_source_count,
         'items_missing_source_examples': items_missing_source_examples,
         'items_with_multiple_sources_count': items_with_multiple_sources_count,
+        'items_with_multi_domain_sources_count': items_with_multi_domain_sources_count,
         'items_with_valid_source_line_count': items_with_valid_source_line_count,
         'items_with_invalid_source_line_count': items_with_invalid_source_line_count,
         'items_missing_source_line_count': items_missing_source_line_count,
@@ -1408,12 +1433,14 @@ def audit_summary_output(summary_text, reference_ms=None):
         'first3_items_with_source_count': first3_items_with_source_count,
         'top3_missing_source_examples': top3_missing_source_examples,
         'first3_items_with_multiple_sources_count': first3_items_with_multiple_sources_count,
+        'first3_items_with_multi_domain_sources_count': first3_items_with_multi_domain_sources_count,
         'first3_items_with_valid_source_line_count': first3_items_with_valid_source_line_count,
         'first3_items_with_invalid_source_line_count': first3_items_with_invalid_source_line_count,
         'first3_items_with_primary_source_count': first3_items_with_primary_source_count,
         'top3_invalid_source_line_issue_counts': dict(top3_invalid_source_line_issue_counts),
         'top3_invalid_source_line_examples': top3_invalid_source_line_examples,
         'top3_missing_multi_source_examples': top3_missing_multi_source_examples,
+        'top3_missing_multi_domain_source_examples': top3_missing_multi_domain_source_examples,
         'top3_missing_primary_source_examples': top3_missing_primary_source_examples,
         'first3_source_urls': first3_source_urls,
         'first3_unique_source_url_count': first3_unique_source_url_count,
@@ -2147,6 +2174,9 @@ def render_summary_audit_text(data):
     top3_missing_multi_source_examples = data.get('top3_missing_multi_source_examples') or []
     if top3_missing_multi_source_examples:
         parts.append('top3 zonder multi-source ' + ', '.join(top3_missing_multi_source_examples[:3]))
+    top3_missing_multi_domain_source_examples = data.get('top3_missing_multi_domain_source_examples') or []
+    if top3_missing_multi_domain_source_examples:
+        parts.append('top3 zonder multi-domein bronregel ' + ', '.join(top3_missing_multi_domain_source_examples[:3]))
     top3_missing_primary_source_examples = data.get('top3_missing_primary_source_examples') or []
     if top3_missing_primary_source_examples:
         parts.append('top3 zonder primaire bron ' + ', '.join(top3_missing_primary_source_examples[:3]))
@@ -2165,10 +2195,14 @@ def render_summary_audit_text(data):
         parts.append(f"items met bron {data['items_with_source_count']}/{data['item_count']}")
     if data.get('items_with_multiple_sources_count') is not None and data.get('item_count') is not None:
         parts.append(f"items met meerdere bron-URLs {data['items_with_multiple_sources_count']}/{data['item_count']}")
+    if data.get('items_with_multi_domain_sources_count') is not None and data.get('item_count') is not None:
+        parts.append(f"items met multi-domein bronregels {data['items_with_multi_domain_sources_count']}/{data['item_count']}")
     if data.get('first3_items_with_source_count') is not None:
         parts.append(f"top3 met bron {data['first3_items_with_source_count']}/3")
     if data.get('first3_items_with_multiple_sources_count') is not None:
         parts.append(f"top3 met meerdere bron-URLs {data['first3_items_with_multiple_sources_count']}/3")
+    if data.get('first3_items_with_multi_domain_sources_count') is not None:
+        parts.append(f"top3 met multi-domein bronregels {data['first3_items_with_multi_domain_sources_count']}/3")
     if data.get('first3_items_with_primary_source_count') is not None:
         parts.append(f"top3 met primaire bron {data['first3_items_with_primary_source_count']}/3")
     if data.get('first3_unique_source_url_count') is not None:
@@ -2305,8 +2339,16 @@ def render_text(data):
             parts.append(
                 f"items met meerdere bron-URLs {summary_output_audit['items_with_multiple_sources_count']}/{summary_output_audit['item_count']}"
             )
+        if summary_output_audit.get('items_with_multi_domain_sources_count') is not None and summary_output_audit.get('item_count') is not None:
+            parts.append(
+                f"items met multi-domein bronregels {summary_output_audit['items_with_multi_domain_sources_count']}/{summary_output_audit['item_count']}"
+            )
         if summary_output_audit.get('first3_items_with_multiple_sources_count') is not None:
             parts.append(f"top3 met meerdere bron-URLs {summary_output_audit['first3_items_with_multiple_sources_count']}/3")
+        if summary_output_audit.get('first3_items_with_multi_domain_sources_count') is not None:
+            parts.append(
+                f"top3 met multi-domein bronregels {summary_output_audit['first3_items_with_multi_domain_sources_count']}/3"
+            )
         if summary_output_audit.get('first3_source_domain_count') is not None:
             parts.append(f"top3 brondomeinen {summary_output_audit['first3_source_domain_count']}")
         if summary_output_audit.get('first3_primary_source_domain_count') is not None:
