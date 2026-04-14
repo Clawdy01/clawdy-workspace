@@ -139,6 +139,7 @@ MIN_RECENT_ITEMS_FOR_STRONG_SIGNAL = 2
 MIN_TOP3_EVIDENCED_ITEMS_FOR_STRONG_SIGNAL = 2
 FRESH_ITEM_MAX_AGE_HOURS = 48
 MIN_FRESH_TOP3_ITEMS_FOR_STRONG_SIGNAL = 2
+MIN_TOP3_MULTI_SOURCE_ITEMS_FOR_STRONG_SIGNAL = 2
 PROOF_TARGET_RUNS = 3
 
 MONTH_NAME_TO_NUMBER = {
@@ -258,6 +259,21 @@ def expected_next_run_at(now_ms, expr, tz_name):
         from datetime import timedelta
         candidate = candidate + timedelta(days=1)
     return int(candidate.astimezone(timezone.utc).timestamp() * 1000)
+
+
+def projected_proof_target_due_at(next_run_at, remaining_runs, expr):
+    if not next_run_at or remaining_runs is None or remaining_runs <= 0:
+        return None
+    parts = (expr or '').split()
+    if len(parts) != 5:
+        return None
+    minute_raw, hour_raw, day_raw, month_raw, weekday_raw = parts
+    if not minute_raw.isdigit() or not hour_raw.isdigit():
+        return None
+    if day_raw != '*' or month_raw != '*' or weekday_raw != '*':
+        return None
+    day_ms = 24 * 60 * 60 * 1000
+    return next_run_at + ((remaining_runs - 1) * day_ms) + (15 * 60 * 1000)
 
 
 def audit_next_run(job, next_run_at, now_ms, tz_name):
@@ -554,7 +570,9 @@ def audit_summary_output(summary_text, reference_ms=None):
             'duplicate_item_title_examples': [],
             'items_with_source_count': 0,
             'items_without_source_count': 0,
+            'items_with_multiple_sources_count': 0,
             'first3_items_with_source_count': 0,
+            'first3_items_with_multiple_sources_count': 0,
             'first3_source_urls': [],
             'first3_unique_source_url_count': 0,
             'first3_source_domains': [],
@@ -645,9 +663,12 @@ def audit_summary_output(summary_text, reference_ms=None):
     duplicate_item_title_count = max(0, len(title_entries) - unique_item_title_count)
     block_source_urls = [re.findall(r'https?://\S+', block) for block in item_blocks]
     block_source_counts = [len(urls) for urls in block_source_urls]
+    block_unique_source_url_counts = [len(set(urls)) for urls in block_source_urls]
     items_with_source_count = sum(1 for count in block_source_counts if count > 0)
     items_without_source_count = max(0, len(item_blocks) - items_with_source_count)
+    items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts if count >= 2)
     first3_items_with_source_count = sum(1 for count in block_source_counts[:3] if count > 0)
+    first3_items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts[:3] if count >= 2)
     first3_source_urls = [url for urls in block_source_urls[:3] for url in urls]
     first3_unique_source_url_count = len(set(first3_source_urls))
     first3_source_domains = sorted({
@@ -754,6 +775,10 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(
             f'top-3 items hergebruiken bron-URLs ({first3_unique_source_url_count}/3 uniek)'
         )
+    if item_count >= 3 and first3_items_with_multiple_sources_count < MIN_TOP3_MULTI_SOURCE_ITEMS_FOR_STRONG_SIGNAL:
+        reasons.append(
+            f'te weinig top-3 items met meerdere bron-URLs ({first3_items_with_multiple_sources_count}/3, verwacht minstens {MIN_TOP3_MULTI_SOURCE_ITEMS_FOR_STRONG_SIGNAL})'
+        )
     if source_url_count and source_domain_count < 2:
         reasons.append(f'te weinig unieke brondomeinen ({source_domain_count})')
     if item_count >= 3 and first3_source_domain_count < 2:
@@ -794,7 +819,8 @@ def audit_summary_output(summary_text, reference_ms=None):
     ok_text = (
         f'briefing-output ok ({item_count} items, {source_url_count} URLs, {unique_source_url_count} uniek, '
         f'titels {unique_item_title_count}/{item_count} uniek, items met bron {items_with_source_count}/{item_count}, '
-        f'top3 bron-URLs {first3_unique_source_url_count}/3 uniek, '
+        f'items met meerdere bron-URLs {items_with_multiple_sources_count}/{item_count}, '
+        f'top3 bron-URLs {first3_unique_source_url_count}/3 uniek, top3 met meerdere bron-URLs {first3_items_with_multiple_sources_count}/3, '
         f'{source_domain_count} domeinen, top3 {first3_source_domain_count} domeinen, '
         f'top3 primaire bron-domeinen {first3_primary_source_domain_count}, {primary_source_domain_count} primaire bron-domeinen, '
         f'top3 primaire bronfamilies {first3_primary_source_family_count}, {primary_source_family_count} primaire bronfamilies, '
@@ -825,7 +851,9 @@ def audit_summary_output(summary_text, reference_ms=None):
         'duplicate_item_title_examples': duplicate_item_title_examples,
         'items_with_source_count': items_with_source_count,
         'items_without_source_count': items_without_source_count,
+        'items_with_multiple_sources_count': items_with_multiple_sources_count,
         'first3_items_with_source_count': first3_items_with_source_count,
+        'first3_items_with_multiple_sources_count': first3_items_with_multiple_sources_count,
         'first3_source_urls': first3_source_urls,
         'first3_unique_source_url_count': first3_unique_source_url_count,
         'first3_source_domains': first3_source_domains,
@@ -1343,10 +1371,20 @@ def build_status(job_name=TARGET_JOB_NAME):
         'last_run_hint': age_hint(last_run_at, now_ms),
     }
 
+    proof_target_due_at = projected_proof_target_due_at(
+        next_run_at=next_run_at,
+        remaining_runs=summary['proof_runs_remaining'],
+        expr=summary['schedule_expr'],
+    )
+    summary['proof_target_due_at'] = proof_target_due_at
+    summary['proof_target_due_at_text'] = fmt_ts(proof_target_due_at, tz_name)
+    summary['proof_target_due_hint'] = future_hint(proof_target_due_at, now_ms)
+
+    proof_runs_remaining = summary['proof_runs_remaining']
     proof_progress_text = (
         f"bewijsdoel gehaald ({len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs voor huidige config)"
         if len(proof_qualified_runs) >= PROOF_TARGET_RUNS
-        else f"bewijsprogressie {len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs voor huidige config"
+        else f"bewijsprogressie {len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs voor huidige config, nog {proof_runs_remaining} te gaan"
     )
 
     if finished_runs:
@@ -1412,8 +1450,12 @@ def render_summary_audit_text(data):
         )
     if data.get('items_with_source_count') is not None and data.get('item_count') is not None:
         parts.append(f"items met bron {data['items_with_source_count']}/{data['item_count']}")
+    if data.get('items_with_multiple_sources_count') is not None and data.get('item_count') is not None:
+        parts.append(f"items met meerdere bron-URLs {data['items_with_multiple_sources_count']}/{data['item_count']}")
     if data.get('first3_items_with_source_count') is not None:
         parts.append(f"top3 met bron {data['first3_items_with_source_count']}/3")
+    if data.get('first3_items_with_multiple_sources_count') is not None:
+        parts.append(f"top3 met meerdere bron-URLs {data['first3_items_with_multiple_sources_count']}/3")
     if data.get('first3_unique_source_url_count') is not None:
         parts.append(f"top3 unieke bron-URLs {data['first3_unique_source_url_count']}/3")
     if data.get('primary_source_domain_count') is not None:
@@ -1499,6 +1541,8 @@ def render_text(data):
         parts.append(f"volgende {data['next_run_at_text']}")
     if data.get('proof_due_at_text'):
         parts.append(f"bewijs verwacht uiterlijk {data['proof_due_at_text']}")
+    if data.get('proof_target_due_at_text'):
+        parts.append(f"bewijsdoel bij groene runs uiterlijk {data['proof_target_due_at_text']}")
     if data.get('last_run_at_text'):
         parts.append(f"laatste {data['last_run_at_text']}")
     last_run_summary = data.get('last_run_summary') or {}
@@ -1536,6 +1580,12 @@ def render_text(data):
                     for example in duplicate_examples[:3]
                 )
             )
+        if summary_output_audit.get('items_with_multiple_sources_count') is not None and summary_output_audit.get('item_count') is not None:
+            parts.append(
+                f"items met meerdere bron-URLs {summary_output_audit['items_with_multiple_sources_count']}/{summary_output_audit['item_count']}"
+            )
+        if summary_output_audit.get('first3_items_with_multiple_sources_count') is not None:
+            parts.append(f"top3 met meerdere bron-URLs {summary_output_audit['first3_items_with_multiple_sources_count']}/3")
         if summary_output_audit.get('first3_source_domain_count') is not None:
             parts.append(f"top3 brondomeinen {summary_output_audit['first3_source_domain_count']}")
         if summary_output_audit.get('first3_primary_source_domain_count') is not None:

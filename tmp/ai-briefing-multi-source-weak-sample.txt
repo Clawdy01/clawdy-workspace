@@ -1,0 +1,28 @@
+Titel: Tool A krijgt nieuwe agentmodus
+Wat is er nieuw: Leverancier A kondigde vandaag agentmodus aan.
+Waarom is dit belangrijk: Dit versnelt coding workflows.
+Bron: https://openai.com/index/tool-a-update
+Datum: 2026-04-14
+
+Titel: Tool B voegt voice controls toe
+Wat is er nieuw: Leverancier B voegt voice controls toe.
+Waarom is dit belangrijk: Handig voor multimodale flows.
+Bron: https://www.anthropic.com/news/tool-b-voice
+Datum: 2026-04-14
+
+Titel: Open-source project C brengt nieuwe release uit
+Wat is er nieuw: Project C heeft een release uitgebracht.
+Waarom is dit belangrijk: Lokale inference wordt eenvoudiger.
+Bron: https://github.com/org/project-c/releases/tag/v1.2.3
+Datum: 2026-04-14
+
+Wat moeten wij hiermee?
+Kijken welke route het meest bruikbaar is.
+
+Wat ik vandaag het belangrijkst vind
+De combinatie van agents en multimodaliteit.
+
+Bronnenlijst met URLs
+- https://openai.com/index/tool-a-update
+- https://www.anthropic.com/news/tool-b-voice
+- https://github.com/org/project-c/releases/tag/v1.2.3

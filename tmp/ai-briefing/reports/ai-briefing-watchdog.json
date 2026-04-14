@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "summary": "eerste run nog niet geweest, eerste run over 2 uur, bewijs verwacht over 2u 15m",
+  "reasons": [],
+  "readiness_phase": "ready-for-first-run",
+  "proof_progress_text": "bewijsprogressie 0/3 gekwalificeerde runs voor huidige config",
+  "proof_target_runs": 3,
+  "proof_qualified_runs": 0,
+  "job_name": "daily-ai-update",
+  "next_run_at_text": "2026-04-14 09:00 CEST",
+  "proof_due_at_text": "2026-04-14 09:15 CEST",
+  "has_run_proof": false,
+  "attention_needed": false,
+  "status_text": "eerste run nog niet geweest, eerste run over 2 uur, bewijs verwacht over 2u 15m"
+}

@@ -146,6 +146,11 @@ def render_text(data, show_preview=False):
             if ai_briefing_status.get('proof_due_hint'):
                 proof_due_text += f" ({ai_briefing_status['proof_due_hint']})"
             ai_bits.append(proof_due_text)
+        if ai_briefing_status.get('proof_target_due_at_text'):
+            proof_target_due_text = f"bewijsdoel bij groene runs uiterlijk {ai_briefing_status['proof_target_due_at_text']}"
+            if ai_briefing_status.get('proof_target_due_hint'):
+                proof_target_due_text += f" ({ai_briefing_status['proof_target_due_hint']})"
+            ai_bits.append(proof_target_due_text)
         if ai_briefing_status.get('last_run_at_text'):
             ai_bits.append(f"laatste {ai_briefing_status['last_run_at_text']}")
         last_run_summary = ai_briefing_status.get('last_run_summary') or {}
@@ -168,6 +173,7 @@ def render_text(data, show_preview=False):
             ai_bits.append(f"bron-URLs {summary_output_audit.get('source_url_count', 0)}")
             ai_bits.append(f"unieke bron-URLs {summary_output_audit.get('unique_source_url_count', 0)}")
             ai_bits.append(f"unieke titels {summary_output_audit.get('unique_item_title_count', 0)}/{summary_output_audit.get('item_count', 0)}")
+            ai_bits.append(f"items met meerdere bron-URLs {summary_output_audit.get('items_with_multiple_sources_count', 0)}/{summary_output_audit.get('item_count', 0)}")
             duplicate_examples = summary_output_audit.get('duplicate_item_title_examples') or []
             if duplicate_examples:
                 ai_bits.append(
@@ -182,6 +188,7 @@ def render_text(data, show_preview=False):
             ai_bits.append(f"top3 unieke bron-URLs {summary_output_audit.get('first3_unique_source_url_count', 0)}/3")
             ai_bits.append(f"items met bron {summary_output_audit.get('items_with_source_count', 0)}/{summary_output_audit.get('item_count', 0)}")
             ai_bits.append(f"top3 met bron {summary_output_audit.get('first3_items_with_source_count', 0)}/3")
+            ai_bits.append(f"top3 met meerdere bron-URLs {summary_output_audit.get('first3_items_with_multiple_sources_count', 0)}/3")
             ai_bits.append(f"datums {summary_output_audit.get('dated_item_count', 0)}/{summary_output_audit.get('item_count', 0)}")
             ai_bits.append(f"vers top3 {summary_output_audit.get('fresh_dated_first3_count', 0)}/3")
             ai_bits.append(f"recent top3 {summary_output_audit.get('recent_dated_first3_count', 0)}/3")

@@ -1,0 +1,4 @@
+ai briefing watchdog: ok - eerste run nog niet geweest, eerste run over 2 uur, bewijs verwacht over 2u 15m
+proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config
+next run: 2026-04-14 09:00 CEST
+proof due: 2026-04-14 09:15 CEST
