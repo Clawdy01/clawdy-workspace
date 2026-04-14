@@ -584,6 +584,75 @@ def normalize_title_key(title):
     return normalized.strip()
 
 
+def extract_source_line_text(block):
+    for line in (block or '').splitlines():
+        stripped = line.strip()
+        if stripped.lower().startswith('bron:'):
+            return stripped
+    return None
+
+
+def analyze_source_line_issues(line):
+    if not isinstance(line, str):
+        return []
+    stripped = line.strip()
+    if not stripped:
+        return []
+    body = re.sub(r'(?i)^bron:\s*', '', stripped).strip()
+    if not body:
+        return ['leeg']
+
+    issues = []
+    lower = body.lower()
+    urls = re.findall(r'https?://\S+', body)
+    if not urls:
+        issues.append('geen_url')
+
+    if ',' in body:
+        issues.append('komma')
+    if ';' in body:
+        issues.append('puntkomma')
+    if '(' in body or ')' in body:
+        issues.append('haakjes')
+    if 'update-datum' in lower:
+        issues.append('update_datum')
+    if 'extra context' in lower:
+        issues.append('extra_context')
+    if re.search(r'\bvia\b', lower):
+        issues.append('via_context')
+    if DATE_PATTERN.search(body):
+        issues.append('datumtekst')
+
+    body_without_urls = re.sub(r'https?://\S+', ' ', body)
+    body_without_urls = re.sub(r'[|,;()]', ' ', body_without_urls)
+    body_without_urls = re.sub(r'\s+', ' ', body_without_urls).strip()
+    if body_without_urls and re.search(r'[A-Za-zÀ-ÿ]', body_without_urls):
+        issues.append('vrije_tekst')
+
+    return issues
+
+
+def format_issue_counts(counter):
+    if not counter:
+        return None
+    labels = {
+        'geen_url': 'geen URL',
+        'komma': 'komma',
+        'puntkomma': 'puntkomma',
+        'haakjes': 'haakjes',
+        'update_datum': 'update-datum',
+        'extra_context': 'extra context',
+        'via_context': 'via',
+        'datumtekst': 'datumtekst',
+        'vrije_tekst': 'vrije tekst',
+        'leeg': 'leeg',
+    }
+    parts = []
+    for key, count in sorted(counter.items(), key=lambda item: (-item[1], item[0])):
+        parts.append(f"{labels.get(key, key)} {count}x")
+    return ', '.join(parts)
+
+
 def normalize_year(year):
     year = int(year)
     if year < 100:
@@ -676,8 +745,17 @@ def audit_summary_output(summary_text, reference_ms=None):
             'items_with_source_count': 0,
             'items_without_source_count': 0,
             'items_with_multiple_sources_count': 0,
+            'items_with_valid_source_line_count': 0,
+            'items_with_invalid_source_line_count': 0,
+            'items_missing_source_line_count': 0,
+            'invalid_source_line_issue_counts': {},
+            'items_invalid_source_line_examples': [],
             'first3_items_with_source_count': 0,
             'first3_items_with_multiple_sources_count': 0,
+            'first3_items_with_valid_source_line_count': 0,
+            'first3_items_with_invalid_source_line_count': 0,
+            'top3_invalid_source_line_issue_counts': {},
+            'top3_invalid_source_line_examples': [],
             'first3_source_urls': [],
             'first3_unique_source_url_count': 0,
             'first3_source_domains': [],
@@ -775,14 +853,44 @@ def audit_summary_output(summary_text, reference_ms=None):
         title = extract_item_title(block) or f'item {index}'
         block_titles.append(title)
 
+    block_source_lines = [extract_source_line_text(block) for block in item_blocks]
+    block_source_line_urls = [re.findall(r'https?://\S+', line or '') for line in block_source_lines]
+    block_has_source_line = [bool(line) for line in block_source_lines]
+    block_valid_source_line = [
+        bool(line and urls and re.fullmatch(r'Bron:\s+https?://\S+(?:\s*(?:\||\s)\s*https?://\S+)*\s*', line))
+        for line, urls in zip(block_source_lines, block_source_line_urls)
+    ]
+    block_invalid_source_line = [
+        bool(line) and not is_valid
+        for line, is_valid in zip(block_source_lines, block_valid_source_line)
+    ]
+    block_source_line_issue_lists = [
+        analyze_source_line_issues(line) if is_invalid else []
+        for line, is_invalid in zip(block_source_lines, block_invalid_source_line)
+    ]
+    invalid_source_line_issue_counts = Counter(
+        issue
+        for issues in block_source_line_issue_lists
+        for issue in issues
+    )
+    top3_invalid_source_line_issue_counts = Counter(
+        issue
+        for issues in block_source_line_issue_lists[:3]
+        for issue in issues
+    )
     block_source_urls = [re.findall(r'https?://\S+', block) for block in item_blocks]
     block_source_counts = [len(urls) for urls in block_source_urls]
     block_unique_source_url_counts = [len(set(urls)) for urls in block_source_urls]
     items_with_source_count = sum(1 for count in block_source_counts if count > 0)
     items_without_source_count = max(0, len(item_blocks) - items_with_source_count)
     items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts if count >= 2)
+    items_with_valid_source_line_count = sum(1 for is_valid in block_valid_source_line if is_valid)
+    items_with_invalid_source_line_count = sum(1 for is_invalid in block_invalid_source_line if is_invalid)
+    items_missing_source_line_count = sum(1 for has_line in block_has_source_line if not has_line)
     first3_items_with_source_count = sum(1 for count in block_source_counts[:3] if count > 0)
     first3_items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts[:3] if count >= 2)
+    first3_items_with_valid_source_line_count = sum(1 for is_valid in block_valid_source_line[:3] if is_valid)
+    first3_items_with_invalid_source_line_count = sum(1 for is_invalid in block_invalid_source_line[:3] if is_invalid)
     first3_source_urls = [url for urls in block_source_urls[:3] for url in urls]
     first3_unique_source_url_count = len(set(first3_source_urls))
     first3_source_domains = sorted({
@@ -838,10 +946,38 @@ def audit_summary_output(summary_text, reference_ms=None):
         for title, source_count in zip(block_titles, block_source_counts)
         if source_count <= 0
     ][:3]
+    items_invalid_source_line_examples = [
+        {
+            'title': title,
+            'source_line': source_line,
+            'issues': issues,
+        }
+        for title, source_line, is_invalid, issues in zip(
+            block_titles,
+            block_source_lines,
+            block_invalid_source_line,
+            block_source_line_issue_lists,
+        )
+        if is_invalid and source_line
+    ][:3]
     top3_missing_source_examples = [
         title
         for title, source_count in zip(block_titles[:3], block_source_counts[:3])
         if source_count <= 0
+    ][:3]
+    top3_invalid_source_line_examples = [
+        {
+            'title': title,
+            'source_line': source_line,
+            'issues': issues,
+        }
+        for title, source_line, is_invalid, issues in zip(
+            block_titles[:3],
+            block_source_lines[:3],
+            block_invalid_source_line[:3],
+            block_source_line_issue_lists[:3],
+        )
+        if is_invalid and source_line
     ][:3]
     top3_missing_multi_source_examples = [
         title
@@ -915,10 +1051,44 @@ def audit_summary_output(summary_text, reference_ms=None):
         if items_missing_source_examples:
             reason += f": {', '.join(items_missing_source_examples)}"
         reasons.append(reason)
+    if item_count and items_with_valid_source_line_count < item_count:
+        reason = (
+            'niet elk item heeft een geldige Bron:-regel met alleen URLs '
+            f'({items_with_valid_source_line_count}/{item_count})'
+        )
+        if items_invalid_source_line_examples:
+            examples_text = ', '.join(
+                f"{example['title']} -> {example['source_line']}"
+                for example in items_invalid_source_line_examples[:3]
+            )
+            reason += f': {examples_text}'
+            issue_summary = format_issue_counts(invalid_source_line_issue_counts)
+            if issue_summary:
+                reason += f' (patronen: {issue_summary})'
+        elif items_missing_source_line_count:
+            reason += f'; ontbrekende Bron:-regel {items_missing_source_line_count}'
+        reasons.append(reason)
     if item_count >= 3 and first3_items_with_source_count < 3:
         reason = f'niet elk top-3 item heeft een zichtbare bron-URL ({first3_items_with_source_count}/3)'
         if top3_missing_source_examples:
             reason += f": {', '.join(top3_missing_source_examples)}"
+        reasons.append(reason)
+    if item_count >= 3 and first3_items_with_valid_source_line_count < 3:
+        reason = (
+            'niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs '
+            f'({first3_items_with_valid_source_line_count}/3)'
+        )
+        if top3_invalid_source_line_examples:
+            examples_text = ', '.join(
+                f"{example['title']} -> {example['source_line']}"
+                for example in top3_invalid_source_line_examples[:3]
+            )
+            reason += f': {examples_text}'
+            issue_summary = format_issue_counts(top3_invalid_source_line_issue_counts)
+            if issue_summary:
+                reason += f' (top3 patronen: {issue_summary})'
+        elif first3_items_with_invalid_source_line_count:
+            reason += f'; ongeldige Bron:-regels {first3_items_with_invalid_source_line_count}'
         reasons.append(reason)
     if item_count >= 3 and first3_unique_source_url_count < 3:
         reasons.append(
@@ -975,6 +1145,7 @@ def audit_summary_output(summary_text, reference_ms=None):
     ok_text = (
         f'briefing-output ok ({item_count} items, {source_url_count} URLs, {unique_source_url_count} uniek, '
         f'titels {unique_item_title_count}/{item_count} uniek, items met bron {items_with_source_count}/{item_count}, '
+        f'geldige Bron:-regels {items_with_valid_source_line_count}/{item_count}, '
         f'items met meerdere bron-URLs {items_with_multiple_sources_count}/{item_count}, '
         f'top3 bron-URLs {first3_unique_source_url_count}/3 uniek, top3 met meerdere bron-URLs {first3_items_with_multiple_sources_count}/3, '
         f'{source_domain_count} domeinen, top3 {first3_source_domain_count} domeinen, '
@@ -1009,9 +1180,18 @@ def audit_summary_output(summary_text, reference_ms=None):
         'items_without_source_count': items_without_source_count,
         'items_missing_source_examples': items_missing_source_examples,
         'items_with_multiple_sources_count': items_with_multiple_sources_count,
+        'items_with_valid_source_line_count': items_with_valid_source_line_count,
+        'items_with_invalid_source_line_count': items_with_invalid_source_line_count,
+        'items_missing_source_line_count': items_missing_source_line_count,
+        'invalid_source_line_issue_counts': dict(invalid_source_line_issue_counts),
+        'items_invalid_source_line_examples': items_invalid_source_line_examples,
         'first3_items_with_source_count': first3_items_with_source_count,
         'top3_missing_source_examples': top3_missing_source_examples,
         'first3_items_with_multiple_sources_count': first3_items_with_multiple_sources_count,
+        'first3_items_with_valid_source_line_count': first3_items_with_valid_source_line_count,
+        'first3_items_with_invalid_source_line_count': first3_items_with_invalid_source_line_count,
+        'top3_invalid_source_line_issue_counts': dict(top3_invalid_source_line_issue_counts),
+        'top3_invalid_source_line_examples': top3_invalid_source_line_examples,
         'top3_missing_multi_source_examples': top3_missing_multi_source_examples,
         'first3_source_urls': first3_source_urls,
         'first3_unique_source_url_count': first3_unique_source_url_count,

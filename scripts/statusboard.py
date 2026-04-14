@@ -189,9 +189,27 @@ def render_text(data, show_preview=False):
             items_missing_source_examples = summary_output_audit.get('items_missing_source_examples') or []
             if items_missing_source_examples:
                 ai_bits.append('items zonder bron ' + ', '.join(items_missing_source_examples[:3]))
+            items_invalid_source_line_examples = summary_output_audit.get('items_invalid_source_line_examples') or []
+            if items_invalid_source_line_examples:
+                ai_bits.append(
+                    'items met ongeldige Bron-regel '
+                    + ', '.join(
+                        f"{example.get('title', 'item')} -> {example.get('source_line', '')}"
+                        for example in items_invalid_source_line_examples[:2]
+                    )
+                )
             top3_missing_source_examples = summary_output_audit.get('top3_missing_source_examples') or []
             if top3_missing_source_examples:
                 ai_bits.append('top3 zonder bron ' + ', '.join(top3_missing_source_examples[:3]))
+            top3_invalid_source_line_examples = summary_output_audit.get('top3_invalid_source_line_examples') or []
+            if top3_invalid_source_line_examples:
+                ai_bits.append(
+                    'top3 met ongeldige Bron-regel '
+                    + ', '.join(
+                        f"{example.get('title', 'item')} -> {example.get('source_line', '')}"
+                        for example in top3_invalid_source_line_examples[:2]
+                    )
+                )
             top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
             if top3_missing_multi_source_examples:
                 ai_bits.append('top3 zonder multi-source ' + ', '.join(top3_missing_multi_source_examples[:3]))
@@ -206,7 +224,13 @@ def render_text(data, show_preview=False):
             ai_bits.append(f"top3 primaire bronfamilies {summary_output_audit.get('first3_primary_source_family_count', 0)}")
             ai_bits.append(f"top3 unieke bron-URLs {summary_output_audit.get('first3_unique_source_url_count', 0)}/3")
             ai_bits.append(f"items met bron {summary_output_audit.get('items_with_source_count', 0)}/{summary_output_audit.get('item_count', 0)}")
+            ai_bits.append(
+                f"geldige Bron-regels {summary_output_audit.get('items_with_valid_source_line_count', 0)}/{summary_output_audit.get('item_count', 0)}"
+            )
             ai_bits.append(f"top3 met bron {summary_output_audit.get('first3_items_with_source_count', 0)}/3")
+            ai_bits.append(
+                f"top3 geldige Bron-regels {summary_output_audit.get('first3_items_with_valid_source_line_count', 0)}/3"
+            )
             ai_bits.append(f"top3 met meerdere bron-URLs {summary_output_audit.get('first3_items_with_multiple_sources_count', 0)}/3")
             ai_bits.append(f"datums {summary_output_audit.get('dated_item_count', 0)}/{summary_output_audit.get('item_count', 0)}")
             ai_bits.append(f"vers top3 {summary_output_audit.get('fresh_dated_first3_count', 0)}/3")

@@ -13,12 +13,28 @@ DEFAULT_CASES = [
         'expect_ok': False,
         'expect_item_count': 10,
         'expect_items_with_source_count': 0,
+        'expect_items_with_valid_source_line_count': 0,
+        'expect_items_with_invalid_source_line_count': 10,
         'expect_first3_items_with_source_count': 0,
+        'expect_first3_items_with_valid_source_line_count': 0,
         'expect_first3_items_with_multiple_sources_count': 0,
         'expect_first3_primary_source_family_count': 0,
         'expect_first3_primary_fresh_item_count': 0,
+        'expect_invalid_source_issue_counts': {
+            'geen_url': 10,
+            'komma': 9,
+            'puntkomma': 6,
+            'haakjes': 1,
+            'update_datum': 1,
+            'datumtekst': 10,
+            'vrije_tekst': 10,
+            'extra_context': 1,
+            'via_context': 1,
+        },
         'expect_reason_substrings': [
             'niet elk item heeft een zichtbare bron-URL',
+            'niet elk item heeft een geldige Bron:-regel met alleen URLs',
+            'geen URL 10x',
             'te weinig top-3 items met meerdere bron-URLs',
             'geen herkenbare primaire bron in top 3 items',
         ],
@@ -29,10 +45,14 @@ DEFAULT_CASES = [
         'expect_ok': True,
         'expect_item_count': 4,
         'expect_items_with_source_count': 4,
+        'expect_items_with_valid_source_line_count': 4,
+        'expect_items_with_invalid_source_line_count': 0,
         'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
         'expect_first3_items_with_multiple_sources_count': 3,
         'expect_first3_primary_source_family_count': 2,
         'expect_first3_primary_fresh_item_count': 2,
+        'expect_invalid_source_issue_counts': {},
         'expect_reason_substrings': [],
     },
 ]
@@ -59,10 +79,34 @@ def evaluate_case(module, case):
         failures.append(
             f"items_with_source_count verwacht {case['expect_items_with_source_count']}, kreeg {audit.get('items_with_source_count')}"
         )
+    if (
+        'expect_items_with_valid_source_line_count' in case
+        and audit.get('items_with_valid_source_line_count') != case['expect_items_with_valid_source_line_count']
+    ):
+        failures.append(
+            'items_with_valid_source_line_count verwacht '
+            f"{case['expect_items_with_valid_source_line_count']}, kreeg {audit.get('items_with_valid_source_line_count')}"
+        )
+    if (
+        'expect_items_with_invalid_source_line_count' in case
+        and audit.get('items_with_invalid_source_line_count') != case['expect_items_with_invalid_source_line_count']
+    ):
+        failures.append(
+            'items_with_invalid_source_line_count verwacht '
+            f"{case['expect_items_with_invalid_source_line_count']}, kreeg {audit.get('items_with_invalid_source_line_count')}"
+        )
     if 'expect_first3_items_with_source_count' in case and audit.get('first3_items_with_source_count') != case['expect_first3_items_with_source_count']:
         failures.append(
             'first3_items_with_source_count verwacht '
             f"{case['expect_first3_items_with_source_count']}, kreeg {audit.get('first3_items_with_source_count')}"
+        )
+    if (
+        'expect_first3_items_with_valid_source_line_count' in case
+        and audit.get('first3_items_with_valid_source_line_count') != case['expect_first3_items_with_valid_source_line_count']
+    ):
+        failures.append(
+            'first3_items_with_valid_source_line_count verwacht '
+            f"{case['expect_first3_items_with_valid_source_line_count']}, kreeg {audit.get('first3_items_with_valid_source_line_count')}"
         )
     if (
         'expect_first3_items_with_multiple_sources_count' in case
@@ -88,6 +132,14 @@ def evaluate_case(module, case):
             'first3_primary_fresh_item_count verwacht '
             f"{case['expect_first3_primary_fresh_item_count']}, kreeg {audit.get('first3_primary_fresh_item_count')}"
         )
+    if (
+        'expect_invalid_source_issue_counts' in case
+        and audit.get('invalid_source_line_issue_counts') != case['expect_invalid_source_issue_counts']
+    ):
+        failures.append(
+            'invalid_source_line_issue_counts verwacht '
+            f"{case['expect_invalid_source_issue_counts']}, kreeg {audit.get('invalid_source_line_issue_counts')}"
+        )
     audit_text = audit.get('text') or ''
     for snippet in case.get('expect_reason_substrings', []):
         if snippet not in audit_text:
@@ -101,10 +153,14 @@ def evaluate_case(module, case):
         'audit_text': audit.get('text'),
         'item_count': audit.get('item_count'),
         'items_with_source_count': audit.get('items_with_source_count'),
+        'items_with_valid_source_line_count': audit.get('items_with_valid_source_line_count'),
+        'items_with_invalid_source_line_count': audit.get('items_with_invalid_source_line_count'),
         'first3_items_with_source_count': audit.get('first3_items_with_source_count'),
+        'first3_items_with_valid_source_line_count': audit.get('first3_items_with_valid_source_line_count'),
         'first3_items_with_multiple_sources_count': audit.get('first3_items_with_multiple_sources_count'),
         'first3_primary_source_family_count': audit.get('first3_primary_source_family_count'),
         'first3_primary_fresh_item_count': audit.get('first3_primary_fresh_item_count'),
+        'invalid_source_line_issue_counts': audit.get('invalid_source_line_issue_counts'),
     }
 
 
