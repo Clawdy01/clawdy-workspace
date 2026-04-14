@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/clawdy/.openclaw/workspace')
+WATCHDOG = ROOT / 'scripts' / 'ai-briefing-watchdog.py'
+
+
+def extract_json_document(text: str):
+    text = (text or '').strip()
+    if not text:
+        raise json.JSONDecodeError('Expecting value', text, 0)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.lstrip()
+        if not stripped.startswith(('{', '[')):
+            continue
+        candidate = '\n'.join(lines[index:]).strip()
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+    raise json.JSONDecodeError('Expecting value', text, 0)
+
+
+MODE_REQUIREMENTS = {
+    'preflight': 0,
+    'proof-check': 1,
+    'proof-progress': 3,
+}
+
+
+def run_watchdog(timeout_seconds: int, require_qualified_runs: int) -> dict:
+    cmd = [
+        'python3',
+        str(WATCHDOG),
+        '--json',
+        '--timeout',
+        str(timeout_seconds),
+        '--require-qualified-runs',
+        str(require_qualified_runs),
+    ]
+    proc = subprocess.run(
+        cmd,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=timeout_seconds + 5,
+    )
+    output = proc.stdout.strip() or proc.stderr.strip()
+    if not output:
+        raise SystemExit('watchdog gaf geen output')
+    data = extract_json_document(output)
+    data['_returncode'] = proc.returncode
+    return data
+
+
+def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
+    summary = data.get('summary') or data.get('status_text') or 'ai-briefing heeft aandacht nodig'
+    reasons = [reason for reason in (data.get('reasons') or []) if reason]
+    bits = [f"AI-briefing {mode}: {summary}"]
+    if require_qualified_runs > 0:
+        proof_progress = data.get('proof_progress_text')
+        if proof_progress:
+            bits.append(proof_progress)
+    if data.get('next_run_at_text'):
+        bits.append(f"volgende run {data['next_run_at_text']}")
+    if data.get('proof_due_at_text'):
+        bits.append(f"bewijs uiterlijk {data['proof_due_at_text']}")
+    if data.get('proof_target_due_at_text') and mode == 'proof-progress':
+        bits.append(f"bewijsdoel {data['proof_target_due_at_text']}")
+    if reasons:
+        bits.append('redenen: ' + '; '.join(reasons[:3]))
+    return ' | '.join(bits)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description='Geef alleen een korte alert terug als de AI-briefing-watchdog aandacht nodig heeft.')
+    parser.add_argument('--mode', choices=sorted(MODE_REQUIREMENTS), default='preflight')
+    parser.add_argument('--timeout', type=int, default=120)
+    parser.add_argument('--require-qualified-runs', type=int, help='Override voor vereiste gekwalificeerde runs')
+    args = parser.parse_args()
+
+    require_qualified_runs = args.require_qualified_runs
+    if require_qualified_runs is None:
+        require_qualified_runs = MODE_REQUIREMENTS[args.mode]
+
+    data = run_watchdog(args.timeout, max(0, require_qualified_runs))
+    if data.get('ok'):
+        print('NO_REPLY')
+        return 0
+
+    print(build_alert(data, args.mode, max(0, require_qualified_runs)))
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

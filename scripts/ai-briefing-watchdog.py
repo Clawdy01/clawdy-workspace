@@ -145,6 +145,20 @@ def evaluate(status: dict, *, require_qualified_runs: int = 0) -> tuple[bool, li
             f'onvoldoende gekwalificeerde runs voor huidige config ({proof_qualified_runs}/{require_qualified_runs})'
         )
 
+    previous_run_slot_at = status.get('previous_run_slot_at')
+    last_proof_qualified_run_at = status.get('last_proof_qualified_run_at')
+    if require_qualified_runs > 0 and previous_run_slot_at:
+        if not last_proof_qualified_run_at:
+            reasons.append(
+                f'geen gekwalificeerde run sinds verwacht dagslot {status.get("previous_run_slot_at_text") or previous_run_slot_at}'
+            )
+        elif last_proof_qualified_run_at < previous_run_slot_at:
+            reasons.append(
+                'laatste gekwalificeerde run is te oud voor huidige proof-check '
+                f'({status.get("last_proof_qualified_run_at_text") or last_proof_qualified_run_at} < '
+                f'{status.get("previous_run_slot_at_text") or previous_run_slot_at})'
+            )
+
     readiness_phase = status.get('readiness_phase')
     if readiness_phase == 'ready-for-first-run':
         summary = status.get('text') or 'klaar voor eerste run'
@@ -187,6 +201,8 @@ def main() -> int:
         'proof_due_at_text': status.get('proof_due_at_text'),
         'proof_target_due_at_text': status.get('proof_target_due_at_text'),
         'proof_target_run_slots_text': status.get('proof_target_run_slots_text'),
+        'previous_run_slot_at_text': status.get('previous_run_slot_at_text'),
+        'last_proof_qualified_run_at_text': status.get('last_proof_qualified_run_at_text'),
         'has_run_proof': status.get('has_run_proof'),
         'attention_needed': status.get('attention_needed'),
         'status_text': status.get('text'),
@@ -211,6 +227,8 @@ def main() -> int:
         lines.append(f"proof target due: {result['proof_target_due_at_text']}")
     if result['proof_target_run_slots_text']:
         lines.append(f"qualifying run slots: {result['proof_target_run_slots_text']}")
+    if result['last_proof_qualified_run_at_text']:
+        lines.append(f"last qualified run: {result['last_proof_qualified_run_at_text']}")
     text_output = '\n'.join(lines) + '\n'
 
     stdout_format = 'json' if args.json else 'text'

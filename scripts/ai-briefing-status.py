@@ -38,6 +38,7 @@ REQUIRED_PROMPT_MARKERS = [
     'meerdere primaire bronnen',
     'vermijd dubbele items',
     'als meerdere bronnen over dezelfde ontwikkeling gaan, bundel dat tot één item',
+    'Geef bij de belangrijkste items waar mogelijk minstens twee bron-URLs',
     'marketing zonder echte verandering',
     'focus op echt nieuwe ontwikkelingen uit de afgelopen 48 uur',
     'Noem per item ook de bron plus publicatiedatum of update-datum als die vindbaar is',
@@ -311,7 +312,10 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
     next_run_local_hour = None
     next_run_local_minute = None
     expected_next_run = expected_next_run_at(now_ms, schedule_expr, tz_name)
+    previous_expected_run = previous_expected_run_at(expected_next_run, schedule_expr)
     next_run_delta_ms = None
+    allowed_pending_current_slot = False
+    pending_current_slot_grace_ms = 15 * 60 * 1000
 
     if not next_run_at:
         reasons.append('nextRunAtMs ontbreekt')
@@ -320,17 +324,23 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
         next_run_local_hour = next_dt.hour
         next_run_local_minute = next_dt.minute
         hours_until_next_run = round((next_run_at - now_ms) / 3600000, 1)
+        allowed_pending_current_slot = bool(
+            previous_expected_run
+            and next_run_at == previous_expected_run
+            and now_ms >= next_run_at
+            and now_ms <= (next_run_at + pending_current_slot_grace_ms)
+        )
         if expected_hour is not None and next_dt.hour != expected_hour:
             reasons.append(f'next run uur is {next_dt.hour:02d}:{next_dt.minute:02d}')
         if expected_minute is not None and next_dt.minute != expected_minute:
             reasons.append(f'next run minuut is {next_dt.hour:02d}:{next_dt.minute:02d}')
-        if hours_until_next_run < -0.1:
+        if hours_until_next_run < -0.1 and not allowed_pending_current_slot:
             reasons.append(f'next run ligt {abs(hours_until_next_run):.1f} uur in het verleden')
         elif hours_until_next_run > 36:
             reasons.append(f'next run ligt verdacht ver weg ({hours_until_next_run:.1f} uur)')
         if expected_next_run is not None:
             next_run_delta_ms = next_run_at - expected_next_run
-            if abs(next_run_delta_ms) > 60 * 1000:
+            if abs(next_run_delta_ms) > 60 * 1000 and not allowed_pending_current_slot:
                 reasons.append(
                     f"next run slot wijkt {duration_hint(abs(next_run_delta_ms))} af van verwacht {fmt_ts(expected_next_run, tz_name)}"
                 )
@@ -338,6 +348,8 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
     text = 'next run slot ok'
     if reasons:
         text = '; '.join(reasons)
+    elif next_run_at and allowed_pending_current_slot:
+        text = f'next run staat nog op huidig dagslot binnen grace ({fmt_ts(next_run_at, tz_name)})'
     elif next_run_at:
         text = f'next run slot ok ({fmt_ts(next_run_at, tz_name)})'
 
@@ -350,6 +362,10 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
         'hours_until_next_run': hours_until_next_run,
         'expected_next_run_at': expected_next_run,
         'expected_next_run_at_text': fmt_ts(expected_next_run, tz_name),
+        'previous_expected_run_at': previous_expected_run,
+        'previous_expected_run_at_text': fmt_ts(previous_expected_run, tz_name),
+        'allowed_pending_current_slot': allowed_pending_current_slot,
+        'pending_current_slot_grace_ms': pending_current_slot_grace_ms,
         'next_run_delta_ms': next_run_delta_ms,
         'next_run_delta_text': duration_hint(abs(next_run_delta_ms)) if next_run_delta_ms is not None else None,
         'reasons': reasons,
@@ -1237,6 +1253,9 @@ def build_status(job_name=TARGET_JOB_NAME):
         run for run in current_config_runs
         if run_is_proof_qualified(run, delivery.get('mode'))
     ]
+    last_proof_qualified_run = proof_qualified_runs[-1] if proof_qualified_runs else None
+    last_proof_qualified_run_at = (last_proof_qualified_run or {}).get('runAtMs')
+    last_proof_qualified_run_summary = summarize_run(last_proof_qualified_run, tz_name=tz_name, now_ms=now_ms)
     first_run_pending = bool(
         not finished_runs
         and created_at
@@ -1349,6 +1368,11 @@ def build_status(job_name=TARGET_JOB_NAME):
         'proof_qualified_runs': len(proof_qualified_runs),
         'proof_runs_remaining': max(0, PROOF_TARGET_RUNS - len(proof_qualified_runs)),
         'proof_target_met': len(proof_qualified_runs) >= PROOF_TARGET_RUNS,
+        'last_proof_qualified_run': last_proof_qualified_run,
+        'last_proof_qualified_run_at': last_proof_qualified_run_at,
+        'last_proof_qualified_run_at_text': fmt_ts(last_proof_qualified_run_at, tz_name),
+        'last_proof_qualified_run_hint': age_hint(last_proof_qualified_run_at, now_ms),
+        'last_proof_qualified_run_summary': last_proof_qualified_run_summary,
         'success_rate': success_rate,
         'delivery_rate': delivery_rate,
         'success_rate_pct': round(success_rate * 100, 1) if success_rate is not None else None,
