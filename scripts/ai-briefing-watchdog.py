@@ -128,6 +128,24 @@ def summarize_output_examples(status: dict) -> list[str]:
 
     examples: list[str] = []
 
+    exact_field_line_counts = summary_output_audit.get('exact_field_line_counts') or {}
+    item_count = int(summary_output_audit.get('item_count') or 0)
+    if item_count > 0:
+        mismatched_fields = []
+        for field_name in (
+            'Titel:',
+            'Bron:',
+            'Datum:',
+            'Wat is er nieuw:',
+            'Waarom is dit belangrijk:',
+            'Relevant voor Christian:',
+        ):
+            field_count = int(exact_field_line_counts.get(field_name) or 0)
+            if field_count != item_count:
+                mismatched_fields.append(f'{field_name} {field_count}/{item_count}')
+        if mismatched_fields:
+            examples.append('exacte veldlabels missen: ' + ', '.join(mismatched_fields[:4]))
+
     top3_invalid_source_line_examples = summary_output_audit.get('top3_invalid_source_line_examples') or []
     if top3_invalid_source_line_examples:
         rendered = ', '.join(
@@ -136,6 +154,10 @@ def summarize_output_examples(status: dict) -> list[str]:
         )
         if rendered:
             examples.append('top3 ongeldige Bron-regel: ' + rendered)
+
+    top3_missing_date_line_examples = summary_output_audit.get('top3_missing_date_line_examples') or []
+    if top3_missing_date_line_examples:
+        examples.append('top3 zonder Datum:-regel: ' + ', '.join(top3_missing_date_line_examples[:3]))
 
     top3_missing_source_examples = summary_output_audit.get('top3_missing_source_examples') or []
     if top3_missing_source_examples:
