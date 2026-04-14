@@ -276,6 +276,21 @@ def projected_proof_target_due_at(next_run_at, remaining_runs, expr):
     return next_run_at + ((remaining_runs - 1) * day_ms) + (15 * 60 * 1000)
 
 
+def projected_proof_run_slots(next_run_at, remaining_runs, expr):
+    if not next_run_at or remaining_runs is None or remaining_runs <= 0:
+        return []
+    parts = (expr or '').split()
+    if len(parts) != 5:
+        return []
+    minute_raw, hour_raw, day_raw, month_raw, weekday_raw = parts
+    if not minute_raw.isdigit() or not hour_raw.isdigit():
+        return []
+    if day_raw != '*' or month_raw != '*' or weekday_raw != '*':
+        return []
+    day_ms = 24 * 60 * 60 * 1000
+    return [next_run_at + (index * day_ms) for index in range(remaining_runs)]
+
+
 def audit_next_run(job, next_run_at, now_ms, tz_name):
     reasons = []
     if not job.get('enabled'):
@@ -1379,6 +1394,22 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_target_due_at'] = proof_target_due_at
     summary['proof_target_due_at_text'] = fmt_ts(proof_target_due_at, tz_name)
     summary['proof_target_due_hint'] = future_hint(proof_target_due_at, now_ms)
+    proof_target_run_slots = projected_proof_run_slots(
+        next_run_at=next_run_at,
+        remaining_runs=summary['proof_runs_remaining'],
+        expr=summary['schedule_expr'],
+    )
+    summary['proof_target_run_slots'] = proof_target_run_slots
+    summary['proof_target_run_slot_texts'] = [fmt_ts(slot, tz_name) for slot in proof_target_run_slots]
+    summary['proof_target_run_slot_hints'] = [future_hint(slot, now_ms) for slot in proof_target_run_slots]
+    if proof_target_run_slots:
+        summary['proof_target_run_slots_text'] = ', '.join(summary['proof_target_run_slot_texts'])
+    else:
+        summary['proof_target_run_slots_text'] = None
+    proof_next_qualifying_slot_at = proof_target_run_slots[0] if proof_target_run_slots else None
+    summary['proof_next_qualifying_slot_at'] = proof_next_qualifying_slot_at
+    summary['proof_next_qualifying_slot_at_text'] = fmt_ts(proof_next_qualifying_slot_at, tz_name)
+    summary['proof_next_qualifying_slot_hint'] = future_hint(proof_next_qualifying_slot_at, now_ms)
 
     proof_runs_remaining = summary['proof_runs_remaining']
     proof_progress_text = (
@@ -1419,8 +1450,24 @@ def build_status(job_name=TARGET_JOB_NAME):
     elif finished_runs:
         readiness_text = f'{proof_progress_text}; runbewijs met aandachtspunt'
 
+    if summary['proof_target_met']:
+        proof_plan_text = f"bewijspad afgerond, {len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs binnen"
+    elif proof_next_qualifying_slot_at and proof_target_due_at:
+        proof_plan_text = (
+            f"bewijspad op schema, eerstvolgende kwalificatierun {summary['proof_next_qualifying_slot_at_text']}"
+            f" ({summary['proof_next_qualifying_slot_hint']}), doel {summary['proof_target_due_at_text']}"
+        )
+    elif proof_next_qualifying_slot_at:
+        proof_plan_text = (
+            f"bewijspad wacht op kwalificatierun {summary['proof_next_qualifying_slot_at_text']}"
+            f" ({summary['proof_next_qualifying_slot_hint']})"
+        )
+    else:
+        proof_plan_text = 'bewijspad wacht op geldig kwalificatieslot'
+
     summary['text'] = status_text
     summary['proof_progress_text'] = proof_progress_text
+    summary['proof_plan_text'] = proof_plan_text
     summary['readiness_phase'] = readiness_phase
     summary['readiness_text'] = readiness_text
     return summary
@@ -1543,6 +1590,10 @@ def render_text(data):
         parts.append(f"bewijs verwacht uiterlijk {data['proof_due_at_text']}")
     if data.get('proof_target_due_at_text'):
         parts.append(f"bewijsdoel bij groene runs uiterlijk {data['proof_target_due_at_text']}")
+    if data.get('proof_plan_text'):
+        parts.append(data['proof_plan_text'])
+    if data.get('proof_target_run_slots_text'):
+        parts.append(f"kwalificatie-slots {data['proof_target_run_slots_text']}")
     if data.get('last_run_at_text'):
         parts.append(f"laatste {data['last_run_at_text']}")
     last_run_summary = data.get('last_run_summary') or {}

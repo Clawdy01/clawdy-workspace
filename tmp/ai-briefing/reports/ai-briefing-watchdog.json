@@ -1,15 +1,21 @@
 {
-  "ok": true,
-  "summary": "eerste run nog niet geweest, eerste run over 2 uur, bewijs verwacht over 2u 15m",
-  "reasons": [],
+  "ok": false,
+  "summary": "eerste run nog niet geweest, eerste run over 59 min, bewijs verwacht over 1u 14m",
+  "reasons": [
+    "onvoldoende gekwalificeerde runs voor huidige config (0/1)"
+  ],
   "readiness_phase": "ready-for-first-run",
-  "proof_progress_text": "bewijsprogressie 0/3 gekwalificeerde runs voor huidige config",
+  "proof_progress_text": "bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan",
   "proof_target_runs": 3,
   "proof_qualified_runs": 0,
+  "required_qualified_runs": 1,
+  "proof_requirement_met": false,
   "job_name": "daily-ai-update",
   "next_run_at_text": "2026-04-14 09:00 CEST",
   "proof_due_at_text": "2026-04-14 09:15 CEST",
+  "proof_target_due_at_text": "2026-04-16 09:15 CEST",
+  "proof_target_run_slots_text": "2026-04-14 09:00 CEST, 2026-04-15 09:00 CEST, 2026-04-16 09:00 CEST",
   "has_run_proof": false,
   "attention_needed": false,
-  "status_text": "eerste run nog niet geweest, eerste run over 2 uur, bewijs verwacht over 2u 15m"
+  "status_text": "eerste run nog niet geweest, eerste run over 59 min, bewijs verwacht over 1u 14m"
 }

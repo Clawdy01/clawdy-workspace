@@ -318,6 +318,10 @@ def render_text(summary):
             if ai_briefing_status.get('proof_target_due_hint'):
                 proof_target_due_text += f" ({ai_briefing_status['proof_target_due_hint']})"
             ai_bits.append(proof_target_due_text)
+        if ai_briefing_status.get('proof_plan_text'):
+            ai_bits.append(ai_briefing_status['proof_plan_text'])
+        if ai_briefing_status.get('proof_target_run_slots_text'):
+            ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_text']}")
         if ai_briefing_status.get('last_run_at_text'):
             ai_bits.append(f"laatste {ai_briefing_status['last_run_at_text']}")
         last_run_summary = ai_briefing_status.get('last_run_summary') or {}
