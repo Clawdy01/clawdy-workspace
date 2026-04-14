@@ -353,6 +353,21 @@ def render_text(summary):
                         for example in duplicate_examples[:3]
                     )
                 )
+            items_missing_source_examples = summary_output_audit.get('items_missing_source_examples') or []
+            if items_missing_source_examples:
+                ai_bits.append('items zonder bron ' + ', '.join(items_missing_source_examples[:3]))
+            top3_missing_source_examples = summary_output_audit.get('top3_missing_source_examples') or []
+            if top3_missing_source_examples:
+                ai_bits.append('top3 zonder bron ' + ', '.join(top3_missing_source_examples[:3]))
+            top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
+            if top3_missing_multi_source_examples:
+                ai_bits.append('top3 zonder multi-source ' + ', '.join(top3_missing_multi_source_examples[:3]))
+            top3_missing_recent_date_examples = summary_output_audit.get('top3_missing_recent_date_examples') or []
+            if top3_missing_recent_date_examples:
+                ai_bits.append('top3 zonder recente datum ' + ', '.join(top3_missing_recent_date_examples[:3]))
+            top3_missing_primary_fresh_examples = summary_output_audit.get('top3_missing_primary_fresh_examples') or []
+            if top3_missing_primary_fresh_examples:
+                ai_bits.append('top3 zonder primaire+verse combo ' + ', '.join(top3_missing_primary_fresh_examples[:3]))
             ai_bits.append(f"top3 brondomeinen {summary_output_audit.get('first3_source_domain_count', 0)}")
             ai_bits.append(f"top3 primaire brondomeinen {summary_output_audit.get('first3_primary_source_domain_count', 0)}")
             ai_bits.append(f"top3 primaire bronfamilies {summary_output_audit.get('first3_primary_source_family_count', 0)}")

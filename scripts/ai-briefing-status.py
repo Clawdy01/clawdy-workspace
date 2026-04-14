@@ -53,6 +53,17 @@ REQUIRED_FORMAT_MARKERS = [
     'Lever in dit formaat: titel',
     'wat is er nieuw',
     'waarom is dit belangrijk',
+    "Elke echte ontwikkeling MOET beginnen met exact 'Titel:'",
+    'Titel:',
+    'Bron:',
+    'Datum:',
+    'Wat is er nieuw:',
+    'Waarom is dit belangrijk:',
+    'Relevant voor Christian:',
+    "elk 'Titel:'-blok moet direct een geldige 'Bron:' regel",
+    'Gebruik dit patroon letterlijk per item:',
+    'Bron: https://example.com/item | https://example.org/item',
+    'FOUT voorbeeld, niet doen:',
 ]
 REQUIRED_TOOLS_ALLOW = {'web_search', 'web_fetch'}
 REQUIRED_OUTPUT_MARKERS = [
@@ -758,6 +769,12 @@ def audit_summary_output(summary_text, reference_ms=None):
     ]
     unique_item_title_count = len(seen_title_keys)
     duplicate_item_title_count = max(0, len(title_entries) - unique_item_title_count)
+
+    block_titles = []
+    for index, block in enumerate(item_blocks, start=1):
+        title = extract_item_title(block) or f'item {index}'
+        block_titles.append(title)
+
     block_source_urls = [re.findall(r'https?://\S+', block) for block in item_blocks]
     block_source_counts = [len(urls) for urls in block_source_urls]
     block_unique_source_url_counts = [len(set(urls)) for urls in block_source_urls]
@@ -816,6 +833,39 @@ def audit_summary_output(summary_text, reference_ms=None):
         for source_count, date_value in zip(block_source_counts[:3], block_date_values[:3])
         if source_count > 0 and date_value is not None and date_value >= recent_cutoff_ms
     )
+    items_missing_source_examples = [
+        title
+        for title, source_count in zip(block_titles, block_source_counts)
+        if source_count <= 0
+    ][:3]
+    top3_missing_source_examples = [
+        title
+        for title, source_count in zip(block_titles[:3], block_source_counts[:3])
+        if source_count <= 0
+    ][:3]
+    top3_missing_multi_source_examples = [
+        title
+        for title, unique_source_count in zip(block_titles[:3], block_unique_source_url_counts[:3])
+        if unique_source_count < 2
+    ][:3]
+    top3_missing_recent_date_examples = [
+        title
+        for title, date_value in zip(block_titles[:3], block_date_values[:3])
+        if date_value is None or date_value < recent_cutoff_ms
+    ][:3]
+    top3_missing_primary_fresh_examples = [
+        title
+        for title, domains, date_value in zip(block_titles[:3], block_source_domains[:3], block_date_values[:3])
+        if not (
+            date_value is not None
+            and date_value >= fresh_cutoff_ms
+            and any(
+                domain == root or domain.endswith(f'.{root}')
+                for domain in domains
+                for root in PRIMARY_SOURCE_DOMAINS
+            )
+        )
+    ][:3]
     first3_primary_fresh_item_count = sum(
         1
         for domains, date_value in zip(block_source_domains[:3], block_date_values[:3])
@@ -861,21 +911,26 @@ def audit_summary_output(summary_text, reference_ms=None):
             reason += f': {duplicate_examples_text}'
         reasons.append(reason)
     if item_count and items_with_source_count < item_count:
-        reasons.append(
-            f'niet elk item heeft een zichtbare bron-URL ({items_with_source_count}/{item_count})'
-        )
+        reason = f'niet elk item heeft een zichtbare bron-URL ({items_with_source_count}/{item_count})'
+        if items_missing_source_examples:
+            reason += f": {', '.join(items_missing_source_examples)}"
+        reasons.append(reason)
     if item_count >= 3 and first3_items_with_source_count < 3:
-        reasons.append(
-            f'niet elk top-3 item heeft een zichtbare bron-URL ({first3_items_with_source_count}/3)'
-        )
+        reason = f'niet elk top-3 item heeft een zichtbare bron-URL ({first3_items_with_source_count}/3)'
+        if top3_missing_source_examples:
+            reason += f": {', '.join(top3_missing_source_examples)}"
+        reasons.append(reason)
     if item_count >= 3 and first3_unique_source_url_count < 3:
         reasons.append(
             f'top-3 items hergebruiken bron-URLs ({first3_unique_source_url_count}/3 uniek)'
         )
     if item_count >= 3 and first3_items_with_multiple_sources_count < MIN_TOP3_MULTI_SOURCE_ITEMS_FOR_STRONG_SIGNAL:
-        reasons.append(
+        reason = (
             f'te weinig top-3 items met meerdere bron-URLs ({first3_items_with_multiple_sources_count}/3, verwacht minstens {MIN_TOP3_MULTI_SOURCE_ITEMS_FOR_STRONG_SIGNAL})'
         )
+        if top3_missing_multi_source_examples:
+            reason += f": {', '.join(top3_missing_multi_source_examples)}"
+        reasons.append(reason)
     if source_url_count and source_domain_count < 2:
         reasons.append(f'te weinig unieke brondomeinen ({source_domain_count})')
     if item_count >= 3 and first3_source_domain_count < 2:
@@ -891,9 +946,10 @@ def audit_summary_output(summary_text, reference_ms=None):
             f'te weinig items met zichtbare datumvermelding ({dated_item_count}/{item_count}, verwacht minstens {MIN_DATED_ITEMS_FOR_STRONG_SIGNAL})'
         )
     if item_count >= 3 and recent_dated_first3_count < MIN_RECENT_ITEMS_FOR_STRONG_SIGNAL:
-        reasons.append(
-            f'te weinig recente items in top 3 ({recent_dated_first3_count}/3 binnen {RECENT_ITEM_MAX_AGE_DAYS} dagen)'
-        )
+        reason = f'te weinig recente items in top 3 ({recent_dated_first3_count}/3 binnen {RECENT_ITEM_MAX_AGE_DAYS} dagen)'
+        if top3_missing_recent_date_examples:
+            reason += f": {', '.join(top3_missing_recent_date_examples)}"
+        reasons.append(reason)
     if item_count >= 3 and fresh_dated_first3_count < MIN_FRESH_TOP3_ITEMS_FOR_STRONG_SIGNAL:
         reasons.append(
             f'te weinig verse items in top 3 ({fresh_dated_first3_count}/3 binnen {FRESH_ITEM_MAX_AGE_HOURS} uur)'
@@ -903,9 +959,12 @@ def audit_summary_output(summary_text, reference_ms=None):
             f'te weinig top-3 items met zowel bron als recente datum ({first3_evidenced_item_count}/3)'
         )
     if item_count >= 3 and first3_primary_fresh_item_count < MIN_FRESH_TOP3_ITEMS_FOR_STRONG_SIGNAL:
-        reasons.append(
+        reason = (
             f'te weinig top-3 items met primaire bron én verse datum ({first3_primary_fresh_item_count}/3 binnen {FRESH_ITEM_MAX_AGE_HOURS} uur)'
         )
+        if top3_missing_primary_fresh_examples:
+            reason += f": {', '.join(top3_missing_primary_fresh_examples)}"
+        reasons.append(reason)
     if future_dated_item_count:
         reasons.append(
             f'verdachte toekomstige datums in briefing ({future_dated_item_count} item(s), tolerantie {FUTURE_DATE_TOLERANCE_DAYS} dag)'
@@ -948,9 +1007,12 @@ def audit_summary_output(summary_text, reference_ms=None):
         'duplicate_item_title_examples': duplicate_item_title_examples,
         'items_with_source_count': items_with_source_count,
         'items_without_source_count': items_without_source_count,
+        'items_missing_source_examples': items_missing_source_examples,
         'items_with_multiple_sources_count': items_with_multiple_sources_count,
         'first3_items_with_source_count': first3_items_with_source_count,
+        'top3_missing_source_examples': top3_missing_source_examples,
         'first3_items_with_multiple_sources_count': first3_items_with_multiple_sources_count,
+        'top3_missing_multi_source_examples': top3_missing_multi_source_examples,
         'first3_source_urls': first3_source_urls,
         'first3_unique_source_url_count': first3_unique_source_url_count,
         'first3_source_domains': first3_source_domains,
@@ -967,12 +1029,14 @@ def audit_summary_output(summary_text, reference_ms=None):
         'undated_item_count': undated_item_count,
         'recent_dated_item_count': recent_dated_item_count,
         'recent_dated_first3_count': recent_dated_first3_count,
+        'top3_missing_recent_date_examples': top3_missing_recent_date_examples,
         'fresh_dated_item_count': fresh_dated_item_count,
         'fresh_dated_first3_count': fresh_dated_first3_count,
         'future_dated_item_count': future_dated_item_count,
         'future_dated_first3_count': future_dated_first3_count,
         'first3_evidenced_item_count': first3_evidenced_item_count,
         'first3_primary_fresh_item_count': first3_primary_fresh_item_count,
+        'top3_missing_primary_fresh_examples': top3_missing_primary_fresh_examples,
         'recent_item_max_age_days': RECENT_ITEM_MAX_AGE_DAYS,
         'fresh_item_max_age_hours': FRESH_ITEM_MAX_AGE_HOURS,
         'future_date_tolerance_days': FUTURE_DATE_TOLERANCE_DAYS,
@@ -1662,6 +1726,21 @@ def render_summary_audit_text(data):
                 for example in duplicate_examples[:3]
             )
         )
+    items_missing_source_examples = data.get('items_missing_source_examples') or []
+    if items_missing_source_examples:
+        parts.append('items zonder bron ' + ', '.join(items_missing_source_examples[:3]))
+    top3_missing_source_examples = data.get('top3_missing_source_examples') or []
+    if top3_missing_source_examples:
+        parts.append('top3 zonder bron ' + ', '.join(top3_missing_source_examples[:3]))
+    top3_missing_multi_source_examples = data.get('top3_missing_multi_source_examples') or []
+    if top3_missing_multi_source_examples:
+        parts.append('top3 zonder multi-source ' + ', '.join(top3_missing_multi_source_examples[:3]))
+    top3_missing_recent_date_examples = data.get('top3_missing_recent_date_examples') or []
+    if top3_missing_recent_date_examples:
+        parts.append('top3 zonder recente datum ' + ', '.join(top3_missing_recent_date_examples[:3]))
+    top3_missing_primary_fresh_examples = data.get('top3_missing_primary_fresh_examples') or []
+    if top3_missing_primary_fresh_examples:
+        parts.append('top3 zonder primaire+verse combo ' + ', '.join(top3_missing_primary_fresh_examples[:3]))
     if data.get('items_with_source_count') is not None and data.get('item_count') is not None:
         parts.append(f"items met bron {data['items_with_source_count']}/{data['item_count']}")
     if data.get('items_with_multiple_sources_count') is not None and data.get('item_count') is not None:
