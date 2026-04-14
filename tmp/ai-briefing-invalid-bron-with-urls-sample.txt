@@ -1,0 +1,41 @@
+Dagelijkse AI-update, dinsdag 14 april 2026
+
+Korte intro: dit is een regressiesample om te bewaken dat `Bron:`-regels ook ongeldig blijven wanneer er wél URLs op staan maar er extra tekst mee lekt.
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI publiceert nieuwe eval-notes voor agentbetrouwbaarheid
+Bron: https://openai.com/index/new-evals/ | https://x.com/OpenAI/status/1 via samenvatting
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI deelt nieuwe evaluatienotities over agentbetrouwbaarheid en deploymentrisico's.
+Waarom is dit belangrijk: Dit is precies het soort update dat snel verkeerd geformatteerd kan worden als extra context in `Bron:` belandt.
+Relevant voor Christian: Handig als referentie voor briefingkwaliteit en eval-workflows.
+
+2) open-source modellen/frameworks/inference tooling
+Titel: Anthropic beschrijft MCP-workflowverbeteringen
+Bron: https://www.anthropic.com/news/mcp-update, update-datum 2026-04-14
+Datum: 2026-04-14
+Wat is er nieuw: Anthropic beschrijft een kleine maar concrete workflowverbetering rond MCP en toolintegratie.
+Waarom is dit belangrijk: Deze regel heeft bewust een URL maar blijft ongeldig omdat `Bron:` geen datumtekst of extra woorden mag bevatten.
+Relevant voor Christian: Goed regressiegeval voor de briefing-audit.
+
+3) multimodal, voice, image, video en on-device/lokale AI
+Titel: Google deelt verse Gemini multimodal update
+Bron: https://blog.google/technology/ai/gemini-update/ | https://deepmind.google/discover/blog/gemini-update/
+Datum: 2026-04-14
+Wat is er nieuw: Google beschrijft een verse multimodale update met primaire bronverwijzingen.
+Waarom is dit belangrijk: Dit item is het controlegeval dat laat zien dat een nette `Bron:`-regel gewoon groen blijft.
+Relevant voor Christian: Nuttig als contrast met de twee bewust fout geformatteerde bronregels hierboven.
+
+Wat moeten wij hiermee?
+- Blijf expliciet testen op `Bron:`-regels die URLs én extra tekst combineren.
+- Voorkom dat een volgende run ten onrechte groen kleurt zodra er wel URLs zichtbaar zijn.
+
+Wat ik vandaag het belangrijkst vind
+- De audit moet onderscheid blijven maken tussen zichtbare bron-URLs en een geldige `Bron:`-regel.
+
+bronnenlijst met URLs
+https://openai.com/index/new-evals/
+https://x.com/OpenAI/status/1
+https://www.anthropic.com/news/mcp-update
+https://blog.google/technology/ai/gemini-update/
+https://deepmind.google/discover/blog/gemini-update/

@@ -75,6 +75,14 @@ REQUIRED_OUTPUT_ITEM_MARKERS = [
     'wat is er nieuw',
     'waarom is dit belangrijk',
 ]
+REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES = [
+    'Titel:',
+    'Bron:',
+    'Datum:',
+    'Wat is er nieuw:',
+    'Waarom is dit belangrijk:',
+    'Relevant voor Christian:',
+]
 REQUIRED_OUTPUT_MARKER_ALTERNATIVES = [
     ('bronnenlijst', 'bronnen'),
 ]
@@ -592,6 +600,28 @@ def extract_source_line_text(block):
     return None
 
 
+def extract_date_line_text(block):
+    for line in (block or '').splitlines():
+        stripped = line.strip()
+        if stripped.lower().startswith('datum:'):
+            return stripped
+    return None
+
+
+def count_prefixed_lines(text, prefixes):
+    counts = {prefix: 0 for prefix in prefixes}
+    if not isinstance(text, str):
+        return counts
+    normalized_prefixes = [(prefix, prefix.lower()) for prefix in prefixes]
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        lowered = stripped.lower()
+        for prefix, lowered_prefix in normalized_prefixes:
+            if lowered.startswith(lowered_prefix):
+                counts[prefix] += 1
+    return counts
+
+
 def analyze_source_line_issues(line):
     if not isinstance(line, str):
         return []
@@ -793,6 +823,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         marker: normalized_text.count(marker.lower())
         for marker in REQUIRED_OUTPUT_ITEM_MARKERS
     }
+    exact_field_line_counts = count_prefixed_lines(summary_text, REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES)
     missing_alternative_groups = [
         list(group)
         for group in REQUIRED_OUTPUT_MARKER_ALTERNATIVES
@@ -853,6 +884,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         title = extract_item_title(block) or f'item {index}'
         block_titles.append(title)
 
+    now_ms = reference_ms or int(datetime.now(tz=timezone.utc).timestamp() * 1000)
     block_source_lines = [extract_source_line_text(block) for block in item_blocks]
     block_source_line_urls = [re.findall(r'https?://\S+', line or '') for line in block_source_lines]
     block_has_source_line = [bool(line) for line in block_source_lines]
@@ -860,6 +892,9 @@ def audit_summary_output(summary_text, reference_ms=None):
         bool(line and urls and re.fullmatch(r'Bron:\s+https?://\S+(?:\s*(?:\||\s)\s*https?://\S+)*\s*', line))
         for line, urls in zip(block_source_lines, block_source_line_urls)
     ]
+    block_date_lines = [extract_date_line_text(block) for block in item_blocks]
+    block_has_date_line = [bool(line) for line in block_date_lines]
+    block_date_line_values = [latest_block_date_ms(line, reference_ms=now_ms) for line in block_date_lines]
     block_invalid_source_line = [
         bool(line) and not is_valid
         for line, is_valid in zip(block_source_lines, block_valid_source_line)
@@ -919,7 +954,8 @@ def audit_summary_output(summary_text, reference_ms=None):
     first3_primary_source_family_count = len(first3_primary_source_families)
     dated_item_count = sum(1 for block in item_blocks if DATE_PATTERN.search(block))
     undated_item_count = max(0, len(item_blocks) - dated_item_count)
-    now_ms = reference_ms or int(datetime.now(tz=timezone.utc).timestamp() * 1000)
+    explicit_dated_item_count = sum(1 for has_line in block_has_date_line if has_line)
+    explicit_undated_item_count = max(0, len(item_blocks) - explicit_dated_item_count)
     recent_cutoff_ms = now_ms - RECENT_ITEM_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
     fresh_cutoff_ms = now_ms - FRESH_ITEM_MAX_AGE_HOURS * 60 * 60 * 1000
     future_cutoff_ms = now_ms + FUTURE_DATE_TOLERANCE_DAYS * 24 * 60 * 60 * 1000
@@ -928,17 +964,35 @@ def audit_summary_output(summary_text, reference_ms=None):
     recent_dated_first3_count = sum(
         1 for value in block_date_values[:3] if value is not None and value >= recent_cutoff_ms
     )
+    explicit_recent_dated_item_count = sum(
+        1 for value in block_date_line_values if value is not None and value >= recent_cutoff_ms
+    )
+    explicit_recent_dated_first3_count = sum(
+        1 for value in block_date_line_values[:3] if value is not None and value >= recent_cutoff_ms
+    )
     fresh_dated_item_count = sum(1 for value in block_date_values if value is not None and value >= fresh_cutoff_ms)
     fresh_dated_first3_count = sum(
         1 for value in block_date_values[:3] if value is not None and value >= fresh_cutoff_ms
+    )
+    explicit_fresh_dated_item_count = sum(
+        1 for value in block_date_line_values if value is not None and value >= fresh_cutoff_ms
+    )
+    explicit_fresh_dated_first3_count = sum(
+        1 for value in block_date_line_values[:3] if value is not None and value >= fresh_cutoff_ms
     )
     future_dated_item_count = sum(1 for value in block_date_values if value is not None and value > future_cutoff_ms)
     future_dated_first3_count = sum(
         1 for value in block_date_values[:3] if value is not None and value > future_cutoff_ms
     )
+    explicit_future_dated_item_count = sum(
+        1 for value in block_date_line_values if value is not None and value > future_cutoff_ms
+    )
+    explicit_future_dated_first3_count = sum(
+        1 for value in block_date_line_values[:3] if value is not None and value > future_cutoff_ms
+    )
     first3_evidenced_item_count = sum(
         1
-        for source_count, date_value in zip(block_source_counts[:3], block_date_values[:3])
+        for source_count, date_value in zip(block_source_counts[:3], block_date_line_values[:3])
         if source_count > 0 and date_value is not None and date_value >= recent_cutoff_ms
     )
     items_missing_source_examples = [
@@ -984,14 +1038,24 @@ def audit_summary_output(summary_text, reference_ms=None):
         for title, unique_source_count in zip(block_titles[:3], block_unique_source_url_counts[:3])
         if unique_source_count < 2
     ][:3]
+    items_missing_date_line_examples = [
+        title
+        for title, has_line in zip(block_titles, block_has_date_line)
+        if not has_line
+    ][:3]
+    top3_missing_date_line_examples = [
+        title
+        for title, has_line in zip(block_titles[:3], block_has_date_line[:3])
+        if not has_line
+    ][:3]
     top3_missing_recent_date_examples = [
         title
-        for title, date_value in zip(block_titles[:3], block_date_values[:3])
+        for title, date_value in zip(block_titles[:3], block_date_line_values[:3])
         if date_value is None or date_value < recent_cutoff_ms
     ][:3]
     top3_missing_primary_fresh_examples = [
         title
-        for title, domains, date_value in zip(block_titles[:3], block_source_domains[:3], block_date_values[:3])
+        for title, domains, date_value in zip(block_titles[:3], block_source_domains[:3], block_date_line_values[:3])
         if not (
             date_value is not None
             and date_value >= fresh_cutoff_ms
@@ -1004,7 +1068,7 @@ def audit_summary_output(summary_text, reference_ms=None):
     ][:3]
     first3_primary_fresh_item_count = sum(
         1
-        for domains, date_value in zip(block_source_domains[:3], block_date_values[:3])
+        for domains, date_value in zip(block_source_domains[:3], block_date_line_values[:3])
         if (
             date_value is not None
             and date_value >= fresh_cutoff_ms
@@ -1029,6 +1093,17 @@ def audit_summary_output(summary_text, reference_ms=None):
             'te weinig briefingitems met titel/nieuw/belangrijk-structuur '
             f"(min {item_marker_min_count}, verwacht minstens 3)"
         )
+    if item_count:
+        exact_field_mismatches = [
+            f'{prefix} {exact_field_line_counts.get(prefix, 0)}/{item_count}'
+            for prefix in REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES
+            if exact_field_line_counts.get(prefix, 0) != item_count
+        ]
+        if exact_field_mismatches:
+            reasons.append(
+                'verplichte exacte veldlabels per item kloppen niet '
+                f"({', '.join(exact_field_mismatches)})"
+            )
     if missing_alternative_groups:
         reasons.append(f"{len(missing_alternative_groups)} verplichte outputanker(s) missen")
     if source_url_count < MIN_SOURCE_URLS:
@@ -1115,8 +1190,16 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(
             f'te weinig items met zichtbare datumvermelding ({dated_item_count}/{item_count}, verwacht minstens {MIN_DATED_ITEMS_FOR_STRONG_SIGNAL})'
         )
-    if item_count >= 3 and recent_dated_first3_count < MIN_RECENT_ITEMS_FOR_STRONG_SIGNAL:
-        reason = f'te weinig recente items in top 3 ({recent_dated_first3_count}/3 binnen {RECENT_ITEM_MAX_AGE_DAYS} dagen)'
+    if item_count and explicit_dated_item_count < item_count:
+        reason = f'niet elk item heeft een expliciete Datum:-regel ({explicit_dated_item_count}/{item_count})'
+        if items_missing_date_line_examples:
+            reason += f": {', '.join(items_missing_date_line_examples)}"
+        reasons.append(reason)
+    if item_count >= 3 and explicit_recent_dated_first3_count < MIN_RECENT_ITEMS_FOR_STRONG_SIGNAL:
+        reason = (
+            f'te weinig top-3 items met expliciete Datum:-regel binnen {RECENT_ITEM_MAX_AGE_DAYS} dagen '
+            f'({explicit_recent_dated_first3_count}/3)'
+        )
         if top3_missing_recent_date_examples:
             reason += f": {', '.join(top3_missing_recent_date_examples)}"
         reasons.append(reason)
@@ -1151,9 +1234,14 @@ def audit_summary_output(summary_text, reference_ms=None):
         f'{source_domain_count} domeinen, top3 {first3_source_domain_count} domeinen, '
         f'top3 primaire bron-domeinen {first3_primary_source_domain_count}, {primary_source_domain_count} primaire bron-domeinen, '
         f'top3 primaire bronfamilies {first3_primary_source_family_count}, {primary_source_family_count} primaire bronfamilies, '
-        f'datums {dated_item_count}/{item_count}, vers top3 {fresh_dated_first3_count}/3, recent top3 {recent_dated_first3_count}/3, '
-        f'toekomstige datums {future_dated_item_count}, top3 met bron+recente datum {first3_evidenced_item_count}/3, '
+        f'datums {dated_item_count}/{item_count}, expliciete Datum-regels {explicit_dated_item_count}/{item_count}, '
+        f'expliciet vers top3 {explicit_fresh_dated_first3_count}/3, expliciet recent top3 {explicit_recent_dated_first3_count}/3, '
+        f'toekomstige datums {future_dated_item_count}, expliciet toekomstige datums {explicit_future_dated_item_count}, top3 met bron+recente datum {first3_evidenced_item_count}/3, '
         f'top3 met primaire bron+verse datum {first3_primary_fresh_item_count}/3, '
+        f"exacte veldlabels Titel/Bron/Datum/Nieuw/Belangrijk/Relevant "
+        f"{exact_field_line_counts['Titel:']}/{item_count}, {exact_field_line_counts['Bron:']}/{item_count}, "
+        f"{exact_field_line_counts['Datum:']}/{item_count}, {exact_field_line_counts['Wat is er nieuw:']}/{item_count}, "
+        f"{exact_field_line_counts['Waarom is dit belangrijk:']}/{item_count}, {exact_field_line_counts['Relevant voor Christian:']}/{item_count}, "
         f"{category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)} categorie-thema's zichtbaar, "
         f"complete structuur {item_marker_min_count}x)"
     )
@@ -1163,6 +1251,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'ok': not reasons,
         'missing_markers': missing_markers,
         'item_marker_counts': item_marker_counts,
+        'exact_field_line_counts': exact_field_line_counts,
         'item_count': item_count,
         'item_marker_min_count': item_marker_min_count,
         'missing_alternative_groups': missing_alternative_groups,
@@ -1207,13 +1296,23 @@ def audit_summary_output(summary_text, reference_ms=None):
         'primary_source_family_count': primary_source_family_count,
         'dated_item_count': dated_item_count,
         'undated_item_count': undated_item_count,
+        'explicit_dated_item_count': explicit_dated_item_count,
+        'explicit_undated_item_count': explicit_undated_item_count,
+        'items_missing_date_line_examples': items_missing_date_line_examples,
+        'top3_missing_date_line_examples': top3_missing_date_line_examples,
         'recent_dated_item_count': recent_dated_item_count,
         'recent_dated_first3_count': recent_dated_first3_count,
+        'explicit_recent_dated_item_count': explicit_recent_dated_item_count,
+        'explicit_recent_dated_first3_count': explicit_recent_dated_first3_count,
         'top3_missing_recent_date_examples': top3_missing_recent_date_examples,
         'fresh_dated_item_count': fresh_dated_item_count,
         'fresh_dated_first3_count': fresh_dated_first3_count,
+        'explicit_fresh_dated_item_count': explicit_fresh_dated_item_count,
+        'explicit_fresh_dated_first3_count': explicit_fresh_dated_first3_count,
         'future_dated_item_count': future_dated_item_count,
         'future_dated_first3_count': future_dated_first3_count,
+        'explicit_future_dated_item_count': explicit_future_dated_item_count,
+        'explicit_future_dated_first3_count': explicit_future_dated_first3_count,
         'first3_evidenced_item_count': first3_evidenced_item_count,
         'first3_primary_fresh_item_count': first3_primary_fresh_item_count,
         'top3_missing_primary_fresh_examples': top3_missing_primary_fresh_examples,

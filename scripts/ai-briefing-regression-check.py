@@ -31,12 +31,56 @@ DEFAULT_CASES = [
             'extra_context': 1,
             'via_context': 1,
         },
+        'expect_exact_field_line_counts': {
+            'Titel:': 0,
+            'Bron:': 10,
+            'Datum:': 0,
+            'Wat is er nieuw:': 0,
+            'Waarom is dit belangrijk:': 0,
+            'Relevant voor Christian:': 0,
+        },
         'expect_reason_substrings': [
             'niet elk item heeft een zichtbare bron-URL',
             'niet elk item heeft een geldige Bron:-regel met alleen URLs',
             'geen URL 10x',
             'te weinig top-3 items met meerdere bron-URLs',
             'geen herkenbare primaire bron in top 3 items',
+        ],
+    },
+    {
+        'name': 'invalid-bron-with-urls-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-invalid-bron-with-urls-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 1,
+        'expect_items_with_invalid_source_line_count': 2,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 1,
+        'expect_first3_items_with_multiple_sources_count': 2,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 3,
+        'expect_invalid_source_issue_counts': {
+            'komma': 1,
+            'update_datum': 1,
+            'datumtekst': 1,
+            'vrije_tekst': 2,
+            'via_context': 1,
+        },
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [
+            'niet elk item heeft een geldige Bron:-regel met alleen URLs',
+            'niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs',
+            'vrije tekst 2x',
+            'via 1x',
+            'update-datum 1x',
         ],
     },
     {
@@ -53,6 +97,14 @@ DEFAULT_CASES = [
         'expect_first3_primary_source_family_count': 2,
         'expect_first3_primary_fresh_item_count': 2,
         'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 4,
+            'Bron:': 4,
+            'Datum:': 4,
+            'Wat is er nieuw:': 4,
+            'Waarom is dit belangrijk:': 4,
+            'Relevant voor Christian:': 4,
+        },
         'expect_reason_substrings': [],
     },
 ]
@@ -140,6 +192,14 @@ def evaluate_case(module, case):
             'invalid_source_line_issue_counts verwacht '
             f"{case['expect_invalid_source_issue_counts']}, kreeg {audit.get('invalid_source_line_issue_counts')}"
         )
+    if (
+        'expect_exact_field_line_counts' in case
+        and audit.get('exact_field_line_counts') != case['expect_exact_field_line_counts']
+    ):
+        failures.append(
+            'exact_field_line_counts verwacht '
+            f"{case['expect_exact_field_line_counts']}, kreeg {audit.get('exact_field_line_counts')}"
+        )
     audit_text = audit.get('text') or ''
     for snippet in case.get('expect_reason_substrings', []):
         if snippet not in audit_text:
@@ -161,6 +221,7 @@ def evaluate_case(module, case):
         'first3_primary_source_family_count': audit.get('first3_primary_source_family_count'),
         'first3_primary_fresh_item_count': audit.get('first3_primary_fresh_item_count'),
         'invalid_source_line_issue_counts': audit.get('invalid_source_line_issue_counts'),
+        'exact_field_line_counts': audit.get('exact_field_line_counts'),
     }
 
 
