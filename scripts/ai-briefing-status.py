@@ -704,6 +704,8 @@ def analyze_source_line_issues(line):
         issues.append('haakjes')
     if '<' in body or '>' in body:
         issues.append('hoekhaken')
+    if any(char in body for char in ('"', "'", '“', '”', '‘', '’')):
+        issues.append('aanhalingstekens')
     if any(source_url_has_trailing_punctuation(url) for url in urls):
         issues.append('url_leesteken')
     if 'update-datum' in lower:
@@ -735,6 +737,7 @@ def format_issue_counts(counter):
         'puntkomma': 'puntkomma',
         'haakjes': 'haakjes',
         'hoekhaken': 'hoekhaken',
+        'aanhalingstekens': 'aanhalingstekens',
         'url_leesteken': 'URL-leesteken',
         'update_datum': 'update-datum',
         'extra_context': 'extra context',
@@ -985,7 +988,8 @@ def audit_summary_output(summary_text, reference_ms=None):
         for urls, is_valid in zip(block_source_line_urls, block_valid_source_line)
     ]
     block_source_counts = [len(urls) for urls in block_source_urls]
-    block_unique_source_url_counts = [len(set(urls)) for urls in block_source_urls]
+    block_valid_source_url_counts = [len(urls) for urls in block_valid_source_urls]
+    block_unique_source_url_counts = [len(set(urls)) for urls in block_valid_source_urls]
     items_with_source_count = sum(1 for count in block_source_counts if count > 0)
     items_without_source_count = max(0, len(item_blocks) - items_with_source_count)
     items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts if count >= 2)

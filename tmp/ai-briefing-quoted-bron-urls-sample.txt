@@ -1,0 +1,42 @@
+Dagelijkse AI-update, woensdag 15 april 2026
+
+Korte intro: regressiesample voor Bron:-regels met URLs tussen aanhalingstekens.
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI deelt modelupdate met extra context
+Bron: "https://openai.com/index/introducing-gpt-4-1/" | "https://platform.openai.com/docs/models"
+Datum: 2026-04-15
+Wat is er nieuw: Dit item gebruikt expres aanhalingstekens rond de bron-URLs om te bewaken dat zulke regels niet als geldig doorgaan.
+Waarom is dit belangrijk: De briefingprompt eist kale URLs op de Bron:-regel, dus quotes moeten rood slaan in plaats van stil geaccepteerd worden.
+Relevant voor Christian: Voorkomt dat de ochtendbriefing alsnog half-geldig wordt wanneer een model URLs netjes maar fout gequote teruggeeft.
+
+2) nieuwe AI-tools en productfeatures
+Titel: GitHub toont nieuwe agent-workflow in Copilot
+Bron: "https://github.blog/changelog/" | "https://github.com/features/copilot"
+Datum: 2026-04-15
+Wat is er nieuw: Ook dit item zet quotes om beide bronregels zodat het fouttype in meerdere topitems gedekt blijft.
+Waarom is dit belangrijk: Zonder expliciete detectie kan dit soort output menselijk prima leesbaar lijken terwijl de machine-check strikter hoort te zijn.
+Relevant voor Christian: Houdt de bewijsroute scherp op exact machine-checkbaar formaat.
+
+3) belangrijke researchdoorbraken of capabilities
+Titel: arXiv-feed laat nieuwe evaluatiepapers zien
+Bron: "https://arxiv.org/list/cs.AI/recent" | "https://arxiv.org/abs/2604.11806"
+Datum: 2026-04-15
+Wat is er nieuw: Het derde item zorgt dat ook de volledige top 3 faalt op hetzelfde quote-patroon.
+Waarom is dit belangrijk: Zo kan regressietest vastpinnen dat quoted URLs geen geldige Bron:-regels zijn, ook niet wanneer er verder meerdere goede bronnen en verse datums staan.
+Relevant voor Christian: Dit geeft extra zekerheid dat toekomstige promptdrift of modelgedrag niet ongemerkt door de audit glipt.
+
+Wat moeten wij hiermee?
+- Houd Bron:-regels strikt kaal en machine-checkbaar.
+- Gebruik dit sample om quote-achtige regressies direct te herkennen.
+
+Wat ik vandaag het belangrijkst vind
+- Quoted bron-URLs moeten expliciet rood blijven.
+
+bronnenlijst met URLs
+https://openai.com/index/introducing-gpt-4-1/
+https://platform.openai.com/docs/models
+https://github.blog/changelog/
+https://github.com/features/copilot
+https://arxiv.org/list/cs.AI/recent
+https://arxiv.org/abs/2604.11806

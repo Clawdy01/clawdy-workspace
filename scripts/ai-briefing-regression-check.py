@@ -57,11 +57,12 @@ DEFAULT_CASES = [
         'expect_ok': False,
         'expect_item_count': 3,
         'expect_items_with_source_count': 3,
+        'expect_items_with_multiple_sources_count': 1,
         'expect_items_with_valid_source_line_count': 1,
         'expect_items_with_invalid_source_line_count': 2,
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 1,
-        'expect_first3_items_with_multiple_sources_count': 2,
+        'expect_first3_items_with_multiple_sources_count': 1,
         'expect_first3_evidenced_item_count': 1,
         'expect_first3_primary_source_family_count': 1,
         'expect_first3_primary_fresh_item_count': 1,
@@ -91,6 +92,7 @@ DEFAULT_CASES = [
             'te weinig unieke bron-URLs voor aantal items (2/3)',
             'niet elk item heeft een geldige Bron:-regel met alleen URLs',
             'niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs',
+            'te weinig top-3 items met meerdere bron-URLs (1/3, verwacht minstens 3)',
             'vrije tekst 2x',
             'via 1x',
             'update-datum 1x',
@@ -132,7 +134,7 @@ DEFAULT_CASES = [
         'expect_items_with_invalid_source_line_count': 3,
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 0,
-        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 0,
         'expect_first3_items_with_primary_source_count': 0,
         'expect_first3_evidenced_item_count': 0,
         'expect_first3_primary_source_family_count': 0,
@@ -171,7 +173,7 @@ DEFAULT_CASES = [
         'expect_items_with_invalid_source_line_count': 3,
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 0,
-        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 0,
         'expect_first3_items_with_primary_source_count': 0,
         'expect_first3_evidenced_item_count': 0,
         'expect_first3_primary_source_family_count': 0,
@@ -196,6 +198,44 @@ DEFAULT_CASES = [
             'te weinig geldige bron-URLs op geldige Bron:-regels (0)',
             'niet elk item heeft een geldige Bron:-regel met alleen URLs',
             'hoekhaken 3x',
+            'geen herkenbare primaire bron in top 3 items',
+        ],
+    },
+    {
+        'name': 'quoted-bron-urls-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-quoted-bron-urls-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 0,
+        'expect_items_with_invalid_source_line_count': 3,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 0,
+        'expect_first3_items_with_multiple_sources_count': 0,
+        'expect_first3_items_with_primary_source_count': 0,
+        'expect_first3_evidenced_item_count': 0,
+        'expect_first3_primary_source_family_count': 0,
+        'expect_first3_primary_fresh_item_count': 0,
+        'expect_source_url_count': 0,
+        'expect_unique_source_url_count': 0,
+        'expect_first3_unique_source_url_count': 0,
+        'expect_invalid_source_issue_counts': {
+            'geen_url': 3,
+            'aanhalingstekens': 3,
+            'vrije_tekst': 3,
+        },
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [
+            'te weinig geldige bron-URLs op geldige Bron:-regels (0)',
+            'niet elk item heeft een geldige Bron:-regel met alleen URLs',
+            'aanhalingstekens 3x',
             'geen herkenbare primaire bron in top 3 items',
         ],
     },
@@ -263,7 +303,7 @@ DEFAULT_CASES = [
         'expect_items_with_invalid_source_line_count': 0,
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 0,
-        'expect_first3_items_with_multiple_sources_count': 1,
+        'expect_first3_items_with_multiple_sources_count': 0,
         'expect_first3_items_with_primary_source_count': 0,
         'expect_first3_evidenced_item_count': 0,
         'expect_first3_primary_source_family_count': 0,
@@ -297,7 +337,7 @@ DEFAULT_CASES = [
         'expect_items_with_invalid_source_line_count': 0,
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 3,
-        'expect_first3_items_with_multiple_sources_count': 1,
+        'expect_first3_items_with_multiple_sources_count': 0,
         'expect_first3_items_with_primary_source_count': 3,
         'expect_first3_evidenced_item_count': 3,
         'expect_first3_primary_source_family_count': 2,
@@ -331,7 +371,7 @@ DEFAULT_CASES = [
         'expect_items_with_invalid_source_line_count': 0,
         'expect_first3_items_with_source_count': 1,
         'expect_first3_items_with_valid_source_line_count': 0,
-        'expect_first3_items_with_multiple_sources_count': 1,
+        'expect_first3_items_with_multiple_sources_count': 0,
         'expect_first3_items_with_primary_source_count': 0,
         'expect_first3_evidenced_item_count': 0,
         'expect_first3_primary_source_family_count': 0,
@@ -365,7 +405,7 @@ DEFAULT_CASES = [
         'expect_items_with_invalid_source_line_count': 0,
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 3,
-        'expect_first3_items_with_multiple_sources_count': 1,
+        'expect_first3_items_with_multiple_sources_count': 0,
         'expect_first3_items_with_primary_source_count': 3,
         'expect_first3_evidenced_item_count': 3,
         'expect_first3_primary_source_family_count': 3,
@@ -385,7 +425,7 @@ DEFAULT_CASES = [
             'Relevant voor Christian:': 0,
         },
         'expect_reason_substrings': [
-            'te weinig top-3 items met meerdere bron-URLs (1/3, verwacht minstens 3)',
+            'te weinig top-3 items met meerdere bron-URLs (0/3, verwacht minstens 3)',
         ],
     },
     {
@@ -398,7 +438,7 @@ DEFAULT_CASES = [
         'expect_items_with_invalid_source_line_count': 0,
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 3,
-        'expect_first3_items_with_multiple_sources_count': 1,
+        'expect_first3_items_with_multiple_sources_count': 0,
         'expect_first3_items_with_primary_source_count': 0,
         'expect_first3_evidenced_item_count': 3,
         'expect_first3_primary_source_family_count': 0,
@@ -432,7 +472,7 @@ DEFAULT_CASES = [
         'expect_items_with_invalid_source_line_count': 0,
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 3,
-        'expect_first3_items_with_multiple_sources_count': 1,
+        'expect_first3_items_with_multiple_sources_count': 0,
         'expect_first3_items_with_primary_source_count': 2,
         'expect_first3_evidenced_item_count': 0,
         'expect_first3_primary_source_family_count': 1,
@@ -529,7 +569,7 @@ DEFAULT_CASES = [
         'expect_items_with_invalid_source_line_count': 2,
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 1,
-        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 1,
         'expect_first3_items_with_primary_source_count': 1,
         'expect_explicit_dated_item_count': 3,
         'expect_explicit_recent_dated_first3_count': 3,
@@ -718,6 +758,14 @@ def evaluate_case(module, case):
     if 'expect_items_with_source_count' in case and audit.get('items_with_source_count') != case['expect_items_with_source_count']:
         failures.append(
             f"items_with_source_count verwacht {case['expect_items_with_source_count']}, kreeg {audit.get('items_with_source_count')}"
+        )
+    if (
+        'expect_items_with_multiple_sources_count' in case
+        and audit.get('items_with_multiple_sources_count') != case['expect_items_with_multiple_sources_count']
+    ):
+        failures.append(
+            'items_with_multiple_sources_count verwacht '
+            f"{case['expect_items_with_multiple_sources_count']}, kreeg {audit.get('items_with_multiple_sources_count')}"
         )
     if (
         'expect_items_with_valid_source_line_count' in case
