@@ -590,6 +590,7 @@ DEFAULT_CASES = [
         'expect_reason_substrings': [
             'verplichte exacte veldlabels per item kloppen niet (Datum: 2/3)',
             'niet elk item heeft een expliciete Datum:-regel (2/3)',
+            'te weinig top-3 items met zowel bron als recente datum (2/3)',
             'OpenAI verbreedt agents-SDK documentatie met nieuwe voorbeelden',
         ],
     },
