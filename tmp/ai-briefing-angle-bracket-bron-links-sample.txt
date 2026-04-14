@@ -1,0 +1,34 @@
+Titel: OpenAI publiceert nieuwe Responses API-handleiding
+Bron: <https://openai.com/index/new-tools-for-building-agents/> | <https://platform.openai.com/docs/guides/tools>
+Datum: 2026-04-14
+Wat is er nieuw: De documentatie koppelt een productupdate aan concrete tool-use handleidingen.
+Waarom is dit belangrijk: Dit lijkt op het eerste gezicht netjes, maar de Bron-regel gebruikt markdown-autolinkachtige hoekhaken in plaats van kale URLs.
+Relevant voor Christian: Dit moet rood blijven zodat de briefing geen half-geldige linkopmaak publiceert.
+
+Titel: Anthropic breidt Claude Code documentatie uit
+Bron: <https://www.anthropic.com/news> | <https://docs.anthropic.com/en/docs/claude-code>
+Datum: 2026-04-14
+Wat is er nieuw: De docs en nieuwsroute verwijzen naar concrete coding-workflowverbeteringen.
+Waarom is dit belangrijk: Ook hier moeten hoekhaken op de Bron-regel als formatteringsfout blijven tellen.
+Relevant voor Christian: Zo voorkomen we dat autolink-opmaak stil als geldige bronvermelding telt.
+
+Titel: Google AI Studio zet nieuwe Gemini tooling breder neer
+Bron: <https://ai.google.dev/gemini-api/docs> | <https://developers.googleblog.com/en/gemini-api-updates>
+Datum: 2026-04-14
+Wat is er nieuw: De sample combineert een primaire productdoc en een blogbron.
+Waarom is dit belangrijk: Top-3 bewijs zou inhoudelijk sterk lijken, maar de Bron-regels zijn nog steeds fout geformatteerd.
+Relevant voor Christian: Dit moet regressierood blijven tot de output kale http(s)-URLs gebruikt.
+
+Wat moeten wij hiermee?
+Behoud strikte formatcontrole op Bron-regels zodat briefingitems alleen met kale URLs door mogen.
+
+Wat ik vandaag het belangrijkst vind
+Zelfs nette bronkeuze mag niet compenseren voor fout opgemaakte Bron-regels.
+
+Bronnenlijst met URLs
+https://openai.com/index/new-tools-for-building-agents/
+https://platform.openai.com/docs/guides/tools
+https://www.anthropic.com/news
+https://docs.anthropic.com/en/docs/claude-code
+https://ai.google.dev/gemini-api/docs
+https://developers.googleblog.com/en/gemini-api-updates

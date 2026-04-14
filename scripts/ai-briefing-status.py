@@ -671,6 +671,8 @@ def analyze_source_line_issues(line):
         issues.append('puntkomma')
     if '(' in body or ')' in body:
         issues.append('haakjes')
+    if '<' in body or '>' in body:
+        issues.append('hoekhaken')
     if 'update-datum' in lower:
         issues.append('update_datum')
     if 'extra context' in lower:
@@ -697,6 +699,7 @@ def format_issue_counts(counter):
         'komma': 'komma',
         'puntkomma': 'puntkomma',
         'haakjes': 'haakjes',
+        'hoekhaken': 'hoekhaken',
         'update_datum': 'update-datum',
         'extra_context': 'extra context',
         'via_context': 'via',
