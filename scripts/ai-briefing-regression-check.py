@@ -96,9 +96,10 @@ DEFAULT_CASES = [
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 3,
         'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
         'expect_first3_evidenced_item_count': 3,
-        'expect_first3_primary_source_family_count': 2,
-        'expect_first3_primary_fresh_item_count': 2,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 3,
         'expect_invalid_source_issue_counts': {},
         'expect_exact_field_line_counts': {
             'Titel:': 4,
@@ -164,6 +165,68 @@ DEFAULT_CASES = [
             'top-3 items hergebruiken bron-URLs (2/3 uniek)',
         ],
     },
+    {
+        'name': 'top3-missing-primary-source-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-missing-primary-source-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 2,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 2,
+        'expect_first3_primary_fresh_item_count': 2,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [
+            'niet elk top-3 item heeft een herkenbare primaire bron (2/3)',
+            'Onderzoekers bespreken nieuwe agent benchmark voor tool calling',
+        ],
+    },
+    {
+        'name': 'top3-missing-date-line-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-missing-date-line-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
+        'expect_explicit_dated_item_count': 2,
+        'expect_explicit_recent_dated_first3_count': 2,
+        'expect_explicit_fresh_dated_first3_count': 2,
+        'expect_first3_evidenced_item_count': 2,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 2,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 2,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [
+            'verplichte exacte veldlabels per item kloppen niet (Datum: 2/3)',
+            'niet elk item heeft een expliciete Datum:-regel (2/3)',
+            'OpenAI verbreedt agents-SDK documentatie met nieuwe voorbeelden',
+        ],
+    },
 ]
 
 
@@ -226,6 +289,14 @@ def evaluate_case(module, case):
             f"{case['expect_first3_items_with_multiple_sources_count']}, kreeg {audit.get('first3_items_with_multiple_sources_count')}"
         )
     if (
+        'expect_first3_items_with_primary_source_count' in case
+        and audit.get('first3_items_with_primary_source_count') != case['expect_first3_items_with_primary_source_count']
+    ):
+        failures.append(
+            'first3_items_with_primary_source_count verwacht '
+            f"{case['expect_first3_items_with_primary_source_count']}, kreeg {audit.get('first3_items_with_primary_source_count')}"
+        )
+    if (
         'expect_first3_evidenced_item_count' in case
         and audit.get('first3_evidenced_item_count') != case['expect_first3_evidenced_item_count']
     ):
@@ -248,6 +319,30 @@ def evaluate_case(module, case):
         failures.append(
             'first3_primary_fresh_item_count verwacht '
             f"{case['expect_first3_primary_fresh_item_count']}, kreeg {audit.get('first3_primary_fresh_item_count')}"
+        )
+    if (
+        'expect_explicit_dated_item_count' in case
+        and audit.get('explicit_dated_item_count') != case['expect_explicit_dated_item_count']
+    ):
+        failures.append(
+            'explicit_dated_item_count verwacht '
+            f"{case['expect_explicit_dated_item_count']}, kreeg {audit.get('explicit_dated_item_count')}"
+        )
+    if (
+        'expect_explicit_recent_dated_first3_count' in case
+        and audit.get('explicit_recent_dated_first3_count') != case['expect_explicit_recent_dated_first3_count']
+    ):
+        failures.append(
+            'explicit_recent_dated_first3_count verwacht '
+            f"{case['expect_explicit_recent_dated_first3_count']}, kreeg {audit.get('explicit_recent_dated_first3_count')}"
+        )
+    if (
+        'expect_explicit_fresh_dated_first3_count' in case
+        and audit.get('explicit_fresh_dated_first3_count') != case['expect_explicit_fresh_dated_first3_count']
+    ):
+        failures.append(
+            'explicit_fresh_dated_first3_count verwacht '
+            f"{case['expect_explicit_fresh_dated_first3_count']}, kreeg {audit.get('explicit_fresh_dated_first3_count')}"
         )
     if (
         'expect_invalid_source_issue_counts' in case
@@ -283,8 +378,12 @@ def evaluate_case(module, case):
         'first3_items_with_source_count': audit.get('first3_items_with_source_count'),
         'first3_items_with_valid_source_line_count': audit.get('first3_items_with_valid_source_line_count'),
         'first3_items_with_multiple_sources_count': audit.get('first3_items_with_multiple_sources_count'),
+        'first3_items_with_primary_source_count': audit.get('first3_items_with_primary_source_count'),
         'first3_primary_source_family_count': audit.get('first3_primary_source_family_count'),
         'first3_primary_fresh_item_count': audit.get('first3_primary_fresh_item_count'),
+        'explicit_dated_item_count': audit.get('explicit_dated_item_count'),
+        'explicit_recent_dated_first3_count': audit.get('explicit_recent_dated_first3_count'),
+        'explicit_fresh_dated_first3_count': audit.get('explicit_fresh_dated_first3_count'),
         'invalid_source_line_issue_counts': audit.get('invalid_source_line_issue_counts'),
         'exact_field_line_counts': audit.get('exact_field_line_counts'),
     }

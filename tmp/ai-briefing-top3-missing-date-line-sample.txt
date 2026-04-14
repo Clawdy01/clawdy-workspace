@@ -1,0 +1,44 @@
+Dagelijkse AI-update, dinsdag 14 april 2026
+
+Korte intro: dit sample test dat een top-3 item zonder expliciete Datum:-regel rood blijft, ook als de datumtekst elders in het itemblok staat.
+
+1) frontier modelreleases en modelupdates
+Titel: Anthropic publiceert nieuwe modelcard voor Claude-risicometing
+Bron: https://www.anthropic.com/news https://www.anthropic.com/research
+Datum: 2026-04-14
+Wat is er nieuw: Anthropic laat extra evaluatiecontext zien voor modelgedrag en deployment-risico.
+Waarom is dit belangrijk: Dit is concreet bruikbaar als referentie voor hoe frontier-aanbieders capability- en safety-signalen bundelen.
+Relevant voor Christian: Nuttig voor hoe OpenClaw later eigen eval- en veiligheidsclaims formuleert.
+
+2) agents/automation/coding workflows
+Titel: OpenAI verbreedt agents-SDK documentatie met nieuwe voorbeelden
+Bron: https://openai.com/index/new-tools-for-building-agents/ https://platform.openai.com/docs/guides/agents
+Wat is er nieuw: Update van 2026-04-14 met extra agentvoorbeelden en workflowpatronen in de documentatie.
+Waarom is dit belangrijk: Inhoudelijk is dit vers en relevant, maar zonder aparte Datum:-regel moet het item audit-technisch alsnog falen.
+Relevant voor Christian: Goed regressieslot tegen half-geldige items die menselijk leesbaar lijken maar machine-checkbaar niet kloppen.
+
+3) open-source modellen/frameworks/inference tooling
+Titel: Hugging Face zet nieuwe inference-updates in de spotlight
+Bron: https://huggingface.co/blog https://huggingface.co/docs
+Datum: 2026-04-14
+Wat is er nieuw: Hugging Face wijst op recente inference- en deployment-updates voor open tooling.
+Waarom is dit belangrijk: Open tooling blijft relevant voor lokale en hybride AI-workflows.
+Relevant voor Christian: Handig voor het volgen van bruikbare open-source routes naast gesloten vendorstacks.
+
+Wat moeten wij hiermee?
+- Bewaak dat elke top-3 entry een aparte Datum:-regel houdt.
+- Laat datumtekst in andere regels nooit gelden als voldoende runbewijs.
+- Gebruik dit sample als regressieslot voor de audit.
+
+Wat ik vandaag het belangrijkst vind
+- De audit moet half-geldige topitems blijven afkeuren.
+- Expliciete Datum:-regels moeten verplicht blijven.
+- Leesbaarheid alleen is niet genoeg; het format moet controleerbaar zijn.
+
+bronnenlijst met URLs
+https://www.anthropic.com/news
+https://www.anthropic.com/research
+https://openai.com/index/new-tools-for-building-agents/
+https://platform.openai.com/docs/guides/agents
+https://huggingface.co/blog
+https://huggingface.co/docs

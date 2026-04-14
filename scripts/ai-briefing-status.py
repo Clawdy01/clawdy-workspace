@@ -945,6 +945,15 @@ def audit_summary_output(summary_text, reference_ms=None):
         })
         for urls in block_valid_source_urls
     ]
+    block_has_primary_source = [
+        any(
+            domain == root or domain.endswith(f'.{root}')
+            for domain in domains
+            for root in PRIMARY_SOURCE_DOMAINS
+        )
+        for domains in block_source_domains
+    ]
+    first3_items_with_primary_source_count = sum(1 for has_primary in block_has_primary_source[:3] if has_primary)
     valid_source_domains = sorted({domain for domains in block_source_domains for domain in domains})
     valid_first3_source_domains = sorted({domain for domains in block_source_domains[:3] for domain in domains})
     primary_source_domains = sorted({
@@ -1051,6 +1060,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         title
         for title, unique_source_count in zip(block_titles[:3], block_unique_source_url_counts[:3])
         if unique_source_count < 2
+    ][:3]
+    top3_missing_primary_source_examples = [
+        title
+        for title, has_primary in zip(block_titles[:3], block_has_primary_source[:3])
+        if not has_primary
     ][:3]
     items_missing_date_line_examples = [
         title
@@ -1198,6 +1212,14 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append('geen herkenbare primaire bron tussen URLs')
     if item_count >= 3 and first3_primary_source_domain_count < 1:
         reasons.append('geen herkenbare primaire bron in top 3 items')
+    if item_count >= 3 and first3_items_with_primary_source_count < 3:
+        reason = (
+            'niet elk top-3 item heeft een herkenbare primaire bron '
+            f'({first3_items_with_primary_source_count}/3)'
+        )
+        if top3_missing_primary_source_examples:
+            reason += f": {', '.join(top3_missing_primary_source_examples)}"
+        reasons.append(reason)
     if item_count >= 3 and first3_primary_source_family_count < 2:
         reasons.append(f'te weinig primaire bronfamilies in top 3 ({first3_primary_source_family_count})')
     if item_count >= 3 and dated_item_count < MIN_DATED_ITEMS_FOR_STRONG_SIGNAL:
@@ -1245,6 +1267,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         f'geldige Bron:-regels {items_with_valid_source_line_count}/{item_count}, '
         f'items met meerdere bron-URLs {items_with_multiple_sources_count}/{item_count}, '
         f'top3 bron-URLs {first3_unique_source_url_count}/3 uniek, top3 met meerdere bron-URLs {first3_items_with_multiple_sources_count}/3, '
+        f'top3 met primaire bron {first3_items_with_primary_source_count}/3, '
         f'{source_domain_count} domeinen, top3 {first3_source_domain_count} domeinen, '
         f'top3 primaire bron-domeinen {first3_primary_source_domain_count}, {primary_source_domain_count} primaire bron-domeinen, '
         f'top3 primaire bronfamilies {first3_primary_source_family_count}, {primary_source_family_count} primaire bronfamilies, '
@@ -1293,9 +1316,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         'first3_items_with_multiple_sources_count': first3_items_with_multiple_sources_count,
         'first3_items_with_valid_source_line_count': first3_items_with_valid_source_line_count,
         'first3_items_with_invalid_source_line_count': first3_items_with_invalid_source_line_count,
+        'first3_items_with_primary_source_count': first3_items_with_primary_source_count,
         'top3_invalid_source_line_issue_counts': dict(top3_invalid_source_line_issue_counts),
         'top3_invalid_source_line_examples': top3_invalid_source_line_examples,
         'top3_missing_multi_source_examples': top3_missing_multi_source_examples,
+        'top3_missing_primary_source_examples': top3_missing_primary_source_examples,
         'first3_source_urls': first3_source_urls,
         'first3_unique_source_url_count': first3_unique_source_url_count,
         'first3_source_domains': first3_source_domains,
@@ -2028,6 +2053,9 @@ def render_summary_audit_text(data):
     top3_missing_multi_source_examples = data.get('top3_missing_multi_source_examples') or []
     if top3_missing_multi_source_examples:
         parts.append('top3 zonder multi-source ' + ', '.join(top3_missing_multi_source_examples[:3]))
+    top3_missing_primary_source_examples = data.get('top3_missing_primary_source_examples') or []
+    if top3_missing_primary_source_examples:
+        parts.append('top3 zonder primaire bron ' + ', '.join(top3_missing_primary_source_examples[:3]))
     top3_missing_recent_date_examples = data.get('top3_missing_recent_date_examples') or []
     if top3_missing_recent_date_examples:
         parts.append('top3 zonder recente datum ' + ', '.join(top3_missing_recent_date_examples[:3]))
@@ -2042,6 +2070,8 @@ def render_summary_audit_text(data):
         parts.append(f"top3 met bron {data['first3_items_with_source_count']}/3")
     if data.get('first3_items_with_multiple_sources_count') is not None:
         parts.append(f"top3 met meerdere bron-URLs {data['first3_items_with_multiple_sources_count']}/3")
+    if data.get('first3_items_with_primary_source_count') is not None:
+        parts.append(f"top3 met primaire bron {data['first3_items_with_primary_source_count']}/3")
     if data.get('first3_unique_source_url_count') is not None:
         parts.append(f"top3 unieke bron-URLs {data['first3_unique_source_url_count']}/3")
     if data.get('primary_source_domain_count') is not None:

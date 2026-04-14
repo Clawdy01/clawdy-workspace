@@ -11,10 +11,10 @@ Waarom is dit belangrijk: Het laat zien dat frontier-aanbieders niet alleen mode
 Relevant voor Christian: Bruikbaar als referentie voor hoe Clawdy/OpenClaw eigen agent-evals en veiligheidsclaims concreter kan maken.
 
 2) nieuwe AI-tools en productfeatures
-Titel: Cursor 3.1 breidt multi-agent werkvlak uit
-Bron: https://cursor.com/changelog https://cursor.com/changelog/3-1
+Titel: GitHub breidt Copilot-workflows uit voor coding agents
+Bron: https://github.com/features/copilot https://github.blog/changelog/
 Datum: 2026-04-13
-Wat is er nieuw: Cursor 3.1 noemt tiled agents, verbeterde voice-input en betere branchcontrole voor cloud agents.
+Wat is er nieuw: GitHub laat nieuwe Copilot- en coding-agent workflows zien voor dagelijkse developer-productiviteit.
 Waarom is dit belangrijk: Dit bevestigt dat multi-agent coding-UX snel normaliseert en dat parallelle agent-workflows nu een kernfeature worden.
 Relevant voor Christian: Direct relevant voor OpenClaw-positionering rond orchestration, agent-routing en voice-first interactie.
 
@@ -56,8 +56,8 @@ Wat ik vandaag het belangrijkst vind
 bronnenlijst met URLs
 https://www.anthropic.com/glasswing
 https://red.anthropic.com/2026/mythos-preview/
-https://cursor.com/changelog
-https://cursor.com/changelog/3-1
+https://github.com/features/copilot
+https://github.blog/changelog/
 https://arxiv.org/list/cs.AI/recent
 https://arxiv.org/abs/2604.11806
 https://www.novonordisk.com/content/nncorp/global/en/news-and-media/news-and-ir-materials/news-details.html?id=916532

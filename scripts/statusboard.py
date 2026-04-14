@@ -232,6 +232,7 @@ def render_text(data, show_preview=False):
                 f"top3 geldige Bron-regels {summary_output_audit.get('first3_items_with_valid_source_line_count', 0)}/3"
             )
             ai_bits.append(f"top3 met meerdere bron-URLs {summary_output_audit.get('first3_items_with_multiple_sources_count', 0)}/3")
+            ai_bits.append(f"top3 met primaire bron {summary_output_audit.get('first3_items_with_primary_source_count', 0)}/3")
             ai_bits.append(f"datums {summary_output_audit.get('dated_item_count', 0)}/{summary_output_audit.get('item_count', 0)}")
             ai_bits.append(f"vers top3 {summary_output_audit.get('fresh_dated_first3_count', 0)}/3")
             ai_bits.append(f"recent top3 {summary_output_audit.get('recent_dated_first3_count', 0)}/3")
