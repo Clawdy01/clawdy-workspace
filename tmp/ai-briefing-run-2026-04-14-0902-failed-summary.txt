@@ -1,0 +1,175 @@
+Dagelijkse AI-update, dinsdag 14 april 2026
+
+Brede scan gedaan over primaire bronpagina’s en releasefeeds. Er lijkt vandaag relatief weinig echt nieuw frontier-nieuws te zijn in de laatste 48 uur, maar er waren wel een paar praktische en relevante updates, vooral rond lokale/open-source stacks, coding agents en agent research.
+
+1) Frontier modelreleases en modelupdates
+
+Geen bevestigde nieuwe frontier modelrelease gezien in de afgelopen 48 uur bij OpenAI, Anthropic, Google DeepMind of vergelijkbare topaanbieders.
+
+- Wat is er nieuw
+  Geen nieuwe model-launch van het kaliber GPT/Claude/Gemini/Opus/Grok in de laatste 48 uur gevonden op de primaire nieuws- en changelogpagina’s die ik heb gescand.
+- Waarom is dit belangrijk
+  Dit is op zichzelf relevant: de aandacht lijkt nu meer te liggen op operationalisering, agent-infrastructuur en open-source compatibiliteit rond bestaande modellen, vooral Gemma 4.
+- Relevant voor Christian
+  Ja. Het betekent dat er vandaag meer waarde zit in implementatie- en workflowverbeteringen dan in het najagen van een nieuwe frontier release.
+
+2) Nieuwe AI-tools en productfeatures
+
+Cursor 3.1 zet harder in op parallelle agents en voice input
+Bron: Cursor changelog, update-datum Apr 13, 2026 (zichtbaar in changelog/HTML; de uitgelezen artikeltekst zelf toonde de datum niet)
+
+- Wat is er nieuw
+  Cursor 3.1 voegt een tiled layout toe voor meerdere agents tegelijk, verbeterde voice input met batch-STT, branchselectie voordat je een cloud agent start, diff-naar-bestand navigatie en include/exclude filters in search.
+- Waarom is dit belangrijk
+  Dit is een concrete verschuiving van “één chat in een editor” naar een multi-agent werkoppervlak. Vooral het parallel draaien van meerdere agents en betere branchcontrole maakt agentic coding-workflows volwassener.
+- Relevant voor Christian
+  Sterk. Dit raakt direct aan hoe OpenClaw/Clawdy zich positioneert tegenover agent-first ontwikkelomgevingen, en het bevestigt dat multi-agent orchestration en voice-first bediening nu sneller mainstream worden.
+
+3) Open-source modellen, frameworks en inference tooling
+
+Ollama pusht Gemma 4 in hoog tempo verder, met lokale MLX/Apple Silicon-verbeteringen
+Bron: Ollama releases, 12-14 apr 2026; extra context via Ollama Gemma4 library en Google DeepMind Gemma 4
+
+- Wat is er nieuw
+  In drie snelle releases op rij:
+  - 12 apr: verbeterde Gemma 4 tool calling, betere parallel tool calling bij streaming
+  - 13 apr: kwaliteitsfix voor Gemma e2b/e4b zonder “thinking”
+  - 14 apr pre-release: Gemma 4 op MLX, plus mixed-precision quantization en capability-detectie verbeteringen
+- Waarom is dit belangrijk
+  Dit laat zien dat Gemma 4 niet alleen “uit” is, maar ook snel bruikbaar wordt op lokale Macs en ROCm/Linux stacks. Vooral MLX-support is belangrijk voor Apple Silicon workflows.
+- Relevant voor Christian
+  Heel sterk. Dit raakt direct aan lokale modellen, Apple-hardware, OpenClaw-integraties en praktische agent-deployment op eigen machines.
+
+Transformers 5.5.4 repareert acute regressies, waaronder Qwen2.5-VL beeldgedrag
+Bron: Hugging Face Transformers releases, Apr 13, 2026
+
+- Wat is er nieuw
+  Patch release v5.5.4 fixt onder meer een Kimi-K2.5 tokenizer-regressie en een fout in Qwen2.5-VL waarbij temporal RoPE-scaling verkeerd werd toegepast op stilstaande beelden.
+- Waarom is dit belangrijk
+  Geen sexy launch, wel belangrijk voor betrouwbaarheid. Dit soort fixes voorkomt stille kwaliteitsproblemen in multimodale pipelines.
+- Relevant voor Christian
+  Ja. Als je lokale of semi-lokale multimodale stacks draait, zijn dit precies de fixes die het verschil maken tussen “werkt meestal” en “productierijp”.
+
+4) Agents, automation en coding workflows
+
+De markt beweegt zichtbaar naar multi-agent werkplekken, niet alleen naar betere losse modellen
+Bron: Cursor changelog, Apr 13, 2026; Ollama releases, 12-14 apr 2026
+
+- Wat is er nieuw
+  Cursor optimaliseert parallelle agents in de UI. Ollama verbetert juist function calling en streaming rond Gemma 4. Samen is dat een duidelijk signaal: de differentiatie verschuift naar orchestration, memory, parallelisatie en tool-use.
+- Waarom is dit belangrijk
+  De “agent war” gaat steeds minder over pure benchmarkscore en steeds meer over workflow: meerdere agents, branch-aware uitvoering, tool routing en lokale uitvoering.
+- Relevant voor Christian
+  Ja, direct. Dit sluit aan op OpenClaw’s eigen richting: durable sessions, tools, orchestration en lokale of eigen infrastructuur.
+
+5) Multimodal, voice, image, video en on-device/lokale AI
+
+Lokale multimodaliteit rond Gemma 4 wordt sneller praktisch inzetbaar
+Bron: Ollama Gemma4 library; Google DeepMind Gemma 4; Ollama releases 12-14 apr 2026
+
+- Wat is er nieuw
+  Gemma 4 positioneert zich expliciet als multimodaal en on-device, met text/image voor alle modellen en audio op de kleinere edge-varianten. Ollama’s recente updates verkleinen de afstand tussen modelrelease en echt lokaal gebruik.
+- Waarom is dit belangrijk
+  Dit is niet alleen “nog een open model”, maar een stack die steeds dichter bij bruikbare lokale multimodale agents komt, vooral op laptops en straks zware Apple Silicon-machines.
+- Relevant voor Christian
+  Zeer. Dit is waarschijnlijk de relevantste lokale-modelontwikkeling van vandaag voor Clawdy/OpenClaw.
+
+Cursor verbetert voice input voor agent workflows
+Bron: Cursor changelog 3.1, Apr 13, 2026
+
+- Wat is er nieuw
+  Voice input gebruikt nu volledige clip-opname plus batch speech-to-text voor hogere transcriptiekwaliteit.
+- Waarom is dit belangrijk
+  Voice wordt hiermee bruikbaarder als invoermodaliteit voor agents, niet alleen als gimmick.
+- Relevant voor Christian
+  Ja. Dit is relevant voor hands-free/low-friction bediening van assistenten en messaging-first interfaces.
+
+6) Belangrijke researchdoorbraken of capabilities
+
+Meerkat: safety-violations zoeken over veel agent traces tegelijk
+Bron: arXiv 2604.11806, submitted Mon Apr 13, 2026; arXiv recent list Apr 14, 2026
+
+- Wat is er nieuw
+  De paper beschrijft “Meerkat”, een aanpak die clustering combineert met agentic search om zeldzame of verspreide safety failures over grote verzamelingen agent traces te vinden.
+- Waarom is dit belangrijk
+  Dit pakt een echt praktisch probleem aan: veel agentfouten zie je niet per individuele run, maar pas als patroon over meerdere runs. Volgens de auteurs vond het systeem bijna 4x meer reward hacking op CyBench dan eerdere audits.
+- Relevant voor Christian
+  Ja. Heel relevant voor evaluatie, monitoring en post-hoc auditing van agentnetwerken of OpenClaw-achtige workflows.
+
+Guardrails beat guidance bij coding agents
+Bron: arXiv 2604.11088, submitted Mon Apr 13, 2026; arXiv recent list Apr 14, 2026
+
+- Wat is er nieuw
+  Deze studie test 679 rule files en 5.000+ agent-runs op SWE-bench Verified. Hoofdconclusie: negatieve constraints (“do not …”) helpen, maar positieve instructies schaden vaak; guardrails werken beter dan uitgebreide guidance.
+- Waarom is dit belangrijk
+  Dit is praktisch toepasbare agent-designkennis. Veel teams stoppen enorme rule files in coding agents zonder bewijs dat dat helpt.
+- Relevant voor Christian
+  Ja, sterk. Dit raakt direct aan prompting/rules voor Clawdy, ACP/agent sessions en coding-agent governance.
+
+SWE-AGILE: dynamische reasoning context voor software agents
+Bron: arXiv 2604.11716, submitted Mon Apr 13, 2026
+
+- Wat is er nieuw
+  Voorstel voor een sliding-window van recente reasoning plus samengeperste “reasoning digests” voor oudere stappen, om context explosion in SWE-agents te beperken.
+- Waarom is dit belangrijk
+  Dit adresseert precies het langlopende agentprobleem van diepe reasoning versus contextkosten en lost-in-the-middle.
+- Relevant voor Christian
+  Ja. Dit is bijna één-op-één relevant voor lange OpenClaw-sessies, memory, compaction en durable automation.
+
+UniToolCall standaardiseert tool-use training en evaluatie
+Bron: arXiv 2604.11557, submitted Mon Apr 13, 2026
+
+- Wat is er nieuw
+  Een unified framework voor tool-use met 22k+ tools, 390k+ trainingsinstances en één representatie voor single-turn, multi-turn, serial en parallel tool-use.
+- Waarom is dit belangrijk
+  Tool-use evaluatie is nu nog versnipperd; dit kan een referentiepunt worden voor agents met echte function calling.
+- Relevant voor Christian
+  Ja. Vooral relevant voor OpenClaw’s tool-ecosysteem en het vergelijken van agentkwaliteit over verschillende backends.
+
+7) Enterprise, security en regulatory ontwikkelingen met praktische impact
+
+Geen echt nieuwe enterprise/security/regulatory ontwikkeling met directe praktische impact in de laatste 48 uur gevonden die zwaar genoeg is om vandaag mee te nemen.
+
+Wat moeten wij hiermee?
+
+1. Gemma 4 lokaal serieus testen op Apple/MLX zodra het kan.
+   Dit lijkt nu de meest kansrijke open multimodale lokale stack voor Christian’s toekomstige MacBook Pro.
+
+2. OpenClaw/Clawdy explicieter positioneren rond orchestration, niet alleen modelkeuze.
+   De markt beweegt naar parallelle agents, branch-aware runs, function calling en durable context.
+
+3. Onze eigen agent-rules compacter en negatiever formuleren.
+   De nieuwe coding-agent paper suggereert dat “verbied fout gedrag” beter werkt dan lange positieve instructielijsten.
+
+4. Monitoring over meerdere runs belangrijker maken.
+   De Meerkat-paper is een goed signaal dat single-run evaluatie te zwak is voor agents; trace-clustering en cross-run anomaly detection worden belangrijk.
+
+5. Houd Hugging Face/Ollama release tempo rond Gemma 4 dagelijks in de gaten.
+   Daar zit nu de meeste praktische beweging, niet bij nieuwe closed frontier launches.
+
+Wat ik vandaag het belangrijkst vind
+
+- Ollama maakt Gemma 4 snel praktischer voor lokale inzet, vooral richting MLX/Apple Silicon.
+- Cursor laat zien dat de UI voor coding-agents nu echt naar parallelle multi-agent workflows schuift.
+- Nieuwe research ondersteunt iets belangrijks voor agent design: korte guardrails zijn nuttiger dan dikke rule files.
+- Cross-run auditing van agents lijkt een serieuze nieuwe evaluatielaag te worden.
+
+Bronnenlijst
+
+https://openai.com/news/
+https://www.anthropic.com/news
+https://blog.google/innovation-and-ai/technology/ai/
+https://deepmind.google/blog/
+https://huggingface.co/blog
+https://github.com/ollama/ollama/releases
+https://ollama.com/library/gemma4
+https://deepmind.google/models/gemma/gemma-4/
+https://github.com/huggingface/transformers/releases
+https://cursor.com/changelog
+https://cursor.com/changelog/3-1
+https://arxiv.org/list/cs.AI/recent
+https://arxiv.org/list/cs.LG/recent
+https://arxiv.org/abs/2604.11806
+https://arxiv.org/abs/2604.11088
+https://arxiv.org/abs/2604.11716
+https://arxiv.org/abs/2604.11557
