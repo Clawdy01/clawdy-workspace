@@ -37,6 +37,7 @@ REQUIRED_PROMPT_MARKERS = [
     'meerdere primaire bronnen',
     'filter marketing zonder echte verandering',
     'focus op echt nieuwe ontwikkelingen uit de afgelopen 48 uur',
+    'Noem per item ook de bron plus publicatiedatum of update-datum als die vindbaar is',
     'Relevant voor Christian',
     "Wat moeten wij hiermee?",
     "Wat ik vandaag het belangrijkst vind",
@@ -62,6 +63,7 @@ REQUIRED_OUTPUT_MARKER_ALTERNATIVES = [
     ('bronnenlijst', 'bronnen'),
 ]
 MIN_SOURCE_URLS = 3
+MIN_DATED_ITEMS_FOR_STRONG_SIGNAL = 2
 PRIMARY_SOURCE_DOMAINS = {
     'openai.com',
     'anthropic.com',
@@ -93,7 +95,36 @@ CATEGORY_THEME_KEYWORDS = [
     ('research-capabilities', ['research', 'paper', 'benchmark', 'capabilit', 'doorbraak', 'arxiv']),
     ('enterprise-security-regulatory', ['enterprise', 'security', 'regulatory', 'compliance', 'governance', 'policy', 'privacy']),
 ]
+DATE_PATTERN = re.compile(
+    r'(?:\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{1,2}\s+'
+    r'(?:jan(?:uari)?|feb(?:ruari)?|mrt|maart|apr(?:il)?|mei|jun(?:i)?|jul(?:i)?|aug(?:ustus)?|'
+    r'sep(?:tember)?|okt(?:ober)?|nov(?:ember)?|dec(?:ember)?|'
+    r'jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|'
+    r'aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{4}\b|'
+    r'\b(?:jan(?:uari)?|feb(?:ruari)?|mrt|maart|apr(?:il)?|mei|jun(?:i)?|jul(?:i)?|aug(?:ustus)?|'
+    r'sep(?:tember)?|okt(?:ober)?|nov(?:ember)?|dec(?:ember)?|'
+    r'jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|'
+    r'aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2},?\s+\d{4}\b)',
+    re.IGNORECASE,
+)
 MIN_CATEGORY_THEME_COVERAGE = 3
+RECENT_ITEM_MAX_AGE_DAYS = 7
+MIN_RECENT_ITEMS_FOR_STRONG_SIGNAL = 2
+
+MONTH_NAME_TO_NUMBER = {
+    'jan': 1, 'januari': 1, 'january': 1,
+    'feb': 2, 'februari': 2, 'february': 2,
+    'mrt': 3, 'maart': 3, 'mar': 3, 'march': 3,
+    'apr': 4, 'april': 4,
+    'mei': 5, 'may': 5,
+    'jun': 6, 'juni': 6, 'june': 6,
+    'jul': 7, 'juli': 7, 'july': 7,
+    'aug': 8, 'augustus': 8, 'august': 8,
+    'sep': 9, 'september': 9,
+    'okt': 10, 'oct': 10, 'oktober': 10, 'october': 10,
+    'nov': 11, 'november': 11,
+    'dec': 12, 'december': 12,
+}
 
 
 def load_jobs():
@@ -371,7 +402,79 @@ def audit_uniqueness(jobs, target_job):
     }
 
 
-def audit_summary_output(summary_text):
+def split_summary_item_blocks(summary_text):
+    if not isinstance(summary_text, str):
+        return []
+    parts = re.split(r'(?im)^titel:\s*', summary_text)
+    blocks = []
+    for part in parts[1:]:
+        block = part.strip()
+        if block:
+            blocks.append('Titel: ' + block)
+    return blocks
+
+
+def normalize_year(year):
+    year = int(year)
+    if year < 100:
+        return 2000 + year if year < 70 else 1900 + year
+    return year
+
+
+def parse_date_match_to_ms(raw_text, reference_dt):
+    text = (raw_text or '').strip().replace(',', '')
+    if not text:
+        return None
+
+    iso = re.fullmatch(r'(\d{4})-(\d{2})-(\d{2})', text)
+    if iso:
+        year, month, day = map(int, iso.groups())
+    else:
+        numeric = re.fullmatch(r'(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})', text)
+        if numeric:
+            day, month, year = numeric.groups()
+            day = int(day)
+            month = int(month)
+            year = normalize_year(year)
+        else:
+            named = re.fullmatch(r'(\d{1,2})\s+([A-Za-zÀ-ÿ]+)\s+(\d{4})', text, re.IGNORECASE)
+            if named:
+                day, month_name, year = named.groups()
+                day = int(day)
+                month = MONTH_NAME_TO_NUMBER.get(month_name.lower())
+                year = int(year)
+            else:
+                named_us = re.fullmatch(r'([A-Za-zÀ-ÿ]+)\s+(\d{1,2})\s+(\d{4})', text, re.IGNORECASE)
+                if not named_us:
+                    return None
+                month_name, day, year = named_us.groups()
+                day = int(day)
+                month = MONTH_NAME_TO_NUMBER.get(month_name.lower())
+                year = int(year)
+
+    if not month:
+        return None
+
+    try:
+        dt = datetime(year, month, day, tzinfo=reference_dt.tzinfo)
+    except ValueError:
+        return None
+    return int(dt.astimezone(timezone.utc).timestamp() * 1000)
+
+
+def latest_block_date_ms(block, reference_ms=None):
+    if not isinstance(block, str) or not block.strip():
+        return None
+    reference_dt = datetime.fromtimestamp((reference_ms or int(datetime.now(tz=timezone.utc).timestamp() * 1000)) / 1000, tz=timezone.utc)
+    parsed = [
+        parse_date_match_to_ms(match.group(0), reference_dt)
+        for match in DATE_PATTERN.finditer(block)
+    ]
+    parsed = [value for value in parsed if value is not None]
+    return max(parsed) if parsed else None
+
+
+def audit_summary_output(summary_text, reference_ms=None):
     if not isinstance(summary_text, str) or not summary_text.strip():
         return {
             'available': False,
@@ -381,11 +484,17 @@ def audit_summary_output(summary_text):
             'item_count': 0,
             'item_marker_min_count': 0,
             'source_url_count': 0,
+            'unique_source_url_count': 0,
             'source_urls': [],
             'source_domains': [],
             'source_domain_count': 0,
             'primary_source_domains': [],
             'primary_source_domain_count': 0,
+            'dated_item_count': 0,
+            'undated_item_count': 0,
+            'recent_dated_item_count': 0,
+            'recent_dated_first3_count': 0,
+            'recent_item_max_age_days': RECENT_ITEM_MAX_AGE_DAYS,
             'category_theme_hits': [],
             'category_theme_count': 0,
             'reasons': [],
@@ -406,6 +515,7 @@ def audit_summary_output(summary_text):
         if not any(marker.lower() in normalized_text for marker in group)
     ]
     source_urls = re.findall(r'https?://\S+', summary_text)
+    unique_source_urls = sorted(set(source_urls))
     source_domains = sorted({
         re.sub(r'^www\.', '', url.split('/')[2].lower())
         for url in source_urls
@@ -416,8 +526,19 @@ def audit_summary_output(summary_text):
         if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
     })
     source_url_count = len(source_urls)
+    unique_source_url_count = len(unique_source_urls)
     source_domain_count = len(source_domains)
     primary_source_domain_count = len(primary_source_domains)
+    item_blocks = split_summary_item_blocks(summary_text)
+    dated_item_count = sum(1 for block in item_blocks if DATE_PATTERN.search(block))
+    undated_item_count = max(0, len(item_blocks) - dated_item_count)
+    now_ms = reference_ms or int(datetime.now(tz=timezone.utc).timestamp() * 1000)
+    recent_cutoff_ms = now_ms - RECENT_ITEM_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
+    block_date_values = [latest_block_date_ms(block, reference_ms=now_ms) for block in item_blocks]
+    recent_dated_item_count = sum(1 for value in block_date_values if value is not None and value >= recent_cutoff_ms)
+    recent_dated_first3_count = sum(
+        1 for value in block_date_values[:3] if value is not None and value >= recent_cutoff_ms
+    )
     category_theme_hits = [
         name
         for name, keywords in CATEGORY_THEME_KEYWORDS
@@ -436,16 +557,29 @@ def audit_summary_output(summary_text):
         reasons.append(f"{len(missing_alternative_groups)} verplichte outputanker(s) missen")
     if source_url_count < MIN_SOURCE_URLS:
         reasons.append(f'te weinig bron-URLs ({source_url_count})')
+    if item_count and unique_source_url_count < item_count:
+        reasons.append(
+            f'te weinig unieke bron-URLs voor aantal items ({unique_source_url_count}/{item_count})'
+        )
     if source_url_count and source_domain_count < 2:
         reasons.append(f'te weinig unieke brondomeinen ({source_domain_count})')
     if source_url_count and primary_source_domain_count < 1:
         reasons.append('geen herkenbare primaire bron tussen URLs')
+    if item_count >= 3 and dated_item_count < MIN_DATED_ITEMS_FOR_STRONG_SIGNAL:
+        reasons.append(
+            f'te weinig items met zichtbare datumvermelding ({dated_item_count}/{item_count}, verwacht minstens {MIN_DATED_ITEMS_FOR_STRONG_SIGNAL})'
+        )
+    if item_count >= 3 and recent_dated_first3_count < MIN_RECENT_ITEMS_FOR_STRONG_SIGNAL:
+        reasons.append(
+            f'te weinig recente items in top 3 ({recent_dated_first3_count}/3 binnen {RECENT_ITEM_MAX_AGE_DAYS} dagen)'
+        )
     if category_theme_count < MIN_CATEGORY_THEME_COVERAGE:
         reasons.append(f'te weinig briefingcategorieën zichtbaar ({category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)})')
 
     ok_text = (
-        f'briefing-output ok ({item_count} items, {source_url_count} URLs, '
+        f'briefing-output ok ({item_count} items, {source_url_count} URLs, {unique_source_url_count} uniek, '
         f'{source_domain_count} domeinen, {primary_source_domain_count} primaire bron-domeinen, '
+        f'datums {dated_item_count}/{item_count}, recent top3 {recent_dated_first3_count}/3, '
         f"{category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)} categorie-thema's zichtbaar, "
         f"complete structuur {item_marker_min_count}x)"
     )
@@ -459,11 +593,17 @@ def audit_summary_output(summary_text):
         'item_marker_min_count': item_marker_min_count,
         'missing_alternative_groups': missing_alternative_groups,
         'source_url_count': source_url_count,
+        'unique_source_url_count': unique_source_url_count,
         'source_urls': source_urls,
         'source_domains': source_domains,
         'source_domain_count': source_domain_count,
         'primary_source_domains': primary_source_domains,
         'primary_source_domain_count': primary_source_domain_count,
+        'dated_item_count': dated_item_count,
+        'undated_item_count': undated_item_count,
+        'recent_dated_item_count': recent_dated_item_count,
+        'recent_dated_first3_count': recent_dated_first3_count,
+        'recent_item_max_age_days': RECENT_ITEM_MAX_AGE_DAYS,
         'category_theme_hits': category_theme_hits,
         'category_theme_count': category_theme_count,
         'reasons': reasons,
@@ -482,7 +622,7 @@ def summarize_run(run, tz_name=DEFAULT_TZ, now_ms=None):
     summary_preview = None
     summary_preview_lines = []
     summary_length_chars = None
-    summary_output_audit = audit_summary_output(summary_text)
+    summary_output_audit = audit_summary_output(summary_text, reference_ms=run.get('runAtMs') or now_ms)
     if isinstance(summary_text, str) and summary_text.strip():
         summary_length_chars = len(summary_text)
         summary_preview_lines = [line.strip() for line in summary_text.splitlines() if line.strip()][:3]
@@ -970,10 +1110,18 @@ def render_summary_audit_text(data):
     parts = [data.get('text', 'briefing-output onbekend')]
     if data.get('source_url_count') is not None:
         parts.append(f"bron-URLs {data['source_url_count']}")
+    if data.get('unique_source_url_count') is not None:
+        parts.append(f"unieke bron-URLs {data['unique_source_url_count']}")
     if data.get('source_domain_count') is not None:
         parts.append(f"brondomeinen {data['source_domain_count']}")
     if data.get('primary_source_domain_count') is not None:
         parts.append(f"primaire brondomeinen {data['primary_source_domain_count']}")
+    if data.get('dated_item_count') is not None and data.get('item_count') is not None:
+        parts.append(f"datums {data['dated_item_count']}/{data['item_count']}")
+    if data.get('recent_dated_first3_count') is not None:
+        parts.append(
+            f"recent top3 {data['recent_dated_first3_count']}/3 ({data.get('recent_item_max_age_days', RECENT_ITEM_MAX_AGE_DAYS)}d)"
+        )
     if data.get('category_theme_count') is not None:
         parts.append(f"categorie-thema's {data['category_theme_count']}/{len(CATEGORY_THEME_KEYWORDS)}")
     if data.get('item_marker_min_count') is not None:
@@ -1056,6 +1204,14 @@ def render_text(data):
             parts.append(f"items {summary_output_audit['item_count']}")
         if summary_output_audit.get('source_url_count') is not None:
             parts.append(f"bron-URLs {summary_output_audit['source_url_count']}")
+        if summary_output_audit.get('unique_source_url_count') is not None:
+            parts.append(f"unieke bron-URLs {summary_output_audit['unique_source_url_count']}")
+        if summary_output_audit.get('dated_item_count') is not None and summary_output_audit.get('item_count') is not None:
+            parts.append(f"datums {summary_output_audit['dated_item_count']}/{summary_output_audit['item_count']}")
+        if summary_output_audit.get('recent_dated_first3_count') is not None:
+            parts.append(
+                f"recent top3 {summary_output_audit['recent_dated_first3_count']}/3 ({summary_output_audit.get('recent_item_max_age_days', RECENT_ITEM_MAX_AGE_DAYS)}d)"
+            )
         if summary_output_audit.get('category_theme_count') is not None:
             parts.append(f"categorie-thema's {summary_output_audit['category_theme_count']}/{len(CATEGORY_THEME_KEYWORDS)}")
     if data.get('runs_total'):

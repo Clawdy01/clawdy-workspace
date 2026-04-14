@@ -1,9 +1,9 @@
 Titel: OpenAI brengt iets nieuws
-Wat is er nieuw: Een nieuwe capability-update met concrete impact.
+Wat is er nieuw: Een nieuwe capability-update met concrete impact, bronupdate 2026-04-14.
 Waarom is dit belangrijk: Dit verandert toolingkeuzes.
 
 Titel: Nieuwe open-source inference stack
-Wat is er nieuw: vLLM en Hugging Face brengen verbeteringen.
+Wat is er nieuw: vLLM en Hugging Face brengen verbeteringen, gemeld op 14 april 2026.
 Waarom is dit belangrijk: Lokale deployment wordt praktischer.
 
 Titel: Agent workflow versnelt coding
