@@ -1,0 +1,28 @@
+Titel: Analyse van AI-nieuws via samenvattende blog
+Wat is er nieuw: Een blogoverzicht noemt een modelupdate, bronupdate 2026-04-14.
+Waarom is dit belangrijk: Dit kan prioriteiten beïnvloeden.
+Bron: https://example-news.com/ai/openai-roundup
+Datum: 2026-04-14
+
+Titel: Tweede item via nieuwsbrief
+Wat is er nieuw: Een nieuwsbrief beschrijft toolingnieuws, update 2026-04-14.
+Waarom is dit belangrijk: Mogelijk nuttig voor workflows.
+Bron: https://newsletter.example.org/issues/ai-tools
+Datum: 2026-04-14
+
+Titel: Derde item via aggregator
+Wat is er nieuw: Een aggregator noemt een open-source release, update 2026-04-14.
+Waarom is dit belangrijk: Kan deployment versnellen.
+Bron: https://ai-aggregator.example.net/posts/open-source-release
+Datum: 2026-04-14
+
+Wat moeten wij hiermee?
+Controleer de echte primaire bron.
+
+Wat ik vandaag het belangrijkst vind
+Niet op samenvatters leunen.
+
+Bronnenlijst met URLs:
+https://example-news.com/ai/openai-roundup
+https://newsletter.example.org/issues/ai-tools
+https://ai-aggregator.example.net/posts/open-source-release
