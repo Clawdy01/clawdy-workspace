@@ -18,6 +18,7 @@ DEFAULT_CASES = [
         'expect_first3_items_with_source_count': 0,
         'expect_first3_items_with_valid_source_line_count': 0,
         'expect_first3_items_with_multiple_sources_count': 0,
+        'expect_first3_evidenced_item_count': 0,
         'expect_first3_primary_source_family_count': 0,
         'expect_first3_primary_fresh_item_count': 0,
         'expect_invalid_source_issue_counts': {
@@ -58,8 +59,9 @@ DEFAULT_CASES = [
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 1,
         'expect_first3_items_with_multiple_sources_count': 2,
-        'expect_first3_primary_source_family_count': 3,
-        'expect_first3_primary_fresh_item_count': 3,
+        'expect_first3_evidenced_item_count': 1,
+        'expect_first3_primary_source_family_count': 1,
+        'expect_first3_primary_fresh_item_count': 1,
         'expect_invalid_source_issue_counts': {
             'komma': 1,
             'update_datum': 1,
@@ -94,6 +96,7 @@ DEFAULT_CASES = [
         'expect_first3_items_with_source_count': 3,
         'expect_first3_items_with_valid_source_line_count': 3,
         'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_evidenced_item_count': 3,
         'expect_first3_primary_source_family_count': 2,
         'expect_first3_primary_fresh_item_count': 2,
         'expect_invalid_source_issue_counts': {},
@@ -106,6 +109,60 @@ DEFAULT_CASES = [
             'Relevant voor Christian:': 4,
         },
         'expect_reason_substrings': [],
+    },
+    {
+        'name': 'top3-two-of-three-multi-source-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-two-of-three-multi-source-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 2,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 4,
+        'expect_first3_primary_fresh_item_count': 3,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [
+            'te weinig top-3 items met meerdere bron-URLs (2/3, verwacht minstens 3)',
+        ],
+    },
+    {
+        'name': 'top3-reused-source-urls-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-reused-source-urls-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 2,
+        'expect_first3_primary_fresh_item_count': 3,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [
+            'top-3 items hergebruiken bron-URLs (2/3 uniek)',
+        ],
     },
 ]
 
@@ -167,6 +224,14 @@ def evaluate_case(module, case):
         failures.append(
             'first3_items_with_multiple_sources_count verwacht '
             f"{case['expect_first3_items_with_multiple_sources_count']}, kreeg {audit.get('first3_items_with_multiple_sources_count')}"
+        )
+    if (
+        'expect_first3_evidenced_item_count' in case
+        and audit.get('first3_evidenced_item_count') != case['expect_first3_evidenced_item_count']
+    ):
+        failures.append(
+            'first3_evidenced_item_count verwacht '
+            f"{case['expect_first3_evidenced_item_count']}, kreeg {audit.get('first3_evidenced_item_count')}"
         )
     if (
         'expect_first3_primary_source_family_count' in case

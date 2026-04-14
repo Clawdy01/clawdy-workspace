@@ -1,0 +1,35 @@
+Dagelijkse AI-update, woensdag 15 april 2026
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI deelt kleine platformnotitie over evals
+Bron: https://openai.com/index/new-evals/ https://www.anthropic.com/news/
+Datum: 2026-04-15
+Wat is er nieuw: OpenAI noemt nieuwe evaluatiecontext rond agentbetrouwbaarheid.
+Waarom is dit belangrijk: Dit item gebruikt bewust dezelfde bronset als de andere topitems om URL-hergebruik in de top 3 te testen.
+Relevant voor Christian: Goed regressiegeval voor briefingbewaking.
+
+2) nieuwe AI-tools en productfeatures
+Titel: Claude-workflow krijgt kleine productupdate
+Bron: https://openai.com/index/new-evals/ https://www.anthropic.com/news/
+Datum: 2026-04-15
+Wat is er nieuw: Een kleine workflowupdate wordt genoemd als productverbetering.
+Waarom is dit belangrijk: Ook dit item hergebruikt exact dezelfde bron-URLs zodat alleen corroboratiecount niet vals groen wordt.
+Relevant voor Christian: Nuttig om top-3 brondiversiteit af te dwingen.
+
+3) open-source modellen/frameworks/inference tooling
+Titel: Open-source tooling krijgt een kleine release-opfrissing
+Bron: https://openai.com/index/new-evals/ https://www.anthropic.com/news/
+Datum: 2026-04-15
+Wat is er nieuw: Er is een kleine toolingupdate zichtbaar in de open-source context.
+Waarom is dit belangrijk: Zonder extra check zou deze briefing ten onrechte sterk onderbouwd lijken ondanks hergebruik van exact dezelfde URLs.
+Relevant voor Christian: Goed regressiegeval voor brondiversiteit in de top 3.
+
+Wat moeten wij hiermee?
+- Bewaak niet alleen meerdere bron-URLs per topitem, maar ook dat de top 3 niet steeds exact dezelfde URLs recyclen.
+
+Wat ik vandaag het belangrijkst vind
+- Topitems moeten niet alleen multi-source zijn, maar ook aantoonbaar verschillende bron-URLs gebruiken.
+
+bronnenlijst met URLs
+https://openai.com/index/new-evals/
+https://www.anthropic.com/news/

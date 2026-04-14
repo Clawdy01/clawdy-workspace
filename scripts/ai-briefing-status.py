@@ -164,7 +164,7 @@ MIN_RECENT_ITEMS_FOR_STRONG_SIGNAL = 2
 MIN_TOP3_EVIDENCED_ITEMS_FOR_STRONG_SIGNAL = 2
 FRESH_ITEM_MAX_AGE_HOURS = 48
 MIN_FRESH_TOP3_ITEMS_FOR_STRONG_SIGNAL = 2
-MIN_TOP3_MULTI_SOURCE_ITEMS_FOR_STRONG_SIGNAL = 2
+MIN_TOP3_MULTI_SOURCE_ITEMS_FOR_STRONG_SIGNAL = 3
 PROOF_TARGET_RUNS = 3
 
 MONTH_NAME_TO_NUMBER = {
@@ -840,18 +840,9 @@ def audit_summary_output(summary_text, reference_ms=None):
         for url in source_urls
         if len(url.split('/')) > 2 and url.split('/')[2]
     })
-    primary_source_domains = sorted({
-        domain for domain in source_domains
-        if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
-    })
-    primary_source_families = sorted({
-        family for family in (primary_source_family(domain) for domain in source_domains) if family
-    })
     source_url_count = len(source_urls)
     unique_source_url_count = len(unique_source_urls)
     source_domain_count = len(source_domains)
-    primary_source_domain_count = len(primary_source_domains)
-    primary_source_family_count = len(primary_source_families)
     item_blocks = split_summary_item_blocks(summary_text)
     item_count = len(item_blocks)
     effective_item_marker_counts = dict(item_marker_counts)
@@ -918,6 +909,10 @@ def audit_summary_output(summary_text, reference_ms=None):
         for issue in issues
     )
     block_source_urls = [re.findall(r'https?://\S+', block) for block in item_blocks]
+    block_valid_source_urls = [
+        urls if is_valid else []
+        for urls, is_valid in zip(block_source_line_urls, block_valid_source_line)
+    ]
     block_source_counts = [len(urls) for urls in block_source_urls]
     block_unique_source_url_counts = [len(set(urls)) for urls in block_source_urls]
     items_with_source_count = sum(1 for count in block_source_counts if count > 0)
@@ -944,15 +939,26 @@ def audit_summary_output(summary_text, reference_ms=None):
             for url in urls
             if len(url.split('/')) > 2 and url.split('/')[2]
         })
-        for urls in block_source_urls
+        for urls in block_valid_source_urls
     ]
+    valid_source_domains = sorted({domain for domains in block_source_domains for domain in domains})
+    valid_first3_source_domains = sorted({domain for domains in block_source_domains[:3] for domain in domains})
+    primary_source_domains = sorted({
+        domain for domain in valid_source_domains
+        if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
+    })
+    primary_source_families = sorted({
+        family for family in (primary_source_family(domain) for domain in valid_source_domains) if family
+    })
+    primary_source_domain_count = len(primary_source_domains)
+    primary_source_family_count = len(primary_source_families)
     first3_source_domain_count = len(first3_source_domains)
     first3_primary_source_domains = sorted({
-        domain for domain in first3_source_domains
+        domain for domain in valid_first3_source_domains
         if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
     })
     first3_primary_source_families = sorted({
-        family for family in (primary_source_family(domain) for domain in first3_source_domains) if family
+        family for family in (primary_source_family(domain) for domain in valid_first3_source_domains) if family
     })
     first3_primary_source_domain_count = len(first3_primary_source_domains)
     first3_primary_source_family_count = len(first3_primary_source_families)
@@ -996,8 +1002,8 @@ def audit_summary_output(summary_text, reference_ms=None):
     )
     first3_evidenced_item_count = sum(
         1
-        for source_count, date_value in zip(block_source_counts[:3], block_date_line_values[:3])
-        if source_count > 0 and date_value is not None and date_value >= recent_cutoff_ms
+        for is_valid, date_value in zip(block_valid_source_line[:3], block_date_line_values[:3])
+        if is_valid and date_value is not None and date_value >= recent_cutoff_ms
     )
     items_missing_source_examples = [
         title

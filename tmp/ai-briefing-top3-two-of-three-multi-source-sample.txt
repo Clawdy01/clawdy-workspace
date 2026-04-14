@@ -1,0 +1,38 @@
+Dagelijkse AI-update, woensdag 15 april 2026
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI deelt kleine GPT-platformupdate
+Bron: https://openai.com/index/gpt-platform-update/
+Datum: 2026-04-15
+Wat is er nieuw: OpenAI beschrijft een kleine platformupdate met praktische impact voor bestaande modelgebruikers.
+Waarom is dit belangrijk: Dit item is bewust maar enkelvoudig onderbouwd om te bewaken dat 2/3 topitems met meerdere bronnen niet genoeg meer is.
+Relevant voor Christian: Goed regressiegeval voor de strengere top-3 broncorroboratie.
+
+2) nieuwe AI-tools en productfeatures
+Titel: Anthropic beschrijft nieuwe workflow voor Claude-integraties
+Bron: https://www.anthropic.com/news/claude-workflow-update https://www.anthropic.com/engineering/
+Datum: 2026-04-15
+Wat is er nieuw: Anthropic laat een concrete workflowverbetering zien voor integraties en deployment.
+Waarom is dit belangrijk: Dit is een controle-item met wel twee volledige bron-URLs op de Bron-regel.
+Relevant voor Christian: Nuttig als contrast met het eerste item.
+
+3) open-source modellen/frameworks/inference tooling
+Titel: Hugging Face en GitHub tonen verse open-source toolingupdates
+Bron: https://huggingface.co/blog https://github.com/huggingface/transformers/releases
+Datum: 2026-04-15
+Wat is er nieuw: Er zijn zichtbare updates rond open-source tooling en release-onderhoud.
+Waarom is dit belangrijk: Dit tweede controle-item bevestigt dat 3/3 topitems broncorroboratie nodig hebben.
+Relevant voor Christian: Bruikbaar als regressiegeval voor de briefing-audit.
+
+Wat moeten wij hiermee?
+- Houd de top 3 streng op meerdere bron-URLs per item, niet alleen gemiddeld over de top.
+
+Wat ik vandaag het belangrijkst vind
+- Twee van de drie goed onderbouwde topitems is niet genoeg voor deze briefingcheck.
+
+bronnenlijst met URLs
+https://openai.com/index/gpt-platform-update/
+https://www.anthropic.com/news/claude-workflow-update
+https://www.anthropic.com/engineering/
+https://huggingface.co/blog
+https://github.com/huggingface/transformers/releases
