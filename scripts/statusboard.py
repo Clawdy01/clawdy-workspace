@@ -127,6 +127,8 @@ def render_text(data, show_preview=False):
             ai_bits.append(uniqueness_audit['text'])
         if proof_freshness.get('text'):
             ai_bits.append(proof_freshness['text'])
+        if ai_briefing_status.get('proof_progress_text'):
+            ai_bits.append(ai_briefing_status['proof_progress_text'])
         payload_audit = ai_briefing_status.get('payload_audit') or {}
         if ai_briefing_status.get('updated_at_hint'):
             fingerprint = payload_audit.get('message_sha256_short')
@@ -176,6 +178,7 @@ def render_text(data, show_preview=False):
                 )
             ai_bits.append(f"top3 brondomeinen {summary_output_audit.get('first3_source_domain_count', 0)}")
             ai_bits.append(f"top3 primaire brondomeinen {summary_output_audit.get('first3_primary_source_domain_count', 0)}")
+            ai_bits.append(f"top3 primaire bronfamilies {summary_output_audit.get('first3_primary_source_family_count', 0)}")
             ai_bits.append(f"top3 unieke bron-URLs {summary_output_audit.get('first3_unique_source_url_count', 0)}/3")
             ai_bits.append(f"items met bron {summary_output_audit.get('items_with_source_count', 0)}/{summary_output_audit.get('item_count', 0)}")
             ai_bits.append(f"top3 met bron {summary_output_audit.get('first3_items_with_source_count', 0)}/3")

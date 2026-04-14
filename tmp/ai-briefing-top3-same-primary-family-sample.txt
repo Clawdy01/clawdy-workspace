@@ -1,0 +1,25 @@
+Titel: Google lanceert Gemini update
+Wat is er nieuw: Nieuwe update gemeld op 2026-04-14.
+Waarom is dit belangrijk: Meer capabilities.
+Bron: https://blog.google/technology/google-deepmind/example
+
+Titel: DeepMind deelt nieuwe API-notes
+Wat is er nieuw: Nieuwe details gepubliceerd op 2026-04-14.
+Waarom is dit belangrijk: Integraties veranderen.
+Bron: https://deepmind.google/discover/blog/example
+
+Titel: Google AI Studio krijgt feature
+Wat is er nieuw: Feature-update van 2026-04-13.
+Waarom is dit belangrijk: Workflow wordt sneller.
+Bron: https://ai.google.dev/gemini-api/docs/example
+
+Wat moeten wij hiermee?
+Check of dit echt meerdere onafhankelijke bronnen zijn.
+
+Wat ik vandaag het belangrijkst vind
+Brondiversiteit bewaken.
+
+Bronnenlijst met URLs:
+https://blog.google/technology/google-deepmind/example
+https://deepmind.google/discover/blog/example
+https://ai.google.dev/gemini-api/docs/example

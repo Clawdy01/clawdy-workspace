@@ -89,6 +89,28 @@ PRIMARY_SOURCE_DOMAINS = {
     'github.com',
     'arxiv.org',
 }
+PRIMARY_SOURCE_FAMILIES = {
+    'openai.com': 'openai',
+    'anthropic.com': 'anthropic',
+    'googleblog.com': 'google',
+    'deepmind.google': 'google',
+    'ai.google.dev': 'google',
+    'developers.googleblog.com': 'google',
+    'about.fb.com': 'meta',
+    'ai.meta.com': 'meta',
+    'meta.com': 'meta',
+    'microsoft.com': 'microsoft',
+    'news.microsoft.com': 'microsoft',
+    'huggingface.co': 'huggingface',
+    'stability.ai': 'stability',
+    'runwayml.com': 'runway',
+    'midjourney.com': 'midjourney',
+    'elevenlabs.io': 'elevenlabs',
+    'x.ai': 'xai',
+    'mistral.ai': 'mistral',
+    'github.com': 'github',
+    'arxiv.org': 'arxiv',
+}
 CATEGORY_THEME_KEYWORDS = [
     ('frontier-modelupdates', ['frontier', 'modelupdate', 'model update', 'modelrelease', 'model release', 'gpt', 'claude', 'gemini']),
     ('tools-productfeatures', ['tool', 'productfeature', 'product feature', 'feature', 'assistant', 'workspace', 'copilot']),
@@ -117,6 +139,7 @@ MIN_RECENT_ITEMS_FOR_STRONG_SIGNAL = 2
 MIN_TOP3_EVIDENCED_ITEMS_FOR_STRONG_SIGNAL = 2
 FRESH_ITEM_MAX_AGE_HOURS = 48
 MIN_FRESH_TOP3_ITEMS_FOR_STRONG_SIGNAL = 2
+PROOF_TARGET_RUNS = 3
 
 MONTH_NAME_TO_NUMBER = {
     'jan': 1, 'januari': 1, 'january': 1,
@@ -500,6 +523,16 @@ def latest_block_date_ms(block, reference_ms=None):
     return max(parsed) if parsed else None
 
 
+def primary_source_family(domain):
+    if not isinstance(domain, str) or not domain:
+        return None
+    normalized = domain.lower()
+    for root, family in PRIMARY_SOURCE_FAMILIES.items():
+        if normalized == root or normalized.endswith(f'.{root}'):
+            return family
+    return None
+
+
 def audit_summary_output(summary_text, reference_ms=None):
     if not isinstance(summary_text, str) or not summary_text.strip():
         return {
@@ -526,10 +559,14 @@ def audit_summary_output(summary_text, reference_ms=None):
             'first3_unique_source_url_count': 0,
             'first3_source_domains': [],
             'first3_source_domain_count': 0,
-            'first3_primary_source_domains': [],
-            'first3_primary_source_domain_count': 0,
-            'primary_source_domains': [],
-            'primary_source_domain_count': 0,
+        'first3_primary_source_domains': [],
+        'first3_primary_source_domain_count': 0,
+        'first3_primary_source_families': [],
+        'first3_primary_source_family_count': 0,
+        'primary_source_domains': [],
+        'primary_source_domain_count': 0,
+        'primary_source_families': [],
+        'primary_source_family_count': 0,
             'dated_item_count': 0,
             'undated_item_count': 0,
             'recent_dated_item_count': 0,
@@ -573,10 +610,14 @@ def audit_summary_output(summary_text, reference_ms=None):
         domain for domain in source_domains
         if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
     })
+    primary_source_families = sorted({
+        family for family in (primary_source_family(domain) for domain in source_domains) if family
+    })
     source_url_count = len(source_urls)
     unique_source_url_count = len(unique_source_urls)
     source_domain_count = len(source_domains)
     primary_source_domain_count = len(primary_source_domains)
+    primary_source_family_count = len(primary_source_families)
     item_blocks = split_summary_item_blocks(summary_text)
     item_titles = [title for title in (extract_item_title(block) for block in item_blocks) if title]
     title_entries = []
@@ -628,7 +669,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         domain for domain in first3_source_domains
         if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
     })
+    first3_primary_source_families = sorted({
+        family for family in (primary_source_family(domain) for domain in first3_source_domains) if family
+    })
     first3_primary_source_domain_count = len(first3_primary_source_domains)
+    first3_primary_source_family_count = len(first3_primary_source_families)
     dated_item_count = sum(1 for block in item_blocks if DATE_PATTERN.search(block))
     undated_item_count = max(0, len(item_blocks) - dated_item_count)
     now_ms = reference_ms or int(datetime.now(tz=timezone.utc).timestamp() * 1000)
@@ -717,6 +762,8 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append('geen herkenbare primaire bron tussen URLs')
     if item_count >= 3 and first3_primary_source_domain_count < 1:
         reasons.append('geen herkenbare primaire bron in top 3 items')
+    if item_count >= 3 and first3_primary_source_family_count < 2:
+        reasons.append(f'te weinig primaire bronfamilies in top 3 ({first3_primary_source_family_count})')
     if item_count >= 3 and dated_item_count < MIN_DATED_ITEMS_FOR_STRONG_SIGNAL:
         reasons.append(
             f'te weinig items met zichtbare datumvermelding ({dated_item_count}/{item_count}, verwacht minstens {MIN_DATED_ITEMS_FOR_STRONG_SIGNAL})'
@@ -750,6 +797,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         f'top3 bron-URLs {first3_unique_source_url_count}/3 uniek, '
         f'{source_domain_count} domeinen, top3 {first3_source_domain_count} domeinen, '
         f'top3 primaire bron-domeinen {first3_primary_source_domain_count}, {primary_source_domain_count} primaire bron-domeinen, '
+        f'top3 primaire bronfamilies {first3_primary_source_family_count}, {primary_source_family_count} primaire bronfamilies, '
         f'datums {dated_item_count}/{item_count}, vers top3 {fresh_dated_first3_count}/3, recent top3 {recent_dated_first3_count}/3, '
         f'toekomstige datums {future_dated_item_count}, top3 met bron+recente datum {first3_evidenced_item_count}/3, '
         f'top3 met primaire bron+verse datum {first3_primary_fresh_item_count}/3, '
@@ -784,8 +832,12 @@ def audit_summary_output(summary_text, reference_ms=None):
         'first3_source_domain_count': first3_source_domain_count,
         'first3_primary_source_domains': first3_primary_source_domains,
         'first3_primary_source_domain_count': first3_primary_source_domain_count,
+        'first3_primary_source_families': first3_primary_source_families,
+        'first3_primary_source_family_count': first3_primary_source_family_count,
         'primary_source_domains': primary_source_domains,
         'primary_source_domain_count': primary_source_domain_count,
+        'primary_source_families': primary_source_families,
+        'primary_source_family_count': primary_source_family_count,
         'dated_item_count': dated_item_count,
         'undated_item_count': undated_item_count,
         'recent_dated_item_count': recent_dated_item_count,
@@ -922,6 +974,22 @@ def audit_runlog(runlog_info, finished_runs):
         'reasons': reasons,
         'text': text,
     }
+
+
+def filter_runs_for_current_config(runs, updated_at):
+    if not runs:
+        return []
+    if not updated_at:
+        return list(runs)
+    return [run for run in runs if (run.get('runAtMs') or 0) >= updated_at]
+
+
+def run_is_proof_qualified(run, delivery_mode):
+    if not run or run.get('status') != 'ok':
+        return False
+    if delivery_mode in (None, 'none'):
+        return True
+    return bool(run.get('delivered'))
 
 
 def audit_proof_freshness(updated_at, finished_runs, successful_runs, delivered_runs, first_run_pending, tz_name):
@@ -1119,6 +1187,13 @@ def build_status(job_name=TARGET_JOB_NAME):
     last_run_at = (last_run or {}).get('runAtMs') or state.get('lastRunAtMs')
     created_at = job.get('createdAtMs')
     updated_at = job.get('updatedAtMs') or created_at
+    current_config_runs = filter_runs_for_current_config(finished_runs, updated_at)
+    current_config_successful_runs = filter_runs_for_current_config(successful_runs, updated_at)
+    current_config_delivered_runs = filter_runs_for_current_config(delivered_runs, updated_at)
+    proof_qualified_runs = [
+        run for run in current_config_runs
+        if run_is_proof_qualified(run, delivery.get('mode'))
+    ]
     first_run_pending = bool(
         not finished_runs
         and created_at
@@ -1224,6 +1299,13 @@ def build_status(job_name=TARGET_JOB_NAME):
         'runs_total': len(finished_runs),
         'runs_ok': len(successful_runs),
         'runs_delivered': len(delivered_runs),
+        'current_config_runs_total': len(current_config_runs),
+        'current_config_runs_ok': len(current_config_successful_runs),
+        'current_config_runs_delivered': len(current_config_delivered_runs),
+        'proof_target_runs': PROOF_TARGET_RUNS,
+        'proof_qualified_runs': len(proof_qualified_runs),
+        'proof_runs_remaining': max(0, PROOF_TARGET_RUNS - len(proof_qualified_runs)),
+        'proof_target_met': len(proof_qualified_runs) >= PROOF_TARGET_RUNS,
         'success_rate': success_rate,
         'delivery_rate': delivery_rate,
         'success_rate_pct': round(success_rate * 100, 1) if success_rate is not None else None,
@@ -1261,6 +1343,12 @@ def build_status(job_name=TARGET_JOB_NAME):
         'last_run_hint': age_hint(last_run_at, now_ms),
     }
 
+    proof_progress_text = (
+        f"bewijsdoel gehaald ({len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs voor huidige config)"
+        if len(proof_qualified_runs) >= PROOF_TARGET_RUNS
+        else f"bewijsprogressie {len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs voor huidige config"
+    )
+
     if finished_runs:
         status_text = f"{len(successful_runs)}/{len(finished_runs)} runs ok"
         if delivered_runs:
@@ -1284,16 +1372,17 @@ def build_status(job_name=TARGET_JOB_NAME):
         if not finished_runs:
             readiness_phase = 'ready-for-first-run'
             readiness_text = 'klaar voor eerste run'
-        elif len(finished_runs) < 3:
+        elif len(proof_qualified_runs) < PROOF_TARGET_RUNS:
             readiness_phase = 'proving'
-            readiness_text = f'bewijs verzamelen ({len(finished_runs)}/3 runs)'
+            readiness_text = proof_progress_text
         else:
             readiness_phase = 'proved'
-            readiness_text = f'runbewijs aanwezig ({len(finished_runs)} runs)'
+            readiness_text = proof_progress_text
     elif finished_runs:
-        readiness_text = f'runbewijs met aandachtspunt ({len(finished_runs)} runs)'
+        readiness_text = f'{proof_progress_text}; runbewijs met aandachtspunt'
 
     summary['text'] = status_text
+    summary['proof_progress_text'] = proof_progress_text
     summary['readiness_phase'] = readiness_phase
     summary['readiness_text'] = readiness_text
     return summary
@@ -1331,6 +1420,8 @@ def render_summary_audit_text(data):
         parts.append(f"primaire brondomeinen {data['primary_source_domain_count']}")
     if data.get('first3_primary_source_domain_count') is not None:
         parts.append(f"top3 primaire brondomeinen {data['first3_primary_source_domain_count']}")
+    if data.get('first3_primary_source_family_count') is not None:
+        parts.append(f"top3 primaire bronfamilies {data['first3_primary_source_family_count']}")
     if data.get('dated_item_count') is not None and data.get('item_count') is not None:
         parts.append(f"datums {data['dated_item_count']}/{data['item_count']}")
     if data.get('fresh_dated_first3_count') is not None:
@@ -1391,6 +1482,8 @@ def render_text(data):
         proof_freshness = data.get('proof_freshness') or {}
         if proof_freshness.get('text'):
             parts.append(proof_freshness.get('text'))
+        if data.get('proof_progress_text'):
+            parts.append(data.get('proof_progress_text'))
         if payload_audit.get('text'):
             parts.append(payload_audit.get('text'))
     runtime_audit = data.get('runtime_audit') or {}
@@ -1447,6 +1540,8 @@ def render_text(data):
             parts.append(f"top3 brondomeinen {summary_output_audit['first3_source_domain_count']}")
         if summary_output_audit.get('first3_primary_source_domain_count') is not None:
             parts.append(f"top3 primaire brondomeinen {summary_output_audit['first3_primary_source_domain_count']}")
+        if summary_output_audit.get('first3_primary_source_family_count') is not None:
+            parts.append(f"top3 primaire bronfamilies {summary_output_audit['first3_primary_source_family_count']}")
         if summary_output_audit.get('first3_unique_source_url_count') is not None:
             parts.append(f"top3 unieke bron-URLs {summary_output_audit['first3_unique_source_url_count']}/3")
         if summary_output_audit.get('dated_item_count') is not None and summary_output_audit.get('item_count') is not None:
@@ -1469,8 +1564,13 @@ def render_text(data):
             )
         if summary_output_audit.get('category_theme_count') is not None:
             parts.append(f"categorie-thema's {summary_output_audit['category_theme_count']}/{len(CATEGORY_THEME_KEYWORDS)}")
-    if data.get('runs_total'):
+    if data.get('proof_progress_text') and data.get('runs_total'):
+        success_bits = [data['proof_progress_text']]
+    elif data.get('runs_total'):
         success_bits = []
+    else:
+        success_bits = []
+    if data.get('runs_total'):
         if data.get('success_rate_pct') is not None:
             success_bits.append(f"succes {data['success_rate_pct']:.1f}%")
         if data.get('delivery_rate_pct') is not None:
