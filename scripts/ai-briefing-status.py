@@ -510,14 +510,18 @@ def audit_uniqueness(jobs, target_job):
 def split_summary_item_blocks(summary_text):
     if not isinstance(summary_text, str):
         return []
-    parts = re.split(r'(?im)^titel:\s*', summary_text)
+    direct_title_re = re.compile(r'(?im)^(?:\s*\d+[\.)]\s+)?titel:\s*')
+    title_starts = list(direct_title_re.finditer(summary_text))
     blocks = []
-    for part in parts[1:]:
-        block = part.strip()
-        if block:
-            blocks.append('Titel: ' + block)
-    if blocks:
-        return blocks
+    if title_starts:
+        for index, match in enumerate(title_starts):
+            start = match.end()
+            end = title_starts[index + 1].start() if index + 1 < len(title_starts) else len(summary_text)
+            block = summary_text[start:end].strip()
+            if block:
+                blocks.append('Titel: ' + block)
+        if blocks:
+            return blocks
 
     lines = summary_text.splitlines()
     category_heading_re = re.compile(r'^\s*\d+\)\s+')
@@ -628,6 +632,21 @@ def count_prefixed_lines(text, prefixes):
             if lowered.startswith(lowered_prefix):
                 counts[prefix] += 1
     return counts
+
+
+def extract_prefixed_line_sequence(text, prefixes):
+    if not isinstance(text, str):
+        return []
+    sequence = []
+    normalized_prefixes = [(prefix, prefix.lower()) for prefix in prefixes]
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        lowered = stripped.lower()
+        for prefix, lowered_prefix in normalized_prefixes:
+            if lowered.startswith(lowered_prefix):
+                sequence.append(prefix)
+                break
+    return sequence
 
 
 def analyze_source_line_issues(line):
@@ -832,6 +851,9 @@ def audit_summary_output(summary_text, reference_ms=None):
         for marker in REQUIRED_OUTPUT_ITEM_MARKERS
     }
     exact_field_line_counts = count_prefixed_lines(summary_text, REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES)
+    numbered_title_heading_matches = re.findall(r'(?im)^\s*\d+[\.)]\s+titel:\s*(.+)$', summary_text)
+    numbered_title_heading_count = len(numbered_title_heading_matches)
+    numbered_title_heading_examples = [title.strip() for title in numbered_title_heading_matches[:3] if title.strip()]
     missing_alternative_groups = [
         list(group)
         for group in REQUIRED_OUTPUT_MARKER_ALTERNATIVES
@@ -872,6 +894,25 @@ def audit_summary_output(summary_text, reference_ms=None):
     for index, block in enumerate(item_blocks, start=1):
         title = extract_item_title(block) or f'item {index}'
         block_titles.append(title)
+
+    block_exact_field_sequences = [
+        extract_prefixed_line_sequence(block, REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES)
+        for block in item_blocks
+    ]
+    block_exact_field_order_ok = [
+        sequence == REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES
+        for sequence in block_exact_field_sequences
+    ]
+    items_with_exact_field_order_count = sum(1 for is_ok in block_exact_field_order_ok if is_ok)
+    items_with_field_order_mismatch_count = max(0, len(item_blocks) - items_with_exact_field_order_count)
+    items_field_order_mismatch_examples = [
+        {
+            'title': title,
+            'sequence': sequence,
+        }
+        for title, is_ok, sequence in zip(block_titles, block_exact_field_order_ok, block_exact_field_sequences)
+        if not is_ok
+    ][:3]
 
     now_ms = reference_ms or int(datetime.now(tz=timezone.utc).timestamp() * 1000)
     block_source_lines = [extract_source_line_text(block) for block in item_blocks]
@@ -1123,6 +1164,23 @@ def audit_summary_output(summary_text, reference_ms=None):
                 'verplichte exacte veldlabels per item kloppen niet '
                 f"({', '.join(exact_field_mismatches)})"
             )
+    if item_count and items_with_exact_field_order_count < item_count:
+        reason = (
+            'niet elk item volgt de exacte labelvolgorde '
+            f'({items_with_exact_field_order_count}/{item_count})'
+        )
+        if items_field_order_mismatch_examples:
+            examples_text = ', '.join(
+                f"{example['title']} -> {' > '.join(example['sequence'])}"
+                for example in items_field_order_mismatch_examples
+            )
+            reason += f': {examples_text}'
+        reasons.append(reason)
+    if numbered_title_heading_count:
+        reason = f'genummerde itemkoppen gevonden ({numbered_title_heading_count})'
+        if numbered_title_heading_examples:
+            reason += f": {', '.join(numbered_title_heading_examples)}"
+        reasons.append(reason)
     if missing_alternative_groups:
         reasons.append(f"{len(missing_alternative_groups)} verplichte outputanker(s) missen")
     if source_url_count < MIN_SOURCE_URLS:
@@ -1254,7 +1312,7 @@ def audit_summary_output(summary_text, reference_ms=None):
 
     ok_text = (
         f'briefing-output ok ({item_count} items, {source_url_count} geldige bron-URLs, {unique_source_url_count} uniek, '
-        f'titels {unique_item_title_count}/{item_count} uniek, items met bron {items_with_source_count}/{item_count}, '
+        f'titels {unique_item_title_count}/{item_count} uniek, items met juiste labelvolgorde {items_with_exact_field_order_count}/{item_count}, items met bron {items_with_source_count}/{item_count}, '
         f'geldige Bron:-regels {items_with_valid_source_line_count}/{item_count}, '
         f'items met meerdere bron-URLs {items_with_multiple_sources_count}/{item_count}, '
         f'top3 bron-URLs {first3_unique_source_url_count}/3 uniek, top3 met meerdere bron-URLs {first3_items_with_multiple_sources_count}/3, '
@@ -1283,6 +1341,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         'item_count': item_count,
         'item_marker_min_count': item_marker_min_count,
         'missing_alternative_groups': missing_alternative_groups,
+        'numbered_title_heading_count': numbered_title_heading_count,
+        'numbered_title_heading_examples': numbered_title_heading_examples,
+        'items_with_exact_field_order_count': items_with_exact_field_order_count,
+        'items_with_field_order_mismatch_count': items_with_field_order_mismatch_count,
+        'items_field_order_mismatch_examples': items_field_order_mismatch_examples,
         'source_url_count': source_url_count,
         'unique_source_url_count': unique_source_url_count,
         'source_urls': source_urls,
@@ -2053,6 +2116,11 @@ def render_summary_audit_text(data):
     top3_missing_primary_fresh_examples = data.get('top3_missing_primary_fresh_examples') or []
     if top3_missing_primary_fresh_examples:
         parts.append('top3 zonder primaire+verse combo ' + ', '.join(top3_missing_primary_fresh_examples[:3]))
+    if data.get('items_with_exact_field_order_count') is not None and data.get('item_count') is not None:
+        parts.append(f"items met juiste labelvolgorde {data['items_with_exact_field_order_count']}/{data['item_count']}")
+    mismatch_examples = data.get('items_field_order_mismatch_examples') or []
+    if mismatch_examples:
+        parts.append('labelvolgorde fout ' + ', '.join(example['title'] for example in mismatch_examples[:3]))
     if data.get('items_with_source_count') is not None and data.get('item_count') is not None:
         parts.append(f"items met bron {data['items_with_source_count']}/{data['item_count']}")
     if data.get('items_with_multiple_sources_count') is not None and data.get('item_count') is not None:

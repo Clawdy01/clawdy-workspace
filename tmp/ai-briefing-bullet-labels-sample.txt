@@ -1,0 +1,29 @@
+Titel: OpenAI scherpt Responses API voorbeelden aan voor toolgebruik
+Bron: https://openai.com/index/new-tools/ | https://platform.openai.com/docs/guides/tools
+Datum: 2026-04-14
+- Wat is er nieuw
+  OpenAI laat nu concreter zien hoe tool-calls en responses samen horen te lopen in één agentflow.
+- Waarom is dit belangrijk
+  Dit is praktisch voor stabielere briefingitems en maakt duidelijk waarom exacte labels niet mogen terugvallen naar bullets.
+- Relevant voor Christian
+  Dit raakt direct aan briefingformaten en agent-workflows.
+
+Titel: Anthropic werkt Claude Code documentatie bij met MCP-routes
+Bron: https://www.anthropic.com/news | https://docs.anthropic.com/en/docs/claude-code
+Datum: 2026-04-14
+- Wat is er nieuw
+  De documentatie beschrijft nu scherper hoe Claude Code met MCP-servers en lokale tools samenwerkt.
+- Waarom is dit belangrijk
+  Dit is een relevant voorbeeld van echte update-inhoud die toch fout moet afvallen zodra de labelregels niet exact zijn.
+- Relevant voor Christian
+  Dit helpt om regressies op half-gestructureerde output te voorkomen.
+
+Titel: Google publiceert nieuwe Gemini API voorbeelden voor agents
+Bron: https://ai.google.dev/gemini-api/docs | https://developers.googleblog.com/
+Datum: 2026-04-14
+- Wat is er nieuw
+  Google toont nieuwe voorbeelden rond agentische workflows en Gemini API gebruik.
+- Waarom is dit belangrijk
+  Ook met geldige bronnen en datum moet de audit rood blijven als labels als bullets verschijnen.
+- Relevant voor Christian
+  Dit borgt dat een volgende kwalificatierun niet vals groen wordt op inhoud alleen.

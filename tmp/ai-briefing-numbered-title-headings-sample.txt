@@ -1,0 +1,26 @@
+1. Titel: OpenAI verduidelijkt Responses API voor toolgebruik
+Bron: https://openai.com/index/new-tools/ | https://platform.openai.com/docs/guides/tools
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI laat concreter zien hoe responses, tools en agentflows samen horen te lopen.
+Waarom is dit belangrijk: Dit is relevante briefinginhoud, maar de itemkop mag niet als genummerde variant van Titel verschijnen.
+Relevant voor Christian: Dit voorkomt dat een genummerde briefing per ongeluk als formatcompliant wordt gezien.
+
+2. Titel: Anthropic werkt Claude Code documentatie bij met MCP-routes
+Bron: https://www.anthropic.com/news | https://docs.anthropic.com/en/docs/claude-code
+Datum: 2026-04-14
+Wat is er nieuw: De documentatie beschrijft nu scherper hoe Claude Code met MCP-servers en lokale tools samenwerkt.
+Waarom is dit belangrijk: Ook met geldige bronnen en labels moet genummerde itemkop-output rood blijven.
+Relevant voor Christian: Dit bewaakt expliciet de promptregel tegen genummerde itemkoppen.
+
+3. Titel: Google publiceert nieuwe Gemini API voorbeelden voor agents
+Bron: https://ai.google.dev/gemini-api/docs | https://developers.googleblog.com/
+Datum: 2026-04-14
+Wat is er nieuw: Google toont nieuwe voorbeelden rond agentische workflows en Gemini API gebruik.
+Waarom is dit belangrijk: Dit test dat formatdwang niet alleen op bronregels maar ook op kopstructuur actief blijft.
+Relevant voor Christian: Dit borgt dat de volgende cronrun niet stil terugvalt naar nummering.
+
+Wat moeten wij hiermee?
+- Houd output strikt bij exacte labels zonder nummering voor itemkoppen.
+
+Wat ik vandaag het belangrijkst vind
+- De audit moet genummerde itemkoppen direct afkeuren.

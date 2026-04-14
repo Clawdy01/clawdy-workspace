@@ -1,0 +1,45 @@
+Dagelijkse AI-update, dinsdag 14 april 2026
+
+Korte intro: dit sample bewaakt dat exacte labels niet alleen aanwezig zijn, maar ook in de verplichte volgorde per item staan.
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI rolt nieuwe Responses API-updates uit
+Datum: 2026-04-14
+Bron: https://openai.com/index/new-tools-for-building-agents/ | https://platform.openai.com/docs/overview
+Wat is er nieuw: OpenAI scherpt de Responses API en agent-bouwblokken verder aan.
+Waarom is dit belangrijk: Dit is een concrete productupdate voor agent-workflows en tooling-integraties.
+Relevant voor Christian: Relevant voor hoe OpenClaw agent-routes en toolgebruik structureert.
+
+2) nieuwe AI-tools en productfeatures
+Titel: GitHub breidt Copilot coding agent-workflows verder uit
+Bron: https://github.blog/changelog/ | https://github.com/features/copilot
+Datum: 2026-04-14
+Wat is er nieuw: GitHub laat verdere uitbouw van Copilot- en coding-agent workflows zien.
+Waarom is dit belangrijk: Dit bevestigt dat agentische developer-UX sneller mainstream wordt.
+Relevant voor Christian: Relevant voor OpenClaw-positionering rond multi-agent orchestration.
+
+3) belangrijke researchdoorbraken of capabilities
+Titel: Anthropic deelt nieuwe evaluatie-inzichten voor agentbetrouwbaarheid
+Bron: https://www.anthropic.com/news | https://www.anthropic.com/research
+Datum: 2026-04-14
+Wat is er nieuw: Anthropic publiceert nieuwe eval-context over modelgedrag en agents.
+Waarom is dit belangrijk: Dit geeft extra richting voor hoe evaluatie en betrouwbaarheid praktisch gemeten kunnen worden.
+Relevant voor Christian: Bruikbaar voor het aanscherpen van interne eval- en research-workflows.
+
+Wat moeten wij hiermee?
+- Houd de outputaudit streng op exacte machine-checkbare structuur.
+- Behandel labelvolgorde als harde contractvoorwaarde, niet als cosmetica.
+- Gebruik dit als regressiehek tegen half-correcte briefings.
+
+Wat ik vandaag het belangrijkst vind
+- Volledige labels zijn niet genoeg als de volgorde stuk is.
+- De audit moet dit expliciet rood maken.
+- Daardoor wordt promptdrift sneller zichtbaar.
+
+bronnenlijst met URLs
+https://openai.com/index/new-tools-for-building-agents/
+https://platform.openai.com/docs/overview
+https://github.blog/changelog/
+https://github.com/features/copilot
+https://www.anthropic.com/news
+https://www.anthropic.com/research

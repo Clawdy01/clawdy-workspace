@@ -275,6 +275,107 @@ DEFAULT_CASES = [
             'OpenAI verbreedt agents-SDK documentatie met nieuwe voorbeelden',
         ],
     },
+    {
+        'name': 'label-order-mismatch-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-label-order-mismatch-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 3,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_items_with_exact_field_order_count': 2,
+        'expect_items_with_field_order_mismatch_count': 1,
+        'expect_reason_substrings': [
+            'niet elk item volgt de exacte labelvolgorde (2/3)',
+            'OpenAI rolt nieuwe Responses API-updates uit -> Titel: > Datum: > Bron:',
+        ],
+    },
+    {
+        'name': 'bullet-labels-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bullet-labels-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
+        'expect_explicit_dated_item_count': 3,
+        'expect_explicit_recent_dated_first3_count': 3,
+        'expect_explicit_fresh_dated_first3_count': 3,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 3,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 0,
+            'Waarom is dit belangrijk:': 0,
+            'Relevant voor Christian:': 0,
+        },
+        'expect_items_with_exact_field_order_count': 0,
+        'expect_items_with_field_order_mismatch_count': 3,
+        'expect_reason_substrings': [
+            'verplichte exacte veldlabels per item kloppen niet (Wat is er nieuw: 0/3, Waarom is dit belangrijk: 0/3, Relevant voor Christian: 0/3)',
+            'niet elk item volgt de exacte labelvolgorde (0/3)',
+            'OpenAI scherpt Responses API voorbeelden aan voor toolgebruik -> Titel: > Bron: > Datum:',
+        ],
+    },
+    {
+        'name': 'numbered-title-headings-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-numbered-title-headings-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
+        'expect_explicit_dated_item_count': 3,
+        'expect_explicit_recent_dated_first3_count': 3,
+        'expect_explicit_fresh_dated_first3_count': 3,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 3,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 0,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_items_with_exact_field_order_count': 3,
+        'expect_items_with_field_order_mismatch_count': 0,
+        'expect_reason_substrings': [
+            'verplichte exacte veldlabels per item kloppen niet (Titel: 0/3)',
+            'genummerde itemkoppen gevonden (3)',
+            'OpenAI verduidelijkt Responses API voor toolgebruik',
+        ],
+    },
 ]
 
 
@@ -437,6 +538,22 @@ def evaluate_case(module, case):
             'exact_field_line_counts verwacht '
             f"{case['expect_exact_field_line_counts']}, kreeg {audit.get('exact_field_line_counts')}"
         )
+    if (
+        'expect_items_with_exact_field_order_count' in case
+        and audit.get('items_with_exact_field_order_count') != case['expect_items_with_exact_field_order_count']
+    ):
+        failures.append(
+            'items_with_exact_field_order_count verwacht '
+            f"{case['expect_items_with_exact_field_order_count']}, kreeg {audit.get('items_with_exact_field_order_count')}"
+        )
+    if (
+        'expect_items_with_field_order_mismatch_count' in case
+        and audit.get('items_with_field_order_mismatch_count') != case['expect_items_with_field_order_mismatch_count']
+    ):
+        failures.append(
+            'items_with_field_order_mismatch_count verwacht '
+            f"{case['expect_items_with_field_order_mismatch_count']}, kreeg {audit.get('items_with_field_order_mismatch_count')}"
+        )
     audit_text = audit.get('text') or ''
     for snippet in case.get('expect_reason_substrings', []):
         if snippet not in audit_text:
@@ -463,6 +580,8 @@ def evaluate_case(module, case):
         'explicit_fresh_dated_first3_count': audit.get('explicit_fresh_dated_first3_count'),
         'invalid_source_line_issue_counts': audit.get('invalid_source_line_issue_counts'),
         'exact_field_line_counts': audit.get('exact_field_line_counts'),
+        'items_with_exact_field_order_count': audit.get('items_with_exact_field_order_count'),
+        'items_with_field_order_mismatch_count': audit.get('items_with_field_order_mismatch_count'),
     }
 
 
