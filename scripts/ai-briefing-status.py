@@ -64,6 +64,10 @@ REQUIRED_FORMAT_MARKERS = [
     'Gebruik dit patroon letterlijk per item:',
     'Bron: https://example.com/item | https://example.org/item',
     'FOUT voorbeeld, niet doen:',
+    "De briefing is mislukt als je minder dan 3 items met letterlijk 'Titel:' oplevert.",
+    'Verplicht zelfcheck-blok vóór versturen:',
+    'Verplicht top-3 zelfcheck:',
+    'Publiceer nooit een half-geldig item.',
 ]
 REQUIRED_TOOLS_ALLOW = {'web_search', 'web_fetch'}
 REQUIRED_OUTPUT_MARKERS = [

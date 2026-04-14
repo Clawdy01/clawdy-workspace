@@ -68,6 +68,7 @@ def run_watchdog(timeout_seconds: int, require_qualified_runs: int) -> dict:
 def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     summary = data.get('summary') or data.get('status_text') or 'ai-briefing heeft aandacht nodig'
     reasons = [reason for reason in (data.get('reasons') or []) if reason]
+    summary_output_examples = [example for example in (data.get('summary_output_examples') or []) if example]
     bits = [f"AI-briefing {mode}: {summary}"]
     if require_qualified_runs > 0:
         proof_progress = data.get('proof_progress_text')
@@ -81,6 +82,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append(f"bewijsdoel {data['proof_target_due_at_text']}")
     if reasons:
         bits.append('redenen: ' + '; '.join(reasons[:3]))
+    if summary_output_examples:
+        bits.append('bewijs: ' + ' | '.join(summary_output_examples[:2]))
     return ' | '.join(bits)
 
 

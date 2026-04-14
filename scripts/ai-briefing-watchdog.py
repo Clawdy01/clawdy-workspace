@@ -121,6 +121,46 @@ def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, std
         write_output(rendered, output_path=str(preset['path']), append=preset['append'])
 
 
+def summarize_output_examples(status: dict) -> list[str]:
+    summary_output_audit = ((status.get('last_run_summary') or {}).get('summary_output_audit') or {})
+    if not summary_output_audit.get('available'):
+        return []
+
+    examples: list[str] = []
+
+    top3_invalid_source_line_examples = summary_output_audit.get('top3_invalid_source_line_examples') or []
+    if top3_invalid_source_line_examples:
+        rendered = ', '.join(
+            f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
+            for example in top3_invalid_source_line_examples[:2]
+        )
+        if rendered:
+            examples.append('top3 ongeldige Bron-regel: ' + rendered)
+
+    top3_missing_source_examples = summary_output_audit.get('top3_missing_source_examples') or []
+    if top3_missing_source_examples:
+        examples.append('top3 zonder bron: ' + ', '.join(top3_missing_source_examples[:3]))
+
+    top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
+    if top3_missing_multi_source_examples:
+        examples.append('top3 zonder multi-source: ' + ', '.join(top3_missing_multi_source_examples[:3]))
+
+    top3_missing_primary_fresh_examples = summary_output_audit.get('top3_missing_primary_fresh_examples') or []
+    if top3_missing_primary_fresh_examples:
+        examples.append('top3 zonder primaire+verse combo: ' + ', '.join(top3_missing_primary_fresh_examples[:3]))
+
+    items_invalid_source_line_examples = summary_output_audit.get('items_invalid_source_line_examples') or []
+    if items_invalid_source_line_examples and not top3_invalid_source_line_examples:
+        rendered = ', '.join(
+            f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
+            for example in items_invalid_source_line_examples[:2]
+        )
+        if rendered:
+            examples.append('ongeldige Bron-regel: ' + rendered)
+
+    return examples[:2]
+
+
 def evaluate(status: dict, *, require_qualified_runs: int = 0) -> tuple[bool, list[str], str]:
     reasons: list[str] = []
 
@@ -207,6 +247,7 @@ def main() -> int:
         'has_run_proof': status.get('has_run_proof'),
         'attention_needed': status.get('attention_needed'),
         'status_text': status.get('text'),
+        'summary_output_examples': summarize_output_examples(status),
     }
 
     state = 'ok' if ok else 'attention'
