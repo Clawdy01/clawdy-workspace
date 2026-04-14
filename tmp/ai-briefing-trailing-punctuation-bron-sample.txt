@@ -1,0 +1,34 @@
+Titel: OpenAI verduidelijkt nieuwe agent tooling
+Bron: https://openai.com/index/new-tools-for-building-agents/. | https://platform.openai.com/docs/guides/agents
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI zet extra agent-documentatie live en koppelt die aan de Responses API.
+Waarom is dit belangrijk: Dit lijkt geldig, maar de eerste bron eindigt op een punt en is daardoor niet letterlijk de kale URL-vorm uit de briefing.
+Relevant voor Christian: Dit fouttype kan stil insluipen in modeloutput als een zinseinde direct na de URL blijft staan.
+
+Titel: Anthropic koppelt docs-update aan Claude workflows
+Bron: https://www.anthropic.com/news/claude-workflow-update | https://docs.anthropic.com/en/docs/claude-code.
+Datum: 2026-04-14
+Wat is er nieuw: Anthropic publiceert tegelijk productnieuws en documentatie over workflow-ondersteuning.
+Waarom is dit belangrijk: Ook een trailing punt op de tweede URL moet de Bron:-regel ongeldig maken.
+Relevant voor Christian: Zonder deze check kan half-geldige bronnotatie vals groen lijken.
+
+Titel: Hugging Face brengt inference-notes en release-info samen
+Bron: https://huggingface.co/blog | https://github.com/huggingface/transformers/releases
+Datum: 2026-04-14
+Wat is er nieuw: Hugging Face bundelt blog- en release-informatie rond inference tooling.
+Waarom is dit belangrijk: Dit derde item blijft volledig geldig zodat de regressie het verschil scherp houdt.
+Relevant voor Christian: Hiermee testen we dat alleen de regels met URL-leestekens afvallen.
+
+Wat moeten wij hiermee?
+Houd de output strikt letterlijk op kale URLs.
+
+Wat ik vandaag het belangrijkst vind
+Dat de briefing geen bronregels met zinsleestekens doorlaat.
+
+Bronnenlijst
+- https://openai.com/index/new-tools-for-building-agents/
+- https://platform.openai.com/docs/guides/agents
+- https://www.anthropic.com/news/claude-workflow-update
+- https://docs.anthropic.com/en/docs/claude-code
+- https://huggingface.co/blog
+- https://github.com/huggingface/transformers/releases

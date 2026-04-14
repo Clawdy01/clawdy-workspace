@@ -620,6 +620,37 @@ def extract_date_line_text(block):
     return None
 
 
+def split_source_line_tokens(line):
+    if not isinstance(line, str):
+        return []
+    body = re.sub(r'(?i)^bron:\s*', '', line).strip()
+    if not body:
+        return []
+    return [token for token in re.split(r'\s*\|\s*|\s+', body) if token]
+
+
+def extract_source_urls_from_line(line):
+    return [token for token in split_source_line_tokens(line) if re.fullmatch(r'https?://\S+', token)]
+
+
+def source_url_has_trailing_punctuation(url):
+    if not isinstance(url, str) or not url:
+        return False
+    return url[-1] in '.,;:!?)]}'
+
+
+def is_valid_source_line(line):
+    if not isinstance(line, str):
+        return False
+    stripped = line.strip()
+    if not stripped.lower().startswith('bron:'):
+        return False
+    urls = extract_source_urls_from_line(stripped)
+    if not urls:
+        return False
+    return not analyze_source_line_issues(stripped)
+
+
 def count_prefixed_lines(text, prefixes):
     counts = {prefix: 0 for prefix in prefixes}
     if not isinstance(text, str):
@@ -661,7 +692,7 @@ def analyze_source_line_issues(line):
 
     issues = []
     lower = body.lower()
-    urls = re.findall(r'https?://\S+', body)
+    urls = extract_source_urls_from_line(stripped)
     if not urls:
         issues.append('geen_url')
 
@@ -673,6 +704,8 @@ def analyze_source_line_issues(line):
         issues.append('haakjes')
     if '<' in body or '>' in body:
         issues.append('hoekhaken')
+    if any(source_url_has_trailing_punctuation(url) for url in urls):
+        issues.append('url_leesteken')
     if 'update-datum' in lower:
         issues.append('update_datum')
     if 'extra context' in lower:
@@ -682,7 +715,9 @@ def analyze_source_line_issues(line):
     if DATE_PATTERN.search(body):
         issues.append('datumtekst')
 
-    body_without_urls = re.sub(r'https?://\S+', ' ', body)
+    body_without_urls = body
+    for url in urls:
+        body_without_urls = body_without_urls.replace(url, ' ')
     body_without_urls = re.sub(r'[|,;()]', ' ', body_without_urls)
     body_without_urls = re.sub(r'\s+', ' ', body_without_urls).strip()
     if body_without_urls and re.search(r'[A-Za-zÀ-ÿ]', body_without_urls):
@@ -700,6 +735,7 @@ def format_issue_counts(counter):
         'puntkomma': 'puntkomma',
         'haakjes': 'haakjes',
         'hoekhaken': 'hoekhaken',
+        'url_leesteken': 'URL-leesteken',
         'update_datum': 'update-datum',
         'extra_context': 'extra context',
         'via_context': 'via',
@@ -919,12 +955,9 @@ def audit_summary_output(summary_text, reference_ms=None):
 
     now_ms = reference_ms or int(datetime.now(tz=timezone.utc).timestamp() * 1000)
     block_source_lines = [extract_source_line_text(block) for block in item_blocks]
-    block_source_line_urls = [re.findall(r'https?://\S+', line or '') for line in block_source_lines]
+    block_source_line_urls = [extract_source_urls_from_line(line) for line in block_source_lines]
     block_has_source_line = [bool(line) for line in block_source_lines]
-    block_valid_source_line = [
-        bool(line and urls and re.fullmatch(r'Bron:\s+https?://\S+(?:\s*(?:\||\s)\s*https?://\S+)*\s*', line))
-        for line, urls in zip(block_source_lines, block_source_line_urls)
-    ]
+    block_valid_source_line = [is_valid_source_line(line) for line in block_source_lines]
     block_date_lines = [extract_date_line_text(block) for block in item_blocks]
     block_has_date_line = [bool(line) for line in block_date_lines]
     block_date_line_values = [latest_block_date_ms(line, reference_ms=now_ms) for line in block_date_lines]
