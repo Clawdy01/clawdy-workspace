@@ -1,0 +1,34 @@
+Titel: OpenAI deelt nieuw agents example
+Bron: [OpenAI](https://openai.com/index/new-agents/) | [GitHub](https://github.com/openai/openai-agents-python)
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI toont nieuwe agentvoorbeelden.
+Waarom is dit belangrijk: Dit laat een concrete workflowroute zien.
+Relevant voor Christian: Handig als referentie voor eigen automation.
+
+Titel: Anthropic werkt Claude Code documentatie bij
+Bron: [Anthropic](https://www.anthropic.com/news) | [Docs](https://docs.anthropic.com/en/docs/claude-code)
+Datum: 2026-04-14
+Wat is er nieuw: Claude Code documentatie is uitgebreid.
+Waarom is dit belangrijk: Bruikbaar voor coding-workflows.
+Relevant voor Christian: Relevant voor agent/tooling-keuzes.
+
+Titel: Google zet nieuwe Gemini tooling live
+Bron: [Google](https://developers.googleblog.com/) | [Gemini API](https://ai.google.dev/gemini-api/docs)
+Datum: 2026-04-14
+Wat is er nieuw: Nieuwe toolingdocumentatie staat live.
+Waarom is dit belangrijk: Laat multi-source bevestiging zien.
+Relevant voor Christian: Handig voor briefing- en researchflows.
+
+Wat moeten wij hiermee?
+- Test dat markdownlinks op Bron: rood blijven.
+
+Wat ik vandaag het belangrijkst vind
+- Bronregels moeten kale URLs blijven.
+
+Bronnenlijst
+- https://openai.com/index/new-agents/
+- https://github.com/openai/openai-agents-python
+- https://www.anthropic.com/news
+- https://docs.anthropic.com/en/docs/claude-code
+- https://developers.googleblog.com/
+- https://ai.google.dev/gemini-api/docs

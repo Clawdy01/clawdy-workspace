@@ -837,16 +837,6 @@ def audit_summary_output(summary_text, reference_ms=None):
         for group in REQUIRED_OUTPUT_MARKER_ALTERNATIVES
         if not any(marker.lower() in normalized_text for marker in group)
     ]
-    source_urls = re.findall(r'https?://\S+', summary_text)
-    unique_source_urls = sorted(set(source_urls))
-    source_domains = sorted({
-        re.sub(r'^www\.', '', url.split('/')[2].lower())
-        for url in source_urls
-        if len(url.split('/')) > 2 and url.split('/')[2]
-    })
-    source_url_count = len(source_urls)
-    unique_source_url_count = len(unique_source_urls)
-    source_domain_count = len(source_domains)
     item_blocks = split_summary_item_blocks(summary_text)
     item_count = len(item_blocks)
     effective_item_marker_counts = dict(item_marker_counts)
@@ -929,14 +919,12 @@ def audit_summary_output(summary_text, reference_ms=None):
     first3_items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts[:3] if count >= 2)
     first3_items_with_valid_source_line_count = sum(1 for is_valid in block_valid_source_line[:3] if is_valid)
     first3_items_with_invalid_source_line_count = sum(1 for is_invalid in block_invalid_source_line[:3] if is_invalid)
-    first3_source_urls = [url for urls in block_source_urls[:3] for url in urls]
+    source_urls = [url for urls in block_valid_source_urls for url in urls]
+    unique_source_urls = sorted(set(source_urls))
+    source_url_count = len(source_urls)
+    unique_source_url_count = len(unique_source_urls)
+    first3_source_urls = [url for urls in block_valid_source_urls[:3] for url in urls]
     first3_unique_source_url_count = len(set(first3_source_urls))
-    first3_source_domains = sorted({
-        re.sub(r'^www\.', '', url.split('/')[2].lower())
-        for urls in block_source_urls[:3]
-        for url in urls
-        if len(url.split('/')) > 2 and url.split('/')[2]
-    })
     block_source_domains = [
         sorted({
             re.sub(r'^www\.', '', url.split('/')[2].lower())
@@ -945,6 +933,9 @@ def audit_summary_output(summary_text, reference_ms=None):
         })
         for urls in block_valid_source_urls
     ]
+    source_domains = sorted({domain for domains in block_source_domains for domain in domains})
+    source_domain_count = len(source_domains)
+    first3_source_domains = sorted({domain for domains in block_source_domains[:3] for domain in domains})
     block_has_primary_source = [
         any(
             domain == root or domain.endswith(f'.{root}')
@@ -1135,7 +1126,7 @@ def audit_summary_output(summary_text, reference_ms=None):
     if missing_alternative_groups:
         reasons.append(f"{len(missing_alternative_groups)} verplichte outputanker(s) missen")
     if source_url_count < MIN_SOURCE_URLS:
-        reasons.append(f'te weinig bron-URLs ({source_url_count})')
+        reasons.append(f'te weinig geldige bron-URLs op geldige Bron:-regels ({source_url_count})')
     if item_count and unique_source_url_count < item_count:
         reasons.append(
             f'te weinig unieke bron-URLs voor aantal items ({unique_source_url_count}/{item_count})'
@@ -1262,7 +1253,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(f'te weinig briefingcategorieën zichtbaar ({category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)})')
 
     ok_text = (
-        f'briefing-output ok ({item_count} items, {source_url_count} URLs, {unique_source_url_count} uniek, '
+        f'briefing-output ok ({item_count} items, {source_url_count} geldige bron-URLs, {unique_source_url_count} uniek, '
         f'titels {unique_item_title_count}/{item_count} uniek, items met bron {items_with_source_count}/{item_count}, '
         f'geldige Bron:-regels {items_with_valid_source_line_count}/{item_count}, '
         f'items met meerdere bron-URLs {items_with_multiple_sources_count}/{item_count}, '
