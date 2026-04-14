@@ -166,6 +166,15 @@ def render_text(data, show_preview=False):
             ai_bits.append(f"bron-URLs {summary_output_audit.get('source_url_count', 0)}")
             ai_bits.append(f"unieke bron-URLs {summary_output_audit.get('unique_source_url_count', 0)}")
             ai_bits.append(f"unieke titels {summary_output_audit.get('unique_item_title_count', 0)}/{summary_output_audit.get('item_count', 0)}")
+            duplicate_examples = summary_output_audit.get('duplicate_item_title_examples') or []
+            if duplicate_examples:
+                ai_bits.append(
+                    'dubbele titels ' + ', '.join(
+                        f"{example.get('title', 'onbekend')} x{example.get('count', 0)}"
+                        for example in duplicate_examples[:3]
+                    )
+                )
+            ai_bits.append(f"top3 brondomeinen {summary_output_audit.get('first3_source_domain_count', 0)}")
             ai_bits.append(f"items met bron {summary_output_audit.get('items_with_source_count', 0)}/{summary_output_audit.get('item_count', 0)}")
             ai_bits.append(f"top3 met bron {summary_output_audit.get('first3_items_with_source_count', 0)}/3")
             ai_bits.append(f"datums {summary_output_audit.get('dated_item_count', 0)}/{summary_output_audit.get('item_count', 0)}")

@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sys
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -111,6 +112,7 @@ DATE_PATTERN = re.compile(
 )
 MIN_CATEGORY_THEME_COVERAGE = 3
 RECENT_ITEM_MAX_AGE_DAYS = 7
+FUTURE_DATE_TOLERANCE_DAYS = 1
 MIN_RECENT_ITEMS_FOR_STRONG_SIGNAL = 2
 MIN_TOP3_EVIDENCED_ITEMS_FOR_STRONG_SIGNAL = 2
 
@@ -430,8 +432,9 @@ def extract_item_title(block):
 def normalize_title_key(title):
     if not isinstance(title, str):
         return ''
-    normalized = re.sub(r'\s+', ' ', title.strip().lower())
-    normalized = re.sub(r'[^\w\s]', '', normalized)
+    normalized = title.strip().lower()
+    normalized = re.sub(r'[^\w\s]', ' ', normalized)
+    normalized = re.sub(r'\s+', ' ', normalized)
     return normalized.strip()
 
 
@@ -513,17 +516,25 @@ def audit_summary_output(summary_text, reference_ms=None):
             'unique_item_titles': [],
             'unique_item_title_count': 0,
             'duplicate_item_title_count': 0,
+            'duplicate_item_title_examples': [],
             'items_with_source_count': 0,
             'items_without_source_count': 0,
             'first3_items_with_source_count': 0,
+            'first3_source_urls': [],
+            'first3_unique_source_url_count': 0,
+            'first3_source_domains': [],
+            'first3_source_domain_count': 0,
             'primary_source_domains': [],
             'primary_source_domain_count': 0,
             'dated_item_count': 0,
             'undated_item_count': 0,
             'recent_dated_item_count': 0,
             'recent_dated_first3_count': 0,
+            'future_dated_item_count': 0,
+            'future_dated_first3_count': 0,
             'first3_evidenced_item_count': 0,
             'recent_item_max_age_days': RECENT_ITEM_MAX_AGE_DAYS,
+            'future_date_tolerance_days': FUTURE_DATE_TOLERANCE_DAYS,
             'category_theme_hits': [],
             'category_theme_count': 0,
             'reasons': [],
@@ -572,20 +583,44 @@ def audit_summary_output(summary_text, reference_ms=None):
             continue
         seen_title_keys.add(key)
         unique_item_titles.append(title)
+    title_key_counts = Counter(key for _, key in title_entries)
+    title_key_to_example = {}
+    for title, key in title_entries:
+        title_key_to_example.setdefault(key, title)
+    duplicate_item_title_examples = [
+        {'title': title_key_to_example[key], 'count': count}
+        for key, count in title_key_counts.most_common()
+        if count > 1
+    ]
     unique_item_title_count = len(seen_title_keys)
     duplicate_item_title_count = max(0, len(title_entries) - unique_item_title_count)
-    block_source_counts = [len(re.findall(r'https?://\S+', block)) for block in item_blocks]
+    block_source_urls = [re.findall(r'https?://\S+', block) for block in item_blocks]
+    block_source_counts = [len(urls) for urls in block_source_urls]
     items_with_source_count = sum(1 for count in block_source_counts if count > 0)
     items_without_source_count = max(0, len(item_blocks) - items_with_source_count)
     first3_items_with_source_count = sum(1 for count in block_source_counts[:3] if count > 0)
+    first3_source_urls = [url for urls in block_source_urls[:3] for url in urls]
+    first3_unique_source_url_count = len(set(first3_source_urls))
+    first3_source_domains = sorted({
+        re.sub(r'^www\.', '', url.split('/')[2].lower())
+        for urls in block_source_urls[:3]
+        for url in urls
+        if len(url.split('/')) > 2 and url.split('/')[2]
+    })
+    first3_source_domain_count = len(first3_source_domains)
     dated_item_count = sum(1 for block in item_blocks if DATE_PATTERN.search(block))
     undated_item_count = max(0, len(item_blocks) - dated_item_count)
     now_ms = reference_ms or int(datetime.now(tz=timezone.utc).timestamp() * 1000)
     recent_cutoff_ms = now_ms - RECENT_ITEM_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
+    future_cutoff_ms = now_ms + FUTURE_DATE_TOLERANCE_DAYS * 24 * 60 * 60 * 1000
     block_date_values = [latest_block_date_ms(block, reference_ms=now_ms) for block in item_blocks]
     recent_dated_item_count = sum(1 for value in block_date_values if value is not None and value >= recent_cutoff_ms)
     recent_dated_first3_count = sum(
         1 for value in block_date_values[:3] if value is not None and value >= recent_cutoff_ms
+    )
+    future_dated_item_count = sum(1 for value in block_date_values if value is not None and value > future_cutoff_ms)
+    future_dated_first3_count = sum(
+        1 for value in block_date_values[:3] if value is not None and value > future_cutoff_ms
     )
     first3_evidenced_item_count = sum(
         1
@@ -615,9 +650,14 @@ def audit_summary_output(summary_text, reference_ms=None):
             f'te weinig unieke bron-URLs voor aantal items ({unique_source_url_count}/{item_count})'
         )
     if item_count and unique_item_title_count < item_count:
-        reasons.append(
-            f'niet alle itemtitels zijn uniek ({unique_item_title_count}/{item_count})'
+        duplicate_examples_text = ', '.join(
+            f"{example['title']} x{example['count']}"
+            for example in duplicate_item_title_examples[:3]
         )
+        reason = f'niet alle itemtitels zijn uniek ({unique_item_title_count}/{item_count})'
+        if duplicate_examples_text:
+            reason += f': {duplicate_examples_text}'
+        reasons.append(reason)
     if item_count and items_with_source_count < item_count:
         reasons.append(
             f'niet elk item heeft een zichtbare bron-URL ({items_with_source_count}/{item_count})'
@@ -626,8 +666,14 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(
             f'niet elk top-3 item heeft een zichtbare bron-URL ({first3_items_with_source_count}/3)'
         )
+    if item_count >= 3 and first3_unique_source_url_count < 3:
+        reasons.append(
+            f'top-3 items hergebruiken bron-URLs ({first3_unique_source_url_count}/3 uniek)'
+        )
     if source_url_count and source_domain_count < 2:
         reasons.append(f'te weinig unieke brondomeinen ({source_domain_count})')
+    if item_count >= 3 and first3_source_domain_count < 2:
+        reasons.append(f'te weinig unieke brondomeinen in top 3 ({first3_source_domain_count})')
     if source_url_count and primary_source_domain_count < 1:
         reasons.append('geen herkenbare primaire bron tussen URLs')
     if item_count >= 3 and dated_item_count < MIN_DATED_ITEMS_FOR_STRONG_SIGNAL:
@@ -642,15 +688,20 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(
             f'te weinig top-3 items met zowel bron als recente datum ({first3_evidenced_item_count}/3)'
         )
+    if future_dated_item_count:
+        reasons.append(
+            f'verdachte toekomstige datums in briefing ({future_dated_item_count} item(s), tolerantie {FUTURE_DATE_TOLERANCE_DAYS} dag)'
+        )
     if category_theme_count < MIN_CATEGORY_THEME_COVERAGE:
         reasons.append(f'te weinig briefingcategorieën zichtbaar ({category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)})')
 
     ok_text = (
         f'briefing-output ok ({item_count} items, {source_url_count} URLs, {unique_source_url_count} uniek, '
         f'titels {unique_item_title_count}/{item_count} uniek, items met bron {items_with_source_count}/{item_count}, '
-        f'{source_domain_count} domeinen, {primary_source_domain_count} primaire bron-domeinen, '
+        f'top3 bron-URLs {first3_unique_source_url_count}/3 uniek, '
+        f'{source_domain_count} domeinen, top3 {first3_source_domain_count} domeinen, {primary_source_domain_count} primaire bron-domeinen, '
         f'datums {dated_item_count}/{item_count}, recent top3 {recent_dated_first3_count}/3, '
-        f'top3 met bron+recente datum {first3_evidenced_item_count}/3, '
+        f'toekomstige datums {future_dated_item_count}, top3 met bron+recente datum {first3_evidenced_item_count}/3, '
         f"{category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)} categorie-thema's zichtbaar, "
         f"complete structuur {item_marker_min_count}x)"
     )
@@ -672,17 +723,25 @@ def audit_summary_output(summary_text, reference_ms=None):
         'unique_item_titles': unique_item_titles,
         'unique_item_title_count': unique_item_title_count,
         'duplicate_item_title_count': duplicate_item_title_count,
+        'duplicate_item_title_examples': duplicate_item_title_examples,
         'items_with_source_count': items_with_source_count,
         'items_without_source_count': items_without_source_count,
         'first3_items_with_source_count': first3_items_with_source_count,
+        'first3_source_urls': first3_source_urls,
+        'first3_unique_source_url_count': first3_unique_source_url_count,
+        'first3_source_domains': first3_source_domains,
+        'first3_source_domain_count': first3_source_domain_count,
         'primary_source_domains': primary_source_domains,
         'primary_source_domain_count': primary_source_domain_count,
         'dated_item_count': dated_item_count,
         'undated_item_count': undated_item_count,
         'recent_dated_item_count': recent_dated_item_count,
         'recent_dated_first3_count': recent_dated_first3_count,
+        'future_dated_item_count': future_dated_item_count,
+        'future_dated_first3_count': future_dated_first3_count,
         'first3_evidenced_item_count': first3_evidenced_item_count,
         'recent_item_max_age_days': RECENT_ITEM_MAX_AGE_DAYS,
+        'future_date_tolerance_days': FUTURE_DATE_TOLERANCE_DAYS,
         'category_theme_hits': category_theme_hits,
         'category_theme_count': category_theme_count,
         'reasons': reasons,
@@ -1193,12 +1252,24 @@ def render_summary_audit_text(data):
         parts.append(f"unieke bron-URLs {data['unique_source_url_count']}")
     if data.get('source_domain_count') is not None:
         parts.append(f"brondomeinen {data['source_domain_count']}")
+    if data.get('first3_source_domain_count') is not None:
+        parts.append(f"top3 brondomeinen {data['first3_source_domain_count']}")
     if data.get('unique_item_title_count') is not None and data.get('item_count') is not None:
         parts.append(f"unieke titels {data['unique_item_title_count']}/{data['item_count']}")
+    duplicate_examples = data.get('duplicate_item_title_examples') or []
+    if duplicate_examples:
+        parts.append(
+            'dubbele titels ' + ', '.join(
+                f"{example.get('title', 'onbekend')} x{example.get('count', 0)}"
+                for example in duplicate_examples[:3]
+            )
+        )
     if data.get('items_with_source_count') is not None and data.get('item_count') is not None:
         parts.append(f"items met bron {data['items_with_source_count']}/{data['item_count']}")
     if data.get('first3_items_with_source_count') is not None:
         parts.append(f"top3 met bron {data['first3_items_with_source_count']}/3")
+    if data.get('first3_unique_source_url_count') is not None:
+        parts.append(f"top3 unieke bron-URLs {data['first3_unique_source_url_count']}/3")
     if data.get('primary_source_domain_count') is not None:
         parts.append(f"primaire brondomeinen {data['primary_source_domain_count']}")
     if data.get('dated_item_count') is not None and data.get('item_count') is not None:
@@ -1207,6 +1278,8 @@ def render_summary_audit_text(data):
         parts.append(
             f"recent top3 {data['recent_dated_first3_count']}/3 ({data.get('recent_item_max_age_days', RECENT_ITEM_MAX_AGE_DAYS)}d)"
         )
+    if data.get('future_dated_item_count') is not None:
+        parts.append(f"toekomstige datums {data['future_dated_item_count']}")
     if data.get('first3_evidenced_item_count') is not None:
         parts.append(f"top3 met bron+recente datum {data['first3_evidenced_item_count']}/3")
     if data.get('category_theme_count') is not None:
@@ -1295,12 +1368,26 @@ def render_text(data):
             parts.append(f"unieke bron-URLs {summary_output_audit['unique_source_url_count']}")
         if summary_output_audit.get('unique_item_title_count') is not None and summary_output_audit.get('item_count') is not None:
             parts.append(f"unieke titels {summary_output_audit['unique_item_title_count']}/{summary_output_audit['item_count']}")
+        duplicate_examples = summary_output_audit.get('duplicate_item_title_examples') or []
+        if duplicate_examples:
+            parts.append(
+                'dubbele titels ' + ', '.join(
+                    f"{example.get('title', 'onbekend')} x{example.get('count', 0)}"
+                    for example in duplicate_examples[:3]
+                )
+            )
+        if summary_output_audit.get('first3_source_domain_count') is not None:
+            parts.append(f"top3 brondomeinen {summary_output_audit['first3_source_domain_count']}")
+        if summary_output_audit.get('first3_unique_source_url_count') is not None:
+            parts.append(f"top3 unieke bron-URLs {summary_output_audit['first3_unique_source_url_count']}/3")
         if summary_output_audit.get('dated_item_count') is not None and summary_output_audit.get('item_count') is not None:
             parts.append(f"datums {summary_output_audit['dated_item_count']}/{summary_output_audit['item_count']}")
         if summary_output_audit.get('recent_dated_first3_count') is not None:
             parts.append(
                 f"recent top3 {summary_output_audit['recent_dated_first3_count']}/3 ({summary_output_audit.get('recent_item_max_age_days', RECENT_ITEM_MAX_AGE_DAYS)}d)"
             )
+        if summary_output_audit.get('future_dated_item_count') is not None:
+            parts.append(f"toekomstige datums {summary_output_audit['future_dated_item_count']}")
         if summary_output_audit.get('first3_evidenced_item_count') is not None:
             parts.append(f"top3 met bron+recente datum {summary_output_audit['first3_evidenced_item_count']}/3")
         if summary_output_audit.get('category_theme_count') is not None:

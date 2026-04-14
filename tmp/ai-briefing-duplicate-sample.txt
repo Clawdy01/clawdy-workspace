@@ -1,0 +1,22 @@
+Titel: OpenAI brengt GPT-update uit
+Wat is er nieuw: Nieuwe release met extra tools. Bron: https://openai.com/blog/gpt-update Datum: 2026-04-13
+Waarom is dit belangrijk: Relevante frontier-update.
+
+Titel: OpenAI brengt GPT update uit
+Wat is er nieuw: Tweede bron over dezelfde release. Bron: https://news.microsoft.com/openai-gpt-update Datum: 2026-04-13
+Waarom is dit belangrijk: Laat distributie-impact zien.
+
+Titel: Nieuwe agentworkflow in GitHub
+Wat is er nieuw: GitHub publiceert nieuwe automation. Bron: https://github.blog/changelog/agent-workflow Datum: 2026-04-12
+Waarom is dit belangrijk: Praktische workflowwinst.
+
+Wat moeten wij hiermee?
+Test duplicate-title audit.
+
+Wat ik vandaag het belangrijkst vind
+Controleer dat dubbele items zichtbaar worden.
+
+Bronnenlijst met URLs:
+- https://openai.com/blog/gpt-update
+- https://news.microsoft.com/openai-gpt-update
+- https://github.blog/changelog/agent-workflow

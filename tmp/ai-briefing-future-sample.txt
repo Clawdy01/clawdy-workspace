@@ -1,0 +1,22 @@
+Titel: Toekomstig item
+Wat is er nieuw: Bronupdate 2026-04-20.
+Waarom is dit belangrijk: Test.
+
+Titel: Tweede item
+Wat is er nieuw: Update 2026-04-14.
+Waarom is dit belangrijk: Test.
+
+Titel: Derde item
+Wat is er nieuw: Update 2026-04-14.
+Waarom is dit belangrijk: Test.
+
+Wat moeten wij hiermee?
+Test.
+
+Wat ik vandaag het belangrijkst vind
+Test.
+
+Bronnenlijst met URLs:
+https://openai.com/a
+https://github.com/b
+https://huggingface.co/c

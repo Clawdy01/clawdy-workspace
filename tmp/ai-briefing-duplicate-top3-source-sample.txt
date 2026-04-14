@@ -1,0 +1,27 @@
+Titel: OpenAI brengt iets nieuws
+Wat is er nieuw: Eerste item over een modelupdate.
+Waarom is dit belangrijk: Dit kan workflows veranderen.
+Bron: https://openai.com/index/example
+Datum: 2026-04-14
+
+Titel: Zelfde aankondiging via tweede invalshoek
+Wat is er nieuw: Tweede item blijkt hetzelfde nieuws te herhalen.
+Waarom is dit belangrijk: Dit hoort eigenlijk gebundeld te worden.
+Bron: https://openai.com/index/example
+Datum: 2026-04-14
+
+Titel: Derde item met eigen bron
+Wat is er nieuw: Ander nieuws uit de toolinghoek.
+Waarom is dit belangrijk: Praktisch voor gebruik.
+Bron: https://github.com/example/project
+Datum: 2026-04-14
+
+Wat moeten wij hiermee?
+Kort opvolgen.
+
+Wat ik vandaag het belangrijkst vind
+Deduplicatie.
+
+Bronnenlijst met URLs
+- https://openai.com/index/example
+- https://github.com/example/project
