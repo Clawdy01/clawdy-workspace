@@ -697,6 +697,10 @@ def analyze_source_line_issues(line):
     if not urls:
         issues.append('geen_url')
 
+    if '|' in body:
+        pipe_parts = [part.strip() for part in body.split('|')]
+        if any(not part for part in pipe_parts):
+            issues.append('lege_separator')
     if ',' in body:
         issues.append('komma')
     if ';' in body:
@@ -705,6 +709,8 @@ def analyze_source_line_issues(line):
         issues.append('haakjes')
     if '<' in body or '>' in body:
         issues.append('hoekhaken')
+    if '[' in body or ']' in body:
+        issues.append('vierkante_haken')
     if any(char in body for char in ('"', "'", '“', '”', '‘', '’')):
         issues.append('aanhalingstekens')
     if '`' in body:
@@ -736,10 +742,12 @@ def format_issue_counts(counter):
         return None
     labels = {
         'geen_url': 'geen URL',
+        'lege_separator': 'lege separator',
         'komma': 'komma',
         'puntkomma': 'puntkomma',
         'haakjes': 'haakjes',
         'hoekhaken': 'hoekhaken',
+        'vierkante_haken': 'vierkante haken',
         'aanhalingstekens': 'aanhalingstekens',
         'backticks': 'backticks',
         'url_leesteken': 'URL-leesteken',

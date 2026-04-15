@@ -1,0 +1,33 @@
+Titel: OpenAI verbreedt agentdocumentatie
+Bron: https://openai.com/index/new-tools-for-building-agents/ |
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI publiceert extra agentdocumentatie, maar de bronregel eindigt met een losse separator.
+Waarom is dit belangrijk: Een trailing pipe kan stil door glippen als alleen op zichtbare URLs wordt gevalideerd.
+Relevant voor Christian: Dit moet rood blijven zodat de briefing geen half-afgemaakte bronlijsten publiceert.
+
+Titel: Anthropic koppelt docs en productupdate aan elkaar
+Bron: | https://www.anthropic.com/news/claude-workflow-update | https://docs.anthropic.com/en/docs/claude-code
+Datum: 2026-04-14
+Wat is er nieuw: Anthropic heeft twee echte bronnen, maar de regel begint met een lege pipe-sectie.
+Waarom is dit belangrijk: Ook een leading pipe hoort de Bron:-regel ongeldig te maken.
+Relevant voor Christian: Zo voorkomen we dat slordige separator-opmaak vals groen lijkt.
+
+Titel: Hugging Face bundelt release-notes en docs
+Bron: https://huggingface.co/blog || https://github.com/huggingface/transformers/releases
+Datum: 2026-04-14
+Wat is er nieuw: Hugging Face combineert blog en release-info, maar gebruikt per ongeluk een dubbele pipe.
+Waarom is dit belangrijk: Een lege middensectie tussen twee URLs moet hetzelfde fouttype blijven triggeren.
+Relevant voor Christian: Dit vangt een subtiel formatteringslek af voordat de ochtendbriefing telt als bewijs.
+
+Wat moeten wij hiermee?
+Houd Bron:-regels strak en zonder lege pipe-secties.
+
+Wat ik vandaag het belangrijkst vind
+Dat losse of dubbele separators niet als geldige bronregels worden geaccepteerd.
+
+Bronnenlijst met URLs
+- https://openai.com/index/new-tools-for-building-agents/
+- https://www.anthropic.com/news/claude-workflow-update
+- https://docs.anthropic.com/en/docs/claude-code
+- https://huggingface.co/blog
+- https://github.com/huggingface/transformers/releases
