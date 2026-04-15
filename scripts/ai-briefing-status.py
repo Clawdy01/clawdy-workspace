@@ -1853,7 +1853,7 @@ def run_is_proof_qualified(run, delivery_mode):
 
 def audit_proof_freshness(updated_at, finished_runs, successful_runs, delivered_runs, first_run_pending, tz_name):
     latest_finished_at = ((finished_runs or [])[-1] or {}).get('runAtMs') if finished_runs else None
-    latest_success_at = ((successful_runs or [])[-1] or {}).get('runAtMs') if successful_runs else None
+    latest_success_at = ((successful_runs or [])[-1] or {}).get('runAtMs') if finished_runs else None
     latest_delivered_at = ((delivered_runs or [])[-1] or {}).get('runAtMs') if delivered_runs else None
 
     stale_finished = bool(updated_at and latest_finished_at and updated_at > latest_finished_at)
@@ -1896,6 +1896,22 @@ def audit_proof_freshness(updated_at, finished_runs, successful_runs, delivered_
         'reasons': reasons,
         'text': text,
     }
+
+
+def is_expected_proof_freshness_wait(proof_freshness, updated_at, next_run_at, now_ms):
+    if not isinstance(proof_freshness, dict) or proof_freshness.get('ok', False):
+        return False
+    if not proof_freshness.get('has_run_proof'):
+        return False
+    if not proof_freshness.get('stale_finished'):
+        return False
+    if not updated_at or not proof_freshness.get('latest_finished_at'):
+        return False
+    if updated_at <= (proof_freshness.get('latest_finished_at') or 0):
+        return False
+    if not next_run_at or next_run_at <= now_ms:
+        return False
+    return True
 
 
 def audit_payload(job):
@@ -2121,9 +2137,16 @@ def build_status(job_name=TARGET_JOB_NAME):
         attention_reasons.append(f"storage: {storage_audit.get('text')}")
     if not runlog_audit.get('ok'):
         attention_reasons.append(f"runlog: {runlog_audit.get('text')}")
+    expected_proof_freshness_wait = is_expected_proof_freshness_wait(
+        proof_freshness,
+        updated_at=updated_at,
+        next_run_at=next_run_at,
+        now_ms=now_ms,
+    )
+
     if not uniqueness_audit.get('ok'):
         attention_reasons.append(f"uniqueness: {uniqueness_audit.get('text')}")
-    if finished_runs and not proof_freshness.get('ok'):
+    if finished_runs and not proof_freshness.get('ok') and not expected_proof_freshness_wait:
         attention_reasons.append(f"proof freshness: {proof_freshness.get('text')}")
     last_run_output_audit = (last_run_summary or {}).get('summary_output_audit') or {}
     if last_run_output_audit.get('available') and not last_run_output_audit.get('ok'):
@@ -2149,6 +2172,7 @@ def build_status(job_name=TARGET_JOB_NAME):
         'runlog_audit': runlog_audit,
         'uniqueness_audit': uniqueness_audit,
         'proof_freshness': proof_freshness,
+        'expected_proof_freshness_wait': expected_proof_freshness_wait,
         'state': state,
         'created_at': created_at,
         'created_at_text': fmt_ts(created_at, tz_name),
@@ -2273,6 +2297,9 @@ def build_status(job_name=TARGET_JOB_NAME):
             readiness_text = proof_progress_text
     elif finished_runs:
         readiness_text = f'{proof_progress_text}; runbewijs met aandachtspunt'
+
+    if expected_proof_freshness_wait and readiness_phase == 'proving':
+        readiness_text = f'{proof_progress_text}; wacht op eerstvolgende kwalificatierun'
 
     if summary['proof_target_met']:
         proof_plan_text = f"bewijspad afgerond, {len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs binnen"

@@ -1,0 +1,20 @@
+Titel: OpenAI deelt nieuwe Responses API-notities
+Bron: https://openai.com/index/new-tools-for-building-agents/ ; https://platform.openai.com/docs/guides/tools
+Datum: 2026-04-15
+Wat is er nieuw: Voorbeeld.
+Waarom is dit belangrijk: Voorbeeld.
+Relevant voor Christian: Voorbeeld.
+
+Titel: Anthropic werkt Claude Code documentatie bij
+Bron: https://www.anthropic.com/news ; https://docs.anthropic.com/en/docs/claude-code
+Datum: 2026-04-15
+Wat is er nieuw: Voorbeeld.
+Waarom is dit belangrijk: Voorbeeld.
+Relevant voor Christian: Voorbeeld.
+
+Titel: Google AI Studio zet nieuwe Gemini tooling breder neer
+Bron: https://ai.google.dev/gemini-api/docs ; https://developers.googleblog.com/en/gemini-api-updates
+Datum: 2026-04-15
+Wat is er nieuw: Voorbeeld.
+Waarom is dit belangrijk: Voorbeeld.
+Relevant voor Christian: Voorbeeld.
