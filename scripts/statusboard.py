@@ -213,6 +213,12 @@ def render_text(data, show_preview=False):
             top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
             if top3_missing_multi_source_examples:
                 ai_bits.append('top3 zonder multi-source ' + ', '.join(top3_missing_multi_source_examples[:3]))
+            top3_missing_multi_domain_source_examples = summary_output_audit.get('top3_missing_multi_domain_source_examples') or []
+            if top3_missing_multi_domain_source_examples:
+                ai_bits.append(
+                    'top3 zonder multi-domein bronregel '
+                    + ', '.join(top3_missing_multi_domain_source_examples[:3])
+                )
             top3_missing_recent_date_examples = summary_output_audit.get('top3_missing_recent_date_examples') or []
             if top3_missing_recent_date_examples:
                 ai_bits.append('top3 zonder recente datum ' + ', '.join(top3_missing_recent_date_examples[:3]))
@@ -232,6 +238,9 @@ def render_text(data, show_preview=False):
                 f"top3 geldige Bron-regels {summary_output_audit.get('first3_items_with_valid_source_line_count', 0)}/3"
             )
             ai_bits.append(f"top3 met meerdere bron-URLs {summary_output_audit.get('first3_items_with_multiple_sources_count', 0)}/3")
+            ai_bits.append(
+                f"top3 met multi-domein bronregels {summary_output_audit.get('first3_items_with_multi_domain_sources_count', 0)}/3"
+            )
             ai_bits.append(f"top3 met primaire bron {summary_output_audit.get('first3_items_with_primary_source_count', 0)}/3")
             ai_bits.append(f"datums {summary_output_audit.get('dated_item_count', 0)}/{summary_output_audit.get('item_count', 0)}")
             ai_bits.append(f"vers top3 {summary_output_audit.get('fresh_dated_first3_count', 0)}/3")

@@ -8,6 +8,7 @@ import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 ROOT = Path('/home/clawdy/.openclaw')
@@ -844,6 +845,42 @@ def latest_block_date_ms(block, reference_ms=None):
     return max(parsed) if parsed else None
 
 
+TRACKING_QUERY_PARAM_PREFIXES = ('utm_',)
+TRACKING_QUERY_PARAMS = {
+    'fbclid',
+    'gclid',
+    'mc_cid',
+    'mc_eid',
+    'mkt_tok',
+    'ref_src',
+    's_cid',
+}
+
+
+def canonicalize_source_url(url):
+    if not isinstance(url, str):
+        return None
+    raw = url.strip()
+    if not raw:
+        return None
+    try:
+        parts = urlsplit(raw)
+    except ValueError:
+        return raw
+    if not parts.scheme or not parts.netloc:
+        return raw
+    filtered_query = [
+        (key, value)
+        for key, value in parse_qsl(parts.query, keep_blank_values=True)
+        if key.lower() not in TRACKING_QUERY_PARAMS and not key.lower().startswith(TRACKING_QUERY_PARAM_PREFIXES)
+    ]
+    normalized_netloc = parts.netloc.lower()
+    normalized_path = parts.path or '/'
+    normalized_query = urlencode(filtered_query, doseq=True)
+    return urlunsplit((parts.scheme.lower(), normalized_netloc, normalized_path, normalized_query, ''))
+
+
+
 def primary_source_family(domain):
     if not isinstance(domain, str) or not domain:
         return None
@@ -1027,18 +1064,22 @@ def audit_summary_output(summary_text, reference_ms=None):
         urls if is_valid else []
         for urls, is_valid in zip(block_source_line_urls, block_valid_source_line)
     ]
+    block_canonical_valid_source_urls = [
+        [canonicalize_source_url(url) or url for url in urls]
+        for urls in block_valid_source_urls
+    ]
     block_source_domains = [
         sorted({
             re.sub(r'^www\.', '', url.split('/')[2].lower())
             for url in urls
             if len(url.split('/')) > 2 and url.split('/')[2]
         })
-        for urls in block_valid_source_urls
+        for urls in block_canonical_valid_source_urls
     ]
     block_unique_source_domain_counts = [len(domains) for domains in block_source_domains]
     block_source_counts = [len(urls) for urls in block_source_urls]
     block_valid_source_url_counts = [len(urls) for urls in block_valid_source_urls]
-    block_unique_source_url_counts = [len(set(urls)) for urls in block_valid_source_urls]
+    block_unique_source_url_counts = [len(set(urls)) for urls in block_canonical_valid_source_urls]
     items_with_source_count = sum(1 for count in block_source_counts if count > 0)
     items_without_source_count = max(0, len(item_blocks) - items_with_source_count)
     items_with_multiple_sources_count = sum(1 for count in block_unique_source_url_counts if count >= 2)
@@ -1054,11 +1095,13 @@ def audit_summary_output(summary_text, reference_ms=None):
     first3_items_with_valid_source_line_count = sum(1 for is_valid in block_valid_source_line[:3] if is_valid)
     first3_items_with_invalid_source_line_count = sum(1 for is_invalid in block_invalid_source_line[:3] if is_invalid)
     source_urls = [url for urls in block_valid_source_urls for url in urls]
-    unique_source_urls = sorted(set(source_urls))
+    canonical_source_urls = [url for urls in block_canonical_valid_source_urls for url in urls]
+    unique_source_urls = sorted(set(canonical_source_urls))
     source_url_count = len(source_urls)
     unique_source_url_count = len(unique_source_urls)
     first3_source_urls = [url for urls in block_valid_source_urls[:3] for url in urls]
-    first3_unique_source_url_count = len(set(first3_source_urls))
+    first3_canonical_source_urls = [url for urls in block_canonical_valid_source_urls[:3] for url in urls]
+    first3_unique_source_url_count = len(set(first3_canonical_source_urls))
     source_domains = sorted({domain for domains in block_source_domains for domain in domains})
     source_domain_count = len(source_domains)
     first3_source_domains = sorted({domain for domains in block_source_domains[:3] for domain in domains})

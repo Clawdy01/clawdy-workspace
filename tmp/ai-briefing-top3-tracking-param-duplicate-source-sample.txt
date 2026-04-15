@@ -1,0 +1,33 @@
+Titel: OpenAI verduidelijkt Responses API voor toolgebruik
+Bron: https://openai.com/index/new-tools https://platform.openai.com/docs/guides/tools
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI verduidelijkt hoe Responses API-toolgebruik en agentpatronen nu in docs samenkomen.
+Waarom is dit belangrijk: Dit is concreet product- en documentatiesignaal voor agentworkflows.
+Relevant voor Christian: Bruikbaar als referentie voor eigen tool-calling UX en docs in OpenClaw.
+
+Titel: Anthropic bundelt prompt caching en docs-updates
+Bron: https://www.anthropic.com/news/prompt-caching?utm_source=newsletter https://www.anthropic.com/news/prompt-caching?utm_medium=email#launch
+Datum: 2026-04-14
+Wat is er nieuw: Anthropic verwijst hier twee keer naar dezelfde bron, maar met tracking-parameters en fragment zodat het op het oog multi-source lijkt.
+Waarom is dit belangrijk: Dit test dat de audit tracking-varianten van dezelfde URL niet als echte broncorroboratie accepteert.
+Relevant voor Christian: Handig om vast te pinnen dat topitems niet kunstmatig sterk lijken door marketing-querystrings.
+
+Titel: Hugging Face toont nieuwe open modeltooling
+Bron: https://huggingface.co/blog https://github.com/huggingface/transformers/releases
+Datum: 2026-04-14
+Wat is er nieuw: Hugging Face laat nieuwe tooling- en releasebewegingen zien rond open modellen.
+Waarom is dit belangrijk: Dit geeft een bruikbaar open-source signaal naast closed-model updates.
+Relevant voor Christian: Relevant voor lokale modelroutes en researchworkflow-keuzes.
+
+Wat moeten wij hiermee?
+Gebruik dit sample om vast te pinnen dat tracking- of fragmentvarianten van dezelfde bron-URL niet tellen als echte broncorroboratie.
+
+Wat ik vandaag het belangrijkst vind
+Top-3 bewijs moet unieke canonieke bron-URLs per item blijven eisen.
+
+Bronnenlijst met URLs
+https://openai.com/index/new-tools
+https://platform.openai.com/docs/guides/tools
+https://www.anthropic.com/news/prompt-caching
+https://huggingface.co/blog
+https://github.com/huggingface/transformers/releases
