@@ -214,16 +214,27 @@ ALIASES = {
     '/mail-drafts': 'mail-drafts',
     '/mail-triage': 'mail-triage',
     '/mail-now': 'mail-now',
+    '/mail-current': 'mail-now',
     '/mail-focus': 'mail-focus',
     '/mail-next-step': 'mail-next-step',
+    '/mail-next': 'mail-next-step',
     '/mail-queue': 'mail-queue',
+    '/mail-worklist': 'mail-queue',
     '/mail-security-alerts': 'mail-security-alerts',
+    '/mail-security': 'mail-security-alerts',
+    '/mail-alerts': 'mail-security-alerts',
     '/mail-review-next': 'mail-review-next',
+    '/mail-review': 'mail-review-next',
+    '/mail-open': 'mail-review-next',
     '/mail-thread': 'mail-thread',
     '/mail-clusters': 'mail-clusters',
     '/mail-reply-needed': 'mail-reply-needed',
     '/mail-high-priority': 'mail-high-priority',
     '/mail-codes': 'mail-codes',
+    '/mail-code': 'mail-codes',
+    '/mail-verify': 'mail-codes',
+    '/mail-otp': 'mail-codes',
+    '/mail-auth-code': 'mail-codes',
     '/mail-catalog': 'mail-catalog',
     '/board': 'board',
     '/brief': 'brief',
@@ -272,6 +283,11 @@ def normalize_command(value):
 
 
 def help_payload():
+    alias_entries = sorted(
+        (alias, target)
+        for alias, target in ALIASES.items()
+        if alias.startswith('/') and alias != f'/{target}'
+    )
     return {
         'commands': [
             {
@@ -280,7 +296,14 @@ def help_payload():
                 'description': meta['description'],
             }
             for name, meta in sorted(COMMANDS.items())
-        ]
+        ],
+        'aliases': [
+            {
+                'slash': alias,
+                'target': f'/{target}',
+            }
+            for alias, target in alias_entries
+        ],
     }
 
 
@@ -294,6 +317,10 @@ def render_help():
     ]
     for item in payload['commands']:
         lines.append(f"  - {item['slash']}: {item['description']}")
+    if payload['aliases']:
+        lines.append('- handige aliassen:')
+        for item in payload['aliases']:
+            lines.append(f"  - {item['slash']} -> {item['target']}")
     return '\n'.join(lines)
 
 
