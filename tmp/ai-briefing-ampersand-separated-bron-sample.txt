@@ -1,0 +1,34 @@
+Titel: OpenAI verduidelijkt Responses API voor toolgebruik
+Bron: https://openai.com/index/new-tools-for-building-agents/ & https://platform.openai.com/docs/guides/tools
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI laat opnieuw zien hoe Responses API en tools samenkomen, maar de bronregel gebruikt expres een ampersand als scheiding.
+Waarom is dit belangrijk: Dit borgt dat een bijna-goede separator niet stil als geldige multi-source bronregel meetelt.
+Relevant voor Christian: Houdt de briefing strikt op exact toegestane URL-separators.
+
+Titel: Anthropic werkt Claude Code documentatie bij
+Bron: https://www.anthropic.com/news/claude-code & https://docs.anthropic.com/en/docs/claude-code
+Datum: 2026-04-14
+Wat is er nieuw: Anthropic documenteert Claude Code breder, maar ook hier staat bewust een ongeldige ampersand-separator.
+Waarom is dit belangrijk: Zonder deze check zou fout geformatteerde corroboratie te makkelijk groen kunnen worden.
+Relevant voor Christian: Verkleint het risico dat bronregels langzaam terugvallen naar vrije tekst-achtige separators.
+
+Titel: Google zet Gemini API tooling breder neer
+Bron: https://ai.google.dev/gemini-api/docs & https://developers.googleblog.com/en/gemini-api-updates/
+Datum: 2026-04-14
+Wat is er nieuw: Google toont meerdere relevante bronnen, maar de separator blijft expres ongeldig voor dit regressiesample.
+Waarom is dit belangrijk: Dit dwingt de audit om alleen exacte separators te accepteren.
+Relevant voor Christian: Goed vangnet tegen promptdrift en formatteringsruis in cronoutput.
+
+Wat moeten wij hiermee?
+Gebruik dit sample om vast te pinnen dat ampersands in Bron:-regels niet als geldige separator tellen.
+
+Wat ik vandaag het belangrijkst vind
+Top-3 broncorroboratie moet strikt blijven en mag niet uitbreiden naar informele separators.
+
+Bronnenlijst met URLs
+https://openai.com/index/new-tools-for-building-agents/
+https://platform.openai.com/docs/guides/tools
+https://www.anthropic.com/news/claude-code
+https://docs.anthropic.com/en/docs/claude-code
+https://ai.google.dev/gemini-api/docs
+https://developers.googleblog.com/en/gemini-api-updates/

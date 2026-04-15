@@ -735,6 +735,8 @@ def analyze_source_line_issues(line):
         body_without_urls_for_separator = body_without_urls_for_separator.replace(url, ' ')
     if re.search(r'(^|\s)/(\s|$)', body_without_urls_for_separator):
         issues.append('slash_separator')
+    if re.search(r'(^|\s)&(\s|$)', body_without_urls_for_separator):
+        issues.append('ampersand_separator')
     if re.search(r'[•·●◦▪▫‣∙]', body_without_urls_for_separator):
         issues.append('bullet_separator')
     if re.search(r'[｜¦‖∣]', body_without_urls_for_separator):
@@ -780,6 +782,7 @@ def format_issue_counts(counter):
         'geen_url': 'geen URL',
         'lege_separator': 'lege separator',
         'slash_separator': 'slash-separator',
+        'ampersand_separator': 'ampersand-separator',
         'bullet_separator': 'bullet-separator',
         'pipe_variant': 'pipe-variant',
         'komma': 'komma',

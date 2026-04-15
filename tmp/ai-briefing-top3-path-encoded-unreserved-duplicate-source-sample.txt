@@ -1,0 +1,20 @@
+Titel: OpenAI publiceert Responses API update
+Bron: https://openai.com/index/responses-api-update | https://openai.com/index/responses%2Dapi%2Dupdate
+Datum: 2026-04-15
+Wat is er nieuw: Voorbeeld.
+Waarom is dit belangrijk: Voorbeeld.
+Relevant voor Christian: Voorbeeld.
+
+Titel: Anthropic werkt Claude Code documentatie bij
+Bron: https://www.anthropic.com/news/claude-code | https://docs.anthropic.com/en/docs/claude-code
+Datum: 2026-04-15
+Wat is er nieuw: Voorbeeld.
+Waarom is dit belangrijk: Voorbeeld.
+Relevant voor Christian: Voorbeeld.
+
+Titel: Google publiceert Gemini API voorbeelden
+Bron: https://developers.googleblog.com/en/gemini-api-updates | https://ai.google.dev/gemini-api/docs
+Datum: 2026-04-15
+Wat is er nieuw: Voorbeeld.
+Waarom is dit belangrijk: Voorbeeld.
+Relevant voor Christian: Voorbeeld.
