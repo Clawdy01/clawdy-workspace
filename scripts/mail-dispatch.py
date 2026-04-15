@@ -65,6 +65,18 @@ ROUTES = {
         'examples': ['mail-dispatch.py focus', 'mail-dispatch.py focus --draft', 'mail-dispatch.py focus --current-only', 'mail-dispatch.py focus --review-worthy', 'mail-dispatch.py focus --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-focus.py')] + args + (['--json'] if json_mode else []),
     },
+    'focus-now': {
+        'description': 'Kies direct de beste actuele mail-focus zonder stale fallback',
+        'args': ['-n/--limit?', '--preview?', '--draft?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py focus-now', 'mail-dispatch.py focus-now --draft', 'mail-dispatch.py focus-now --json'],
+        'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-focus.py')] + with_defaults(args, '--current-only') + (['--json'] if json_mode else []),
+    },
+    'focus-review': {
+        'description': 'Kies direct de beste reviewwaardige mail-focus zonder code-only of ruisfallback',
+        'args': ['-n/--limit?', '--preview?', '--draft?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py focus-review', 'mail-dispatch.py focus-review --draft', 'mail-dispatch.py focus-review --json'],
+        'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-focus.py')] + with_defaults(args, '--review-worthy') + (['--json'] if json_mode else []),
+    },
     'next-step': {
         'description': 'Bepaal de volgende nuttige mailstap, ook als er geen actuele unread-focus meer is',
         'args': ['-n/--limit?', '--draft?', '--current-only?', '--review-worthy?'],
@@ -118,6 +130,8 @@ ALIASES = {
     'inbox-triage': 'triage',
     'next': 'focus',
     'first': 'focus',
+    'focus-current': 'focus-now',
+    'focus-review-worthy': 'focus-review',
     'followup': 'next-step',
     'next-mail-step': 'next-step',
     'security': 'security-alerts',
@@ -169,8 +183,12 @@ def catalog_payload():
                 'description': 'alleen actuele verificatiecodes, met uitleg bij lege mailbox',
             },
             {
-                'route': 'focus',
-                'description': 'beste eerstvolgende mail',
+                'route': 'focus-now',
+                'description': 'beste actuele mail-focus zonder stale fallback',
+            },
+            {
+                'route': 'focus-review',
+                'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback',
             },
             {
                 'route': 'review-next',
@@ -187,7 +205,7 @@ def catalog_payload():
             for name, meta in ROUTES.items()
         ],
         'aliases': ALIASES,
-        'notes': 'Gebruik board voor een snel totaalbeeld, eventueel met --current-only voor alleen actuele aandacht of met --review-worthy voor alleen nog zinnige reviewmail. Gebruik now voor wat nu echt aandacht vraagt, en voeg daar --explain-empty toe als je bij een lege actuele mailbox meteen wilt zien welke recente ruis bewust is onderdrukt. Focus is voor de ene beste eerstvolgende mail, desnoods met --current-only voor alleen actuele focus of --review-worthy voor alleen nog zinvolle reviewfocus. Next-step gebruik je voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback. Review-next klapt die aanbevolen thread meteen open met context/concept, via --candidate open je een alternatief uit de queue, met --current-only of --review-worthy maak je de kandidaatset strakker, en met --explain-empty zie je bij noop welke kandidaten bewust zijn onderdrukt. Thread klapt één specifieke conversatie compact uit, gebruik --review-worthy als je alleen nog zinnige reviewthreads wilt zien, plus --explain-empty als je lege threadselectie wilt laten verklaren. Triage gebruik je voor prioritering van unread mail, waarbij herhalende stale no-reply ruis in itemmode automatisch wordt samengeklapt, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, en voeg ook daar --explain-empty toe als je lege resultaten compact wilt laten verklaren. Security-alerts gebruik je voor account- of loginmeldingen, daar sluit --current-only recente reviewfallback uit, en met --explain-empty zie je welke securityclusters bewust zijn onderdrukt. Codes klapt vergelijkbare verificatiemails nu standaard samen, met --current-only zie je alleen nog bruikbare codes, en met --explain-empty krijg je bij lege current-only output direct de onderdrukte oudere codegroepen met reden. Latest gebruik je voor inbox-scan of thread-view en daar helpt --explain-empty ook bij lege current/review-filters. Summary blijft voor alleen nieuwe mail sinds state.',
+        'notes': 'Gebruik board voor een snel totaalbeeld, eventueel met --current-only voor alleen actuele aandacht of met --review-worthy voor alleen nog zinnige reviewmail. Gebruik now voor wat nu echt aandacht vraagt, en voeg daar --explain-empty toe als je bij een lege actuele mailbox meteen wilt zien welke recente ruis bewust is onderdrukt. Focus is voor de ene beste eerstvolgende mail, desnoods met --current-only voor alleen actuele focus of --review-worthy voor alleen nog zinvolle reviewfocus. Focus-now en focus-review geven die twee gefilterde focusroutes meteen direct zonder extra flags. Next-step gebruik je voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback. Review-next klapt die aanbevolen thread meteen open met context/concept, via --candidate open je een alternatief uit de queue, met --current-only of --review-worthy maak je de kandidaatset strakker, en met --explain-empty zie je bij noop welke kandidaten bewust zijn onderdrukt. Thread klapt één specifieke conversatie compact uit, gebruik --review-worthy als je alleen nog zinnige reviewthreads wilt zien, plus --explain-empty als je lege threadselectie wilt laten verklaren. Triage gebruik je voor prioritering van unread mail, waarbij herhalende stale no-reply ruis in itemmode automatisch wordt samengeklapt, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, en voeg ook daar --explain-empty toe als je lege resultaten compact wilt laten verklaren. Security-alerts gebruik je voor account- of loginmeldingen, daar sluit --current-only recente reviewfallback uit, en met --explain-empty zie je welke securityclusters bewust zijn onderdrukt. Codes klapt vergelijkbare verificatiemails nu standaard samen, met --current-only zie je alleen nog bruikbare codes, en met --explain-empty krijg je bij lege current-only output direct de onderdrukte oudere codegroepen met reden. Latest gebruik je voor inbox-scan of thread-view en daar helpt --explain-empty ook bij lege current/review-filters. Summary blijft voor alleen nieuwe mail sinds state.',
     }
 
 

@@ -52,8 +52,12 @@ def quickstart_payload():
             'description': 'alleen actuele verificatiecodes, met uitleg bij lege mailbox',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py focus',
-            'description': 'beste eerstvolgende mail',
+            'command': 'python3 scripts/mail-dispatch.py focus-now',
+            'description': 'beste actuele mail-focus zonder stale fallback',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py focus-review',
+            'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py review-next',

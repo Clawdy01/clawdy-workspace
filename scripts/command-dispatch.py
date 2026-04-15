@@ -56,6 +56,14 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'focus'],
         'description': 'Kies de ene beste mail om nu als eerste op te pakken, ook met --current-only of --review-worthy en optioneel conceptantwoord',
     },
+    'mail-focus-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'focus-now'],
+        'description': 'Kies direct de beste actuele mail-focus zonder stale fallback',
+    },
+    'mail-focus-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'focus-review'],
+        'description': 'Kies direct de beste reviewwaardige mail-focus zonder code-only of ruisfallback',
+    },
     'mail-first': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'focus'],
         'description': 'Snelle route naar de ene beste eerstvolgende mail',
@@ -240,6 +248,10 @@ ALIASES = {
     '/mail-current': 'mail-now',
     '/mail-urgent': 'mail-now',
     '/mail-focus': 'mail-focus',
+    '/mail-focus-now': 'mail-focus-now',
+    '/mail-now-focus': 'mail-focus-now',
+    '/mail-focus-review': 'mail-focus-review',
+    '/mail-review-focus': 'mail-focus-review',
     '/mail-first': 'mail-first',
     '/mail-next-step': 'mail-next-step',
     '/mail-next': 'mail-next-step',
@@ -356,6 +368,16 @@ def help_payload():
             'slash': '/mail-code',
             'also': ['/mail-verify', '/mail-otp'],
             'description': 'snelle verificatiecode-check, optioneel met --current-only --explain-empty',
+        },
+        {
+            'slash': '/mail-focus-now',
+            'also': ['/mail-now-focus'],
+            'description': 'beste actuele mail-focus zonder stale fallback',
+        },
+        {
+            'slash': '/mail-focus-review',
+            'also': ['/mail-review-focus'],
+            'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback',
         },
         {
             'slash': '/mail-first',
