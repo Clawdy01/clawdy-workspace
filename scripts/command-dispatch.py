@@ -50,11 +50,11 @@ COMMANDS = {
     },
     'mail-now': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'now'],
-        'description': 'Toon alleen recente mail die nu echt aandacht vraagt',
+        'description': 'Toon alleen recente mail die nu echt aandacht vraagt, optioneel met suppressed-uitleg via --explain-empty',
     },
     'mail-focus': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'focus'],
-        'description': 'Kies de ene beste mail om nu als eerste op te pakken, optioneel met conceptantwoord',
+        'description': 'Kies de ene beste mail om nu als eerste op te pakken, ook met --current-only of --review-worthy en optioneel conceptantwoord',
     },
     'mail-first': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'focus'],
@@ -62,7 +62,7 @@ COMMANDS = {
     },
     'mail-next-step': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'next-step'],
-        'description': 'Bepaal de volgende nuttige mailstap, ook als er geen actuele unread-focus meer is',
+        'description': 'Bepaal de volgende nuttige mailstap, ook met --current-only of --review-worthy als stale fallback juist niet gewenst is',
     },
     'mail-queue': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'queue'],
@@ -74,7 +74,7 @@ COMMANDS = {
     },
     'mail-review-next': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'review-next'],
-        'description': 'Open direct de aanbevolen volgende mailthread met context, alternatieven en optioneel conceptantwoord',
+        'description': 'Open direct de aanbevolen volgende mailthread met context, alternatieven, optioneel conceptantwoord en noop-uitleg via --explain-empty',
     },
     'mail-thread': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'thread'],
@@ -94,7 +94,7 @@ COMMANDS = {
     },
     'mail-codes': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'codes'],
-        'description': 'Zoek verificatiecodes in recente mail',
+        'description': 'Zoek verificatiecodes in recente mail, met --current-only of suppressed-uitleg via --explain-empty',
     },
     'mail-catalog': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'catalog'],
@@ -345,7 +345,17 @@ def help_payload():
         },
         {
             'slash': '/mail-now',
-            'description': 'alleen wat nu echt aandacht vraagt',
+            'description': 'alleen wat nu echt aandacht vraagt, met --explain-empty voor suppressed-uitleg',
+        },
+        {
+            'slash': '/mail-alerts',
+            'also': ['/mail-security'],
+            'description': 'actuele security- of loginmeldingen, optioneel met --current-only --explain-empty',
+        },
+        {
+            'slash': '/mail-code',
+            'also': ['/mail-verify', '/mail-otp'],
+            'description': 'snelle verificatiecode-check, optioneel met --current-only --explain-empty',
         },
         {
             'slash': '/mail-first',
@@ -353,7 +363,7 @@ def help_payload():
         },
         {
             'slash': '/mail-review-next',
-            'description': 'aanbevolen thread meteen openklappen',
+            'description': 'aanbevolen thread meteen openklappen, met --explain-empty als noop-uitleg',
         },
         {
             'slash': '/mail-help',

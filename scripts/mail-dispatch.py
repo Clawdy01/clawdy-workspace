@@ -157,8 +157,16 @@ def catalog_payload():
                 'description': 'alleen echt nieuwe mail sinds laatste state-update',
             },
             {
-                'route': 'now',
-                'description': 'alleen wat nu echt aandacht vraagt',
+                'route': 'now --explain-empty',
+                'description': 'alleen wat nu echt aandacht vraagt, met suppressed-uitleg als het leeg is',
+            },
+            {
+                'route': 'security-alerts --current-only --explain-empty',
+                'description': 'alleen actuele security- of loginmeldingen, met uitleg bij noop',
+            },
+            {
+                'route': 'codes --current-only --explain-empty',
+                'description': 'alleen actuele verificatiecodes, met uitleg bij lege mailbox',
             },
             {
                 'route': 'focus',

@@ -2,6 +2,7 @@
 import argparse
 import json
 import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -39,8 +40,16 @@ def quickstart_payload():
             'description': 'alleen echt nieuwe mail sinds laatste state-update',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py now',
-            'description': 'alleen wat nu echt aandacht vraagt',
+            'command': 'python3 scripts/mail-dispatch.py now --explain-empty',
+            'description': 'alleen wat nu echt aandacht vraagt, met suppressed-uitleg als het leeg is',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py security-alerts --current-only --explain-empty',
+            'description': 'alleen actuele security- of loginmeldingen, met uitleg bij noop',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py codes --current-only --explain-empty',
+            'description': 'alleen actuele verificatiecodes, met uitleg bij lege mailbox',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py focus',
@@ -569,8 +578,67 @@ def render_text(board, show_preview=False, current_only=False, review_worthy_onl
     return '\n'.join(lines)
 
 
+def help_payload():
+    return {
+        'quickstart': quickstart_payload(),
+        'flags': [
+            {
+                'flag': '-n, --limit <n>',
+                'description': 'maximaal aantal items per deelview (1-20)',
+            },
+            {
+                'flag': '--json',
+                'description': 'toon volledige board-payload als JSON',
+            },
+            {
+                'flag': '--preview',
+                'description': 'toon korte preview bij bovenste mail in tekstoutput',
+            },
+            {
+                'flag': '--current-only',
+                'description': 'toon alleen actuele mailaandacht en suppressed-uitleg als de mailbox nu leeg is',
+            },
+            {
+                'flag': '--review-worthy',
+                'description': 'toon alleen mail die na actualiteitsfiltering nog echt reviewwaardig is',
+            },
+        ],
+        'notes': [
+            'Gebruik standaard mailboard voor een compact totaaloverzicht van nieuw, unread, triage, focus en volgende stap.',
+            'Gebruik --current-only als je juist wilt zien waarom er nu niets actueels overblijft.',
+            'Gebruik --json voor machineleesbare suppressed-groepen, security-alerts en next-step context.',
+        ],
+    }
+
+
+def render_help():
+    payload = help_payload()
+    lines = ['Mailboard']
+    if payload.get('quickstart'):
+        lines.append('- snelle start:')
+        for item in payload['quickstart']:
+            lines.append(f"  - {item['command']}: {item['description']}")
+    if payload.get('flags'):
+        lines.append('- opties:')
+        for item in payload['flags']:
+            lines.append(f"  - {item['flag']}: {item['description']}")
+    if payload.get('notes'):
+        lines.append('- notities:')
+        for note in payload['notes']:
+            lines.append(f"  - {note}")
+    return '\n'.join(lines)
+
+
 def main():
-    parser = argparse.ArgumentParser(description='Compact mailboard met latest/unread/new/drafts')
+    raw_args = sys.argv[1:]
+    if '--help' in raw_args or '-h' in raw_args:
+        if '--json' in raw_args:
+            print(json.dumps(help_payload(), ensure_ascii=False, indent=2))
+        else:
+            print(render_help())
+        return
+
+    parser = argparse.ArgumentParser(description='Compact mailboard met latest/unread/new/drafts', add_help=False)
     parser.add_argument('-n', '--limit', type=int, default=5)
     parser.add_argument('--json', action='store_true')
     parser.add_argument('--preview', action='store_true', help='toon korte preview bij bovenste mail in tekstoutput')
