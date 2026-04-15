@@ -20,6 +20,14 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'board'],
         'description': 'Mail-overzicht met latest, unread, new en drafts',
     },
+    'mail-board-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'board', '--current-only'],
+        'description': 'Compact mailboard met alleen actuele aandacht en suppressed-uitleg bij een lege actuele mailbox',
+    },
+    'mail-board-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'board', '--review-worthy'],
+        'description': 'Compact mailboard met alleen nog reviewwaardige mail en suppressed-uitleg bij noop',
+    },
     'mail-inbox': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest'],
         'description': 'Snelle inbox-view van recente mail',
@@ -52,6 +60,10 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'now'],
         'description': 'Toon alleen recente mail die nu echt aandacht vraagt, optioneel met suppressed-uitleg via --explain-empty',
     },
+    'mail-now-empty': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'now', '--explain-empty'],
+        'description': 'Toon wat nu echt aandacht vraagt, en leg een lege actuele mailbox meteen uit via suppressed-uitleg',
+    },
     'mail-focus': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'focus'],
         'description': 'Kies de ene beste mail om nu als eerste op te pakken, ook met --current-only of --review-worthy en optioneel conceptantwoord',
@@ -80,6 +92,10 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'security-alerts'],
         'description': 'Toon compacte account- en login-alerts met current-only en suppressed-uitleg',
     },
+    'mail-alerts-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'security-alerts', '--current-only', '--explain-empty'],
+        'description': 'Toon alleen actuele security- of loginmeldingen en leg een lege check meteen uit',
+    },
     'mail-review-next': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'review-next'],
         'description': 'Open direct de aanbevolen volgende mailthread met context, alternatieven, optioneel conceptantwoord en noop-uitleg via --explain-empty',
@@ -103,6 +119,10 @@ COMMANDS = {
     'mail-codes': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'codes'],
         'description': 'Zoek verificatiecodes in recente mail, met --current-only of suppressed-uitleg via --explain-empty',
+    },
+    'mail-code-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'codes', '--current-only', '--explain-empty'],
+        'description': 'Toon alleen actuele verificatiecodes en leg een lege mailboxcheck meteen uit',
     },
     'mail-catalog': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'catalog'],
@@ -235,6 +255,10 @@ ALIASES = {
     '/mail': 'mail',
     '/mail-board': 'mail',
     '/mail-overview': 'mail',
+    '/mail-board-now': 'mail-board-now',
+    '/mail-now-board': 'mail-board-now',
+    '/mail-board-review': 'mail-board-review',
+    '/mail-review-board': 'mail-board-review',
     '/mail-inbox': 'mail-inbox',
     '/mail-unread': 'mail-unread',
     '/mail-latest': 'mail-latest',
@@ -247,6 +271,8 @@ ALIASES = {
     '/mail-now': 'mail-now',
     '/mail-current': 'mail-now',
     '/mail-urgent': 'mail-now',
+    '/mail-now-empty': 'mail-now-empty',
+    '/mail-current-empty': 'mail-now-empty',
     '/mail-focus': 'mail-focus',
     '/mail-focus-now': 'mail-focus-now',
     '/mail-now-focus': 'mail-focus-now',
@@ -262,6 +288,8 @@ ALIASES = {
     '/mail-security-alerts': 'mail-security-alerts',
     '/mail-security': 'mail-security-alerts',
     '/mail-alerts': 'mail-security-alerts',
+    '/mail-alerts-now': 'mail-alerts-now',
+    '/mail-security-now': 'mail-alerts-now',
     '/mail-review-next': 'mail-review-next',
     '/mail-review': 'mail-review-next',
     '/mail-open': 'mail-review-next',
@@ -280,6 +308,8 @@ ALIASES = {
     '/mail-verify': 'mail-codes',
     '/mail-otp': 'mail-codes',
     '/mail-auth-code': 'mail-codes',
+    '/mail-code-now': 'mail-code-now',
+    '/mail-otp-now': 'mail-code-now',
     '/mail-catalog': 'mail-catalog',
     '/mail-help': 'mail-catalog',
     '/mail-routes': 'mail-catalog',
@@ -343,6 +373,16 @@ def help_payload():
             'description': 'totaaloverzicht',
         },
         {
+            'slash': '/mail-board-now',
+            'also': ['/mail-now-board'],
+            'description': 'compact board met alleen actuele aandacht en ingebouwde suppressed-uitleg',
+        },
+        {
+            'slash': '/mail-board-review',
+            'also': ['/mail-review-board'],
+            'description': 'compact board met alleen reviewwaardige mail en ingebouwde noop-uitleg',
+        },
+        {
             'slash': '/mail-inbox',
             'description': 'recente mail snel bekijken',
         },
@@ -360,14 +400,19 @@ def help_payload():
             'description': 'alleen wat nu echt aandacht vraagt, met --explain-empty voor suppressed-uitleg',
         },
         {
-            'slash': '/mail-alerts',
-            'also': ['/mail-security'],
-            'description': 'actuele security- of loginmeldingen, optioneel met --current-only --explain-empty',
+            'slash': '/mail-now-empty',
+            'also': ['/mail-current-empty'],
+            'description': 'actuele mailcheck met suppressed-uitleg al ingebouwd',
         },
         {
-            'slash': '/mail-code',
-            'also': ['/mail-verify', '/mail-otp'],
-            'description': 'snelle verificatiecode-check, optioneel met --current-only --explain-empty',
+            'slash': '/mail-alerts-now',
+            'also': ['/mail-security-now'],
+            'description': 'actuele security- of loginmeldingen, met current-only en noop-uitleg al ingebouwd',
+        },
+        {
+            'slash': '/mail-code-now',
+            'also': ['/mail-otp-now'],
+            'description': 'actuele verificatiecode-check met current-only en noop-uitleg al ingebouwd',
         },
         {
             'slash': '/mail-focus-now',
