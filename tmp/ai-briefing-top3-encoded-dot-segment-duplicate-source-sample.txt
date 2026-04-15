@@ -1,0 +1,35 @@
+AI briefing test
+
+Titel: OpenAI publiceert Responses API update
+Bron: https://openai.com/index/responses-api-update | https://openai.com/index/%2E%2E/index/responses-api-update
+Datum: 2026-04-15
+Wat is er nieuw: OpenAI licht een Responses API update toe en noemt nieuwe details voor tools en orchestration.
+Waarom is dit belangrijk: Dit test dat dezelfde artikel-URL niet dubbel telt als een dot-segment alleen percent-encoded is geschreven.
+Relevant voor Christian: Dit houdt de top-3 broncorroboratie eerlijk wanneer één artikel via een normaal pad en een `%2E%2E`-variant terugkomt.
+
+Titel: GitHub deelt nieuwe Copilot agent workflow
+Bron: https://github.blog/changelog/copilot-agent-workflow | https://github.com/features/copilot
+Datum: 2026-04-15
+Wat is er nieuw: GitHub beschrijft een nieuwe agent-workflow en koppelt die aan Copilot productcontext.
+Waarom is dit belangrijk: Dit levert een gewoon multi-source item uit twee domeinen op voor contrast met de duplicate-case erboven.
+Relevant voor Christian: Dit laat zien dat de audit nog steeds echte corroboratie beloont wanneer de bronnen werkelijk verschillend zijn.
+
+Titel: Google zet Gemini API update live
+Bron: https://developers.googleblog.com/en/gemini-api-update | https://ai.google.dev/gemini-api/docs/changelog
+Datum: 2026-04-15
+Wat is er nieuw: Google noemt een Gemini API update met een changelogverwijzing naar de docs.
+Waarom is dit belangrijk: Dit houdt het sample realistisch met nog een tweede geldig multi-domein top-3 item.
+Relevant voor Christian: Dit bevestigt dat de audit alleen het encoded-dot-segment-item als zwakke corroboratie moet blijven zien.
+
+Wat moeten wij hiermee?
+- Houd top-3 broncorroboratie gebaseerd op canonieke unieke URLs.
+
+Wat ik vandaag het belangrijkst vind
+- Percent-encoded dot-segmenten mogen niet als extra bron tellen.
+
+Bronnenlijst met URLs
+- https://openai.com/index/responses-api-update
+- https://github.blog/changelog/copilot-agent-workflow
+- https://github.com/features/copilot
+- https://developers.googleblog.com/en/gemini-api-update
+- https://ai.google.dev/gemini-api/docs/changelog

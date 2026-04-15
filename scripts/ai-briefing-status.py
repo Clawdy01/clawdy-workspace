@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import os
+import posixpath
 import re
 import sys
 from collections import Counter
@@ -887,6 +888,18 @@ def decode_unreserved_url_path(path):
     return re.sub(r'%[0-9A-Fa-f]{2}', replace, path)
 
 
+def normalize_url_path_dot_segments(path):
+    if not isinstance(path, str) or not path:
+        return '/'
+    collapsed = re.sub(r'/+', '/', path)
+    normalized = posixpath.normpath(collapsed)
+    if path.startswith('/') and not normalized.startswith('/'):
+        normalized = f'/{normalized}'
+    if normalized in ('.', ''):
+        return '/'
+    return normalized
+
+
 def canonicalize_source_url(url):
     if not isinstance(url, str):
         return None
@@ -926,6 +939,7 @@ def canonicalize_source_url(url):
         port_suffix = '' if port is None or default_port else f':{port}'
         normalized_netloc = f'{auth}{hostname}{port_suffix}'
     normalized_path = decode_unreserved_url_path(parts.path or '/')
+    normalized_path = normalize_url_path_dot_segments(normalized_path)
     if normalized_path != '/':
         normalized_path = re.sub(
             r'/(?:(?:index|default)\.(?:html?|aspx?))$',
