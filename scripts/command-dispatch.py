@@ -405,6 +405,14 @@ def render_help():
 
 
 def main():
+    raw_args = sys.argv[1:]
+    if '--help' in raw_args or '-h' in raw_args:
+        if '--json-help' in raw_args:
+            print(json.dumps(help_payload(), ensure_ascii=False, indent=2))
+        else:
+            print(render_help())
+        raise SystemExit(0)
+
     parser = argparse.ArgumentParser(description='Eenvoudige command-router voor board/status/mail/tools workflows', add_help=False)
     parser.add_argument('command', nargs='?')
     parser.add_argument('args', nargs=argparse.REMAINDER)
@@ -434,4 +442,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except BrokenPipeError:
+        raise SystemExit(0)

@@ -209,7 +209,15 @@ def run(cmd):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Dispatcher voor Clawdy mail workflows')
+    raw_args = sys.argv[1:]
+    if '--help' in raw_args or '-h' in raw_args:
+        if '--json' in raw_args:
+            print(json.dumps(catalog_payload(), ensure_ascii=False, indent=2))
+        else:
+            print(render_catalog())
+        return
+
+    parser = argparse.ArgumentParser(description='Dispatcher voor Clawdy mail workflows', add_help=False)
     parser.add_argument('--json', action='store_true')
     parser.add_argument('route', nargs='?', default='catalog')
     parsed, passthrough_args = parser.parse_known_args()
@@ -242,4 +250,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except BrokenPipeError:
+        raise SystemExit(0)

@@ -24,6 +24,35 @@ MAIL_NEXT_STEP = ROOT / 'scripts' / 'mail-next-step.py'
 MAIL_SECURITY_ALERTS = ROOT / 'scripts' / 'mail-security-alerts.py'
 
 
+def quickstart_payload():
+    return [
+        {
+            'command': 'python3 scripts/mail-dispatch.py board',
+            'description': 'totaaloverzicht van mailstatus',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py latest --unread',
+            'description': 'alleen ongelezen mail',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py check',
+            'description': 'alleen echt nieuwe mail sinds laatste state-update',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py now',
+            'description': 'alleen wat nu echt aandacht vraagt',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py focus',
+            'description': 'beste eerstvolgende mail',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py review-next',
+            'description': 'aanbevolen thread meteen openen',
+        },
+    ]
+
+
 def run_json(command, default=None, timeout=20):
     try:
         proc = subprocess.run(
@@ -182,6 +211,7 @@ def build_board(limit=5, current_only=False, review_worthy_only=False):
         effective_high_count = max(new_high_count, recent_high_count)
 
     return {
+        'quickstart': quickstart_payload(),
         'current_only': current_only,
         'review_worthy_only': review_worthy_only,
         'latest_count': len(latest),
@@ -299,6 +329,11 @@ def summarize_suppressed_hint(group):
 
 def render_text(board, show_preview=False, current_only=False, review_worthy_only=False):
     lines = ['Mailboard']
+    quickstart = board.get('quickstart') or []
+    if quickstart:
+        lines.append('- snelle start:')
+        for item in quickstart:
+            lines.append(f"  - {item['command']}: {item['description']}")
     has_current_activity = has_current_mail_activity(board)
     triage_high_suffix = ''
     if board.get('triage_high_count', 0) > 1 and board.get('triage_high_group_count', 0):
