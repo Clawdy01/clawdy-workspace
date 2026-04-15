@@ -40,6 +40,7 @@ REQUIRED_PROMPT_MARKERS = [
     'vermijd dubbele items',
     'als meerdere bronnen over dezelfde ontwikkeling gaan, bundel dat tot één item',
     'Geef bij de belangrijkste items waar mogelijk minstens twee bron-URLs',
+    'uit minstens twee verschillende domeinen',
     'marketing zonder echte verandering',
     'focus op echt nieuwe ontwikkelingen uit de afgelopen 48 uur',
     'Noem per item ook de bron plus publicatiedatum of update-datum als die vindbaar is',
@@ -652,9 +653,16 @@ def is_valid_source_line(line):
     return not analyze_source_line_issues(stripped)
 
 
-def count_prefixed_lines(text, prefixes):
+def count_prefixed_lines(text, prefixes, *, case_sensitive=False):
     counts = {prefix: 0 for prefix in prefixes}
     if not isinstance(text, str):
+        return counts
+    if case_sensitive:
+        for raw_line in text.splitlines():
+            stripped = raw_line.strip()
+            for prefix in prefixes:
+                if stripped.startswith(prefix):
+                    counts[prefix] += 1
         return counts
     normalized_prefixes = [(prefix, prefix.lower()) for prefix in prefixes]
     for raw_line in text.splitlines():
@@ -666,10 +674,18 @@ def count_prefixed_lines(text, prefixes):
     return counts
 
 
-def extract_prefixed_line_sequence(text, prefixes):
+def extract_prefixed_line_sequence(text, prefixes, *, case_sensitive=False):
     if not isinstance(text, str):
         return []
     sequence = []
+    if case_sensitive:
+        for raw_line in text.splitlines():
+            stripped = raw_line.strip()
+            for prefix in prefixes:
+                if stripped.startswith(prefix):
+                    sequence.append(prefix)
+                    break
+        return sequence
     normalized_prefixes = [(prefix, prefix.lower()) for prefix in prefixes]
     for raw_line in text.splitlines():
         stripped = raw_line.strip()
@@ -908,7 +924,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         marker: normalized_text.count(marker.lower())
         for marker in REQUIRED_OUTPUT_ITEM_MARKERS
     }
-    exact_field_line_counts = count_prefixed_lines(summary_text, REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES)
+    exact_field_line_counts = count_prefixed_lines(
+        summary_text,
+        REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES,
+        case_sensitive=True,
+    )
     numbered_title_heading_matches = re.findall(r'(?im)^\s*\d+[\.)]\s+titel:\s*(.+)$', summary_text)
     numbered_title_heading_count = len(numbered_title_heading_matches)
     numbered_title_heading_examples = [title.strip() for title in numbered_title_heading_matches[:3] if title.strip()]
@@ -954,7 +974,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         block_titles.append(title)
 
     block_exact_field_sequences = [
-        extract_prefixed_line_sequence(block, REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES)
+        extract_prefixed_line_sequence(
+            block,
+            REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES,
+            case_sensitive=True,
+        )
         for block in item_blocks
     ]
     block_exact_field_order_ok = [

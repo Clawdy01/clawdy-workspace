@@ -1,0 +1,31 @@
+Wat moeten wij hiermee?
+Test.
+
+wat ik vandaag het belangrijkst vind
+Hou format strak.
+
+titel: Voorbeeld item één
+bron: https://openai.com/research/example-one | https://platform.openai.com/docs/example-one
+datum: 2026-04-14
+wat is er nieuw: Eerste update.
+waarom is dit belangrijk: Omdat het format anders bijna goed lijkt.
+relevant voor christian: Handig voor regressietests.
+
+titel: Voorbeeld item twee
+bron: https://github.com/example/two | https://huggingface.co/example/two
+datum: 2026-04-14
+wat is er nieuw: Tweede update.
+waarom is dit belangrijk: Ook lowercase labels moeten rood blijven.
+relevant voor christian: Houdt de prompt streng.
+
+titel: Voorbeeld item drie
+bron: https://mistral.ai/news/example-three | https://arxiv.org/abs/2604.12345
+datum: 2026-04-14
+wat is er nieuw: Derde update.
+waarom is dit belangrijk: Anders kan case-drift ongemerkt binnenkomen.
+relevant voor christian: Voorkomt half-goede output.
+
+Bronnenlijst
+- https://openai.com/research/example-one
+- https://github.com/example/two
+- https://mistral.ai/news/example-three

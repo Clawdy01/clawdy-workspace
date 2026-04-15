@@ -128,6 +128,44 @@ def summarize_output_examples(status: dict) -> list[str]:
 
     examples: list[str] = []
 
+    top3_invalid_source_line_examples = summary_output_audit.get('top3_invalid_source_line_examples') or []
+    if top3_invalid_source_line_examples:
+        rendered = ', '.join(
+            f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
+            for example in top3_invalid_source_line_examples[:2]
+        )
+        if rendered:
+            examples.append('top3 ongeldige Bron-regel: ' + rendered)
+
+    top3_missing_multi_domain_source_examples = summary_output_audit.get('top3_missing_multi_domain_source_examples') or []
+    if top3_missing_multi_domain_source_examples:
+        examples.append('top3 zonder multi-domein bronregel: ' + ', '.join(top3_missing_multi_domain_source_examples[:3]))
+
+    top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
+    if top3_missing_multi_source_examples:
+        examples.append('top3 zonder multi-source: ' + ', '.join(top3_missing_multi_source_examples[:3]))
+
+    top3_missing_primary_fresh_examples = summary_output_audit.get('top3_missing_primary_fresh_examples') or []
+    if top3_missing_primary_fresh_examples:
+        examples.append('top3 zonder primaire+verse combo: ' + ', '.join(top3_missing_primary_fresh_examples[:3]))
+
+    top3_missing_date_line_examples = summary_output_audit.get('top3_missing_date_line_examples') or []
+    if top3_missing_date_line_examples:
+        examples.append('top3 zonder Datum:-regel: ' + ', '.join(top3_missing_date_line_examples[:3]))
+
+    top3_missing_source_examples = summary_output_audit.get('top3_missing_source_examples') or []
+    if top3_missing_source_examples:
+        examples.append('top3 zonder bron: ' + ', '.join(top3_missing_source_examples[:3]))
+
+    items_invalid_source_line_examples = summary_output_audit.get('items_invalid_source_line_examples') or []
+    if items_invalid_source_line_examples and not top3_invalid_source_line_examples:
+        rendered = ', '.join(
+            f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
+            for example in items_invalid_source_line_examples[:2]
+        )
+        if rendered:
+            examples.append('ongeldige Bron-regel: ' + rendered)
+
     exact_field_line_counts = summary_output_audit.get('exact_field_line_counts') or {}
     item_count = int(summary_output_audit.get('item_count') or 0)
     if item_count > 0:
@@ -146,41 +184,7 @@ def summarize_output_examples(status: dict) -> list[str]:
         if mismatched_fields:
             examples.append('exacte veldlabels missen: ' + ', '.join(mismatched_fields[:4]))
 
-    top3_invalid_source_line_examples = summary_output_audit.get('top3_invalid_source_line_examples') or []
-    if top3_invalid_source_line_examples:
-        rendered = ', '.join(
-            f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
-            for example in top3_invalid_source_line_examples[:2]
-        )
-        if rendered:
-            examples.append('top3 ongeldige Bron-regel: ' + rendered)
-
-    top3_missing_date_line_examples = summary_output_audit.get('top3_missing_date_line_examples') or []
-    if top3_missing_date_line_examples:
-        examples.append('top3 zonder Datum:-regel: ' + ', '.join(top3_missing_date_line_examples[:3]))
-
-    top3_missing_source_examples = summary_output_audit.get('top3_missing_source_examples') or []
-    if top3_missing_source_examples:
-        examples.append('top3 zonder bron: ' + ', '.join(top3_missing_source_examples[:3]))
-
-    top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
-    if top3_missing_multi_source_examples:
-        examples.append('top3 zonder multi-source: ' + ', '.join(top3_missing_multi_source_examples[:3]))
-
-    top3_missing_primary_fresh_examples = summary_output_audit.get('top3_missing_primary_fresh_examples') or []
-    if top3_missing_primary_fresh_examples:
-        examples.append('top3 zonder primaire+verse combo: ' + ', '.join(top3_missing_primary_fresh_examples[:3]))
-
-    items_invalid_source_line_examples = summary_output_audit.get('items_invalid_source_line_examples') or []
-    if items_invalid_source_line_examples and not top3_invalid_source_line_examples:
-        rendered = ', '.join(
-            f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
-            for example in items_invalid_source_line_examples[:2]
-        )
-        if rendered:
-            examples.append('ongeldige Bron-regel: ' + rendered)
-
-    return examples[:2]
+    return examples[:3]
 
 
 def evaluate(status: dict, *, require_qualified_runs: int = 0) -> tuple[bool, list[str], str]:
