@@ -1,0 +1,35 @@
+AI briefing test
+
+Titel: OpenAI publiceert Responses API update
+Bron: https://openai.com/index/responses-api-update | https://openai.com/index/responses-api-update/
+Datum: 14 april 2026
+Wat is er nieuw: OpenAI beschrijft een Responses API update, maar de tweede URL is alleen dezelfde pagina met trailing slash.
+Waarom is dit belangrijk: Broncorroboratie mag niet vals groen worden door padvarianten van exact hetzelfde artikel.
+Relevant voor Christian: Dit voorkomt dat de top 3 te snel als multi-source wordt gezien terwijl het om één bron gaat.
+
+Titel: GitHub breidt Copilot coding agent uit
+Bron: https://github.blog/changelog/copilot-agent-update/ | https://github.com/features/copilot/agent-update/
+Datum: 14 april 2026
+Wat is er nieuw: GitHub beschrijft nieuwe agentmogelijkheden voor Copilot via twee eigen primaire routes.
+Waarom is dit belangrijk: Dit beïnvloedt de vergelijking tussen lokale workflows en hosted coding agents.
+Relevant voor Christian: Dit geeft context voor toolkeuzes rond coderen en review.
+
+Titel: Google zet nieuwe Gemini tooling-livegang door
+Bron: https://blog.google/technology/google-deepmind/gemini-tooling-update/ | https://ai.google.dev/gemini-api/docs/tooling-update/
+Datum: 14 april 2026
+Wat is er nieuw: Google licht nieuwe Gemini-tooling toe en een tweede primaire route bevestigt de uitrol.
+Waarom is dit belangrijk: Dit laat zien hoe snel tool-integraties rond modellen opschuiven.
+Relevant voor Christian: Dit helpt bij het prioriteren van research naar bruikbare modelroutes.
+
+Wat moeten wij hiermee?
+- Gebruik alleen echt onafhankelijke top-3 bronregels.
+
+Wat ik vandaag het belangrijkst vind
+- Broncorroboratie moet echte unieke URLs blijven.
+
+Bronnenlijst met URLs
+- https://openai.com/index/responses-api-update
+- https://github.blog/changelog/copilot-agent-update/
+- https://github.com/features/copilot/agent-update/
+- https://blog.google/technology/google-deepmind/gemini-tooling-update/
+- https://ai.google.dev/gemini-api/docs/tooling-update/

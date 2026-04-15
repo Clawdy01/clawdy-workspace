@@ -8,7 +8,7 @@ import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 ROOT = Path('/home/clawdy/.openclaw')
@@ -115,6 +115,9 @@ PRIMARY_SOURCE_DOMAINS = {
     'meta.com',
     'microsoft.com',
     'news.microsoft.com',
+    'nvidia.com',
+    'developer.nvidia.com',
+    'nvidianews.nvidia.com',
     'huggingface.co',
     'stability.ai',
     'runwayml.com',
@@ -137,6 +140,9 @@ PRIMARY_SOURCE_FAMILIES = {
     'meta.com': 'meta',
     'microsoft.com': 'microsoft',
     'news.microsoft.com': 'microsoft',
+    'nvidia.com': 'nvidia',
+    'developer.nvidia.com': 'nvidia',
+    'nvidianews.nvidia.com': 'nvidia',
     'huggingface.co': 'huggingface',
     'stability.ai': 'stability',
     'runwayml.com': 'runway',
@@ -724,7 +730,7 @@ def analyze_source_line_issues(line):
         if any(not part for part in pipe_parts):
             issues.append('lege_separator')
     body_without_urls_for_separator = body
-    for url in urls:
+    for url in sorted(urls, key=len, reverse=True):
         body_without_urls_for_separator = body_without_urls_for_separator.replace(url, ' ')
     if re.search(r'(^|\s)/(\s|$)', body_without_urls_for_separator):
         issues.append('slash_separator')
@@ -865,6 +871,22 @@ TRACKING_QUERY_PARAMS = {
 }
 
 
+UNRESERVED_URL_CHARACTERS = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~')
+
+
+def decode_unreserved_url_path(path):
+    if not isinstance(path, str) or '%' not in path:
+        return path
+
+    def replace(match):
+        decoded = unquote(match.group(0))
+        if len(decoded) == 1 and decoded in UNRESERVED_URL_CHARACTERS:
+            return decoded
+        return match.group(0).upper()
+
+    return re.sub(r'%[0-9A-Fa-f]{2}', replace, path)
+
+
 def canonicalize_source_url(url):
     if not isinstance(url, str):
         return None
@@ -903,7 +925,16 @@ def canonicalize_source_url(url):
             auth += '@'
         port_suffix = '' if port is None or default_port else f':{port}'
         normalized_netloc = f'{auth}{hostname}{port_suffix}'
-    normalized_path = parts.path or '/'
+    normalized_path = decode_unreserved_url_path(parts.path or '/')
+    if normalized_path != '/':
+        normalized_path = re.sub(
+            r'/(?:(?:index|default)\.(?:html?|aspx?))$',
+            '',
+            normalized_path,
+            flags=re.IGNORECASE,
+        ) or '/'
+        if normalized_path != '/' and normalized_path.endswith('/'):
+            normalized_path = normalized_path.rstrip('/') or '/'
     normalized_query = urlencode(filtered_query, doseq=True)
     return urlunsplit((parts.scheme.lower(), normalized_netloc, normalized_path, normalized_query, ''))
 

@@ -187,10 +187,45 @@ def summarize_output_examples(status: dict) -> list[str]:
     return examples[:3]
 
 
+def is_expected_preflight_freshness_wait(status: dict, *, require_qualified_runs: int) -> bool:
+    if require_qualified_runs > 0:
+        return False
+    if not status.get('found') or not status.get('enabled'):
+        return False
+    if not status.get('has_run_proof'):
+        return False
+
+    for key in ('payload_audit', 'runtime_audit', 'next_run_audit', 'storage_audit', 'runlog_audit', 'uniqueness_audit'):
+        audit = status.get(key) or {}
+        if audit and not audit.get('ok', False):
+            return False
+
+    proof_freshness = status.get('proof_freshness') or {}
+    if proof_freshness.get('ok', True):
+        return False
+    if not proof_freshness.get('stale_finished'):
+        return False
+
+    proof_next_qualifying_slot_at = status.get('proof_next_qualifying_slot_at')
+    if not proof_next_qualifying_slot_at:
+        return False
+
+    last_run_at = status.get('last_run_at')
+    updated_at = status.get('updated_at')
+    if not last_run_at or not updated_at or updated_at <= last_run_at:
+        return False
+
+    return True
+
+
 def evaluate(status: dict, *, require_qualified_runs: int = 0) -> tuple[bool, list[str], str]:
     reasons: list[str] = []
+    expected_preflight_freshness_wait = is_expected_preflight_freshness_wait(
+        status,
+        require_qualified_runs=require_qualified_runs,
+    )
 
-    if not status.get('ok'):
+    if not status.get('ok') and not expected_preflight_freshness_wait:
         reasons.append('status not ok')
     if not status.get('found'):
         reasons.append('job niet gevonden')
@@ -199,11 +234,17 @@ def evaluate(status: dict, *, require_qualified_runs: int = 0) -> tuple[bool, li
 
     for key in ('payload_audit', 'runtime_audit', 'next_run_audit', 'storage_audit', 'runlog_audit', 'uniqueness_audit', 'proof_freshness'):
         audit = status.get(key) or {}
-        if audit and not audit.get('ok', False):
-            reasons.append(audit.get('text') or key)
+        if not audit or audit.get('ok', False):
+            continue
+        if key == 'proof_freshness' and expected_preflight_freshness_wait:
+            continue
+        reasons.append(audit.get('text') or key)
 
     if status.get('attention_needed'):
-        reasons.append(status.get('attention_text') or 'attention nodig')
+        attention_text = status.get('attention_text') or 'attention nodig'
+        proof_freshness_text = ((status.get('proof_freshness') or {}).get('text') or '').strip()
+        if not (expected_preflight_freshness_wait and attention_text == f'proof freshness: {proof_freshness_text}'):
+            reasons.append(attention_text)
 
     proof_qualified_runs = int(status.get('proof_qualified_runs') or 0)
     if require_qualified_runs > 0 and proof_qualified_runs < require_qualified_runs:
