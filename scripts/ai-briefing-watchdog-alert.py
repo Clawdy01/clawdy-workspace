@@ -77,6 +77,12 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
             bits.append(proof_progress)
     if data.get('next_run_at_text'):
         bits.append(f"volgende run {data['next_run_at_text']}")
+    next_qualifying = data.get('proof_next_qualifying_slot_at_text')
+    if next_qualifying and require_qualified_runs > 0:
+        next_qualifying_bit = f"volgende kwalificatierun {next_qualifying}"
+        if data.get('proof_next_qualifying_slot_hint'):
+            next_qualifying_bit += f" ({data['proof_next_qualifying_slot_hint']})"
+        bits.append(next_qualifying_bit)
     if data.get('proof_due_at_text'):
         bits.append(f"bewijs uiterlijk {data['proof_due_at_text']}")
     if data.get('proof_target_due_at_text') and mode in {'proof-progress', 'proof-target-check'}:

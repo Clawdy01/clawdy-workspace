@@ -1657,9 +1657,11 @@ def summarize_run(run, tz_name=DEFAULT_TZ, now_ms=None):
             summary_text = session_text
             summary_source = 'session.final_text'
             summary_path = session_summary.get('path')
-    error_text = run_summary_text or run.get('error') or run.get('deliveryError')
+    error_text = run.get('error') or run.get('deliveryError')
     if isinstance(error_text, str):
         error_text = ' '.join(error_text.split())[:240]
+    elif error_text is not None:
+        error_text = str(error_text)[:240]
     summary_preview = None
     summary_preview_lines = []
     summary_length_chars = None

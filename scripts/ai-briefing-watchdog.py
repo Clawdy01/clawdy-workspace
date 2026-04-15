@@ -8,6 +8,25 @@ from pathlib import Path
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATUS_SCRIPT = ROOT / 'scripts' / 'ai-briefing-status.py'
 DEFAULT_REPORT_DIR = ROOT / 'tmp' / 'ai-briefing' / 'reports'
+
+
+def unique_reasons(reasons: list[str]) -> list[str]:
+    seen: set[str] = set()
+    normalized_seen: set[str] = set()
+    unique: list[str] = []
+    for reason in reasons:
+        cleaned = (reason or '').strip()
+        if not cleaned:
+            continue
+        normalized = cleaned
+        if normalized.startswith('proof freshness: '):
+            normalized = normalized[len('proof freshness: '):].strip()
+        if cleaned in seen or normalized in normalized_seen:
+            continue
+        seen.add(cleaned)
+        normalized_seen.add(normalized)
+        unique.append(cleaned)
+    return unique
 CONSUMER_PRESETS = {
     'board-json': {
         'path': DEFAULT_REPORT_DIR / 'ai-briefing-watchdog.json',
@@ -274,6 +293,7 @@ def evaluate(status: dict, *, require_qualified_runs: int = 0) -> tuple[bool, li
     else:
         summary = status.get('text') or 'geen runbewijs'
 
+    reasons = unique_reasons(reasons)
     return (len(reasons) == 0, reasons, summary)
 
 
@@ -309,6 +329,8 @@ def main() -> int:
         'proof_due_at_text': status.get('proof_due_at_text'),
         'proof_target_due_at_text': status.get('proof_target_due_at_text'),
         'proof_target_run_slots_text': status.get('proof_target_run_slots_text'),
+        'proof_next_qualifying_slot_at_text': status.get('proof_next_qualifying_slot_at_text'),
+        'proof_next_qualifying_slot_hint': status.get('proof_next_qualifying_slot_hint'),
         'previous_run_slot_at_text': status.get('previous_run_slot_at_text'),
         'last_proof_qualified_run_at_text': status.get('last_proof_qualified_run_at_text'),
         'has_run_proof': status.get('has_run_proof'),
@@ -334,6 +356,11 @@ def main() -> int:
         lines.append(f"proof due: {result['proof_due_at_text']}")
     if result['proof_target_due_at_text']:
         lines.append(f"proof target due: {result['proof_target_due_at_text']}")
+    if result['proof_next_qualifying_slot_at_text']:
+        next_qualifying_line = f"next qualifying run: {result['proof_next_qualifying_slot_at_text']}"
+        if result['proof_next_qualifying_slot_hint']:
+            next_qualifying_line += f" ({result['proof_next_qualifying_slot_hint']})"
+        lines.append(next_qualifying_line)
     if result['proof_target_run_slots_text']:
         lines.append(f"qualifying run slots: {result['proof_target_run_slots_text']}")
     if result['last_proof_qualified_run_at_text']:
