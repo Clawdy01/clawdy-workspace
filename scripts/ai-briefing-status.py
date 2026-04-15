@@ -645,7 +645,7 @@ def split_source_line_tokens(line):
 
 
 def extract_source_urls_from_line(line):
-    return [token for token in split_source_line_tokens(line) if re.fullmatch(r'https?://\S+', token)]
+    return [token for token in split_source_line_tokens(line) if re.fullmatch(r'(?i)https?://\S+', token)]
 
 
 def source_url_has_trailing_punctuation(url):
@@ -1138,7 +1138,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         for issues in block_source_line_issue_lists[:3]
         for issue in issues
     )
-    block_source_urls = [re.findall(r'https?://\S+', block) for block in item_blocks]
+    block_source_urls = [re.findall(r'(?i)https?://\S+', block) for block in item_blocks]
     block_valid_source_urls = [
         urls if is_valid else []
         for urls, is_valid in zip(block_source_line_urls, block_valid_source_line)
