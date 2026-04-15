@@ -1,0 +1,607 @@
+{
+  "quickstart": [
+    {
+      "slash": "/mail-board",
+      "also": [
+        "/mail"
+      ],
+      "description": "totaaloverzicht"
+    },
+    {
+      "slash": "/mail-board-now",
+      "also": [
+        "/mail-now-board"
+      ],
+      "description": "compact board met alleen actuele aandacht en ingebouwde suppressed-uitleg"
+    },
+    {
+      "slash": "/mail-board-review",
+      "also": [
+        "/mail-review-board"
+      ],
+      "description": "compact board met alleen reviewwaardige mail en ingebouwde noop-uitleg"
+    },
+    {
+      "slash": "/mail-inbox",
+      "description": "recente mail snel bekijken"
+    },
+    {
+      "slash": "/mail-unread",
+      "description": "alleen ongelezen mail"
+    },
+    {
+      "slash": "/mail-check",
+      "also": [
+        "/mail-new"
+      ],
+      "description": "alleen echt nieuwe mail sinds de laatste state-update"
+    },
+    {
+      "slash": "/mail-now",
+      "description": "alleen wat nu echt aandacht vraagt, met --explain-empty voor suppressed-uitleg"
+    },
+    {
+      "slash": "/mail-triage-now",
+      "also": [
+        "/mail-now-triage"
+      ],
+      "description": "actuele mail prioriteren zonder losse --current-only vlag"
+    },
+    {
+      "slash": "/mail-triage-review",
+      "also": [
+        "/mail-review-triage"
+      ],
+      "description": "reviewwaardige mail prioriteren zonder losse --review-worthy vlag"
+    },
+    {
+      "slash": "/mail-now-empty",
+      "also": [
+        "/mail-current-empty"
+      ],
+      "description": "actuele mailcheck met suppressed-uitleg al ingebouwd"
+    },
+    {
+      "slash": "/mail-alerts-now",
+      "also": [
+        "/mail-security-now"
+      ],
+      "description": "actuele security- of loginmeldingen, met current-only en noop-uitleg al ingebouwd"
+    },
+    {
+      "slash": "/mail-code-now",
+      "also": [
+        "/mail-otp-now"
+      ],
+      "description": "actuele verificatiecode-check met current-only en noop-uitleg al ingebouwd"
+    },
+    {
+      "slash": "/mail-focus-now",
+      "also": [
+        "/mail-now-focus"
+      ],
+      "description": "beste actuele mail-focus zonder stale fallback"
+    },
+    {
+      "slash": "/mail-focus-review",
+      "also": [
+        "/mail-review-focus"
+      ],
+      "description": "beste reviewwaardige mail-focus zonder code-only of ruisfallback"
+    },
+    {
+      "slash": "/mail-thread-now",
+      "also": [
+        "/mail-now-thread"
+      ],
+      "description": "open direct alleen een actuele thread zonder losse --current-only vlag"
+    },
+    {
+      "slash": "/mail-thread-review",
+      "also": [
+        "/mail-review-thread"
+      ],
+      "description": "open direct alleen een reviewwaardige thread zonder losse --review-worthy vlag"
+    },
+    {
+      "slash": "/mail-first",
+      "description": "beste eerstvolgende mail"
+    },
+    {
+      "slash": "/mail-review-next",
+      "description": "aanbevolen thread meteen openklappen, met --explain-empty als noop-uitleg"
+    },
+    {
+      "slash": "/mail-help",
+      "also": [
+        "/mail-routes",
+        "/mail-commands"
+      ],
+      "description": "toon alle mailroutes en voorbeelden"
+    }
+  ],
+  "commands": [
+    {
+      "name": "automation",
+      "slash": "/automation",
+      "description": "Compact overzicht van web automation status, routes, Proton readiness en verification-status"
+    },
+    {
+      "name": "automation-artifacts",
+      "slash": "/automation-artifacts",
+      "description": "Toon web automation artifacts per adapter met freshness en refresh-advies"
+    },
+    {
+      "name": "automation-auto",
+      "slash": "/automation-auto",
+      "description": "Voer veilig één of meer betekenisvolle web automation vervolgstappen uit, inclusief site-refresh, desktop-fallback en cleanup/handoff waar nodig"
+    },
+    {
+      "name": "automation-board",
+      "slash": "/automation-board",
+      "description": "Compact overzicht van web automation routes, Proton readiness en verification-status"
+    },
+    {
+      "name": "automation-catalog",
+      "slash": "/automation-catalog",
+      "description": "Web automation catalogus en dispatcher voor DOM/desktop/Proton routes"
+    },
+    {
+      "name": "automation-desktop-status",
+      "slash": "/automation-desktop-status",
+      "description": "Toon compacte desktop-fallback status per beheerd web automation target"
+    },
+    {
+      "name": "automation-proton-refresh",
+      "slash": "/automation-proton-refresh",
+      "description": "Draai de veilige Proton automation-chain via de centrale automation-dispatcher"
+    },
+    {
+      "name": "automation-proton-status",
+      "slash": "/automation-proton-status",
+      "description": "Lees huidige Proton automation-status via de centrale automation-dispatcher"
+    },
+    {
+      "name": "automation-refresh-desktop",
+      "slash": "/automation-refresh-desktop",
+      "description": "Refresh desktop-fallback observability voor beheerde web automation targets"
+    },
+    {
+      "name": "automation-refresh-sites",
+      "slash": "/automation-refresh-sites",
+      "description": "Refresh opgeslagen generieke web site probes, standaard alleen stale sites"
+    },
+    {
+      "name": "automation-refresh-stack",
+      "slash": "/automation-refresh-stack",
+      "description": "Refresh DOM en desktop observability samen voor web automation targets"
+    },
+    {
+      "name": "automation-selectors",
+      "slash": "/automation-selectors",
+      "description": "Toon selector-hints uit recente web probes voor sneller adapterwerk"
+    },
+    {
+      "name": "automation-site-registry",
+      "slash": "/automation-site-registry",
+      "description": "Beheer en valideer opgeslagen web automation targets in de site-registry"
+    },
+    {
+      "name": "automation-sites",
+      "slash": "/automation-sites",
+      "description": "Toon opgeslagen generieke web site probes met freshness en refresh-advies"
+    },
+    {
+      "name": "automation-stack",
+      "slash": "/automation-stack",
+      "description": "Toon gecombineerde DOM, desktop, artifact en workflow status per web automation target"
+    },
+    {
+      "name": "board",
+      "slash": "/board",
+      "description": "Gecombineerd board voor status, mail, proton, security, tasks en tools"
+    },
+    {
+      "name": "brief",
+      "slash": "/brief",
+      "description": "Korte gecombineerde status- en mailbrief"
+    },
+    {
+      "name": "mail",
+      "slash": "/mail",
+      "description": "Mail-overzicht met latest, unread, new en drafts"
+    },
+    {
+      "name": "mail-alerts-now",
+      "slash": "/mail-alerts-now",
+      "description": "Toon alleen actuele security- of loginmeldingen en leg een lege check meteen uit"
+    },
+    {
+      "name": "mail-board-now",
+      "slash": "/mail-board-now",
+      "description": "Compact mailboard met alleen actuele aandacht en suppressed-uitleg bij een lege actuele mailbox"
+    },
+    {
+      "name": "mail-board-review",
+      "slash": "/mail-board-review",
+      "description": "Compact mailboard met alleen nog reviewwaardige mail en suppressed-uitleg bij noop"
+    },
+    {
+      "name": "mail-catalog",
+      "slash": "/mail-catalog",
+      "description": "Mail workflow catalogus en dispatcher-routes"
+    },
+    {
+      "name": "mail-check",
+      "slash": "/mail-check",
+      "description": "Check alleen echt nieuwe mail sinds de laatste state-update"
+    },
+    {
+      "name": "mail-clusters",
+      "slash": "/mail-clusters",
+      "description": "Toon recente mail geclusterd per afzender/actie zodat bursts compacter zichtbaar zijn"
+    },
+    {
+      "name": "mail-code-now",
+      "slash": "/mail-code-now",
+      "description": "Toon alleen actuele verificatiecodes en leg een lege mailboxcheck meteen uit"
+    },
+    {
+      "name": "mail-codes",
+      "slash": "/mail-codes",
+      "description": "Zoek verificatiecodes in recente mail, met --current-only of suppressed-uitleg via --explain-empty"
+    },
+    {
+      "name": "mail-drafts",
+      "slash": "/mail-drafts",
+      "description": "Concept-antwoorden op basis van nieuwe, ongelezen of recente mail"
+    },
+    {
+      "name": "mail-first",
+      "slash": "/mail-first",
+      "description": "Snelle route naar de ene beste eerstvolgende mail"
+    },
+    {
+      "name": "mail-focus",
+      "slash": "/mail-focus",
+      "description": "Kies de ene beste mail om nu als eerste op te pakken, ook met --current-only of --review-worthy en optioneel conceptantwoord"
+    },
+    {
+      "name": "mail-focus-now",
+      "slash": "/mail-focus-now",
+      "description": "Kies direct de beste actuele mail-focus zonder stale fallback"
+    },
+    {
+      "name": "mail-focus-review",
+      "slash": "/mail-focus-review",
+      "description": "Kies direct de beste reviewwaardige mail-focus zonder code-only of ruisfallback"
+    },
+    {
+      "name": "mail-high-priority",
+      "slash": "/mail-high-priority",
+      "description": "Toon snel welke recente mails als high priority gezien worden"
+    },
+    {
+      "name": "mail-inbox",
+      "slash": "/mail-inbox",
+      "description": "Snelle inbox-view van recente mail"
+    },
+    {
+      "name": "mail-latest",
+      "slash": "/mail-latest",
+      "description": "Laatste mails of ongelezen inbox-items bekijken"
+    },
+    {
+      "name": "mail-next-step",
+      "slash": "/mail-next-step",
+      "description": "Bepaal de volgende nuttige mailstap, ook met --current-only of --review-worthy als stale fallback juist niet gewenst is"
+    },
+    {
+      "name": "mail-now",
+      "slash": "/mail-now",
+      "description": "Toon alleen recente mail die nu echt aandacht vraagt, optioneel met suppressed-uitleg via --explain-empty"
+    },
+    {
+      "name": "mail-now-empty",
+      "slash": "/mail-now-empty",
+      "description": "Toon wat nu echt aandacht vraagt, en leg een lege actuele mailbox meteen uit via suppressed-uitleg"
+    },
+    {
+      "name": "mail-queue",
+      "slash": "/mail-queue",
+      "description": "Toon een korte prioriteitslijst van de beste volgende mailacties"
+    },
+    {
+      "name": "mail-reply-needed",
+      "slash": "/mail-reply-needed",
+      "description": "Toon snel welke recente mails waarschijnlijk antwoord nodig hebben"
+    },
+    {
+      "name": "mail-review-next",
+      "slash": "/mail-review-next",
+      "description": "Open direct de aanbevolen volgende mailthread met context, alternatieven, optioneel conceptantwoord en noop-uitleg via --explain-empty"
+    },
+    {
+      "name": "mail-security-alerts",
+      "slash": "/mail-security-alerts",
+      "description": "Toon compacte account- en login-alerts met current-only en suppressed-uitleg"
+    },
+    {
+      "name": "mail-summary",
+      "slash": "/mail-summary",
+      "description": "Nieuwe mail met urgentie en actiehints"
+    },
+    {
+      "name": "mail-thread",
+      "slash": "/mail-thread",
+      "description": "Klap één recente mailthread compact uit, met filters op afzender/onderwerp/actie en optioneel conceptantwoord"
+    },
+    {
+      "name": "mail-thread-now",
+      "slash": "/mail-thread-now",
+      "description": "Open direct alleen een actuele mailthread, met suppressed-uitleg via --explain-empty"
+    },
+    {
+      "name": "mail-thread-review",
+      "slash": "/mail-thread-review",
+      "description": "Open direct alleen een reviewwaardige mailthread, met noop-uitleg via --explain-empty"
+    },
+    {
+      "name": "mail-triage",
+      "slash": "/mail-triage",
+      "description": "Prioriteer ongelezen mail met actiehints en reply-signalen"
+    },
+    {
+      "name": "mail-triage-now",
+      "slash": "/mail-triage-now",
+      "description": "Prioriteer direct alleen actuele mail met aandachtssignaal, zonder stale fallback"
+    },
+    {
+      "name": "mail-triage-review",
+      "slash": "/mail-triage-review",
+      "description": "Prioriteer direct alleen reviewwaardige mail zonder code-only of ruisfallback"
+    },
+    {
+      "name": "mail-unread",
+      "slash": "/mail-unread",
+      "description": "Toon direct alleen ongelezen mail"
+    },
+    {
+      "name": "proton",
+      "slash": "/proton",
+      "description": "Samenvatting van de Proton signup automation-status"
+    },
+    {
+      "name": "proton-auto",
+      "slash": "/proton-auto",
+      "description": "Voer veilig de aanbevolen Proton vervolgstap uit zonder finale submit"
+    },
+    {
+      "name": "proton-board",
+      "slash": "/proton-board",
+      "description": "Compact Proton board met status plus volgende stap"
+    },
+    {
+      "name": "proton-continue",
+      "slash": "/proton-continue",
+      "description": "Trek de Proton signup-flow veilig verder via de external-email finish route wanneer verificatie al geaccepteerd lijkt"
+    },
+    {
+      "name": "proton-finish",
+      "slash": "/proton-finish",
+      "description": "Compacte handoff voor de Proton manual boundary en Recovery Kit stap"
+    },
+    {
+      "name": "proton-human",
+      "slash": "/proton-human",
+      "description": "Compact overzicht van de Proton human-verification dialoog en beschikbare email/code-controls"
+    },
+    {
+      "name": "proton-next-step",
+      "slash": "/proton-next-step",
+      "description": "Bepaal de volgende nuttige Proton automation stap"
+    },
+    {
+      "name": "proton-refresh",
+      "slash": "/proton-refresh",
+      "description": "Draai veilige Proton probes opnieuw en toon verse status"
+    },
+    {
+      "name": "proton-request-code",
+      "slash": "/proton-request-code",
+      "description": "Vraag automatisch een Proton verificatiecode aan via de human-verification flow met state-defaults"
+    },
+    {
+      "name": "proton-use-code",
+      "slash": "/proton-use-code",
+      "description": "Pak automatisch de nieuwste Proton verificatiecode uit mail en probeer die in de Human Verification-flow te gebruiken"
+    },
+    {
+      "name": "proton-verify",
+      "slash": "/proton-verify",
+      "description": "Combineer Proton verificatiestatus met mailbox-code lookup"
+    },
+    {
+      "name": "security",
+      "slash": "/security",
+      "description": "Compacte security-audit samenvatting"
+    },
+    {
+      "name": "status",
+      "slash": "/status",
+      "description": "Compacte OpenClaw status"
+    },
+    {
+      "name": "tasks",
+      "slash": "/tasks",
+      "description": "Compacte task-audit samenvatting"
+    },
+    {
+      "name": "tools",
+      "slash": "/tools",
+      "description": "Overzicht van beschikbare tools en scripts"
+    }
+  ],
+  "aliases": [
+    {
+      "slash": "/commands",
+      "target": "/help"
+    },
+    {
+      "slash": "/list",
+      "target": "/help"
+    },
+    {
+      "slash": "/mail-alerts",
+      "target": "/mail-security-alerts"
+    },
+    {
+      "slash": "/mail-auth-code",
+      "target": "/mail-codes"
+    },
+    {
+      "slash": "/mail-board",
+      "target": "/mail"
+    },
+    {
+      "slash": "/mail-cluster",
+      "target": "/mail-clusters"
+    },
+    {
+      "slash": "/mail-code",
+      "target": "/mail-codes"
+    },
+    {
+      "slash": "/mail-commands",
+      "target": "/mail-catalog"
+    },
+    {
+      "slash": "/mail-conversation",
+      "target": "/mail-thread"
+    },
+    {
+      "slash": "/mail-current",
+      "target": "/mail-now"
+    },
+    {
+      "slash": "/mail-current-empty",
+      "target": "/mail-now-empty"
+    },
+    {
+      "slash": "/mail-followup",
+      "target": "/mail-next-step"
+    },
+    {
+      "slash": "/mail-help",
+      "target": "/mail-catalog"
+    },
+    {
+      "slash": "/mail-new",
+      "target": "/mail-check"
+    },
+    {
+      "slash": "/mail-next",
+      "target": "/mail-next-step"
+    },
+    {
+      "slash": "/mail-next-thread",
+      "target": "/mail-review-next"
+    },
+    {
+      "slash": "/mail-now-board",
+      "target": "/mail-board-now"
+    },
+    {
+      "slash": "/mail-now-focus",
+      "target": "/mail-focus-now"
+    },
+    {
+      "slash": "/mail-now-thread",
+      "target": "/mail-thread-now"
+    },
+    {
+      "slash": "/mail-now-triage",
+      "target": "/mail-triage-now"
+    },
+    {
+      "slash": "/mail-open",
+      "target": "/mail-review-next"
+    },
+    {
+      "slash": "/mail-otp",
+      "target": "/mail-codes"
+    },
+    {
+      "slash": "/mail-otp-now",
+      "target": "/mail-code-now"
+    },
+    {
+      "slash": "/mail-overview",
+      "target": "/mail"
+    },
+    {
+      "slash": "/mail-prioritize",
+      "target": "/mail-triage"
+    },
+    {
+      "slash": "/mail-priority",
+      "target": "/mail-high-priority"
+    },
+    {
+      "slash": "/mail-replies",
+      "target": "/mail-reply-needed"
+    },
+    {
+      "slash": "/mail-review",
+      "target": "/mail-review-next"
+    },
+    {
+      "slash": "/mail-review-board",
+      "target": "/mail-board-review"
+    },
+    {
+      "slash": "/mail-review-focus",
+      "target": "/mail-focus-review"
+    },
+    {
+      "slash": "/mail-review-thread",
+      "target": "/mail-thread-review"
+    },
+    {
+      "slash": "/mail-review-triage",
+      "target": "/mail-triage-review"
+    },
+    {
+      "slash": "/mail-routes",
+      "target": "/mail-catalog"
+    },
+    {
+      "slash": "/mail-security",
+      "target": "/mail-security-alerts"
+    },
+    {
+      "slash": "/mail-security-now",
+      "target": "/mail-alerts-now"
+    },
+    {
+      "slash": "/mail-threads",
+      "target": "/mail-thread"
+    },
+    {
+      "slash": "/mail-todo",
+      "target": "/mail-queue"
+    },
+    {
+      "slash": "/mail-urgent",
+      "target": "/mail-now"
+    },
+    {
+      "slash": "/mail-verify",
+      "target": "/mail-codes"
+    },
+    {
+      "slash": "/mail-worklist",
+      "target": "/mail-queue"
+    }
+  ]
+}

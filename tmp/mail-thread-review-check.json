@@ -1,0 +1,12 @@
+{
+  "search_limit": 50,
+  "thread_count": 7,
+  "filtered_thread_count": 0,
+  "thread": null,
+  "draft": null,
+  "command": "python3 scripts/mail-dispatch.py thread --messages 8 --review-worthy",
+  "recommended_route": "noop",
+  "recommended_command": "python3 scripts/mail-dispatch.py latest --review-worthy",
+  "reason": "geen reviewwaardige mailthread",
+  "suppressed_groups": []
+}

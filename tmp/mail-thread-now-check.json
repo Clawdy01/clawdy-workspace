@@ -1,0 +1,12 @@
+{
+  "search_limit": 50,
+  "thread_count": 7,
+  "filtered_thread_count": 7,
+  "thread": null,
+  "draft": null,
+  "command": "python3 scripts/mail-dispatch.py thread --messages 8 --current-only",
+  "recommended_route": "noop",
+  "recommended_command": "python3 scripts/mail-dispatch.py latest --current-only",
+  "reason": "geen actuele mailthread",
+  "suppressed_groups": []
+}

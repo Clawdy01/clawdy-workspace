@@ -60,6 +60,14 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'now'],
         'description': 'Toon alleen recente mail die nu echt aandacht vraagt, optioneel met suppressed-uitleg via --explain-empty',
     },
+    'mail-triage-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'triage-now'],
+        'description': 'Prioriteer direct alleen actuele mail met aandachtssignaal, zonder stale fallback',
+    },
+    'mail-triage-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'triage-review'],
+        'description': 'Prioriteer direct alleen reviewwaardige mail zonder code-only of ruisfallback',
+    },
     'mail-now-empty': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'now', '--explain-empty'],
         'description': 'Toon wat nu echt aandacht vraagt, en leg een lege actuele mailbox meteen uit via suppressed-uitleg',
@@ -103,6 +111,14 @@ COMMANDS = {
     'mail-thread': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'thread'],
         'description': 'Klap één recente mailthread compact uit, met filters op afzender/onderwerp/actie en optioneel conceptantwoord',
+    },
+    'mail-thread-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'thread-now'],
+        'description': 'Open direct alleen een actuele mailthread, met suppressed-uitleg via --explain-empty',
+    },
+    'mail-thread-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'thread-review'],
+        'description': 'Open direct alleen een reviewwaardige mailthread, met noop-uitleg via --explain-empty',
     },
     'mail-clusters': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'clusters'],
@@ -271,6 +287,10 @@ ALIASES = {
     '/mail-now': 'mail-now',
     '/mail-current': 'mail-now',
     '/mail-urgent': 'mail-now',
+    '/mail-triage-now': 'mail-triage-now',
+    '/mail-now-triage': 'mail-triage-now',
+    '/mail-triage-review': 'mail-triage-review',
+    '/mail-review-triage': 'mail-triage-review',
     '/mail-now-empty': 'mail-now-empty',
     '/mail-current-empty': 'mail-now-empty',
     '/mail-focus': 'mail-focus',
@@ -297,6 +317,10 @@ ALIASES = {
     '/mail-thread': 'mail-thread',
     '/mail-threads': 'mail-thread',
     '/mail-conversation': 'mail-thread',
+    '/mail-thread-now': 'mail-thread-now',
+    '/mail-now-thread': 'mail-thread-now',
+    '/mail-thread-review': 'mail-thread-review',
+    '/mail-review-thread': 'mail-thread-review',
     '/mail-clusters': 'mail-clusters',
     '/mail-cluster': 'mail-clusters',
     '/mail-reply-needed': 'mail-reply-needed',
@@ -400,6 +424,16 @@ def help_payload():
             'description': 'alleen wat nu echt aandacht vraagt, met --explain-empty voor suppressed-uitleg',
         },
         {
+            'slash': '/mail-triage-now',
+            'also': ['/mail-now-triage'],
+            'description': 'actuele mail prioriteren zonder losse --current-only vlag',
+        },
+        {
+            'slash': '/mail-triage-review',
+            'also': ['/mail-review-triage'],
+            'description': 'reviewwaardige mail prioriteren zonder losse --review-worthy vlag',
+        },
+        {
             'slash': '/mail-now-empty',
             'also': ['/mail-current-empty'],
             'description': 'actuele mailcheck met suppressed-uitleg al ingebouwd',
@@ -423,6 +457,16 @@ def help_payload():
             'slash': '/mail-focus-review',
             'also': ['/mail-review-focus'],
             'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback',
+        },
+        {
+            'slash': '/mail-thread-now',
+            'also': ['/mail-now-thread'],
+            'description': 'open direct alleen een actuele thread zonder losse --current-only vlag',
+        },
+        {
+            'slash': '/mail-thread-review',
+            'also': ['/mail-review-thread'],
+            'description': 'open direct alleen een reviewwaardige thread zonder losse --review-worthy vlag',
         },
         {
             'slash': '/mail-first',
