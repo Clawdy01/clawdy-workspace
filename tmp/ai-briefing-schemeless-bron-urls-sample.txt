@@ -1,0 +1,42 @@
+Dagelijkse AI-update, woensdag 15 april 2026
+
+Korte intro: dit is een regressiesample om te bewaken dat `Bron:`-regels zonder expliciete http(s)-scheme rood blijven, ook als de domeinen er op het oog URL-achtig uitzien.
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI deelt nieuw GPT-platformoverzicht
+Bron: www.openai.com/news | platform.openai.com/docs
+Datum: 2026-04-15
+Wat is er nieuw: OpenAI zou een nieuw platformoverzicht delen, maar de bronregel is bewust fout omdat beide verwijzingen geen volledige http(s)-URL zijn.
+Waarom is dit belangrijk: Dit bewaakt dat de audit niet versoepelt naar domeinachtige tekst zonder scheme.
+Relevant voor Christian: Belangrijk voor harde formatdiscipline in de briefing.
+
+2) open-source modellen/frameworks/inference tooling
+Titel: Hugging Face toont nieuwe inference-notes
+Bron: huggingface.co/blog/inference | www.github.com/huggingface/text-generation-inference
+Datum: 2026-04-15
+Wat is er nieuw: Ook dit item gebruikt bewust scheme-loze bronverwijzingen die menselijk leesbaar lijken maar machine-checkbaar ongeldig zijn.
+Waarom is dit belangrijk: Zo voorkomen we vals groen zodra een model de `https://` prefix vergeet.
+Relevant voor Christian: Nuttig om de outputaudit scherp te houden op exact bronformaat.
+
+3) multimodal, voice, image, video en on-device/lokale AI
+Titel: Google beschrijft verse Gemini voice-updates
+Bron: blog.google/technology/ai/gemini-voice | deepmind.google/discover/blog/gemini-voice
+Datum: 2026-04-15
+Wat is er nieuw: Dit derde item houdt dezelfde fout bewust vast voor een top-3 regressiegeval.
+Waarom is dit belangrijk: De prompt eist volledige URLs, dus ook nette domeinen zonder scheme moeten rood blijven.
+Relevant voor Christian: Handig als extra vangrail naast markdown-, quote- en haakjesgevallen.
+
+Wat moeten wij hiermee?
+- Blijf expliciet afdwingen dat `Bron:` alleen volledige http(s)-URLs bevat.
+- Voorkom dat menselijk leesbare maar scheme-loze bronregels stil als geldig worden gezien.
+
+Wat ik vandaag het belangrijkst vind
+- De audit moet `www.` of kale domeinpaden zonder `https://` net zo hard afwijzen als vrije tekst.
+
+bronnenlijst met URLs
+https://openai.com/news
+https://platform.openai.com/docs
+https://huggingface.co/blog/inference
+https://github.com/huggingface/text-generation-inference
+https://blog.google/technology/ai/gemini-voice
+https://deepmind.google/discover/blog/gemini-voice

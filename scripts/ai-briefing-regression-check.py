@@ -2,10 +2,12 @@
 import argparse
 import importlib.util
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATUS_SCRIPT = ROOT / 'scripts' / 'ai-briefing-status.py'
+DEFAULT_REFERENCE_MS = int(datetime(2026, 4, 15, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
 DEFAULT_CASES = [
     {
         'name': 'real-run-2026-04-14-0902-failed-summary',
@@ -236,6 +238,44 @@ DEFAULT_CASES = [
             'te weinig geldige bron-URLs op geldige Bron:-regels (0)',
             'niet elk item heeft een geldige Bron:-regel met alleen URLs',
             'aanhalingstekens 3x',
+            'geen herkenbare primaire bron in top 3 items',
+        ],
+    },
+    {
+        'name': 'schemeless-bron-urls-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-schemeless-bron-urls-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 2,
+        'expect_items_with_valid_source_line_count': 0,
+        'expect_items_with_invalid_source_line_count': 3,
+        'expect_first3_items_with_source_count': 2,
+        'expect_first3_items_with_valid_source_line_count': 0,
+        'expect_first3_items_with_multiple_sources_count': 0,
+        'expect_first3_items_with_primary_source_count': 0,
+        'expect_first3_evidenced_item_count': 0,
+        'expect_first3_primary_source_family_count': 0,
+        'expect_first3_primary_fresh_item_count': 0,
+        'expect_source_url_count': 0,
+        'expect_unique_source_url_count': 0,
+        'expect_first3_unique_source_url_count': 0,
+        'expect_invalid_source_issue_counts': {
+            'geen_url': 3,
+            'vrije_tekst': 3,
+        },
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [
+            'te weinig geldige bron-URLs op geldige Bron:-regels (0)',
+            'niet elk item heeft een zichtbare bron-URL (2/3)',
+            'niet elk item heeft een geldige Bron:-regel met alleen URLs',
+            'geen URL 3x',
             'geen herkenbare primaire bron in top 3 items',
         ],
     },
@@ -809,6 +849,46 @@ DEFAULT_CASES = [
             'OpenAI verduidelijkt Responses API voor toolgebruik',
         ],
     },
+    {
+        'name': 'empty-bron-line-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-empty-bron-line-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 2,
+        'expect_items_with_valid_source_line_count': 2,
+        'expect_items_with_invalid_source_line_count': 1,
+        'expect_first3_items_with_source_count': 2,
+        'expect_first3_items_with_valid_source_line_count': 2,
+        'expect_first3_items_with_multiple_sources_count': 2,
+        'expect_first3_items_with_primary_source_count': 2,
+        'expect_explicit_dated_item_count': 3,
+        'expect_explicit_recent_dated_first3_count': 3,
+        'expect_explicit_fresh_dated_first3_count': 3,
+        'expect_first3_evidenced_item_count': 2,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 2,
+        'expect_invalid_source_issue_counts': {
+            'leeg': 1,
+        },
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_items_with_exact_field_order_count': 3,
+        'expect_items_with_field_order_mismatch_count': 0,
+        'expect_reason_substrings': [
+            'niet elk item heeft een zichtbare bron-URL (2/3)',
+            'niet elk item heeft een geldige Bron:-regel met alleen URLs (2/3)',
+            'patronen: leeg 1x',
+            'niet elk top-3 item heeft een zichtbare bron-URL (2/3)',
+            'niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3)',
+            'top3 patronen: leeg 1x',
+        ],
+    },
 ]
 
 
@@ -823,7 +903,7 @@ def load_status_module():
 def evaluate_case(module, case):
     path = Path(case['path'])
     summary_text = path.read_text(encoding='utf-8')
-    audit = module.audit_summary_output(summary_text)
+    audit = module.audit_summary_output(summary_text, reference_ms=case.get('reference_ms', DEFAULT_REFERENCE_MS))
     failures = []
     if audit.get('ok') != case['expect_ok']:
         failures.append(f"ok verwacht {case['expect_ok']}, kreeg {audit.get('ok')}")

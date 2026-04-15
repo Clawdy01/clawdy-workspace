@@ -1,0 +1,32 @@
+Titel: OpenAI brengt nieuwe frontier modelrelease uit
+Bron:
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI beschrijft een nieuwe frontier modelrelease en research-doorbraak voor agent workflows.
+Waarom is dit belangrijk: Dit raakt direct frontier modelupdates, agents en research-capabilities.
+Relevant voor Christian: Dit helpt om sneller te zien wanneer een modelrelease echt praktisch inzetbaar wordt.
+
+Titel: GitHub scherpt coding workflow voor agents aan
+Bron: https://github.blog/changelog/agent-workflows/ | https://github.com/features/copilot
+Datum: 2026-04-14
+Wat is er nieuw: GitHub beschrijft een coding workflow-update voor agents en automation.
+Waarom is dit belangrijk: Dit raakt tools-productfeatures en agents/automation/coding workflows.
+Relevant voor Christian: Dit kan direct bruikbaar zijn voor dagelijkse AI research en developer workflows.
+
+Titel: Anthropic deelt nieuwe research over multimodal agents
+Bron: https://www.anthropic.com/news/multimodal-agents | https://arxiv.org/abs/2604.12345
+Datum: 2026-04-14
+Wat is er nieuw: Anthropic koppelt multimodal capabilities aan researchresultaten voor agents.
+Waarom is dit belangrijk: Dit raakt multimodal, research en frontier modelupdates.
+Relevant voor Christian: Dit geeft extra signaal of multimodal agents al nuttig genoeg worden voor echte workflows.
+
+Wat moeten wij hiermee?
+- Gebruik dit als regressiecheck zodat een lege Bron:-regel nooit stil groen wordt.
+
+Wat ik vandaag het belangrijkst vind
+- De audit moet lege Bron:-regels expliciet rood blijven markeren voordat de ochtendrun opnieuw kwalificeert.
+
+Bronnenlijst met URLs
+- https://github.blog/changelog/2026-04-14-agent-workflows/
+- https://github.com/features/copilot
+- https://www.anthropic.com/news/multimodal-agents
+- https://arxiv.org/abs/2604.12345
