@@ -1,0 +1,36 @@
+AI briefing test
+
+Titel: OpenAI deelt nieuwe Responses API-notities
+Bron: https://openai.com/index/new-tools-for-building-agents/ ｜ https://platform.openai.com/docs/guides/tools
+Datum: 2026-04-15
+Wat is er nieuw: OpenAI koppelt nieuwe agent/tooling-uitleg aan een docsroute.
+Waarom is dit belangrijk: Dit test dat unicode-pipevarianten niet stil als geldige bronregel door de audit glippen.
+Relevant voor Christian: Dit houdt de formattering strikt, ook als een model een typografische verticale streep gebruikt.
+
+Titel: Anthropic werkt Claude Code documentatie bij
+Bron: https://www.anthropic.com/news ｜ https://docs.anthropic.com/en/docs/claude-code
+Datum: 2026-04-15
+Wat is er nieuw: Anthropic combineert nieuws en docs rond Claude Code.
+Waarom is dit belangrijk: Dit levert een tweede bijna-goede bronregel op met hetzelfde separatorfouttype.
+Relevant voor Christian: Dit bewaakt dat corroboratie alleen telt bij exact toegestane separators.
+
+Titel: Google zet Gemini API tooling breder neer
+Bron: https://developers.googleblog.com/en/gemini-api-updates/ ｜ https://ai.google.dev/gemini-api/docs
+Datum: 2026-04-15
+Wat is er nieuw: Google koppelt bloguitleg aan API-documentatie.
+Waarom is dit belangrijk: Dit houdt het regressiesample realistisch met drie top-3 items.
+Relevant voor Christian: Dit voorkomt dat een visueel bijna-identieke separator de top-3 audit omzeilt.
+
+Wat moeten wij hiermee?
+- Houd unicode-pipes ongeldig op Bron:-regels.
+
+Wat ik vandaag het belangrijkst vind
+- Alleen ASCII | mag als separator op Bron:-regels tellen.
+
+Bronnenlijst met URLs
+- https://openai.com/index/new-tools-for-building-agents/
+- https://platform.openai.com/docs/guides/tools
+- https://www.anthropic.com/news
+- https://docs.anthropic.com/en/docs/claude-code
+- https://developers.googleblog.com/en/gemini-api-updates/
+- https://ai.google.dev/gemini-api/docs

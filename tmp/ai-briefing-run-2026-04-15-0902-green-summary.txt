@@ -1,0 +1,26 @@
+Dagelijkse AI-update, dinsdag 14 april 2026
+
+Brede scan gedaan over primaire bronpagina’s en releasefeeds. Er lijkt vandaag relatief weinig echt nieuw frontier-nieuws te zijn in de laatste 48 uur, maar er waren wel een paar praktische en relevante updates, vooral rond lokale/open-source stacks, coding agents en agent research.
+
+1) Frontier modelreleases en modelupdates
+
+Geen bevestigde nieuwe frontier modelrelease gezien in de afgelopen 48 uur bij OpenAI, Anthropic, Google DeepMind of vergelijkbare topaanbieders.
+
+- Wat is er nieuw
+  Geen nieuwe model-launch van het kaliber GPT/Claude/Gemini/Opus/Grok in de laatste 48 uur gevonden op de primaire nieuws- en changelogpagina’s die ik heb gescand.
+- Waarom is dit belangrijk
+  Dit is op zichzelf relevant: de aandacht lijkt nu meer te liggen op operationalisering, agent-infrastructuur en open-source compatibiliteit rond bestaande modellen, vooral Gemma 4.
+- Relevant voor Christian
+  Ja. Het betekent dat er vandaag meer waarde zit in implementatie- en workflowverbeteringen dan in het najagen van een nieuwe frontier release.
+
+2) Nieuwe AI-tools en productfeatures
+
+Cursor 3.1 zet harder in op parallelle agents en voice input
+Bron: Cursor changelog, update-datum Apr 13, 2026 (zichtbaar in changelog/HTML; de uitgelezen artikeltekst zelf toonde de datum niet)
+
+- Wat is er nieuw
+  Cursor 3.1 voegt een tiled layout toe voor meerdere agents tegelijk, verbeterde voice input met batch-STT, branchselectie voordat je een cloud agent start, diff-naar-bestand navigatie en include/exclude filters in search.
+- Waarom is dit belangrijk
+  Dit is een concrete verschuiving van “één chat in een editor” naar een multi-agent werkoppervlak. Vooral het parallel draaien van meerdere agents en betere branchcontrole maakt agentic coding-workflows volwassener.
+- Relevant voor Christian
+  Sterk. Dit raakt direct aan hoe OpenClaw/Clawdy zich positioneert tegenover agent-first ontwikkelomgevingen, en het bevestigt dat multi-agent orchestration en voice-f…

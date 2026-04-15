@@ -737,6 +737,8 @@ def analyze_source_line_issues(line):
         issues.append('slash_separator')
     if re.search(r'[•·●◦▪▫‣∙]', body_without_urls_for_separator):
         issues.append('bullet_separator')
+    if re.search(r'[｜¦‖∣]', body_without_urls_for_separator):
+        issues.append('pipe_variant')
     if ',' in body:
         issues.append('komma')
     if ';' in body:
@@ -779,6 +781,7 @@ def format_issue_counts(counter):
         'lege_separator': 'lege separator',
         'slash_separator': 'slash-separator',
         'bullet_separator': 'bullet-separator',
+        'pipe_variant': 'pipe-variant',
         'komma': 'komma',
         'puntkomma': 'puntkomma',
         'haakjes': 'haakjes',
