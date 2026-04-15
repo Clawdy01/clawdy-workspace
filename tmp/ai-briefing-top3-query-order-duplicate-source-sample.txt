@@ -1,0 +1,33 @@
+Titel: OpenAI deelt nieuwe Responses API voorbeelden
+Bron: https://openai.com/index/responses-api https://platform.openai.com/docs/guides/tools
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI laat nieuwe voorbeelden en documentatie zien voor Responses API en tool calling.
+Waarom is dit belangrijk: Dit geeft direct bruikbaar productbewijs voor agentworkflows.
+Relevant voor Christian: Relevant voor OpenClaw-agentgedrag en tool-calling UX.
+
+Titel: Anthropic publiceert prompt caching update met queryvolgorde-variant
+Bron: https://www.anthropic.com/news/prompt-caching?ref=homepage&lang=en https://www.anthropic.com/news/prompt-caching?lang=en&ref=homepage
+Datum: 2026-04-14
+Wat is er nieuw: Dit item gebruikt twee keer dezelfde URL met identieke query-parameters in omgekeerde volgorde, zodat het op het oog multi-source lijkt.
+Waarom is dit belangrijk: Dit test dat queryvolgorde niet vals als twee verschillende bronnen meetelt.
+Relevant voor Christian: Handig om broncorroboratie robuust te houden wanneer sites parameter-volgorde wisselen.
+
+Titel: Hugging Face zet nieuwe inference-notities live
+Bron: https://huggingface.co/blog https://github.com/huggingface/text-generation-inference/releases
+Datum: 2026-04-14
+Wat is er nieuw: Hugging Face koppelt blog- en release-informatie voor nieuwe inference-tooling.
+Waarom is dit belangrijk: Dit geeft open-source corroboratie naast closed-model updates.
+Relevant voor Christian: Relevant voor lokale modelroutes en researchworkflow-keuzes.
+
+Wat moeten wij hiermee?
+Gebruik dit sample om vast te pinnen dat dezelfde bron met alleen andere queryvolgorde niet als echte corroboratie telt.
+
+Wat ik vandaag het belangrijkst vind
+Top-3 bewijs moet queryvolgorde-normalisatie meenemen zodat dezelfde bron niet dubbel telt.
+
+Bronnenlijst met URLs
+https://openai.com/index/responses-api
+https://platform.openai.com/docs/guides/tools
+https://www.anthropic.com/news/prompt-caching?ref=homepage&lang=en
+https://github.com/huggingface/text-generation-inference/releases
+https://huggingface.co/blog

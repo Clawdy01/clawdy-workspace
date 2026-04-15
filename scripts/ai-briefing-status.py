@@ -869,12 +869,30 @@ def canonicalize_source_url(url):
         return raw
     if not parts.scheme or not parts.netloc:
         return raw
-    filtered_query = [
-        (key, value)
-        for key, value in parse_qsl(parts.query, keep_blank_values=True)
-        if key.lower() not in TRACKING_QUERY_PARAMS and not key.lower().startswith(TRACKING_QUERY_PARAM_PREFIXES)
-    ]
-    normalized_netloc = parts.netloc.lower()
+    filtered_query = sorted(
+        (
+            (key, value)
+            for key, value in parse_qsl(parts.query, keep_blank_values=True)
+            if key.lower() not in TRACKING_QUERY_PARAMS and not key.lower().startswith(TRACKING_QUERY_PARAM_PREFIXES)
+        ),
+        key=lambda item: (item[0], item[1]),
+    )
+    hostname = (parts.hostname or '').lower()
+    port = parts.port
+    username = parts.username
+    password = parts.password
+    default_port = (parts.scheme.lower() == 'https' and port == 443) or (parts.scheme.lower() == 'http' and port == 80)
+    if not hostname:
+        normalized_netloc = parts.netloc.lower()
+    else:
+        auth = ''
+        if username is not None:
+            auth = username
+            if password is not None:
+                auth += f':{password}'
+            auth += '@'
+        port_suffix = '' if port is None or default_port else f':{port}'
+        normalized_netloc = f'{auth}{hostname}{port_suffix}'
     normalized_path = parts.path or '/'
     normalized_query = urlencode(filtered_query, doseq=True)
     return urlunsplit((parts.scheme.lower(), normalized_netloc, normalized_path, normalized_query, ''))

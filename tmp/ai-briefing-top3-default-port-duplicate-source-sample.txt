@@ -1,0 +1,35 @@
+AI briefing test
+
+Titel: OpenAI publiceert GPT-4.1 API-updates
+Bron: https://openai.com:443/index/gpt-4-1/ | https://openai.com/index/gpt-4-1/
+Datum: 14 april 2026
+Wat is er nieuw: OpenAI beschrijft nieuwe GPT-4.1 API-details en modelverbeteringen.
+Waarom is dit belangrijk: Dit raakt direct de kwaliteit en kosten van agentworkflows.
+Relevant voor Christian: Dit helpt bepalen of bestaande prompts of tooling moeten meebewegen.
+
+Titel: GitHub breidt Copilot coding agent uit
+Bron: https://github.blog/changelog/copilot-agent-update/ | https://github.com/features/copilot/agent-update/
+Datum: 14 april 2026
+Wat is er nieuw: GitHub beschrijft nieuwe agentmogelijkheden voor Copilot via twee eigen primaire routes.
+Waarom is dit belangrijk: Dit beïnvloedt de vergelijking tussen lokale workflows en hosted coding agents.
+Relevant voor Christian: Dit geeft context voor toolkeuzes rond coderen en review.
+
+Titel: Google zet nieuwe Gemini tooling-livegang door
+Bron: https://blog.google/technology/google-deepmind/gemini-tooling-update/ | https://ai.google.dev/gemini-api/docs/tooling-update/
+Datum: 14 april 2026
+Wat is er nieuw: Google licht nieuwe Gemini-tooling toe en een tweede primaire route bevestigt de uitrol.
+Waarom is dit belangrijk: Dit laat zien hoe snel tool-integraties rond modellen opschuiven.
+Relevant voor Christian: Dit helpt bij het prioriteren van research naar bruikbare modelroutes.
+
+Wat moeten wij hiermee?
+- Gebruik alleen echt onafhankelijke top-3 bronregels.
+
+Wat ik vandaag het belangrijkst vind
+- Broncorroboratie moet echte unieke URLs blijven.
+
+Bronnenlijst met URLs
+- https://openai.com/index/gpt-4-1/
+- https://github.blog/changelog/copilot-agent-update/
+- https://github.com/features/copilot/agent-update/
+- https://blog.google/technology/google-deepmind/gemini-tooling-update/
+- https://ai.google.dev/gemini-api/docs/tooling-update/
