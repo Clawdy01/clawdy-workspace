@@ -798,6 +798,50 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'slash-separated-bron-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-slash-separated-bron-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 0,
+        'expect_items_with_invalid_source_line_count': 3,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 0,
+        'expect_first3_items_with_multiple_sources_count': 0,
+        'expect_first3_items_with_primary_source_count': 0,
+        'expect_explicit_dated_item_count': 3,
+        'expect_explicit_recent_dated_first3_count': 3,
+        'expect_explicit_fresh_dated_first3_count': 3,
+        'expect_first3_evidenced_item_count': 0,
+        'expect_first3_primary_source_family_count': 0,
+        'expect_first3_primary_fresh_item_count': 0,
+        'expect_source_url_count': 0,
+        'expect_unique_source_url_count': 0,
+        'expect_source_domain_count': 0,
+        'expect_first3_unique_source_url_count': 0,
+        'expect_first3_source_domain_count': 0,
+        'expect_invalid_source_issue_counts': {
+            'slash_separator': 3,
+        },
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_items_with_exact_field_order_count': 3,
+        'expect_items_with_field_order_mismatch_count': 0,
+        'expect_reason_substrings': [
+            'te weinig geldige bron-URLs op geldige Bron:-regels (0)',
+            'niet elk item heeft een geldige Bron:-regel met alleen URLs (0/3)',
+            'patronen: slash-separator 3x',
+            'top3 patronen: slash-separator 3x',
+            'te weinig top-3 items met meerdere bron-URLs (0/3, verwacht minstens 3)',
+        ],
+    },
+    {
         'name': 'top3-missing-date-line-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-top3-missing-date-line-sample.txt',
         'expect_ok': False,
@@ -926,6 +970,7 @@ DEFAULT_CASES = [
         },
         'expect_items_with_exact_field_order_count': 3,
         'expect_items_with_field_order_mismatch_count': 0,
+        'expect_numbered_title_heading_count': 3,
         'expect_reason_substrings': [
             'verplichte exacte veldlabels per item kloppen niet (Titel: 0/3)',
             'genummerde itemkoppen gevonden (3)',
@@ -1182,6 +1227,14 @@ def evaluate_case(module, case):
             'items_with_field_order_mismatch_count verwacht '
             f"{case['expect_items_with_field_order_mismatch_count']}, kreeg {audit.get('items_with_field_order_mismatch_count')}"
         )
+    if (
+        'expect_numbered_title_heading_count' in case
+        and audit.get('numbered_title_heading_count') != case['expect_numbered_title_heading_count']
+    ):
+        failures.append(
+            'numbered_title_heading_count verwacht '
+            f"{case['expect_numbered_title_heading_count']}, kreeg {audit.get('numbered_title_heading_count')}"
+        )
     audit_text = audit.get('text') or ''
     for snippet in case.get('expect_reason_substrings', []):
         if snippet not in audit_text:
@@ -1211,6 +1264,7 @@ def evaluate_case(module, case):
         'exact_field_line_counts': audit.get('exact_field_line_counts'),
         'items_with_exact_field_order_count': audit.get('items_with_exact_field_order_count'),
         'items_with_field_order_mismatch_count': audit.get('items_with_field_order_mismatch_count'),
+        'numbered_title_heading_count': audit.get('numbered_title_heading_count'),
     }
 
 

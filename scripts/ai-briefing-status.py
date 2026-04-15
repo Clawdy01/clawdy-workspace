@@ -701,6 +701,11 @@ def analyze_source_line_issues(line):
         pipe_parts = [part.strip() for part in body.split('|')]
         if any(not part for part in pipe_parts):
             issues.append('lege_separator')
+    body_without_urls_for_separator = body
+    for url in urls:
+        body_without_urls_for_separator = body_without_urls_for_separator.replace(url, ' ')
+    if re.search(r'(^|\s)/(\s|$)', body_without_urls_for_separator):
+        issues.append('slash_separator')
     if ',' in body:
         issues.append('komma')
     if ';' in body:
@@ -726,10 +731,8 @@ def analyze_source_line_issues(line):
     if DATE_PATTERN.search(body):
         issues.append('datumtekst')
 
-    body_without_urls = body
-    for url in urls:
-        body_without_urls = body_without_urls.replace(url, ' ')
-    body_without_urls = re.sub(r'[|,;()]', ' ', body_without_urls)
+    body_without_urls = body_without_urls_for_separator
+    body_without_urls = re.sub(r'[|,;()/]', ' ', body_without_urls)
     body_without_urls = re.sub(r'\s+', ' ', body_without_urls).strip()
     if body_without_urls and re.search(r'[A-Za-zÀ-ÿ]', body_without_urls):
         issues.append('vrije_tekst')
@@ -743,6 +746,7 @@ def format_issue_counts(counter):
     labels = {
         'geen_url': 'geen URL',
         'lege_separator': 'lege separator',
+        'slash_separator': 'slash-separator',
         'komma': 'komma',
         'puntkomma': 'puntkomma',
         'haakjes': 'haakjes',

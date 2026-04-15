@@ -1,0 +1,41 @@
+Dagelijkse AI-update, woensdag 15 april 2026
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI bundelt nieuwe agentdocumentatie
+Bron: https://openai.com/index/new-tools-for-building-agents/ / https://platform.openai.com/docs/guides/agents
+Datum: 2026-04-15
+Wat is er nieuw: OpenAI bracht nieuwe agentdocumentatie en platformdocs tegelijk onder de aandacht.
+Waarom is dit belangrijk: Dit raakt direct hoe builders agentflows implementeren.
+Relevant voor Christian: Goed voorbeeld van een item dat qua inhoud klopt maar nog steeds een ongeldige Bron:-regel kan hebben.
+
+2) nieuwe AI-tools en productfeatures
+Titel: Anthropic scherpt Claude Code routes aan
+Bron: https://www.anthropic.com/news / https://docs.anthropic.com/en/docs/claude-code
+Datum: 2026-04-15
+Wat is er nieuw: Anthropic koppelt nieuws en docs rond Claude Code nauwer aan elkaar.
+Waarom is dit belangrijk: Dit is relevant voor coding-agent workflows.
+Relevant voor Christian: Handig referentiepunt voor tool- en docs-combinaties.
+
+3) open-source modellen/frameworks/inference tooling
+Titel: Hugging Face combineert release-notes en docs
+Bron: https://huggingface.co/blog / https://github.com/huggingface/transformers/releases
+Datum: 2026-04-15
+Wat is er nieuw: Hugging Face wijst tegelijk naar blog en release-notes voor dezelfde update.
+Waarom is dit belangrijk: Dit lijkt multi-source maar gebruikt een separator die niet is toegestaan.
+Relevant voor Christian: Goed regressiesample voor bronregel-validatie.
+
+Wat moeten wij hiermee?
+- Houd Bron:-regels strikt bij kale URLs met alleen spaties of | als separator.
+- Laat de audit slash-gescheiden bronnen direct afkeuren.
+
+Wat ik vandaag het belangrijkst vind
+- Bronregel-separators moeten net zo strikt bewaakt blijven als URL-format.
+- Een briefing mag niet groen worden op bijna-goede Bron:-regels.
+
+bronnenlijst met URLs
+https://openai.com/index/new-tools-for-building-agents/
+https://platform.openai.com/docs/guides/agents
+https://www.anthropic.com/news
+https://docs.anthropic.com/en/docs/claude-code
+https://huggingface.co/blog
+https://github.com/huggingface/transformers/releases
