@@ -69,6 +69,7 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     summary = data.get('summary') or data.get('status_text') or 'ai-briefing heeft aandacht nodig'
     reasons = [reason for reason in (data.get('reasons') or []) if reason]
     summary_output_examples = [example for example in (data.get('summary_output_examples') or []) if example]
+    proof_example_limit = 2 if mode == 'preflight' else 3
     bits = [f"AI-briefing {mode}: {summary}"]
     if require_qualified_runs > 0:
         proof_progress = data.get('proof_progress_text')
@@ -83,7 +84,7 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     if reasons:
         bits.append('redenen: ' + '; '.join(reasons[:3]))
     if summary_output_examples:
-        bits.append('bewijs: ' + ' | '.join(summary_output_examples[:2]))
+        bits.append('bewijs: ' + ' | '.join(summary_output_examples[:proof_example_limit]))
     return ' | '.join(bits)
 
 

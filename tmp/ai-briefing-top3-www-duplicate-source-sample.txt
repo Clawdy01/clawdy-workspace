@@ -1,0 +1,35 @@
+AI briefing test
+
+Titel: OpenAI publiceert Responses API-update via www-variant
+Bron: https://www.openai.com/index/new-tools-for-building-agents/ | https://openai.com/index/new-tools-for-building-agents/
+Datum: 14 april 2026
+Wat is er nieuw: OpenAI publiceert een agentupdate, maar beide bron-URLs wijzen inhoudelijk naar dezelfde pagina via www en niet-www.
+Waarom is dit belangrijk: Zonder normalisatie kan één bron vals als twee onafhankelijke bronnen tellen.
+Relevant voor Christian: Dit voorkomt vals groen bronbewijs in de top 3.
+
+Titel: GitHub licht Copilot agent-workflows verder toe
+Bron: https://github.blog/changelog/copilot-agent-update/ | https://github.com/features/copilot/agent-update/
+Datum: 14 april 2026
+Wat is er nieuw: GitHub bevestigt dezelfde ontwikkeling via changelog en productroute.
+Waarom is dit belangrijk: Dit is wel echte multi-source corroboratie binnen de top 3.
+Relevant voor Christian: Dit laat zien welk type broncombinatie wel geldig moet blijven.
+
+Titel: Google zet Gemini toolingroute verder open
+Bron: https://blog.google/technology/google-deepmind/gemini-tooling-update/ | https://ai.google.dev/gemini-api/docs/tooling-update/
+Datum: 14 april 2026
+Wat is er nieuw: Google beschrijft Gemini-tooling via blog en docs.
+Waarom is dit belangrijk: Dit is nog een geldig voorbeeld van echte corroboratie uit meerdere domeinen.
+Relevant voor Christian: Dit houdt de audit scherp op echte brondiversiteit.
+
+Wat moeten wij hiermee?
+- Behandel www en niet-www voor hetzelfde artikel niet als twee losse bronnen.
+
+Wat ik vandaag het belangrijkst vind
+- Bronuniciteit moet ook hostname-varianten afvangen.
+
+Bronnenlijst met URLs
+- https://openai.com/index/new-tools-for-building-agents/
+- https://github.blog/changelog/copilot-agent-update/
+- https://github.com/features/copilot/agent-update/
+- https://blog.google/technology/google-deepmind/gemini-tooling-update/
+- https://ai.google.dev/gemini-api/docs/tooling-update/

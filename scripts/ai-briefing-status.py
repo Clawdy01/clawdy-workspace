@@ -885,7 +885,9 @@ def canonicalize_source_url(url):
         ),
         key=lambda item: (item[0], item[1]),
     )
-    hostname = (parts.hostname or '').lower()
+    hostname = (parts.hostname or '').lower().rstrip('.')
+    if hostname.startswith('www.'):
+        hostname = hostname[4:]
     port = parts.port
     username = parts.username
     password = parts.password

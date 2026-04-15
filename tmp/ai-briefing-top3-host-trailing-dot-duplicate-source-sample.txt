@@ -1,0 +1,33 @@
+Titel: OpenAI scherpt Responses API logging aan
+Bron: https://openai.com./index/new-api-logging/ https://openai.com/index/new-api-logging/
+Datum: 2026-04-14
+Wat is er nieuw: OpenAI beschrijft nieuwe loggingopties voor Responses API gebruik.
+Waarom is dit belangrijk: Dit raakt betrouwbaarheid en observability van productieflows.
+Relevant voor Christian: Handig om briefing- en automation-runs beter te monitoren.
+
+Titel: Anthropic voegt nieuwe Claude deployment-controls toe
+Bron: https://www.anthropic.com/news/deployment-controls | https://support.anthropic.com/en/articles/deployment-controls
+Datum: 2026-04-15
+Wat is er nieuw: Anthropic documenteert nieuwe beheeropties voor Claude-uitrol.
+Waarom is dit belangrijk: Dit helpt bij veilige en gecontroleerde inzet van modellen.
+Relevant voor Christian: Relevant voor het aanscherpen van AI-workflows en governance.
+
+Titel: Google DeepMind deelt nieuwe Gemini eval-updates
+Bron: https://deepmind.google/technologies/gemini/evals-update | https://blog.google/technology/google-deepmind/gemini-evals-update/
+Datum: 2026-04-15
+Wat is er nieuw: Google DeepMind beschrijft nieuwe evaluatie-updates rond Gemini.
+Waarom is dit belangrijk: Dit geeft context op kwaliteitssignalen en modelvergelijking.
+Relevant voor Christian: Bruikbaar voor research-briefing duiding en modelkeuze.
+
+Wat moeten wij hiermee?
+- Houd observability-, governance- en eval-signalen apart zichtbaar in de briefing.
+
+Wat ik vandaag het belangrijkst vind
+- Broncorroboratie moet niet vals groen gaan op hostvarianten zoals trailing dots.
+
+Bronnenlijst
+- https://openai.com/index/new-api-logging/
+- https://www.anthropic.com/news/deployment-controls
+- https://support.anthropic.com/en/articles/deployment-controls
+- https://deepmind.google/technologies/gemini/evals-update
+- https://blog.google/technology/google-deepmind/gemini-evals-update/
