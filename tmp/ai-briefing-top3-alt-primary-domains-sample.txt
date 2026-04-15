@@ -1,0 +1,57 @@
+Dagelijkse AI-update, woensdag 15 april 2026
+
+Korte intro: dit sample borgt dat eerste-partij AI-domeinen buiten de klassieke vendor-homepages nog steeds als primaire bron tellen.
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI werkt trusted-access beleid voor cybermodellen verder uit
+Bron: https://openai.com/index/trusted-access-for-cyber/ https://www.cnet.com/tech/services-and-software/openai-gpt-5-4-cyber-model-limited-access-cybersecurity-news/
+Datum: 2026-04-15
+Wat is er nieuw: OpenAI koppelt een eerste-partij aankondiging aan secundaire berichtgeving over beperkte toegang voor cybergerichte modelcapaciteit.
+Waarom is dit belangrijk: Dit bevestigt dat frontier providers risicovolle capabilities steeds vaker achter trust- en toelatingslagen plaatsen.
+Relevant voor Christian: Handig voor het volgen van waar agent-capabilities achter provider gates verdwijnen en waar fallback-routes nodig worden.
+
+2) nieuwe AI-tools en productfeatures
+Titel: Google zet nieuwe Gemini-workflow live via blog.google
+Bron: https://blog.google/technology/google-deepmind/gemini-workflows-update/ https://www.theverge.com/ai-artificial-intelligence/2026/04/15/google-gemini-workflows-update
+Datum: 2026-04-15
+Wat is er nieuw: Google publiceert een productupdate via blog.google en diezelfde verandering wordt ook in secundaire berichtgeving bevestigd.
+Waarom is dit belangrijk: Dit voorkomt dat de audit een echte first-party productbron mist alleen omdat de publicatie op blog.google staat in plaats van developers.googleblog.com.
+Relevant voor Christian: Relevant voor de briefingkwaliteit, omdat Google-updates vaak juist via blog.google of DeepMind-kanalen landen.
+
+3) open-source modellen/frameworks/inference tooling
+Titel: Microsoft publiceert MAI-image update via microsoft.ai
+Bron: https://microsoft.ai/news/mai-image-2-efficient/ https://venturebeat.com/ai/microsoft-mai-image-2-efficient-update/
+Datum: 2026-04-15
+Wat is er nieuw: Microsoft gebruikt microsoft.ai als eerste-partij publicatiepunt voor een AI-modelupdate, naast een onafhankelijke tweede bron.
+Waarom is dit belangrijk: Dit voorkomt vals-rode audits wanneer Microsoft een model- of productupdate via microsoft.ai communiceert in plaats van via microsoft.com of techcommunity.microsoft.com.
+Relevant voor Christian: Handig voor stabiele research-briefings, omdat Microsoft zijn AI-updates over meerdere first-party domeinen verdeelt.
+
+4) agents/automation/coding workflows
+Geen relevante nieuwe items.
+
+5) multimodal, voice, image, video en on-device/lokale AI
+Geen relevante nieuwe items.
+
+6) belangrijke researchdoorbraken of capabilities
+Geen relevante nieuwe items.
+
+7) enterprise/security/regulatory ontwikkelingen alleen als ze praktische impact hebben
+Geen relevante nieuwe items.
+
+Wat moeten wij hiermee?
+- Houd primaire-bronherkenning breed genoeg voor echte first-party AI-submerken en publicatiedomeinen.
+- Behandel blog.google en microsoft.ai als volwaardige primaire bronfamilies in de audit.
+- Blijf regressiesamples toevoegen zodra vendors nieuwe first-party publicatiepunten gebruiken.
+
+Wat ik vandaag het belangrijkst vind
+- Primaire-bronherkenning mag niet stuklopen op first-party AI-subdomeinen.
+- Deze fallback voorkomt vals-rode top-3 audits bij verder correcte briefingoutput.
+- De regressietest moet dit vastpinnen voordat de volgende briefingrun komt.
+
+bronnenlijst met URLs
+https://openai.com/index/trusted-access-for-cyber/
+https://www.cnet.com/tech/services-and-software/openai-gpt-5-4-cyber-model-limited-access-cybersecurity-news/
+https://blog.google/technology/google-deepmind/gemini-workflows-update/
+https://www.theverge.com/ai-artificial-intelligence/2026/04/15/google-gemini-workflows-update
+https://microsoft.ai/news/mai-image-2-efficient/
+https://venturebeat.com/ai/microsoft-mai-image-2-efficient-update/

@@ -52,6 +52,10 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'queue'],
         'description': 'Toon een korte prioriteitslijst van de beste volgende mailacties',
     },
+    'mail-security-alerts': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'security-alerts'],
+        'description': 'Toon compacte account- en login-alerts met current-only en suppressed-uitleg',
+    },
     'mail-review-next': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'review-next'],
         'description': 'Open direct de aanbevolen volgende mailthread met context, alternatieven en optioneel conceptantwoord',
@@ -213,6 +217,7 @@ ALIASES = {
     '/mail-focus': 'mail-focus',
     '/mail-next-step': 'mail-next-step',
     '/mail-queue': 'mail-queue',
+    '/mail-security-alerts': 'mail-security-alerts',
     '/mail-review-next': 'mail-review-next',
     '/mail-thread': 'mail-thread',
     '/mail-clusters': 'mail-clusters',

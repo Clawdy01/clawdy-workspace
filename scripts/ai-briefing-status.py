@@ -107,6 +107,7 @@ MIN_DATED_ITEMS_FOR_STRONG_SIGNAL = 2
 PRIMARY_SOURCE_DOMAINS = {
     'openai.com',
     'anthropic.com',
+    'blog.google',
     'googleblog.com',
     'deepmind.google',
     'ai.google.dev',
@@ -115,6 +116,7 @@ PRIMARY_SOURCE_DOMAINS = {
     'ai.meta.com',
     'meta.com',
     'microsoft.com',
+    'microsoft.ai',
     'news.microsoft.com',
     'nvidia.com',
     'developer.nvidia.com',
@@ -132,6 +134,7 @@ PRIMARY_SOURCE_DOMAINS = {
 PRIMARY_SOURCE_FAMILIES = {
     'openai.com': 'openai',
     'anthropic.com': 'anthropic',
+    'blog.google': 'google',
     'googleblog.com': 'google',
     'deepmind.google': 'google',
     'ai.google.dev': 'google',
@@ -140,6 +143,7 @@ PRIMARY_SOURCE_FAMILIES = {
     'ai.meta.com': 'meta',
     'meta.com': 'meta',
     'microsoft.com': 'microsoft',
+    'microsoft.ai': 'microsoft',
     'news.microsoft.com': 'microsoft',
     'nvidia.com': 'nvidia',
     'developer.nvidia.com': 'nvidia',
