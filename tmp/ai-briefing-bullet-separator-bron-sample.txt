@@ -1,0 +1,39 @@
+Dagelijkse AI-update, woensdag 15 april 2026
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI deelt nieuwe veiligheidsnotities voor GPT-uitrol
+Bron: https://openai.com/news/ • https://openai.com/safety/
+Datum: 2026-04-15
+Wat is er nieuw: OpenAI koppelt een productupdate aan expliciete safety-context.
+Waarom is dit belangrijk: Dit test dat bullet-separators op Bron: niet stil als geldige URL-regel meetellen.
+Relevant voor Christian: Belangrijk voor harde machine-audits van briefingoutput.
+
+2) nieuwe AI-tools en productfeatures
+Titel: GitHub verfijnt Copilot-werkstromen
+Bron: https://github.blog/changelog/ • https://github.com/features/copilot
+Datum: 2026-04-15
+Wat is er nieuw: GitHub laat nieuwe workflowdetails zien voor coding-assistenten.
+Waarom is dit belangrijk: Ook hier moet de audit een bullet tussen URLs afkeuren.
+Relevant voor Christian: Houdt de briefing scherp op exact toegestane bronformaten.
+
+3) open-source modellen/frameworks/inference tooling
+Titel: Hugging Face publiceert nieuwe inference-notities
+Bron: https://huggingface.co/blog • https://huggingface.co/
+Datum: 2026-04-15
+Wat is er nieuw: Het item combineert twee geldige URLs, maar met een fout separator-teken.
+Waarom is dit belangrijk: Zonder deze check kan de top-3 corroboratie vals groen worden.
+Relevant voor Christian: Helpt regressies vóór de 09:00-kwalificatierun te vangen.
+
+Wat moeten wij hiermee?
+- Blijf alleen exact toegestane Bron:-regels accepteren.
+
+Wat ik vandaag het belangrijkst vind
+- Separator-loopholes mogen niet langs de audit glippen.
+
+bronnenlijst met URLs
+https://openai.com/news/
+https://openai.com/safety/
+https://github.blog/changelog/
+https://github.com/features/copilot
+https://huggingface.co/blog
+https://huggingface.co/

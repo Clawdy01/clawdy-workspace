@@ -69,6 +69,11 @@ REQUIRED_FORMAT_MARKERS = [
     'Bron: https://example.com/item | https://example.org/item',
     'FOUT voorbeeld, niet doen:',
     'OpenAI blog (https://openai.com/news/)',
+    'FOUT voorbeeld, ook niet doen:',
+    "- Wat is er nieuw",
+    "- Waarom is dit belangrijk",
+    "- Relevant voor Christian",
+    "geen bulletlabels als '- Wat is er nieuw'",
     'Gebruik geen alternatieve labels, geen genummerde itemkoppen, geen bullet-only itemstructuur',
     "De briefing is mislukt als je minder dan 3 items met letterlijk 'Titel:' oplevert.",
     'Verplicht zelfcheck-blok vóór versturen:',
@@ -723,6 +728,8 @@ def analyze_source_line_issues(line):
         body_without_urls_for_separator = body_without_urls_for_separator.replace(url, ' ')
     if re.search(r'(^|\s)/(\s|$)', body_without_urls_for_separator):
         issues.append('slash_separator')
+    if re.search(r'[•·●◦▪▫‣∙]', body_without_urls_for_separator):
+        issues.append('bullet_separator')
     if ',' in body:
         issues.append('komma')
     if ';' in body:
@@ -764,6 +771,7 @@ def format_issue_counts(counter):
         'geen_url': 'geen URL',
         'lege_separator': 'lege separator',
         'slash_separator': 'slash-separator',
+        'bullet_separator': 'bullet-separator',
         'komma': 'komma',
         'puntkomma': 'puntkomma',
         'haakjes': 'haakjes',
