@@ -143,6 +143,32 @@ def normalize_route(value):
 
 def catalog_payload():
     return {
+        'quickstart': [
+            {
+                'route': 'board',
+                'description': 'totaaloverzicht van mailstatus',
+            },
+            {
+                'route': 'latest --unread',
+                'description': 'alleen ongelezen mail',
+            },
+            {
+                'route': 'check',
+                'description': 'alleen echt nieuwe mail sinds laatste state-update',
+            },
+            {
+                'route': 'now',
+                'description': 'alleen wat nu echt aandacht vraagt',
+            },
+            {
+                'route': 'focus',
+                'description': 'beste eerstvolgende mail',
+            },
+            {
+                'route': 'review-next',
+                'description': 'aanbevolen thread meteen openen',
+            },
+        ],
         'routes': [
             {
                 'name': name,
@@ -160,6 +186,10 @@ def catalog_payload():
 def render_catalog():
     payload = catalog_payload()
     lines = ['Mail workflow dispatch']
+    if payload.get('quickstart'):
+        lines.append('- snelle start:')
+        for item in payload['quickstart']:
+            lines.append(f"  - {item['route']}: {item['description']}")
     for route in payload['routes']:
         arg_text = f" ({', '.join(route['args'])})" if route['args'] else ''
         lines.append(f"- {route['name']} {route['description']}{arg_text}")

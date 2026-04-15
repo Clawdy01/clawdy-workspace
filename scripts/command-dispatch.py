@@ -32,6 +32,10 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest'],
         'description': 'Laatste mails of ongelezen inbox-items bekijken',
     },
+    'mail-check': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'check'],
+        'description': 'Check alleen echt nieuwe mail sinds de laatste state-update',
+    },
     'mail-summary': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'summary'],
         'description': 'Nieuwe mail met urgentie en actiehints',
@@ -226,6 +230,8 @@ ALIASES = {
     '/mail-inbox': 'mail-inbox',
     '/mail-unread': 'mail-unread',
     '/mail-latest': 'mail-latest',
+    '/mail-check': 'mail-check',
+    '/mail-new': 'mail-check',
     '/mail-summary': 'mail-summary',
     '/mail-drafts': 'mail-drafts',
     '/mail-triage': 'mail-triage',
@@ -263,6 +269,9 @@ ALIASES = {
     '/mail-otp': 'mail-codes',
     '/mail-auth-code': 'mail-codes',
     '/mail-catalog': 'mail-catalog',
+    '/mail-help': 'mail-catalog',
+    '/mail-routes': 'mail-catalog',
+    '/mail-commands': 'mail-catalog',
     '/board': 'board',
     '/brief': 'brief',
     '/proton': 'proton',
@@ -315,7 +324,45 @@ def help_payload():
         for alias, target in ALIASES.items()
         if alias.startswith('/') and alias != f'/{target}'
     )
+    quickstart = [
+        {
+            'slash': '/mail-board',
+            'also': ['/mail'],
+            'description': 'totaaloverzicht',
+        },
+        {
+            'slash': '/mail-inbox',
+            'description': 'recente mail snel bekijken',
+        },
+        {
+            'slash': '/mail-unread',
+            'description': 'alleen ongelezen mail',
+        },
+        {
+            'slash': '/mail-check',
+            'also': ['/mail-new'],
+            'description': 'alleen echt nieuwe mail sinds de laatste state-update',
+        },
+        {
+            'slash': '/mail-now',
+            'description': 'alleen wat nu echt aandacht vraagt',
+        },
+        {
+            'slash': '/mail-first',
+            'description': 'beste eerstvolgende mail',
+        },
+        {
+            'slash': '/mail-review-next',
+            'description': 'aanbevolen thread meteen openklappen',
+        },
+        {
+            'slash': '/mail-help',
+            'also': ['/mail-routes', '/mail-commands'],
+            'description': 'toon alle mailroutes en voorbeelden',
+        },
+    ]
     return {
+        'quickstart': quickstart,
         'commands': [
             {
                 'name': name,
@@ -341,14 +388,13 @@ def render_help():
         '- gebruik: command-dispatch.py <command> [args]',
         '- slash-vorm werkt ook, bijvoorbeeld /status, /mail of /mail-now',
         '- snelle mailstart:',
-        '  - /mail-board of /mail: totaaloverzicht',
-        '  - /mail-inbox: recente mail snel bekijken',
-        '  - /mail-unread: alleen ongelezen mail',
-        '  - /mail-now: alleen wat nu echt aandacht vraagt',
-        '  - /mail-first: beste eerstvolgende mail',
-        '  - /mail-review-next: aanbevolen thread meteen openklappen',
-        '- beschikbaar:',
     ]
+    for item in payload.get('quickstart', []):
+        label = item['slash']
+        if item.get('also'):
+            label = f"{label} of {' of '.join(item['also'])}"
+        lines.append(f"  - {label}: {item['description']}")
+    lines.append('- beschikbaar:')
     for item in payload['commands']:
         lines.append(f"  - {item['slash']}: {item['description']}")
     if payload['aliases']:
