@@ -306,10 +306,12 @@ ALIASES = {
     '/mail-board-now': 'mail-board-now',
     '/mail-now-board': 'mail-board-now',
     '/mail-overview-now': 'mail-board-now',
+    '/mail-overview-current': 'mail-board-now',
     '/mail-board-current': 'mail-board-now',
     '/mail-board-review': 'mail-board-review',
     '/mail-review-board': 'mail-board-review',
     '/mail-overview-review': 'mail-board-review',
+    '/mail-overview-review-worthy': 'mail-board-review',
     '/mail-board-review-worthy': 'mail-board-review',
     '/mail-inbox': 'mail-inbox',
     '/mail-unread': 'mail-unread',
@@ -418,7 +420,10 @@ ALIASES = {
     '/mail-auth-code': 'mail-codes',
     '/mail-code-now': 'mail-code-now',
     '/mail-code-current': 'mail-code-now',
+    '/mail-verify-current': 'mail-code-now',
     '/mail-otp-now': 'mail-code-now',
+    '/mail-otp-current': 'mail-code-now',
+    '/mail-auth-code-current': 'mail-code-now',
     '/mail-codes-now': 'mail-code-now',
     '/mail-codes-current': 'mail-code-now',
     '/mail-catalog': 'mail-catalog',
@@ -485,12 +490,12 @@ def help_payload():
         },
         {
             'slash': '/mail-board-now',
-            'also': ['/mail-now-board', '/mail-overview-now', '/mail-board-current'],
+            'also': ['/mail-now-board', '/mail-overview-now', '/mail-overview-current', '/mail-board-current'],
             'description': 'compact board met alleen actuele aandacht en ingebouwde suppressed-uitleg',
         },
         {
             'slash': '/mail-board-review',
-            'also': ['/mail-review-board', '/mail-overview-review', '/mail-board-review-worthy'],
+            'also': ['/mail-review-board', '/mail-overview-review', '/mail-overview-review-worthy', '/mail-board-review-worthy'],
             'description': 'compact board met alleen reviewwaardige mail en ingebouwde noop-uitleg',
         },
         {
@@ -542,7 +547,7 @@ def help_payload():
         },
         {
             'slash': '/mail-code-now',
-            'also': ['/mail-code-current', '/mail-otp-now', '/mail-codes-now', '/mail-codes-current'],
+            'also': ['/mail-code-current', '/mail-verify-current', '/mail-otp-now', '/mail-otp-current', '/mail-auth-code-current', '/mail-codes-now', '/mail-codes-current'],
             'description': 'actuele verificatiecode-check met current-only en noop-uitleg al ingebouwd',
         },
         {
