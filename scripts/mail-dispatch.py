@@ -369,35 +369,35 @@ def catalog_payload():
             },
             {
                 'route': 'next-step-now',
-                'description': 'beste actuele vervolgstap zonder stale fallback',
+                'description': 'beste actuele vervolgstap zonder stale fallback, ook via next-current of next-step-current',
             },
             {
                 'route': 'next-step-review',
-                'description': 'beste reviewwaardige vervolgstap zonder ruisfallback',
+                'description': 'beste reviewwaardige vervolgstap zonder ruisfallback, ook via next-review-worthy of next-step-review-worthy',
             },
             {
                 'route': 'queue-now',
-                'description': 'korte actuele werkrij zonder stale fallback, ook via worklist-now, worklist-current, todo-now of todo-current',
+                'description': 'korte actuele werkrij zonder stale fallback, ook via queue-current, worklist-now, worklist-current, todo-now of todo-current',
             },
             {
                 'route': 'queue-review',
-                'description': 'korte reviewwaardige werkrij zonder code-only of ruisfallback, ook via worklist-review, worklist-review-worthy, todo-review of todo-review-worthy',
+                'description': 'korte reviewwaardige werkrij zonder code-only of ruisfallback, ook via queue-review-worthy, worklist-review, worklist-review-worthy, todo-review of todo-review-worthy',
             },
             {
                 'route': 'thread-now --explain-empty',
-                'description': 'open direct alleen een actuele thread, met suppressed-uitleg bij noop',
+                'description': 'open direct alleen een actuele thread, ook via thread-current, met suppressed-uitleg bij noop',
             },
             {
                 'route': 'thread-review --explain-empty',
-                'description': 'open direct alleen een reviewwaardige thread, met suppressed-uitleg bij noop',
+                'description': 'open direct alleen een reviewwaardige thread, ook via thread-review-worthy, met suppressed-uitleg bij noop',
             },
             {
                 'route': 'open-now --explain-empty',
-                'description': 'aanbevolen actuele thread meteen openen, met suppressed-uitleg bij noop',
+                'description': 'aanbevolen actuele thread meteen openen, ook via open-current of review-next-current, met suppressed-uitleg bij noop',
             },
             {
                 'route': 'open-review --explain-empty',
-                'description': 'aanbevolen reviewwaardige thread meteen openen, met suppressed-uitleg bij noop',
+                'description': 'aanbevolen reviewwaardige thread meteen openen, ook via open-review-worthy of review-next-review-worthy, met suppressed-uitleg bij noop',
             },
             {
                 'route': 'open',

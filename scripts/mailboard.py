@@ -52,12 +52,12 @@ def quickstart_payload():
             'description': 'alleen wat nu echt aandacht vraagt, met suppressed-uitleg als het leeg is',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py security-alerts --current-only --explain-empty',
-            'description': 'alleen actuele security- of loginmeldingen, met uitleg bij noop',
+            'command': 'python3 scripts/mail-dispatch.py security-alerts-now',
+            'description': 'alleen actuele security- of loginmeldingen, met noop-uitleg al ingebouwd',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py codes --current-only --explain-empty',
-            'description': 'alleen actuele verificatiecodes, met uitleg bij lege mailbox',
+            'command': 'python3 scripts/mail-dispatch.py code-now',
+            'description': 'alleen actuele verificatiecodes, met uitleg bij lege mailbox al ingebouwd',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py focus-now',
