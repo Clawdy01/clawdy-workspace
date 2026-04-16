@@ -64,6 +64,7 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py now --explain-empty',
+            'also': ['current'],
             'description': 'alleen wat nu echt aandacht vraagt, met suppressed-uitleg als het leeg is',
         },
         {

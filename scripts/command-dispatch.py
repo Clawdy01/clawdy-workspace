@@ -536,7 +536,8 @@ def help_payload():
         },
         {
             'slash': '/mail-now',
-            'description': 'alleen wat nu echt aandacht vraagt, met --explain-empty voor suppressed-uitleg',
+            'also': ['/mail-current'],
+            'description': 'alleen wat nu echt aandacht vraagt, ook via /mail-current, met --explain-empty voor suppressed-uitleg',
         },
         {
             'slash': '/mail-triage-now',
@@ -669,7 +670,10 @@ def render_help():
         lines.append(f"  - {label}: {item['description']}")
     lines.append('- beschikbaar:')
     for item in payload['commands']:
-        lines.append(f"  - {item['slash']}: {item['description']}")
+        label = item['slash']
+        if item.get('also'):
+            label = f"{label} of {' of '.join(item['also'])}"
+        lines.append(f"  - {label}: {item['description']}")
     if payload['aliases']:
         lines.append('- handige aliassen:')
         for item in payload['aliases']:

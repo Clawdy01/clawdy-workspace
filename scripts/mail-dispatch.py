@@ -358,7 +358,8 @@ def catalog_payload():
             },
             {
                 'route': 'now --explain-empty',
-                'description': 'alleen wat nu echt aandacht vraagt, met suppressed-uitleg als het leeg is',
+                'description': 'alleen wat nu echt aandacht vraagt, ook via current, met suppressed-uitleg als het leeg is',
+                'also': ['current'],
             },
             {
                 'route': 'triage-now --explain-empty',
@@ -460,7 +461,8 @@ def render_catalog():
             lines.append(f"  - {item['route']}: {item['description']}")
     for route in payload['routes']:
         arg_text = f" ({', '.join(route['args'])})" if route['args'] else ''
-        lines.append(f"- {route['name']} {route['description']}{arg_text}")
+        alias_text = f", ook via {', '.join(route['also'])}" if route.get('also') else ''
+        lines.append(f"- {route['name']}{alias_text}: {route['description']}{arg_text}")
     if payload['aliases']:
         lines.append(f"- aliases: {', '.join(f'{k}->{v}' for k, v in sorted(payload['aliases'].items()))}")
     lines.append(f"- note: {payload['notes']}")
