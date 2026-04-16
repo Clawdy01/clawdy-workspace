@@ -562,12 +562,12 @@ def help_payload():
         {
             'slash': '/mail-focus-now',
             'also': ['/mail-now-focus', '/mail-focus-current'],
-            'description': 'beste actuele mail-focus zonder stale fallback',
+            'description': 'beste actuele mail-focus zonder stale fallback, ook via /mail-focus-current',
         },
         {
             'slash': '/mail-focus-review',
             'also': ['/mail-review-focus', '/mail-focus-review-worthy'],
-            'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback',
+            'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback, ook via /mail-focus-review-worthy',
         },
         {
             'slash': '/mail-next-now',
