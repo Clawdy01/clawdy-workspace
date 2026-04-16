@@ -33,10 +33,12 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py board-now',
+            'also': ['overview-now', 'overview-current', 'board-current'],
             'description': 'compact board met alleen actuele aandacht zonder losse flags',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py board-review',
+            'also': ['overview-review', 'overview-review-worthy', 'board-review-worthy'],
             'description': 'compact board met alleen reviewwaardige mail zonder losse flags',
         },
         {
@@ -49,10 +51,12 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest-now --threads --explain-empty',
+            'also': ['latest-current'],
             'description': 'alleen actuele recente threads, met suppressed-uitleg als het leeg is',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest-review --threads --explain-empty',
+            'also': ['latest-review-worthy'],
             'description': 'alleen reviewwaardige recente threads, met noop-uitleg als het leeg is',
         },
         {
@@ -61,50 +65,72 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py triage-now --explain-empty',
+            'also': ['triage-current'],
             'description': 'actuele prioritering met suppressed-uitleg bij een lege actuele mailbox',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py triage-review --explain-empty',
+            'also': ['triage-review-worthy'],
             'description': 'reviewwaardige prioritering met suppressed-uitleg bij noop',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py security-alerts-now',
+            'also': ['security-now', 'security-current', 'alerts-now', 'alerts-current', 'security-alerts-current'],
             'description': 'alleen actuele security- of loginmeldingen, met noop-uitleg al ingebouwd',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py code-now',
+            'also': ['code-current', 'verify-now', 'verify-current', 'otp-now', 'otp-current', 'auth-code-now', 'auth-code-current', 'codes-now', 'codes-current'],
             'description': 'alleen actuele verificatiecodes, met uitleg bij lege mailbox al ingebouwd',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py focus-now',
+            'also': ['focus-current'],
             'description': 'beste actuele mail-focus zonder stale fallback',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py focus-review',
+            'also': ['focus-review-worthy'],
             'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback',
         },
         {
+            'command': 'python3 scripts/mail-dispatch.py next-step-now',
+            'also': ['next-current', 'next-step-current'],
+            'description': 'beste actuele vervolgstap zonder stale fallback',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py next-step-review',
+            'also': ['next-review-worthy', 'next-step-review-worthy'],
+            'description': 'beste reviewwaardige vervolgstap zonder ruisfallback',
+        },
+        {
             'command': 'python3 scripts/mail-dispatch.py queue-now',
+            'also': ['queue-current', 'worklist-now', 'worklist-current', 'todo-now', 'todo-current'],
             'description': 'korte actuele mailwerkrij zonder stale fallback',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py queue-review',
+            'also': ['queue-review-worthy', 'worklist-review', 'worklist-review-worthy', 'todo-review', 'todo-review-worthy'],
             'description': 'korte reviewwaardige mailwerkrij zonder code-only of ruisfallback',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py thread-now',
+            'command': 'python3 scripts/mail-dispatch.py thread-now --explain-empty',
+            'also': ['thread-current'],
             'description': 'open direct alleen een actuele thread, met suppressed-uitleg bij noop',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py thread-review',
+            'command': 'python3 scripts/mail-dispatch.py thread-review --explain-empty',
+            'also': ['thread-review-worthy'],
             'description': 'open direct alleen een reviewwaardige thread, met suppressed-uitleg bij noop',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py open-now',
+            'command': 'python3 scripts/mail-dispatch.py open-now --explain-empty',
+            'also': ['open-current', 'review-next-current'],
             'description': 'aanbevolen actuele thread meteen openen zonder stale fallback',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py open-review',
+            'command': 'python3 scripts/mail-dispatch.py open-review --explain-empty',
+            'also': ['open-review-worthy', 'review-next-review-worthy'],
             'description': 'aanbevolen reviewwaardige thread meteen openen zonder ruisfallback',
         },
         {
@@ -394,7 +420,10 @@ def render_text(board, show_preview=False, current_only=False, review_worthy_onl
     if quickstart:
         lines.append('- snelle start:')
         for item in quickstart:
-            lines.append(f"  - {item['command']}: {item['description']}")
+            alias_suffix = ''
+            if item.get('also'):
+                alias_suffix = f" (ook: {', '.join(item['also'])})"
+            lines.append(f"  - {item['command']}: {item['description']}{alias_suffix}")
     has_current_activity = has_current_mail_activity(board)
     triage_high_suffix = ''
     if board.get('triage_high_count', 0) > 1 and board.get('triage_high_group_count', 0):
@@ -669,7 +698,10 @@ def render_help():
     if payload.get('quickstart'):
         lines.append('- snelle start:')
         for item in payload['quickstart']:
-            lines.append(f"  - {item['command']}: {item['description']}")
+            alias_suffix = ''
+            if item.get('also'):
+                alias_suffix = f" (ook: {', '.join(item['also'])})"
+            lines.append(f"  - {item['command']}: {item['description']}{alias_suffix}")
     if payload.get('flags'):
         lines.append('- opties:')
         for item in payload['flags']:
