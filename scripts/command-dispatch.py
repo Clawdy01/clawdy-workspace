@@ -166,7 +166,7 @@ COMMANDS = {
     },
     'mail-codes': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'codes'],
-        'description': 'Zoek verificatiecodes in recente mail, met --current-only of suppressed-uitleg via --explain-empty',
+        'description': 'Zoek verificatiecodes in recente mail, ook via /mail-code, /mail-verify, /mail-otp en /mail-auth-code, met --current-only of suppressed-uitleg via --explain-empty',
     },
     'mail-code-now': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'codes-now'],
@@ -353,6 +353,7 @@ ALIASES = {
     '/mail-next-now': 'mail-next-now',
     '/mail-now-next': 'mail-next-now',
     '/mail-next-current': 'mail-next-now',
+    '/mail-next-step-now': 'mail-next-now',
     '/mail-next-step-current': 'mail-next-now',
     '/mail-next-review': 'mail-next-review',
     '/mail-review-next-step': 'mail-next-review',
@@ -548,6 +549,11 @@ def help_payload():
             'description': 'actuele security- of loginmeldingen, met current-only en noop-uitleg al ingebouwd',
         },
         {
+            'slash': '/mail-code',
+            'also': ['/mail-codes', '/mail-verify', '/mail-otp', '/mail-auth-code'],
+            'description': 'recente verificatiecodes compact bekijken via de korte code-, verify-, otp- en auth-code-ingangen',
+        },
+        {
             'slash': '/mail-code-now',
             'also': ['/mail-code-current', '/mail-verify-now', '/mail-verify-current', '/mail-otp-now', '/mail-otp-current', '/mail-auth-code-now', '/mail-auth-code-current', '/mail-codes-now', '/mail-codes-current'],
             'description': 'actuele verificatiecode-check met current-only en noop-uitleg al ingebouwd',
@@ -564,7 +570,7 @@ def help_payload():
         },
         {
             'slash': '/mail-next-now',
-            'also': ['/mail-now-next', '/mail-next-current', '/mail-next-step-current'],
+            'also': ['/mail-now-next', '/mail-next-current', '/mail-next-step-now', '/mail-next-step-current'],
             'description': 'beste actuele mailvervolgstap zonder losse --current-only vlag',
         },
         {
