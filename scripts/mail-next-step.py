@@ -336,10 +336,11 @@ def enrich_group_candidate(candidate):
     return candidate
 
 
-def build_summary(limit=1, current_only=False, review_worthy_only=False):
+def build_summary(limit=1, current_only=False, review_worthy_only=False, search_limit=50):
     limit = max(1, min(limit, 10))
+    search_limit = max(1, min(int(search_limit or 50), 500))
 
-    focus_command = ['python3', str(MAIL_FOCUS), '--json', '-n', '5']
+    focus_command = ['python3', str(MAIL_FOCUS), '--json', '-n', '5', '--search-limit', str(search_limit)]
     if current_only:
         focus_command.append('--current-only')
     if review_worthy_only:
@@ -347,10 +348,10 @@ def build_summary(limit=1, current_only=False, review_worthy_only=False):
     focus = run_json(focus_command, default={}) or {}
 
     current = run_json(
-        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--clusters', '-n', '5', '--search-limit', '50'],
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--clusters', '-n', '5', '--search-limit', str(search_limit)],
         default={},
     ) or {}
-    high_command = ['python3', str(MAIL_TRIAGE), '--json', '--all', '--high-only', '--clusters', '-n', '5', '--search-limit', '50']
+    high_command = ['python3', str(MAIL_TRIAGE), '--json', '--all', '--high-only', '--clusters', '-n', '5', '--search-limit', str(search_limit)]
     if review_worthy_only:
         high_command.append('--review-worthy')
     high = run_json(
@@ -358,11 +359,11 @@ def build_summary(limit=1, current_only=False, review_worthy_only=False):
         default={},
     ) or {}
     raw_high = run_json(
-        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--high-only', '--clusters', '-n', '5', '--search-limit', '50'],
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--high-only', '--clusters', '-n', '5', '--search-limit', str(search_limit)],
         default={},
     ) or {}
 
-    security_command = ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '3']
+    security_command = ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '3', '--search-limit', str(search_limit)]
     if current_only:
         security_command.append('--current-only')
     security_command.append('--explain-empty')
@@ -472,6 +473,7 @@ def build_summary(limit=1, current_only=False, review_worthy_only=False):
         'selected_focus': selected_summary.get('focus'),
         'candidate_count': len(candidates),
         'current_only': current_only,
+        'search_limit': search_limit,
         'review_worthy_only': review_worthy_only,
         'candidates': alternative_summaries,
         'suppressed_groups': suppressed_groups,
@@ -533,9 +535,10 @@ def main():
     parser.add_argument('--draft', action='store_true', help='toon bij tekstoutput ook meteen het concept als dat voor de gekozen stap bestaat')
     parser.add_argument('--current-only', action='store_true', help='toon alleen stappen die nu echt actueel zijn, zonder stale follow-up of codefallback')
     parser.add_argument('--review-worthy', action='store_true', help='sla code-only/noise fallback over en toon alleen nog reviewwaardige vervolgstappen')
+    parser.add_argument('--search-limit', type=int, default=50, help='kijk verder terug als de bovenste mails vooral ruis of oude alerts zijn')
     args = parser.parse_args()
 
-    summary = build_summary(limit=args.limit, current_only=args.current_only, review_worthy_only=args.review_worthy)
+    summary = build_summary(limit=args.limit, current_only=args.current_only, review_worthy_only=args.review_worthy, search_limit=args.search_limit)
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:

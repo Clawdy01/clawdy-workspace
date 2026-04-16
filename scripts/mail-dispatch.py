@@ -103,68 +103,68 @@ ROUTES = {
     },
     'next-step': {
         'description': 'Bepaal de volgende nuttige mailstap, ook als er geen actuele unread-focus meer is',
-        'args': ['-n/--limit?', '--draft?', '--current-only?', '--review-worthy?'],
-        'examples': ['mail-dispatch.py next-step', 'mail-dispatch.py next-step --draft', 'mail-dispatch.py next-step --current-only', 'mail-dispatch.py next-step --review-worthy', 'mail-dispatch.py next-step -n 3', 'mail-dispatch.py next-step --json'],
+        'args': ['-n/--limit?', '--draft?', '--current-only?', '--review-worthy?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py next-step', 'mail-dispatch.py next-step --draft', 'mail-dispatch.py next-step --current-only', 'mail-dispatch.py next-step --review-worthy', 'mail-dispatch.py next-step --search-limit 120', 'mail-dispatch.py next-step -n 3', 'mail-dispatch.py next-step --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-next-step.py')] + args + (['--json'] if json_mode else []),
     },
     'next-step-now': {
         'description': 'Bepaal direct alleen de volgende actuele mailstap zonder stale fallback',
-        'args': ['-n/--limit?', '--draft?'],
-        'examples': ['mail-dispatch.py next-step-now', 'mail-dispatch.py next-step-now --draft', 'mail-dispatch.py next-step-now --json'],
+        'args': ['-n/--limit?', '--draft?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py next-step-now', 'mail-dispatch.py next-step-now --draft', 'mail-dispatch.py next-step-now --search-limit 120', 'mail-dispatch.py next-step-now --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-next-step.py')] + with_defaults(args, '--current-only') + (['--json'] if json_mode else []),
     },
     'next-step-review': {
         'description': 'Bepaal direct alleen de volgende reviewwaardige mailstap zonder code-only of ruisfallback',
-        'args': ['-n/--limit?', '--draft?'],
-        'examples': ['mail-dispatch.py next-step-review', 'mail-dispatch.py next-step-review --draft', 'mail-dispatch.py next-step-review --json'],
+        'args': ['-n/--limit?', '--draft?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py next-step-review', 'mail-dispatch.py next-step-review --draft', 'mail-dispatch.py next-step-review --search-limit 120', 'mail-dispatch.py next-step-review --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-next-step.py')] + with_defaults(args, '--review-worthy') + (['--json'] if json_mode else []),
     },
     'security-alerts': {
         'description': 'Vat actuele en recente security-alert mailclusters samen, met directe review-command',
-        'args': ['-n/--limit?', '--current-only?', '--explain-empty?'],
-        'examples': ['mail-dispatch.py security-alerts', 'mail-dispatch.py security-alerts --current-only', 'mail-dispatch.py security-alerts --explain-empty', 'mail-dispatch.py security-alerts -n 3', 'mail-dispatch.py security-alerts --json'],
+        'args': ['-n/--limit?', '--current-only?', '--explain-empty?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py security-alerts', 'mail-dispatch.py security-alerts --current-only', 'mail-dispatch.py security-alerts --explain-empty', 'mail-dispatch.py security-alerts --search-limit 120', 'mail-dispatch.py security-alerts -n 3', 'mail-dispatch.py security-alerts --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-security-alerts.py')] + args + (['--json'] if json_mode else []),
     },
     'security-alerts-now': {
         'description': 'Bekijk direct alleen actuele security- of loginmeldingen zonder losse --current-only en --explain-empty vlaggen',
-        'args': ['-n/--limit?'],
-        'examples': ['mail-dispatch.py security-alerts-now', 'mail-dispatch.py security-alerts-now -n 3', 'mail-dispatch.py security-alerts-now --json'],
+        'args': ['-n/--limit?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py security-alerts-now', 'mail-dispatch.py security-alerts-now --search-limit 120', 'mail-dispatch.py security-alerts-now -n 3', 'mail-dispatch.py security-alerts-now --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-security-alerts.py')] + with_defaults(args, '--current-only', '--explain-empty') + (['--json'] if json_mode else []),
     },
     'queue': {
         'description': 'Toon een korte prioriteitslijst van de beste volgende mailacties',
-        'args': ['-n/--limit?', '--draft?', '--current-only?', '--review-worthy?'],
-        'examples': ['mail-dispatch.py queue', 'mail-dispatch.py queue --current-only', 'mail-dispatch.py queue --review-worthy', 'mail-dispatch.py queue -n 3', 'mail-dispatch.py queue --json'],
+        'args': ['-n/--limit?', '--draft?', '--current-only?', '--review-worthy?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py queue', 'mail-dispatch.py queue --current-only', 'mail-dispatch.py queue --review-worthy', 'mail-dispatch.py queue --search-limit 120', 'mail-dispatch.py queue -n 3', 'mail-dispatch.py queue --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-next-step.py')] + (([] if ('--limit' in args or '-n' in args) else ['--limit', '3']) + args) + (['--json'] if json_mode else []),
     },
     'queue-now': {
         'description': 'Toon direct alleen een actuele mailwerkrij zonder stale fallback',
-        'args': ['-n/--limit?', '--draft?'],
-        'examples': ['mail-dispatch.py queue-now', 'mail-dispatch.py queue-now --draft', 'mail-dispatch.py queue-now --json'],
+        'args': ['-n/--limit?', '--draft?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py queue-now', 'mail-dispatch.py queue-now --draft', 'mail-dispatch.py queue-now --search-limit 120', 'mail-dispatch.py queue-now --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-next-step.py')] + (([] if ('--limit' in args or '-n' in args) else ['--limit', '3']) + with_defaults(args, '--current-only')) + (['--json'] if json_mode else []),
     },
     'queue-review': {
         'description': 'Toon direct alleen reviewwaardige mailvervolgstappen zonder code-only of ruisfallback',
-        'args': ['-n/--limit?', '--draft?'],
-        'examples': ['mail-dispatch.py queue-review', 'mail-dispatch.py queue-review --draft', 'mail-dispatch.py queue-review --json'],
+        'args': ['-n/--limit?', '--draft?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py queue-review', 'mail-dispatch.py queue-review --draft', 'mail-dispatch.py queue-review --search-limit 120', 'mail-dispatch.py queue-review --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-next-step.py')] + (([] if ('--limit' in args or '-n' in args) else ['--limit', '3']) + with_defaults(args, '--review-worthy')) + (['--json'] if json_mode else []),
     },
     'review-next': {
         'description': 'Open direct de aanbevolen volgende mailthread met context, alternatieven en optioneel conceptantwoord',
-        'args': ['-n/--limit?', '--messages <n>?', '--preview?', '--draft?', '--meaningful?', '--current-only?', '--review-worthy?', '--explain-empty?', '--candidate <n>?'],
-        'examples': ['mail-dispatch.py review-next', 'mail-dispatch.py review-next --current-only', 'mail-dispatch.py review-next --review-worthy', 'mail-dispatch.py review-next --review-worthy --explain-empty', 'mail-dispatch.py review-next --candidate 2', 'mail-dispatch.py review-next --draft', 'mail-dispatch.py review-next --preview', 'mail-dispatch.py review-next --json'],
+        'args': ['-n/--limit?', '--messages <n>?', '--preview?', '--draft?', '--meaningful?', '--current-only?', '--review-worthy?', '--explain-empty?', '--candidate <n>?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py review-next', 'mail-dispatch.py review-next --current-only', 'mail-dispatch.py review-next --review-worthy', 'mail-dispatch.py review-next --review-worthy --explain-empty', 'mail-dispatch.py review-next --candidate 2', 'mail-dispatch.py review-next --search-limit 120', 'mail-dispatch.py review-next --draft', 'mail-dispatch.py review-next --preview', 'mail-dispatch.py review-next --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-review-next.py')] + args + (['--json'] if json_mode else []),
     },
     'review-next-now': {
         'description': 'Open direct alleen de aanbevolen actuele mailthread zonder losse --current-only vlag',
-        'args': ['-n/--limit?', '--messages <n>?', '--preview?', '--draft?', '--meaningful?', '--explain-empty?', '--candidate <n>?'],
-        'examples': ['mail-dispatch.py review-next-now', 'mail-dispatch.py review-next-now --explain-empty', 'mail-dispatch.py review-next-now --candidate 2', 'mail-dispatch.py review-next-now --json'],
+        'args': ['-n/--limit?', '--messages <n>?', '--preview?', '--draft?', '--meaningful?', '--explain-empty?', '--candidate <n>?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py review-next-now', 'mail-dispatch.py review-next-now --explain-empty', 'mail-dispatch.py review-next-now --candidate 2', 'mail-dispatch.py review-next-now --search-limit 120', 'mail-dispatch.py review-next-now --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-review-next.py')] + with_defaults(args, '--current-only') + (['--json'] if json_mode else []),
     },
     'review-next-review': {
         'description': 'Open direct alleen de aanbevolen reviewwaardige mailthread zonder losse --review-worthy vlag',
-        'args': ['-n/--limit?', '--messages <n>?', '--preview?', '--draft?', '--meaningful?', '--explain-empty?', '--candidate <n>?'],
-        'examples': ['mail-dispatch.py review-next-review', 'mail-dispatch.py review-next-review --explain-empty', 'mail-dispatch.py review-next-review --candidate 2', 'mail-dispatch.py review-next-review --json'],
+        'args': ['-n/--limit?', '--messages <n>?', '--preview?', '--draft?', '--meaningful?', '--explain-empty?', '--candidate <n>?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py review-next-review', 'mail-dispatch.py review-next-review --explain-empty', 'mail-dispatch.py review-next-review --candidate 2', 'mail-dispatch.py review-next-review --search-limit 120', 'mail-dispatch.py review-next-review --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-review-next.py')] + with_defaults(args, '--review-worthy') + (['--json'] if json_mode else []),
     },
     'thread': {
@@ -314,30 +314,37 @@ def catalog_payload():
             {
                 'route': 'board',
                 'description': 'totaaloverzicht van mailstatus',
+                'also': ['overview'],
             },
             {
                 'route': 'board-now',
                 'description': 'compact board met alleen actuele aandacht zonder losse flags, ook via overview-now, overview-current of board-current',
+                'also': ['overview-now', 'overview-current', 'board-current'],
             },
             {
                 'route': 'board-review',
                 'description': 'compact board met alleen reviewwaardige mail zonder losse flags, ook via overview-review, overview-review-worthy of board-review-worthy',
+                'also': ['overview-review', 'overview-review-worthy', 'board-review-worthy'],
             },
             {
                 'route': 'latest --unread',
                 'description': 'alleen ongelezen mail',
+                'also': ['unread'],
             },
             {
                 'route': 'check',
                 'description': 'alleen echt nieuwe mail sinds laatste state-update',
+                'also': ['new'],
             },
             {
                 'route': 'latest-now --threads --explain-empty',
                 'description': 'alleen actuele recente threads, met suppressed-uitleg als het leeg is',
+                'also': ['latest-current'],
             },
             {
                 'route': 'latest-review --threads --explain-empty',
                 'description': 'alleen reviewwaardige recente threads, met noop-uitleg als het leeg is',
+                'also': ['latest-review-worthy'],
             },
             {
                 'route': 'now --explain-empty',
@@ -346,62 +353,77 @@ def catalog_payload():
             {
                 'route': 'triage-now --explain-empty',
                 'description': 'actuele prioritering met suppressed-uitleg bij een lege actuele mailbox',
+                'also': ['triage-current'],
             },
             {
                 'route': 'triage-review --explain-empty',
                 'description': 'reviewwaardige prioritering met suppressed-uitleg bij noop',
+                'also': ['triage-review-worthy'],
             },
             {
                 'route': 'security-alerts-now',
                 'description': 'alleen actuele security- of loginmeldingen, ook via security-now, alerts-now, security-current, alerts-current of security-alerts-current, met noop-uitleg al ingebouwd',
+                'also': ['security-now', 'security-current', 'alerts-now', 'alerts-current', 'security-alerts-current'],
             },
             {
                 'route': 'code-now',
                 'description': 'alleen actuele verificatiecodes, ook via code-current, verify-now, verify-current, otp-now, otp-current, auth-code-now, auth-code-current, codes-now en codes-current, met uitleg bij lege mailbox al ingebouwd',
+                'also': ['code-current', 'verify-now', 'verify-current', 'otp-now', 'otp-current', 'auth-code-now', 'auth-code-current', 'codes-now', 'codes-current'],
             },
             {
                 'route': 'focus-now',
                 'description': 'beste actuele mail-focus zonder stale fallback, ook via focus-current',
+                'also': ['focus-current'],
             },
             {
                 'route': 'focus-review',
                 'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback, ook via focus-review-worthy',
+                'also': ['focus-review-worthy'],
             },
             {
                 'route': 'next-step-now',
                 'description': 'beste actuele vervolgstap zonder stale fallback, ook via next-current of next-step-current',
+                'also': ['next-current', 'next-step-current'],
             },
             {
                 'route': 'next-step-review',
                 'description': 'beste reviewwaardige vervolgstap zonder ruisfallback, ook via next-review-worthy of next-step-review-worthy',
+                'also': ['next-review-worthy', 'next-step-review-worthy'],
             },
             {
                 'route': 'queue-now',
                 'description': 'korte actuele werkrij zonder stale fallback, ook via queue-current, worklist-now, worklist-current, todo-now of todo-current',
+                'also': ['queue-current', 'worklist-now', 'worklist-current', 'todo-now', 'todo-current'],
             },
             {
                 'route': 'queue-review',
                 'description': 'korte reviewwaardige werkrij zonder code-only of ruisfallback, ook via queue-review-worthy, worklist-review, worklist-review-worthy, todo-review of todo-review-worthy',
+                'also': ['queue-review-worthy', 'worklist-review', 'worklist-review-worthy', 'todo-review', 'todo-review-worthy'],
             },
             {
                 'route': 'thread-now --explain-empty',
                 'description': 'open direct alleen een actuele thread, ook via thread-current, met suppressed-uitleg bij noop',
+                'also': ['thread-current'],
             },
             {
                 'route': 'thread-review --explain-empty',
                 'description': 'open direct alleen een reviewwaardige thread, ook via thread-review-worthy, met suppressed-uitleg bij noop',
+                'also': ['thread-review-worthy'],
             },
             {
                 'route': 'open-now --explain-empty',
                 'description': 'aanbevolen actuele thread meteen openen, ook via open-current of review-next-current, met suppressed-uitleg bij noop',
+                'also': ['open-current', 'review-next-current'],
             },
             {
                 'route': 'open-review --explain-empty',
                 'description': 'aanbevolen reviewwaardige thread meteen openen, ook via open-review-worthy of review-next-review-worthy, met suppressed-uitleg bij noop',
+                'also': ['open-review-worthy', 'review-next-review-worthy'],
             },
             {
                 'route': 'open',
                 'description': 'aanbevolen thread meteen openen',
+                'also': ['review-next'],
             },
         ],
         'routes': [
@@ -414,7 +436,7 @@ def catalog_payload():
             for name, meta in ROUTES.items()
         ],
         'aliases': ALIASES,
-        'notes': 'Gebruik board voor een snel totaalbeeld, eventueel met --current-only voor alleen actuele aandacht of met --review-worthy voor alleen nog zinnige reviewmail. Board-now en board-review geven die twee nuttigste boardfilters nu ook direct zonder losse flags, en overview-now plus overview-current of overview-review plus overview-review-worthy en board-current plus board-review-worthy gebruiken daar nu ook dezelfde overview/current/review-taal voor. Gebruik latest voor inbox-scan of thread-view, desnoods met --current-only of --review-worthy, en latest-now plus latest-review geven die twee nuttigste latest-filters meteen direct zonder losse flags. Voeg bij lege current/review-runs --explain-empty toe om onderdrukte recente ruis direct te zien. Gebruik now voor wat nu echt aandacht vraagt, en voeg daar --explain-empty toe als je bij een lege actuele mailbox meteen wilt zien welke recente ruis bewust is onderdrukt. Triage-now en triage-review geven diezelfde twee gefilterde prioriteringsroutes meteen direct zonder losse --current-only of --review-worthy flags, en triage-current plus triage-review-worthy gebruiken daar nu ook dezelfde current/review-taal voor. Focus is voor de ene beste eerstvolgende mail, desnoods met --current-only voor alleen actuele focus of --review-worthy voor alleen nog zinvolle reviewfocus. Focus-now plus focus-current en focus-review plus focus-review-worthy geven die twee gefilterde focusroutes meteen direct zonder extra flags. Next-step gebruik je voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback. Next-step-now, next-step-review, queue-now en queue-review geven die twee nuttigste vervolgfilters nu ook direct zonder losse flags, en worklist-current plus todo-current of worklist-review-worthy plus todo-review-worthy gebruiken daarbij dezelfde current/review-taal. Review-next klapt die aanbevolen thread meteen open met context/concept, review-next-now en review-next-review geven daarvan nu ook de twee nuttigste filters direct zonder losse flags, via --candidate open je een alternatief uit de queue, en met --explain-empty zie je bij noop welke kandidaten bewust zijn onderdrukt. De korte aliasen open, open-current, open-now, open-review en open-review-worthy geven diezelfde openroutes nu ook direct via mailboxtaal zonder review-prefix. Thread klapt één specifieke conversatie compact uit, thread-now en thread-review geven diezelfde twee nuttigste filters meteen direct zonder losse flags, en met --explain-empty laat je ook daar lege threadselectie compact verklaren. Triage gebruik je voor prioritering van unread mail, waarbij herhalende stale no-reply ruis in itemmode automatisch wordt samengeklapt, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, en voeg ook daar --explain-empty toe als je lege resultaten compact wilt laten verklaren. Security-alerts gebruik je voor account- of loginmeldingen, daar sluit --current-only recente reviewfallback uit, met --explain-empty zie je welke securityclusters bewust zijn onderdrukt, en security-alerts-now geeft die actuele noop-verklaarde check nu ook direct zonder losse flags via security-now, alerts-now, security-current, alerts-current of security-alerts-current. Codes klapt vergelijkbare verificatiemails nu standaard samen, ook via de korte aliasen code, verify, otp en auth-code, met --current-only zie je alleen nog bruikbare codes, met --explain-empty krijg je bij lege current-only output direct de onderdrukte oudere codegroepen met reden, en code-now plus code-current, verify-now, verify-current, otp-now, otp-current, auth-code-now, auth-code-current, codes-now en codes-current geven die actuele codecheck nu ook direct zonder losse flags. Summary blijft voor alleen nieuwe mail sinds state.',
+        'notes': 'Gebruik board voor een snel totaalbeeld, eventueel met --current-only voor alleen actuele aandacht of met --review-worthy voor alleen nog zinnige reviewmail. Board-now en board-review geven die twee nuttigste boardfilters nu ook direct zonder losse flags, en overview-now plus overview-current of overview-review plus overview-review-worthy en board-current plus board-review-worthy gebruiken daar nu ook dezelfde overview/current/review-taal voor. Gebruik latest voor inbox-scan of thread-view, desnoods met --current-only of --review-worthy, en latest-now plus latest-review geven die twee nuttigste latest-filters meteen direct zonder losse flags. Voeg bij lege current/review-runs --explain-empty toe om onderdrukte recente ruis direct te zien. Gebruik now voor wat nu echt aandacht vraagt, en voeg daar --explain-empty toe als je bij een lege actuele mailbox meteen wilt zien welke recente ruis bewust is onderdrukt. Triage-now en triage-review geven diezelfde twee gefilterde prioriteringsroutes meteen direct zonder losse --current-only of --review-worthy flags, en triage-current plus triage-review-worthy gebruiken daar nu ook dezelfde current/review-taal voor. Focus is voor de ene beste eerstvolgende mail, desnoods met --current-only voor alleen actuele focus of --review-worthy voor alleen nog zinvolle reviewfocus. Focus-now plus focus-current en focus-review plus focus-review-worthy geven die twee gefilterde focusroutes meteen direct zonder extra flags. Next-step gebruik je voor de volgende nuttige mailactie inclusief follow-up buiten unread of met --current-only juist zonder stale fallback of met --review-worthy zonder code-only/noise fallback; met --search-limit kijk je daarbij verder terug als de inboxtop vooral ruis is. Next-step-now, next-step-review, queue-now en queue-review geven die twee nuttigste vervolgfilters nu ook direct zonder losse flags, en worklist-current plus todo-current of worklist-review-worthy plus todo-review-worthy gebruiken daarbij dezelfde current/review-taal. Review-next klapt die aanbevolen thread meteen open met context/concept, review-next-now en review-next-review geven daarvan nu ook de twee nuttigste filters direct zonder losse flags, via --candidate open je een alternatief uit de queue, met --search-limit laat je ook deze route dieper in de mailbox zoeken, en met --explain-empty zie je bij noop welke kandidaten bewust zijn onderdrukt. De korte aliasen open, open-current, open-now, open-review en open-review-worthy geven diezelfde openroutes nu ook direct via mailboxtaal zonder review-prefix. Thread klapt één specifieke conversatie compact uit, thread-now en thread-review geven diezelfde twee nuttigste filters meteen direct zonder losse flags, en met --explain-empty laat je ook daar lege threadselectie compact verklaren. Triage gebruik je voor prioritering van unread mail, waarbij herhalende stale no-reply ruis in itemmode automatisch wordt samengeklapt, compacte clusters via --clusters, alleen actuele aandacht via --current-only of alleen nog zinnige reviewitems via --review-worthy, en voeg ook daar --explain-empty toe als je lege resultaten compact wilt laten verklaren. Security-alerts gebruik je voor account- of loginmeldingen, daar sluit --current-only recente reviewfallback uit, met --explain-empty zie je welke securityclusters bewust zijn onderdrukt, met --search-limit zoek je verder terug langs login- en wijzigingsmails, en security-alerts-now geeft die actuele noop-verklaarde check nu ook direct zonder losse flags via security-now, alerts-now, security-current, alerts-current of security-alerts-current. Codes klapt vergelijkbare verificatiemails nu standaard samen, ook via de korte aliasen code, verify, otp en auth-code, met --current-only zie je alleen nog bruikbare codes, met --explain-empty krijg je bij lege current-only output direct de onderdrukte oudere codegroepen met reden, en code-now plus code-current, verify-now, verify-current, otp-now, otp-current, auth-code-now, auth-code-current, codes-now en codes-current geven die actuele codecheck nu ook direct zonder losse flags. Summary blijft voor alleen nieuwe mail sinds state.',
     }
 
 

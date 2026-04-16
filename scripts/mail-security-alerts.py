@@ -154,25 +154,26 @@ def summarize_suppressed_group(group, *, current_only=False):
     return summary
 
 
-def build_summary(limit=5, current_only=False, explain_empty=False):
+def build_summary(limit=5, current_only=False, explain_empty=False, search_limit=50):
     limit = max(1, min(limit, 10))
+    search_limit = max(1, min(int(search_limit or 50), 500))
     current = run_json(
-        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--review-worthy', '--clusters', '-n', str(limit), '--search-limit', '50'],
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--review-worthy', '--clusters', '-n', str(limit), '--search-limit', str(search_limit)],
         default={},
         timeout=30,
     ) or {}
     recent = run_json(
-        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--review-worthy', '--clusters', '-n', str(limit), '--search-limit', '50'],
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--review-worthy', '--clusters', '-n', str(limit), '--search-limit', str(search_limit)],
         default={},
         timeout=30,
     ) or {}
     raw_current = run_json(
-        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--clusters', '-n', str(limit * 2), '--search-limit', '50'],
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--current-only', '--clusters', '-n', str(limit * 2), '--search-limit', str(search_limit)],
         default={},
         timeout=30,
     ) or {}
     raw_recent = run_json(
-        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--clusters', '-n', str(limit * 2), '--search-limit', '50'],
+        ['python3', str(MAIL_TRIAGE), '--json', '--all', '--clusters', '-n', str(limit * 2), '--search-limit', str(search_limit)],
         default={},
         timeout=30,
     ) or {}
@@ -222,6 +223,7 @@ def build_summary(limit=5, current_only=False, explain_empty=False):
         'stale_count': sum(1 for group in recent_groups if group.get('stale_attention')),
         'attention_now_count': sum(1 for group in current_groups if group.get('attention_now') and not group.get('stale_attention')),
         'suppressed_count': len(suppressed_groups),
+        'search_limit': search_limit,
         'recommended_route': recommended_route,
         'recommended_command': selected_summary.get('recommended_command') if selected_summary else None,
         'reason': reason,
@@ -267,9 +269,10 @@ def main():
     parser.add_argument('-n', '--limit', type=int, default=5)
     parser.add_argument('--current-only', action='store_true', help='toon alleen security-alerts die nu nog actueel aandacht vragen')
     parser.add_argument('--explain-empty', action='store_true', help='leg bij lege security-alert resultaten compact uit welke clusters bewust zijn onderdrukt')
+    parser.add_argument('--search-limit', type=int, default=50, help='kijk verder terug als de bovenste securitymails vooral ruis of oude bevestigingen zijn')
     args = parser.parse_args()
 
-    summary = build_summary(limit=args.limit, current_only=args.current_only, explain_empty=args.explain_empty)
+    summary = build_summary(limit=args.limit, current_only=args.current_only, explain_empty=args.explain_empty, search_limit=args.search_limit)
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:

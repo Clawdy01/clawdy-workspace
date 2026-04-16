@@ -81,9 +81,10 @@ def pick_candidate(summary, candidate_index):
     return candidates[candidate_index - 1], len(candidates)
 
 
-def build_payload(limit=3, messages=8, preview=False, meaningful=False, candidate_index=1, current_only=False, review_worthy_only=False):
+def build_payload(limit=3, messages=8, preview=False, meaningful=False, candidate_index=1, current_only=False, review_worthy_only=False, search_limit=50):
     effective_limit = max(limit, candidate_index)
-    summary_command = ['python3', str(MAIL_NEXT_STEP), '--json', '--limit', str(effective_limit)]
+    search_limit = max(1, min(int(search_limit or 50), 500))
+    summary_command = ['python3', str(MAIL_NEXT_STEP), '--json', '--limit', str(effective_limit), '--search-limit', str(search_limit)]
     if current_only:
         summary_command.append('--current-only')
     if review_worthy_only:
@@ -246,6 +247,7 @@ def main():
     parser.add_argument('--review-worthy', action='store_true', help='open alleen kandidaten die na actualiteitsfiltering nog reviewwaardig zijn')
     parser.add_argument('--explain-empty', action='store_true', help='leg bij een lege reviewroute compact uit welke kandidaten bewust zijn onderdrukt')
     parser.add_argument('--candidate', type=int, default=1, help='open kandidaat N uit mail-next-step in plaats van altijd de eerste')
+    parser.add_argument('--search-limit', type=int, default=50, help='kijk verder terug als de bovenste mails vooral ruis of oude alerts zijn')
     args = parser.parse_args()
 
     payload = build_payload(
@@ -256,6 +258,7 @@ def main():
         candidate_index=max(1, min(args.candidate, 10)),
         current_only=args.current_only,
         review_worthy_only=args.review_worthy,
+        search_limit=args.search_limit,
     )
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
