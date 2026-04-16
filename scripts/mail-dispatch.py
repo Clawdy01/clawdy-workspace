@@ -310,6 +310,14 @@ def normalize_route(value):
     return ALIASES.get(value, value)
 
 
+def aliases_for_route(route_name):
+    return sorted(
+        alias
+        for alias, target in ALIASES.items()
+        if target == route_name and alias != route_name
+    )
+
+
 def catalog_payload():
     return {
         'quickstart': [
@@ -432,6 +440,7 @@ def catalog_payload():
             {
                 'name': name,
                 'description': meta['description'],
+                'also': aliases_for_route(name),
                 'args': meta['args'],
                 'examples': meta['examples'],
             }

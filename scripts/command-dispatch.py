@@ -480,6 +480,15 @@ def normalize_command(value):
     return ALIASES.get(value, value.lstrip('/'))
 
 
+def aliases_for_command(command_name):
+    canonical_slash = f'/{command_name}'
+    return sorted(
+        alias
+        for alias, target in ALIASES.items()
+        if alias.startswith('/') and target == command_name and alias != canonical_slash
+    )
+
+
 def help_payload():
     alias_entries = sorted(
         (alias, target)
@@ -631,6 +640,7 @@ def help_payload():
                 'name': name,
                 'slash': f'/{name}',
                 'description': meta['description'],
+                'also': aliases_for_command(name),
             }
             for name, meta in sorted(COMMANDS.items())
         ],

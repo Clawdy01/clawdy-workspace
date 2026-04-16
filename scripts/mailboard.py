@@ -29,6 +29,7 @@ def quickstart_payload():
     return [
         {
             'command': 'python3 scripts/mail-dispatch.py board',
+            'also': ['overview'],
             'description': 'totaaloverzicht van mailstatus',
         },
         {
@@ -43,10 +44,12 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest --unread',
+            'also': ['unread'],
             'description': 'alleen ongelezen mail',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py check',
+            'also': ['new'],
             'description': 'alleen echt nieuwe mail sinds laatste state-update',
         },
         {
@@ -135,6 +138,7 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py open',
+            'also': ['review-next'],
             'description': 'aanbevolen thread meteen openen',
         },
     ]
