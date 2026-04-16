@@ -170,7 +170,7 @@ COMMANDS = {
     },
     'mail-code-now': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'codes-now'],
-        'description': 'Toon alleen actuele verificatiecodes en leg een lege mailboxcheck meteen uit',
+        'description': 'Toon alleen actuele verificatiecodes en leg een lege mailboxcheck meteen uit, ook via verify-now, otp-now en auth-code-now',
     },
     'mail-catalog': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'catalog'],
@@ -420,9 +420,11 @@ ALIASES = {
     '/mail-auth-code': 'mail-codes',
     '/mail-code-now': 'mail-code-now',
     '/mail-code-current': 'mail-code-now',
+    '/mail-verify-now': 'mail-code-now',
     '/mail-verify-current': 'mail-code-now',
     '/mail-otp-now': 'mail-code-now',
     '/mail-otp-current': 'mail-code-now',
+    '/mail-auth-code-now': 'mail-code-now',
     '/mail-auth-code-current': 'mail-code-now',
     '/mail-codes-now': 'mail-code-now',
     '/mail-codes-current': 'mail-code-now',
@@ -547,7 +549,7 @@ def help_payload():
         },
         {
             'slash': '/mail-code-now',
-            'also': ['/mail-code-current', '/mail-verify-current', '/mail-otp-now', '/mail-otp-current', '/mail-auth-code-current', '/mail-codes-now', '/mail-codes-current'],
+            'also': ['/mail-code-current', '/mail-verify-now', '/mail-verify-current', '/mail-otp-now', '/mail-otp-current', '/mail-auth-code-now', '/mail-auth-code-current', '/mail-codes-now', '/mail-codes-current'],
             'description': 'actuele verificatiecode-check met current-only en noop-uitleg al ingebouwd',
         },
         {
