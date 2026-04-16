@@ -529,6 +529,16 @@ def help_payload():
             'description': 'beste reviewwaardige mailvervolgstap zonder losse --review-worthy vlag',
         },
         {
+            'slash': '/mail-queue-now',
+            'also': ['/mail-now-queue'],
+            'description': 'korte actuele mailwerkrij zonder losse --current-only vlag',
+        },
+        {
+            'slash': '/mail-queue-review',
+            'also': ['/mail-review-queue'],
+            'description': 'korte reviewwaardige mailwerkrij zonder losse --review-worthy vlag',
+        },
+        {
             'slash': '/mail-thread-now',
             'also': ['/mail-now-thread'],
             'description': 'open direct alleen een actuele thread zonder losse --current-only vlag',

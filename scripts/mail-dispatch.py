@@ -321,6 +321,14 @@ def catalog_payload():
                 'description': 'beste reviewwaardige vervolgstap zonder ruisfallback',
             },
             {
+                'route': 'queue-now',
+                'description': 'korte actuele werkrij zonder stale fallback',
+            },
+            {
+                'route': 'queue-review',
+                'description': 'korte reviewwaardige werkrij zonder code-only of ruisfallback',
+            },
+            {
                 'route': 'thread-now --explain-empty',
                 'description': 'open direct alleen een actuele thread, met suppressed-uitleg bij noop',
             },

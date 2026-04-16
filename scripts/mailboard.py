@@ -60,6 +60,14 @@ def quickstart_payload():
             'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback',
         },
         {
+            'command': 'python3 scripts/mail-dispatch.py queue-now',
+            'description': 'korte actuele mailwerkrij zonder stale fallback',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py queue-review',
+            'description': 'korte reviewwaardige mailwerkrij zonder code-only of ruisfallback',
+        },
+        {
             'command': 'python3 scripts/mail-dispatch.py review-next',
             'description': 'aanbevolen thread meteen openen',
         },
