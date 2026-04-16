@@ -48,8 +48,24 @@ def quickstart_payload():
             'description': 'alleen echt nieuwe mail sinds laatste state-update',
         },
         {
+            'command': 'python3 scripts/mail-dispatch.py latest-now --threads --explain-empty',
+            'description': 'alleen actuele recente threads, met suppressed-uitleg als het leeg is',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py latest-review --threads --explain-empty',
+            'description': 'alleen reviewwaardige recente threads, met noop-uitleg als het leeg is',
+        },
+        {
             'command': 'python3 scripts/mail-dispatch.py now --explain-empty',
             'description': 'alleen wat nu echt aandacht vraagt, met suppressed-uitleg als het leeg is',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py triage-now --explain-empty',
+            'description': 'actuele prioritering met suppressed-uitleg bij een lege actuele mailbox',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py triage-review --explain-empty',
+            'description': 'reviewwaardige prioritering met suppressed-uitleg bij noop',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py security-alerts-now',
@@ -74,6 +90,14 @@ def quickstart_payload():
         {
             'command': 'python3 scripts/mail-dispatch.py queue-review',
             'description': 'korte reviewwaardige mailwerkrij zonder code-only of ruisfallback',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py thread-now',
+            'description': 'open direct alleen een actuele thread, met suppressed-uitleg bij noop',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py thread-review',
+            'description': 'open direct alleen een reviewwaardige thread, met suppressed-uitleg bij noop',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py open-now',
