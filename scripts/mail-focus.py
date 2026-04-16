@@ -118,7 +118,13 @@ def run_json(command, error_label):
     )
     if proc.returncode != 0:
         raise SystemExit(proc.stderr.strip() or proc.stdout.strip() or f'{error_label} failed: {proc.returncode}')
-    return json.loads(proc.stdout)
+    data = proc.stdout.strip()
+    if not data:
+        raise SystemExit(f'invalid json from {error_label}: empty stdout')
+    try:
+        return json.loads(data)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f'invalid json from {error_label}: {exc}')
 
 
 def load_meaningful_threads(limit, search_limit, current_only=False):

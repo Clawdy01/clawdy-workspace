@@ -68,6 +68,11 @@ def quickstart_payload():
             'description': 'alleen wat nu echt aandacht vraagt, met suppressed-uitleg als het leeg is',
         },
         {
+            'command': 'python3 scripts/mail-dispatch.py now-empty',
+            'also': ['current-empty'],
+            'description': 'directe actuele aandacht-check met suppressed-uitleg al ingebouwd',
+        },
+        {
             'command': 'python3 scripts/mail-dispatch.py triage-now --explain-empty',
             'also': ['triage-current'],
             'description': 'actuele prioritering met suppressed-uitleg bij een lege actuele mailbox',
