@@ -125,12 +125,20 @@ COMMANDS = {
         'description': 'Toon compacte account- en login-alerts met current-only en suppressed-uitleg',
     },
     'mail-alerts-now': {
-        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'security-alerts', '--current-only', '--explain-empty'],
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'security-alerts-now'],
         'description': 'Toon alleen actuele security- of loginmeldingen en leg een lege check meteen uit',
     },
     'mail-review-next': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'review-next'],
         'description': 'Open direct de aanbevolen volgende mailthread met context, alternatieven, optioneel conceptantwoord en noop-uitleg via --explain-empty',
+    },
+    'mail-review-next-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'review-next-now'],
+        'description': 'Open direct alleen de aanbevolen actuele mailthread zonder losse --current-only vlag',
+    },
+    'mail-review-next-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'review-next-review'],
+        'description': 'Open direct alleen de aanbevolen reviewwaardige mailthread zonder losse --review-worthy vlag',
     },
     'mail-thread': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'thread'],
@@ -161,7 +169,7 @@ COMMANDS = {
         'description': 'Zoek verificatiecodes in recente mail, met --current-only of suppressed-uitleg via --explain-empty',
     },
     'mail-code-now': {
-        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'codes', '--current-only', '--explain-empty'],
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'codes-now'],
         'description': 'Toon alleen actuele verificatiecodes en leg een lege mailboxcheck meteen uit',
     },
     'mail-catalog': {
@@ -346,10 +354,15 @@ ALIASES = {
     '/mail-alerts': 'mail-security-alerts',
     '/mail-alerts-now': 'mail-alerts-now',
     '/mail-security-now': 'mail-alerts-now',
+    '/mail-security-alerts-now': 'mail-alerts-now',
     '/mail-review-next': 'mail-review-next',
     '/mail-review': 'mail-review-next',
     '/mail-open': 'mail-review-next',
     '/mail-next-thread': 'mail-review-next',
+    '/mail-review-next-now': 'mail-review-next-now',
+    '/mail-now-open': 'mail-review-next-now',
+    '/mail-review-next-review': 'mail-review-next-review',
+    '/mail-review-open': 'mail-review-next-review',
     '/mail-thread': 'mail-thread',
     '/mail-threads': 'mail-thread',
     '/mail-conversation': 'mail-thread',
@@ -370,6 +383,7 @@ ALIASES = {
     '/mail-auth-code': 'mail-codes',
     '/mail-code-now': 'mail-code-now',
     '/mail-otp-now': 'mail-code-now',
+    '/mail-codes-now': 'mail-code-now',
     '/mail-catalog': 'mail-catalog',
     '/mail-help': 'mail-catalog',
     '/mail-routes': 'mail-catalog',
@@ -486,12 +500,12 @@ def help_payload():
         },
         {
             'slash': '/mail-alerts-now',
-            'also': ['/mail-security-now'],
+            'also': ['/mail-security-now', '/mail-security-alerts-now'],
             'description': 'actuele security- of loginmeldingen, met current-only en noop-uitleg al ingebouwd',
         },
         {
             'slash': '/mail-code-now',
-            'also': ['/mail-otp-now'],
+            'also': ['/mail-otp-now', '/mail-codes-now'],
             'description': 'actuele verificatiecode-check met current-only en noop-uitleg al ingebouwd',
         },
         {
@@ -527,6 +541,16 @@ def help_payload():
         {
             'slash': '/mail-first',
             'description': 'beste eerstvolgende mail',
+        },
+        {
+            'slash': '/mail-review-next-now',
+            'also': ['/mail-now-open'],
+            'description': 'aanbevolen actuele thread meteen openklappen zonder losse --current-only vlag',
+        },
+        {
+            'slash': '/mail-review-next-review',
+            'also': ['/mail-review-open'],
+            'description': 'aanbevolen reviewwaardige thread meteen openklappen zonder losse --review-worthy vlag',
         },
         {
             'slash': '/mail-review-next',
