@@ -40,6 +40,14 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest'],
         'description': 'Laatste mails of ongelezen inbox-items bekijken',
     },
+    'mail-latest-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest-now'],
+        'description': 'Bekijk direct alleen actuele recente mail of threads zonder losse --current-only vlag',
+    },
+    'mail-latest-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest-review'],
+        'description': 'Bekijk direct alleen reviewwaardige recente mail of threads zonder losse --review-worthy vlag',
+    },
     'mail-check': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'check'],
         'description': 'Check alleen echt nieuwe mail sinds de laatste state-update',
@@ -92,9 +100,25 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'next-step'],
         'description': 'Bepaal de volgende nuttige mailstap, ook met --current-only of --review-worthy als stale fallback juist niet gewenst is',
     },
+    'mail-next-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'next-step-now'],
+        'description': 'Bepaal direct alleen de volgende actuele mailstap zonder losse --current-only vlag',
+    },
+    'mail-next-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'next-step-review'],
+        'description': 'Bepaal direct alleen de volgende reviewwaardige mailstap zonder losse --review-worthy vlag',
+    },
     'mail-queue': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'queue'],
         'description': 'Toon een korte prioriteitslijst van de beste volgende mailacties',
+    },
+    'mail-queue-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'queue-now'],
+        'description': 'Toon direct alleen een actuele mailwerkrij zonder losse --current-only vlag',
+    },
+    'mail-queue-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'queue-review'],
+        'description': 'Toon direct alleen reviewwaardige mailvervolgstappen zonder losse --review-worthy vlag',
     },
     'mail-security-alerts': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'security-alerts'],
@@ -278,6 +302,10 @@ ALIASES = {
     '/mail-inbox': 'mail-inbox',
     '/mail-unread': 'mail-unread',
     '/mail-latest': 'mail-latest',
+    '/mail-latest-now': 'mail-latest-now',
+    '/mail-now-latest': 'mail-latest-now',
+    '/mail-latest-review': 'mail-latest-review',
+    '/mail-review-latest': 'mail-latest-review',
     '/mail-check': 'mail-check',
     '/mail-new': 'mail-check',
     '/mail-summary': 'mail-summary',
@@ -302,9 +330,17 @@ ALIASES = {
     '/mail-next-step': 'mail-next-step',
     '/mail-next': 'mail-next-step',
     '/mail-followup': 'mail-next-step',
+    '/mail-next-now': 'mail-next-now',
+    '/mail-now-next': 'mail-next-now',
+    '/mail-next-review': 'mail-next-review',
+    '/mail-review-next-step': 'mail-next-review',
     '/mail-queue': 'mail-queue',
     '/mail-worklist': 'mail-queue',
     '/mail-todo': 'mail-queue',
+    '/mail-queue-now': 'mail-queue-now',
+    '/mail-now-queue': 'mail-queue-now',
+    '/mail-queue-review': 'mail-queue-review',
+    '/mail-review-queue': 'mail-queue-review',
     '/mail-security-alerts': 'mail-security-alerts',
     '/mail-security': 'mail-security-alerts',
     '/mail-alerts': 'mail-security-alerts',
@@ -420,6 +456,16 @@ def help_payload():
             'description': 'alleen echt nieuwe mail sinds de laatste state-update',
         },
         {
+            'slash': '/mail-latest-now',
+            'also': ['/mail-now-latest'],
+            'description': 'actuele recente mail of threads zonder losse --current-only vlag',
+        },
+        {
+            'slash': '/mail-latest-review',
+            'also': ['/mail-review-latest'],
+            'description': 'reviewwaardige recente mail of threads zonder losse --review-worthy vlag',
+        },
+        {
             'slash': '/mail-now',
             'description': 'alleen wat nu echt aandacht vraagt, met --explain-empty voor suppressed-uitleg',
         },
@@ -457,6 +503,16 @@ def help_payload():
             'slash': '/mail-focus-review',
             'also': ['/mail-review-focus'],
             'description': 'beste reviewwaardige mail-focus zonder code-only of ruisfallback',
+        },
+        {
+            'slash': '/mail-next-now',
+            'also': ['/mail-now-next'],
+            'description': 'beste actuele mailvervolgstap zonder losse --current-only vlag',
+        },
+        {
+            'slash': '/mail-next-review',
+            'also': ['/mail-review-next-step'],
+            'description': 'beste reviewwaardige mailvervolgstap zonder losse --review-worthy vlag',
         },
         {
             'slash': '/mail-thread-now',
@@ -507,7 +563,7 @@ def render_help():
     lines = [
         'Command dispatch',
         '- gebruik: command-dispatch.py <command> [args]',
-        '- slash-vorm werkt ook, bijvoorbeeld /status, /mail of /mail-now',
+        '- slash-vorm werkt ook, bijvoorbeeld /status, /mail, /mail-latest-now of /mail-now',
         '- snelle mailstart:',
     ]
     for item in payload.get('quickstart', []):
