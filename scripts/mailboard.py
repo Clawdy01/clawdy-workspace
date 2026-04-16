@@ -68,6 +68,14 @@ def quickstart_payload():
             'description': 'korte reviewwaardige mailwerkrij zonder code-only of ruisfallback',
         },
         {
+            'command': 'python3 scripts/mail-dispatch.py review-next-now',
+            'description': 'aanbevolen actuele thread meteen openen zonder stale fallback',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py review-next-review',
+            'description': 'aanbevolen reviewwaardige thread meteen openen zonder ruisfallback',
+        },
+        {
             'command': 'python3 scripts/mail-dispatch.py review-next',
             'description': 'aanbevolen thread meteen openen',
         },
