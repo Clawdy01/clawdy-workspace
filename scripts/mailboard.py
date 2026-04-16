@@ -32,6 +32,14 @@ def quickstart_payload():
             'description': 'totaaloverzicht van mailstatus',
         },
         {
+            'command': 'python3 scripts/mail-dispatch.py board-now',
+            'description': 'compact board met alleen actuele aandacht zonder losse flags',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py board-review',
+            'description': 'compact board met alleen reviewwaardige mail zonder losse flags',
+        },
+        {
             'command': 'python3 scripts/mail-dispatch.py latest --unread',
             'description': 'alleen ongelezen mail',
         },
@@ -68,15 +76,15 @@ def quickstart_payload():
             'description': 'korte reviewwaardige mailwerkrij zonder code-only of ruisfallback',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py review-next-now',
+            'command': 'python3 scripts/mail-dispatch.py open-now',
             'description': 'aanbevolen actuele thread meteen openen zonder stale fallback',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py review-next-review',
+            'command': 'python3 scripts/mail-dispatch.py open-review',
             'description': 'aanbevolen reviewwaardige thread meteen openen zonder ruisfallback',
         },
         {
-            'command': 'python3 scripts/mail-dispatch.py review-next',
+            'command': 'python3 scripts/mail-dispatch.py open',
             'description': 'aanbevolen thread meteen openen',
         },
     ]

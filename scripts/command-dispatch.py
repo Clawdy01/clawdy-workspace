@@ -21,12 +21,12 @@ COMMANDS = {
         'description': 'Mail-overzicht met latest, unread, new en drafts',
     },
     'mail-board-now': {
-        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'board', '--current-only'],
-        'description': 'Compact mailboard met alleen actuele aandacht en suppressed-uitleg bij een lege actuele mailbox',
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'board-now'],
+        'description': 'Compact mailboard met alleen actuele aandacht zonder losse --current-only vlag',
     },
     'mail-board-review': {
-        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'board', '--review-worthy'],
-        'description': 'Compact mailboard met alleen nog reviewwaardige mail en suppressed-uitleg bij noop',
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'board-review'],
+        'description': 'Compact mailboard met alleen reviewwaardige mail zonder losse --review-worthy vlag',
     },
     'mail-inbox': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest'],
@@ -559,17 +559,18 @@ def help_payload():
             'description': 'beste eerstvolgende mail',
         },
         {
-            'slash': '/mail-review-next-now',
-            'also': ['/mail-now-open', '/mail-open-now'],
+            'slash': '/mail-open-now',
+            'also': ['/mail-review-next-now', '/mail-now-open'],
             'description': 'aanbevolen actuele thread meteen openklappen zonder losse --current-only vlag',
         },
         {
-            'slash': '/mail-review-next-review',
-            'also': ['/mail-review-open', '/mail-open-review'],
+            'slash': '/mail-open-review',
+            'also': ['/mail-review-next-review', '/mail-review-open'],
             'description': 'aanbevolen reviewwaardige thread meteen openklappen zonder losse --review-worthy vlag',
         },
         {
-            'slash': '/mail-review-next',
+            'slash': '/mail-open',
+            'also': ['/mail-review-next'],
             'description': 'aanbevolen thread meteen openklappen, met --explain-empty als noop-uitleg',
         },
         {
