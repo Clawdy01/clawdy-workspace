@@ -365,8 +365,10 @@ ALIASES = {
     '/mail-next-thread': 'mail-review-next',
     '/mail-review-next-now': 'mail-review-next-now',
     '/mail-now-open': 'mail-review-next-now',
+    '/mail-open-now': 'mail-review-next-now',
     '/mail-review-next-review': 'mail-review-next-review',
     '/mail-review-open': 'mail-review-next-review',
+    '/mail-open-review': 'mail-review-next-review',
     '/mail-thread': 'mail-thread',
     '/mail-threads': 'mail-thread',
     '/mail-conversation': 'mail-thread',
@@ -558,12 +560,12 @@ def help_payload():
         },
         {
             'slash': '/mail-review-next-now',
-            'also': ['/mail-now-open'],
+            'also': ['/mail-now-open', '/mail-open-now'],
             'description': 'aanbevolen actuele thread meteen openklappen zonder losse --current-only vlag',
         },
         {
             'slash': '/mail-review-next-review',
-            'also': ['/mail-review-open'],
+            'also': ['/mail-review-open', '/mail-open-review'],
             'description': 'aanbevolen reviewwaardige thread meteen openklappen zonder losse --review-worthy vlag',
         },
         {
