@@ -95,12 +95,12 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py next-step-now',
-            'also': ['next-current', 'next-step-current'],
+            'also': ['next-now', 'next-current', 'next-step-current'],
             'description': 'beste actuele vervolgstap zonder stale fallback',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py next-step-review',
-            'also': ['next-review-worthy', 'next-step-review-worthy'],
+            'also': ['next-review', 'next-review-worthy', 'next-step-review-worthy'],
             'description': 'beste reviewwaardige vervolgstap zonder ruisfallback',
         },
         {
@@ -160,7 +160,7 @@ def run_json(command, default=None, timeout=20):
         return default, f'invalid json for {command}: {exc}'
 
 
-def build_board(limit=5, current_only=False, review_worthy_only=False):
+def build_board(limit=5, current_only=False, review_worthy_only=False, search_limit=50):
     def latest_items(payload):
         if isinstance(payload, dict):
             return payload.get('items') or []
@@ -171,8 +171,9 @@ def build_board(limit=5, current_only=False, review_worthy_only=False):
             return payload.get('suppressed_groups') or []
         return []
 
-    next_step_command = ['python3', str(MAIL_NEXT_STEP), '--json', '-n', '3']
-    security_alerts_command = ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '5', '--explain-empty']
+    search_limit = max(1, min(int(search_limit or 50), 500))
+    next_step_command = ['python3', str(MAIL_NEXT_STEP), '--json', '-n', '3', '--search-limit', str(search_limit)]
+    security_alerts_command = ['python3', str(MAIL_SECURITY_ALERTS), '--json', '-n', '5', '--explain-empty', '--search-limit', str(search_limit)]
     latest_base_flags = ['--review-worthy'] if review_worthy_only else ['--meaningful']
     triage_review_flags = ['--review-worthy'] if review_worthy_only else []
     if current_only:
@@ -191,11 +192,11 @@ def build_board(limit=5, current_only=False, review_worthy_only=False):
         'summary': (['python3', str(MAIL_SUMMARY), '--json'], {}, 20),
         'drafts': (['python3', str(MAIL_DRAFTS), '--json', '--unread', '-n', str(limit)], {}, 20),
         'triage': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit)] + triage_review_flags, {}, 20),
-        'triage_meaningful': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--all', '--review-worthy', '--search-limit', '50'], {}, 25),
-        'triage_current': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--all', '--current-only', '--search-limit', '50'] + triage_review_flags, {}, 25),
-        'triage_reply': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--reply-only'] + triage_review_flags, {}, 20),
-        'triage_high': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--high-only'] + triage_review_flags, {}, 20),
-        'triage_high_latest': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--high-only', '--all', '--search-limit', '50'] + triage_review_flags, {}, 25),
+        'triage_meaningful': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--all', '--review-worthy', '--search-limit', str(search_limit)], {}, 25),
+        'triage_current': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--all', '--current-only', '--search-limit', str(search_limit)] + triage_review_flags, {}, 25),
+        'triage_reply': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--reply-only', '--search-limit', str(search_limit)] + triage_review_flags, {}, 20),
+        'triage_high': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--high-only', '--search-limit', str(search_limit)] + triage_review_flags, {}, 20),
+        'triage_high_latest': (['python3', str(MAIL_TRIAGE), '--json', '-n', str(limit), '--high-only', '--all', '--search-limit', str(search_limit)] + triage_review_flags, {}, 25),
         'focus': (['python3', str(MAIL_FOCUS), '--json', '-n', str(limit)], {}, 30),
         'next_step': (next_step_command, {}, 35),
         'security_alerts': (security_alerts_command, {}, 35),
@@ -301,6 +302,7 @@ def build_board(limit=5, current_only=False, review_worthy_only=False):
         'quickstart': quickstart_payload(),
         'current_only': current_only,
         'review_worthy_only': review_worthy_only,
+        'search_limit': search_limit,
         'latest_count': len(latest),
         'unread_count': len(unread),
         'new_count': summary.get('new_count', 0),
@@ -683,11 +685,16 @@ def help_payload():
                 'flag': '--review-worthy',
                 'description': 'toon alleen mail die na actualiteitsfiltering nog echt reviewwaardig is',
             },
+            {
+                'flag': '--search-limit <n>',
+                'description': 'kijk dieper terug als de bovenste inboxlaag vooral ruis of oude alerts bevat',
+            },
         ],
         'notes': [
             'Gebruik standaard mailboard voor een compact totaaloverzicht van nieuw, unread, triage, focus en volgende stap.',
             'Gebruik --current-only als je juist wilt zien waarom er nu niets actueels overblijft.',
             'Gebruik --json voor machineleesbare suppressed-groepen, security-alerts en next-step context.',
+            'Gebruik --search-limit als board, next-step of security anders te vroeg stopt op ruis in de bovenste inboxlaag.',
         ],
     }
 
@@ -728,9 +735,10 @@ def main():
     parser.add_argument('--preview', action='store_true', help='toon korte preview bij bovenste mail in tekstoutput')
     parser.add_argument('--current-only', action='store_true', help='onderdruk stale-only tekstregels en toon alleen actuele mailaandacht')
     parser.add_argument('--review-worthy', action='store_true', help='toon alleen mail die na actualiteitsfiltering nog echt reviewwaardig is')
+    parser.add_argument('--search-limit', type=int, default=50, help='kijk dieper terug als de bovenste inboxlaag vooral ruis of oude alerts bevat')
     args = parser.parse_args()
 
-    board = build_board(limit=max(1, min(args.limit, 20)), current_only=args.current_only, review_worthy_only=args.review_worthy)
+    board = build_board(limit=max(1, min(args.limit, 20)), current_only=args.current_only, review_worthy_only=args.review_worthy, search_limit=args.search_limit)
     if args.json:
         print(json.dumps(board, ensure_ascii=False, indent=2))
     else:
