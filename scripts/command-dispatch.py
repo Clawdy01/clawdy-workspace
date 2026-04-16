@@ -106,7 +106,7 @@ COMMANDS = {
     },
     'mail-next-review': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'next-step-review'],
-        'description': 'Bepaal direct alleen de volgende reviewwaardige mailstap zonder losse --review-worthy vlag',
+        'description': 'Bepaal direct alleen de volgende reviewwaardige mailstap zonder losse --review-worthy vlag, ook via /mail-next-step-review',
     },
     'mail-queue': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'queue'],
@@ -357,6 +357,7 @@ ALIASES = {
     '/mail-next-step-current': 'mail-next-now',
     '/mail-next-review': 'mail-next-review',
     '/mail-review-next-step': 'mail-next-review',
+    '/mail-next-step-review': 'mail-next-review',
     '/mail-next-review-worthy': 'mail-next-review',
     '/mail-next-step-review-worthy': 'mail-next-review',
     '/mail-queue': 'mail-queue',
@@ -575,18 +576,18 @@ def help_payload():
         },
         {
             'slash': '/mail-next-review',
-            'also': ['/mail-review-next-step', '/mail-next-review-worthy', '/mail-next-step-review-worthy'],
+            'also': ['/mail-review-next-step', '/mail-next-step-review', '/mail-next-review-worthy', '/mail-next-step-review-worthy'],
             'description': 'beste reviewwaardige mailvervolgstap zonder losse --review-worthy vlag',
         },
         {
             'slash': '/mail-queue-now',
-            'also': ['/mail-now-queue', '/mail-queue-current', '/mail-worklist-current', '/mail-todo-current'],
-            'description': 'korte actuele mailwerkrij zonder losse --current-only vlag',
+            'also': ['/mail-now-queue', '/mail-queue-current', '/mail-worklist-now', '/mail-worklist-current', '/mail-todo-now', '/mail-todo-current'],
+            'description': 'korte actuele mailwerkrij zonder losse --current-only vlag, ook via worklist/todo',
         },
         {
             'slash': '/mail-queue-review',
-            'also': ['/mail-review-queue', '/mail-queue-review-worthy', '/mail-worklist-review-worthy', '/mail-todo-review-worthy'],
-            'description': 'korte reviewwaardige mailwerkrij zonder losse --review-worthy vlag',
+            'also': ['/mail-review-queue', '/mail-queue-review-worthy', '/mail-worklist-review', '/mail-worklist-review-worthy', '/mail-todo-review', '/mail-todo-review-worthy'],
+            'description': 'korte reviewwaardige mailwerkrij zonder losse --review-worthy vlag, ook via worklist/todo',
         },
         {
             'slash': '/mail-thread-now',

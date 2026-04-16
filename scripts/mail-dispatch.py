@@ -377,11 +377,11 @@ def catalog_payload():
             },
             {
                 'route': 'queue-now',
-                'description': 'korte actuele werkrij zonder stale fallback, ook via worklist-current of todo-current',
+                'description': 'korte actuele werkrij zonder stale fallback, ook via worklist-now, worklist-current, todo-now of todo-current',
             },
             {
                 'route': 'queue-review',
-                'description': 'korte reviewwaardige werkrij zonder code-only of ruisfallback, ook via worklist-review-worthy of todo-review-worthy',
+                'description': 'korte reviewwaardige werkrij zonder code-only of ruisfallback, ook via worklist-review, worklist-review-worthy, todo-review of todo-review-worthy',
             },
             {
                 'route': 'thread-now --explain-empty',
