@@ -332,6 +332,9 @@ def main() -> int:
         'proof_target_run_slots_text': status.get('proof_target_run_slots_text'),
         'proof_next_qualifying_slot_at_text': status.get('proof_next_qualifying_slot_at_text'),
         'proof_next_qualifying_slot_hint': status.get('proof_next_qualifying_slot_hint'),
+        'proof_next_qualifying_slot_day_label': status.get('proof_next_qualifying_slot_day_label'),
+        'proof_no_more_qualifying_runs_today': status.get('proof_no_more_qualifying_runs_today'),
+        'proof_today_block_text': status.get('proof_today_block_text'),
         'previous_run_slot_at_text': status.get('previous_run_slot_at_text'),
         'last_proof_qualified_run_at_text': status.get('last_proof_qualified_run_at_text'),
         'has_run_proof': status.get('has_run_proof'),
@@ -360,10 +363,14 @@ def main() -> int:
         lines.append(f"proof due: {result['proof_due_at_text']}")
     if result['proof_target_due_at_text']:
         lines.append(f"proof target due: {result['proof_target_due_at_text']}")
+    if result['proof_today_block_text']:
+        lines.append(f"proof today block: {result['proof_today_block_text']}")
     if result['proof_next_qualifying_slot_at_text']:
         next_qualifying_line = f"next qualifying run: {result['proof_next_qualifying_slot_at_text']}"
         if result['proof_next_qualifying_slot_hint']:
             next_qualifying_line += f" ({result['proof_next_qualifying_slot_hint']})"
+        if result['proof_next_qualifying_slot_day_label']:
+            next_qualifying_line += f" [{result['proof_next_qualifying_slot_day_label']}]"
         lines.append(next_qualifying_line)
     if result['proof_target_run_slots_text']:
         lines.append(f"qualifying run slots: {result['proof_target_run_slots_text']}")

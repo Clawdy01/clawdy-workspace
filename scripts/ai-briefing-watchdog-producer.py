@@ -71,13 +71,19 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['summary']))
     if payload.get('proof_progress_text'):
         bits.append(str(payload['proof_progress_text']))
+    if payload.get('proof_today_block_text'):
+        bits.append(str(payload['proof_today_block_text']))
     if payload.get('proof_next_qualifying_slot_at_text'):
         next_run = f"volgende kwalificatierun {payload['proof_next_qualifying_slot_at_text']}"
         if payload.get('proof_next_qualifying_slot_hint'):
             next_run += f" ({payload['proof_next_qualifying_slot_hint']})"
+        if payload.get('proof_next_qualifying_slot_day_label'):
+            next_run += f" [{payload['proof_next_qualifying_slot_day_label']}]"
         bits.append(next_run)
     if payload.get('proof_target_due_at_text'):
         bits.append(f"bewijsdoel {payload['proof_target_due_at_text']}")
+    if payload.get('proof_target_run_slots_text'):
+        bits.append(f"kwalificatie-slots {payload['proof_target_run_slots_text']}")
     if payload.get('last_run_timeout_text'):
         bits.append(str(payload['last_run_timeout_text']))
     if returncode != 0:

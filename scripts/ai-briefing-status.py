@@ -257,6 +257,26 @@ def future_hint(ms, now_ms):
     return f'over {days} d'
 
 
+def relative_day_label(ms, now_ms, tz_name):
+    if not ms:
+        return None
+    tz = ZoneInfo(tz_name)
+    target_date = datetime.fromtimestamp(ms / 1000, tz=timezone.utc).astimezone(tz).date()
+    now_date = datetime.fromtimestamp(now_ms / 1000, tz=timezone.utc).astimezone(tz).date()
+    delta_days = (target_date - now_date).days
+    if delta_days == 0:
+        return 'vandaag'
+    if delta_days == 1:
+        return 'morgen'
+    if delta_days == -1:
+        return 'gisteren'
+    if 1 < delta_days < 7:
+        return f'over {delta_days} d'
+    if -7 < delta_days < -1:
+        return f'{abs(delta_days)} d geleden'
+    return target_date.isoformat()
+
+
 def duration_hint(ms):
     if ms is None:
         return None
@@ -2327,6 +2347,20 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_next_qualifying_slot_at'] = proof_next_qualifying_slot_at
     summary['proof_next_qualifying_slot_at_text'] = fmt_ts(proof_next_qualifying_slot_at, tz_name)
     summary['proof_next_qualifying_slot_hint'] = future_hint(proof_next_qualifying_slot_at, now_ms)
+    summary['proof_next_qualifying_slot_day_label'] = relative_day_label(proof_next_qualifying_slot_at, now_ms, tz_name)
+    summary['proof_no_more_qualifying_runs_today'] = bool(
+        proof_next_qualifying_slot_at
+        and summary['proof_next_qualifying_slot_day_label'] not in {None, 'vandaag'}
+        and not summary['proof_target_met']
+    )
+    if summary['proof_no_more_qualifying_runs_today']:
+        proof_today_block_text = (
+            'geen kwalificerende runs meer vandaag, eerstvolgende slot '
+            f"{summary['proof_next_qualifying_slot_at_text']} ({summary['proof_next_qualifying_slot_hint']})"
+        )
+    else:
+        proof_today_block_text = None
+    summary['proof_today_block_text'] = proof_today_block_text
 
     proof_runs_remaining = summary['proof_runs_remaining']
     proof_progress_text = (
@@ -2384,6 +2418,10 @@ def build_status(job_name=TARGET_JOB_NAME):
 
     if summary['proof_target_met']:
         proof_plan_text = f"bewijspad afgerond, {len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs binnen"
+    elif summary['proof_today_block_text'] and proof_target_due_at:
+        proof_plan_text = f"{summary['proof_today_block_text']}, doel {summary['proof_target_due_at_text']}"
+    elif summary['proof_today_block_text']:
+        proof_plan_text = summary['proof_today_block_text']
     elif proof_next_qualifying_slot_at and proof_target_due_at:
         proof_plan_text = (
             f"bewijspad op schema, eerstvolgende kwalificatierun {summary['proof_next_qualifying_slot_at_text']}"
