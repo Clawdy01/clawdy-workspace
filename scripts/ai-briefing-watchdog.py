@@ -322,6 +322,8 @@ def main() -> int:
         'reasons': reasons,
         'readiness_phase': status.get('readiness_phase'),
         'readiness_text': status.get('readiness_text'),
+        'expected_proof_freshness_wait': status.get('expected_proof_freshness_wait'),
+        'proof_waiting_for_next_scheduled_run': status.get('expected_proof_freshness_wait'),
         'proof_progress_text': status.get('proof_progress_text'),
         'proof_plan_text': status.get('proof_plan_text'),
         'proof_target_runs': status.get('proof_target_runs'),
@@ -335,6 +337,7 @@ def main() -> int:
         'next_run_at_text': status.get('next_run_at_text'),
         'proof_due_at_text': status.get('proof_due_at_text'),
         'proof_target_due_at_text': status.get('proof_target_due_at_text'),
+        'proof_target_due_at_if_next_slot_missed_text': status.get('proof_target_due_at_if_next_slot_missed_text'),
         'proof_target_run_slots_text': status.get('proof_target_run_slots_text'),
         'proof_target_run_slots_context_text': status.get('proof_target_run_slots_context_text'),
         'proof_target_run_slot_day_labels': status.get('proof_target_run_slot_day_labels'),
@@ -343,6 +346,7 @@ def main() -> int:
         'proof_next_qualifying_slot_day_label': status.get('proof_next_qualifying_slot_day_label'),
         'proof_no_more_qualifying_runs_today': status.get('proof_no_more_qualifying_runs_today'),
         'proof_today_block_text': status.get('proof_today_block_text'),
+        'proof_schedule_risk_text': status.get('proof_schedule_risk_text'),
         'previous_run_slot_at_text': status.get('previous_run_slot_at_text'),
         'last_proof_qualified_run_at_text': status.get('last_proof_qualified_run_at_text'),
         'has_run_proof': status.get('has_run_proof'),
@@ -366,6 +370,8 @@ def main() -> int:
         lines.append(f"readiness: {result['readiness_text']}")
     if result['proof_progress_text']:
         lines.append(f"proof progress: {result['proof_progress_text']}")
+    if result['proof_waiting_for_next_scheduled_run']:
+        lines.append('proof wait state: wacht op eerstvolgende geplande kwalificatierun')
     if required_qualified_runs > 0:
         lines.append(
             f"proof requirement: {proof_qualified_runs}/{required_qualified_runs} gekwalificeerde runs"
@@ -381,6 +387,8 @@ def main() -> int:
         lines.append(f"proof plan: {result['proof_plan_text']}")
     if result['proof_today_block_text']:
         lines.append(f"proof today block: {result['proof_today_block_text']}")
+    if result['proof_schedule_risk_text']:
+        lines.append(f"proof schedule risk: {result['proof_schedule_risk_text']}")
     if result['proof_next_qualifying_slot_at_text']:
         next_qualifying_line = f"next qualifying run: {result['proof_next_qualifying_slot_at_text']}"
         if result['proof_next_qualifying_slot_hint']:

@@ -74,6 +74,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     readiness_text = data.get('readiness_text')
     if readiness_text:
         bits.append(readiness_text)
+    if data.get('proof_waiting_for_next_scheduled_run'):
+        bits.append('wacht op eerstvolgende geplande kwalificatierun')
     if require_qualified_runs > 0:
         proof_progress = data.get('proof_progress_text')
         if proof_progress:
@@ -87,6 +89,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append(data['proof_plan_text'])
     if data.get('proof_today_block_text') and require_qualified_runs > 0:
         bits.append(data['proof_today_block_text'])
+    if data.get('proof_schedule_risk_text') and require_qualified_runs > 0:
+        bits.append(data['proof_schedule_risk_text'])
     next_qualifying = data.get('proof_next_qualifying_slot_at_text')
     if next_qualifying and require_qualified_runs > 0:
         next_qualifying_bit = f"volgende kwalificatierun {next_qualifying}"

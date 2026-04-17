@@ -360,6 +360,24 @@ def projected_proof_target_due_at(next_run_at, remaining_runs, expr):
     return next_run_at + ((remaining_runs - 1) * day_ms) + (15 * 60 * 1000)
 
 
+def projected_proof_target_due_at_if_next_slots_missed(next_run_at, remaining_runs, expr, missed_slots=1):
+    if missed_slots <= 0:
+        return projected_proof_target_due_at(next_run_at, remaining_runs, expr)
+    parts = (expr or '').split()
+    if len(parts) != 5:
+        return None
+    minute_raw, hour_raw, day_raw, month_raw, weekday_raw = parts
+    if not minute_raw.isdigit() or not hour_raw.isdigit():
+        return None
+    if day_raw != '*' or month_raw != '*' or weekday_raw != '*':
+        return None
+    if not next_run_at or remaining_runs is None or remaining_runs <= 0:
+        return None
+    day_ms = 24 * 60 * 60 * 1000
+    shifted_next_run_at = next_run_at + (missed_slots * day_ms)
+    return projected_proof_target_due_at(shifted_next_run_at, remaining_runs, expr)
+
+
 def projected_proof_run_slots(next_run_at, remaining_runs, expr):
     if not next_run_at or remaining_runs is None or remaining_runs <= 0:
         return []
@@ -2443,6 +2461,15 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_target_due_at'] = proof_target_due_at
     summary['proof_target_due_at_text'] = fmt_ts(proof_target_due_at, tz_name)
     summary['proof_target_due_hint'] = future_hint(proof_target_due_at, now_ms)
+    proof_target_due_at_if_next_slot_missed = projected_proof_target_due_at_if_next_slots_missed(
+        next_run_at=next_run_at,
+        remaining_runs=summary['proof_runs_remaining'],
+        expr=summary['schedule_expr'],
+        missed_slots=1,
+    )
+    summary['proof_target_due_at_if_next_slot_missed'] = proof_target_due_at_if_next_slot_missed
+    summary['proof_target_due_at_if_next_slot_missed_text'] = fmt_ts(proof_target_due_at_if_next_slot_missed, tz_name)
+    summary['proof_target_due_at_if_next_slot_missed_hint'] = future_hint(proof_target_due_at_if_next_slot_missed, now_ms)
     proof_target_run_slots = projected_proof_run_slots(
         next_run_at=next_run_at,
         remaining_runs=summary['proof_runs_remaining'],
@@ -2555,11 +2582,22 @@ def build_status(job_name=TARGET_JOB_NAME):
     else:
         proof_plan_text = 'bewijspad wacht op geldig kwalificatieslot'
 
+    if summary['proof_target_met']:
+        proof_schedule_risk_text = None
+    elif proof_next_qualifying_slot_at and summary.get('proof_target_due_at_if_next_slot_missed_text'):
+        proof_schedule_risk_text = (
+            f"als slot {summary['proof_next_qualifying_slot_at_text']} mist, schuift bewijsdoel naar "
+            f"{summary['proof_target_due_at_if_next_slot_missed_text']}"
+        )
+    else:
+        proof_schedule_risk_text = None
+
     summary['text'] = status_text
     summary['summary'] = status_text
     summary['status_text'] = status_text
     summary['proof_progress_text'] = proof_progress_text
     summary['proof_plan_text'] = proof_plan_text
+    summary['proof_schedule_risk_text'] = proof_schedule_risk_text
     summary['readiness_phase'] = readiness_phase
     summary['readiness_text'] = readiness_text
     return summary
