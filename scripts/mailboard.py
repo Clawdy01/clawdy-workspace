@@ -59,8 +59,8 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest-now --threads --explain-empty',
-            'also': ['latest-current'],
-            'description': 'alleen actuele recente threads, met suppressed-uitleg als het leeg is',
+            'also': ['latest-current', 'latest-now-current'],
+            'description': 'alleen actuele recente threads, ook via latest-current en latest-now-current, met suppressed-uitleg als het leeg is',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest-review --threads --explain-empty',
@@ -139,13 +139,13 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py open-now --explain-empty',
-            'also': ['open-current', 'review-next-current'],
-            'description': 'aanbevolen actuele thread meteen openen zonder stale fallback',
+            'also': ['open-current', 'review-now', 'review-next-current'],
+            'description': 'aanbevolen actuele thread meteen openen, ook via open-current, review-now en review-next-current, zonder stale fallback',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py open-review --explain-empty',
-            'also': ['open-review-worthy', 'review-next-review-worthy'],
-            'description': 'aanbevolen reviewwaardige thread meteen openen zonder ruisfallback',
+            'also': ['open-review-worthy', 'review-review', 'review-next-review-worthy'],
+            'description': 'aanbevolen reviewwaardige thread meteen openen, ook via open-review-worthy, review-review en review-next-review-worthy, zonder ruisfallback',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py open',

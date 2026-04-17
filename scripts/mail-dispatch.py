@@ -362,7 +362,7 @@ def catalog_payload():
             {
                 'route': 'latest-now --threads --explain-empty',
                 'description': 'alleen actuele recente threads, met suppressed-uitleg als het leeg is',
-                'also': ['latest-current'],
+                'also': ['latest-current', 'latest-now-current'],
             },
             {
                 'route': 'latest-review --threads --explain-empty',
@@ -441,13 +441,13 @@ def catalog_payload():
             },
             {
                 'route': 'open-now --explain-empty',
-                'description': 'aanbevolen actuele thread meteen openen, ook via open-current of review-next-current, met suppressed-uitleg bij noop',
-                'also': ['open-current', 'review-next-current'],
+                'description': 'aanbevolen actuele thread meteen openen, ook via open-now, open-current, review-now of review-next-current, met suppressed-uitleg bij noop',
+                'also': ['open-now', 'open-current', 'review-now', 'review-next-current'],
             },
             {
                 'route': 'open-review --explain-empty',
-                'description': 'aanbevolen reviewwaardige thread meteen openen, ook via open-review-worthy of review-next-review-worthy, met suppressed-uitleg bij noop',
-                'also': ['open-review-worthy', 'review-next-review-worthy'],
+                'description': 'aanbevolen reviewwaardige thread meteen openen, ook via open-review, open-review-worthy, review-review of review-next-review-worthy, met suppressed-uitleg bij noop',
+                'also': ['open-review', 'open-review-worthy', 'review-review', 'review-next-review-worthy'],
             },
             {
                 'route': 'open',
