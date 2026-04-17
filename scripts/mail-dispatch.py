@@ -376,13 +376,13 @@ def catalog_payload():
             },
             {
                 'route': 'unread-now --threads --explain-empty',
-                'description': 'alleen actuele ongelezen threads, ook via unread-current en unread-now-current, met suppressed-uitleg als het leeg is',
-                'also': ['unread-current', 'unread-now-current'],
+                'description': 'alleen actuele ongelezen threads, ook via unread-now, unread-current en unread-now-current, met suppressed-uitleg als het leeg is',
+                'also': ['unread-now', 'unread-current', 'unread-now-current'],
             },
             {
                 'route': 'unread-review --threads --explain-empty',
-                'description': 'alleen reviewwaardige ongelezen threads, ook via unread-review-worthy, met noop-uitleg als het leeg is',
-                'also': ['unread-review-worthy'],
+                'description': 'alleen reviewwaardige ongelezen threads, ook via unread-review en unread-review-worthy, met noop-uitleg als het leeg is',
+                'also': ['unread-review', 'unread-review-worthy'],
             },
             {
                 'route': 'check',
