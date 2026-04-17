@@ -2690,15 +2690,52 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_progress_text'] = proof_progress_text
     summary['proof_plan_text'] = proof_plan_text
     summary['proof_schedule_risk_text'] = proof_schedule_risk_text
+    proof_next_action_kind = 'repair-slot-then-recheck'
+    proof_recheck_commands = [
+        'python3 scripts/ai-briefing-status.py --json',
+        'python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3',
+    ]
+    if summary['proof_target_met']:
+        proof_next_action_kind = 'sync-and-activate-next-track'
+    elif proof_wait_until_at:
+        proof_next_action_kind = 'wait-then-recheck'
+
+    proof_recheck_grace_ms = None
+    if proof_wait_until_at:
+        grace_value = (next_run_audit or {}).get('pending_current_slot_grace_ms')
+        if grace_value is not None:
+            try:
+                proof_recheck_grace_ms = max(0, int(grace_value))
+            except (TypeError, ValueError):
+                proof_recheck_grace_ms = None
+    proof_recheck_after_at = None
+    if proof_wait_until_at:
+        proof_recheck_after_at = proof_wait_until_at + (proof_recheck_grace_ms or 0)
+
     summary['proof_state'] = proof_state
     summary['proof_state_text'] = proof_state_text
+    summary['proof_next_action_kind'] = proof_next_action_kind
     summary['proof_next_action_text'] = proof_next_action_text
+    summary['proof_recheck_commands'] = proof_recheck_commands
     summary['proof_wait_until_at'] = proof_wait_until_at
     summary['proof_wait_until_text'] = proof_wait_until_text
     summary['proof_wait_until_hint'] = proof_wait_until_hint
     summary['proof_wait_until_remaining_ms'] = remaining_ms(proof_wait_until_at, now_ms)
     summary['proof_wait_until_remaining_hours'] = remaining_hours(proof_wait_until_at, now_ms)
     summary['proof_wait_until_reason_text'] = proof_wait_until_reason_text
+    summary['proof_recheck_grace_ms'] = proof_recheck_grace_ms
+    summary['proof_recheck_after_at'] = proof_recheck_after_at
+    summary['proof_recheck_after_text'] = fmt_ts(proof_recheck_after_at, tz_name)
+    summary['proof_recheck_after_hint'] = future_hint(proof_recheck_after_at, now_ms)
+    summary['proof_recheck_after_remaining_ms'] = remaining_ms(proof_recheck_after_at, now_ms)
+    summary['proof_recheck_after_remaining_hours'] = remaining_hours(proof_recheck_after_at, now_ms)
+    if proof_recheck_after_at and summary['proof_recheck_after_text']:
+        summary['proof_recheck_after_text_compact'] = (
+            f"hercheck niet vóór {summary['proof_recheck_after_text']}"
+            + (f" ({summary['proof_recheck_after_hint']})" if summary['proof_recheck_after_hint'] else '')
+        )
+    else:
+        summary['proof_recheck_after_text_compact'] = None
     proof_schedule_slip_ms = None
     proof_schedule_slip_hours = None
     if proof_target_due_at and proof_target_due_at_if_next_slot_missed:
@@ -2926,6 +2963,8 @@ def render_text(data):
         parts.append(data['proof_state_text'])
     if data.get('proof_next_action_text'):
         parts.append(data['proof_next_action_text'])
+    if data.get('proof_recheck_after_text_compact'):
+        parts.append(data['proof_recheck_after_text_compact'])
     if data.get('proof_schedule_risk_text'):
         parts.append(data['proof_schedule_risk_text'])
     if data.get('proof_countdown_text'):

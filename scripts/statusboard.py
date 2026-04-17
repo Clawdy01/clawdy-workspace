@@ -176,6 +176,8 @@ def render_text(data, show_preview=False):
             ai_bits.append(ai_briefing_status['proof_state_text'])
         if ai_briefing_status.get('proof_next_action_text'):
             ai_bits.append(ai_briefing_status['proof_next_action_text'])
+        if ai_briefing_status.get('proof_recheck_after_text_compact'):
+            ai_bits.append(ai_briefing_status['proof_recheck_after_text_compact'])
         if ai_briefing_status.get('proof_schedule_risk_text'):
             ai_bits.append(ai_briefing_status['proof_schedule_risk_text'])
         if ai_briefing_status.get('proof_countdown_text'):

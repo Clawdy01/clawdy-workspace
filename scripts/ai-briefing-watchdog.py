@@ -344,7 +344,9 @@ def main() -> int:
         'proof_state_text': status.get('proof_state_text'),
         'proof_config_hash': status.get('proof_config_hash'),
         'proof_config_identity_text': status.get('proof_config_identity_text'),
+        'proof_next_action_kind': status.get('proof_next_action_kind'),
         'proof_next_action_text': status.get('proof_next_action_text'),
+        'proof_recheck_commands': status.get('proof_recheck_commands'),
         'proof_target_runs': status.get('proof_target_runs'),
         'proof_qualified_runs': proof_qualified_runs,
         'proof_runs_remaining': proof_runs_remaining,
@@ -382,6 +384,13 @@ def main() -> int:
         'proof_wait_until_remaining_ms': status.get('proof_wait_until_remaining_ms'),
         'proof_wait_until_remaining_hours': status.get('proof_wait_until_remaining_hours'),
         'proof_wait_until_reason_text': status.get('proof_wait_until_reason_text'),
+        'proof_recheck_grace_ms': status.get('proof_recheck_grace_ms'),
+        'proof_recheck_after_at': status.get('proof_recheck_after_at'),
+        'proof_recheck_after_text': status.get('proof_recheck_after_text'),
+        'proof_recheck_after_hint': status.get('proof_recheck_after_hint'),
+        'proof_recheck_after_remaining_ms': status.get('proof_recheck_after_remaining_ms'),
+        'proof_recheck_after_remaining_hours': status.get('proof_recheck_after_remaining_hours'),
+        'proof_recheck_after_text_compact': status.get('proof_recheck_after_text_compact'),
         'proof_countdown_text': status.get('proof_countdown_text'),
         'previous_run_slot_at_text': status.get('previous_run_slot_at_text'),
         'last_proof_qualified_run_at_text': status.get('last_proof_qualified_run_at_text'),
@@ -427,6 +436,8 @@ def main() -> int:
         lines.append(f"proof plan: {result['proof_plan_text']}")
     if result['proof_next_action_text']:
         lines.append(f"proof next action: {result['proof_next_action_text']}")
+    if result['proof_recheck_after_text_compact']:
+        lines.append(f"proof recheck: {result['proof_recheck_after_text_compact']}")
     if result['proof_today_block_text']:
         lines.append(f"proof today block: {result['proof_today_block_text']}")
     if result['proof_schedule_risk_text']:

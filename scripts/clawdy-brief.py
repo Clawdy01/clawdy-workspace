@@ -297,13 +297,15 @@ def render_text(summary):
         if ai_briefing_status.get('proof_progress_text'):
             ai_bits.append(ai_briefing_status['proof_progress_text'])
         payload_audit = ai_briefing_status.get('payload_audit') or {}
-        if ai_briefing_status.get('updated_at_hint'):
+        if ai_briefing_status.get('proof_config_identity_text'):
+            ai_bits.append(ai_briefing_status['proof_config_identity_text'])
+        elif ai_briefing_status.get('updated_at_hint'):
             fingerprint = payload_audit.get('message_sha256_short')
             if fingerprint:
                 ai_bits.append(f"config {ai_briefing_status['updated_at_hint']} gewijzigd, hash {fingerprint}")
             else:
                 ai_bits.append(f"config {ai_briefing_status['updated_at_hint']} gewijzigd")
-        if ai_briefing_status.get('next_run_at_text'):
+        if ai_briefing_status.get('next_run_at_text') and not ai_briefing_status.get('proof_next_qualifying_slot_at_text'):
             next_run_text = f"volgende {ai_briefing_status['next_run_at_text']}"
             if ai_briefing_status.get('next_run_hint'):
                 next_run_text += f" ({ai_briefing_status['next_run_hint']})"
@@ -313,15 +315,31 @@ def render_text(summary):
             if ai_briefing_status.get('proof_due_hint'):
                 proof_due_text += f" ({ai_briefing_status['proof_due_hint']})"
             ai_bits.append(proof_due_text)
-        if ai_briefing_status.get('proof_target_due_at_text'):
+        if ai_briefing_status.get('proof_target_due_at_text') and not ai_briefing_status.get('proof_countdown_text'):
             proof_target_due_text = f"bewijsdoel bij groene runs uiterlijk {ai_briefing_status['proof_target_due_at_text']}"
             if ai_briefing_status.get('proof_target_due_hint'):
                 proof_target_due_text += f" ({ai_briefing_status['proof_target_due_hint']})"
             ai_bits.append(proof_target_due_text)
+        if ai_briefing_status.get('proof_state_text'):
+            ai_bits.append(ai_briefing_status['proof_state_text'])
+        if ai_briefing_status.get('proof_next_action_text'):
+            ai_bits.append(ai_briefing_status['proof_next_action_text'])
+        if ai_briefing_status.get('proof_recheck_after_text_compact'):
+            ai_bits.append(ai_briefing_status['proof_recheck_after_text_compact'])
         if ai_briefing_status.get('proof_plan_text'):
             ai_bits.append(ai_briefing_status['proof_plan_text'])
-        if ai_briefing_status.get('proof_target_run_slots_text'):
+        if ai_briefing_status.get('proof_schedule_risk_text'):
+            ai_bits.append(ai_briefing_status['proof_schedule_risk_text'])
+        if ai_briefing_status.get('proof_countdown_text'):
+            ai_bits.append(ai_briefing_status['proof_countdown_text'])
+        elif ai_briefing_status.get('proof_target_run_slots_context_text'):
+            ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_context_text']}")
+        elif ai_briefing_status.get('proof_target_run_slots_text'):
             ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_text']}")
+        if ai_briefing_status.get('proof_target_check_gate_text'):
+            ai_bits.append(ai_briefing_status['proof_target_check_gate_text'])
+        if ai_briefing_status.get('proof_wait_until_reason_text'):
+            ai_bits.append(ai_briefing_status['proof_wait_until_reason_text'])
         if ai_briefing_status.get('last_run_at_text'):
             ai_bits.append(f"laatste {ai_briefing_status['last_run_at_text']}")
         last_run_summary = ai_briefing_status.get('last_run_summary') or {}
