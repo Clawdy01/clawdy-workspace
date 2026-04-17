@@ -340,6 +340,7 @@ ALIASES = {
     '/mail-unread-now': 'mail-unread-now',
     '/mail-now-unread': 'mail-unread-now',
     '/mail-unread-current': 'mail-unread-now',
+    '/mail-unread-now-current': 'mail-unread-now',
     '/mail-unread-review': 'mail-unread-review',
     '/mail-review-unread': 'mail-unread-review',
     '/mail-unread-review-worthy': 'mail-unread-review',
@@ -347,6 +348,7 @@ ALIASES = {
     '/mail-latest-now': 'mail-latest-now',
     '/mail-now-latest': 'mail-latest-now',
     '/mail-latest-current': 'mail-latest-now',
+    '/mail-latest-now-current': 'mail-latest-now',
     '/mail-latest-review': 'mail-latest-review',
     '/mail-review-latest': 'mail-latest-review',
     '/mail-latest-review-worthy': 'mail-latest-review',
@@ -546,13 +548,13 @@ def help_payload():
         },
         {
             'slash': '/mail-inbox-now',
-            'also': ['/mail-now-inbox', '/mail-inbox-current'],
-            'description': 'actuele inboxmail of threads zonder losse --current-only vlaggen',
+            'also': ['/mail-now-inbox', '/mail-inbox-current', '/mail-latest-current', '/mail-latest-now-current'],
+            'description': 'actuele inboxmail of threads zonder losse --current-only vlaggen, ook via /mail-latest-current en /mail-latest-now-current',
         },
         {
             'slash': '/mail-inbox-review',
-            'also': ['/mail-review-inbox', '/mail-inbox-review-worthy'],
-            'description': 'reviewwaardige inboxmail of threads zonder losse --review-worthy vlaggen',
+            'also': ['/mail-review-inbox', '/mail-inbox-review-worthy', '/mail-latest-review-worthy'],
+            'description': 'reviewwaardige inboxmail of threads zonder losse --review-worthy vlaggen, ook via /mail-latest-review-worthy',
         },
         {
             'slash': '/mail-unread',
@@ -561,8 +563,8 @@ def help_payload():
         },
         {
             'slash': '/mail-unread-now',
-            'also': ['/mail-now-unread', '/mail-unread-current'],
-            'description': 'actuele ongelezen mail of threads zonder losse --unread en --current-only vlaggen',
+            'also': ['/mail-now-unread', '/mail-unread-current', '/mail-unread-now-current'],
+            'description': 'actuele ongelezen mail of threads zonder losse --unread en --current-only vlaggen, ook via /mail-unread-now-current',
         },
         {
             'slash': '/mail-unread-review',
@@ -576,8 +578,8 @@ def help_payload():
         },
         {
             'slash': '/mail-latest-now',
-            'also': ['/mail-now-latest', '/mail-latest-current'],
-            'description': 'actuele recente mail of threads zonder losse --current-only vlag',
+            'also': ['/mail-now-latest', '/mail-latest-current', '/mail-latest-now-current'],
+            'description': 'actuele recente mail of threads zonder losse --current-only vlag, ook via /mail-latest-now-current',
         },
         {
             'slash': '/mail-latest-review',
