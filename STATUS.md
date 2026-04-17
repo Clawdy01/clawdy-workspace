@@ -7,15 +7,18 @@
 ## Now
 - Dagelijkse AI-briefing bewijspad is nu het primaire spoor
 - Mail workflow slimmer maken is functioneel afgerond; vervolg alleen nog als praktijkgebruik nog concrete frictie laat zien
-- Nacheck op het primaire spoor is opnieuw gedaan: `python3 scripts/ai-briefing-status.py --json`, `python3 scripts/ai-briefing-watchdog.py --json` en `python3 scripts/ai-briefing-watchdog-alert.py --mode proof-check` bevestigen een gezonde job, `bewijsprogressie 0/3` voor de huidige config, eerstvolgende kwalificatierun `2026-04-17 09:00 CEST` en bewijsdoel `2026-04-19 09:15 CEST`, zonder harde blocker
-- Actuele proving-status is nu ook opnieuw naar de standaard AI-briefing-consumer-artifacts gepubliceerd via `python3 scripts/ai-briefing-watchdog.py --require-qualified-runs 3 --consumer-bundle board-suite --consumer-format json --json`; de verse artifacts staan in `tmp/ai-briefing/reports/ai-briefing-watchdog.{json,txt,jsonl}` voor board/cron-consumers
-- `scripts/ai-briefing-watchdog-producer.py` ondersteunt nu ook vaste proving-routes `proof-board`, `proof-eventlog` en `proof-all`; de nieuwe `proof-all` route is direct gebruikt om dezelfde `require-qualified-runs=3` board-suite-publicatie zonder losse flags opnieuw uit te voeren
+- Nacheck op het primaire spoor is direct na de 09:00 CEST slotrun opnieuw gedaan: `python3 scripts/ai-briefing-status.py --json`, `python3 scripts/ai-briefing-watchdog.py --json` en `python3 scripts/ai-briefing-watchdog-alert.py --mode proof-check` tonen `cron: job execution timed out`, delivery-status `unknown`, `consecutiveErrors: 1` en `bewijsprogressie 0/3`
+- Concrete mitigatie is meteen doorgevoerd: `daily-ai-update` in `/home/clawdy/.openclaw/cron/jobs.json` staat nu op `timeoutSeconds: 480` in plaats van `300`, omdat de mislukte run op `lastDurationMs: 300815` exact tegen de oude timeout aanliep; `python3 scripts/ai-briefing-status.py --json` bevestigt daarna weer `payload_audit.ok: true`
+- `scripts/ai-briefing-status.py` maakt de huidige wait-state nu expliciet config-bewust: als de config nieuwer is dan de laatste run krijgt de watchdogsamenvatting voortaan `huidige config wacht nog op eerste run` in plaats van alleen oude totaalcijfers; live geverifieerd met `python3 -m py_compile scripts/ai-briefing-status.py scripts/ai-briefing-watchdog.py scripts/ai-briefing-watchdog-alert.py scripts/ai-briefing-watchdog-producer.py`, `python3 scripts/ai-briefing-status.py --json` en `python3 scripts/ai-briefing-watchdog-alert.py --mode proof-check`
+- Eerstvolgende kwalificatierun blijft nu `2026-04-18 09:00 CEST` en het bewijsdoel `2026-04-20 09:15 CEST`
+- Actuele attention-status is opnieuw naar de standaard AI-briefing-consumer-artifacts gepubliceerd via `python3 scripts/ai-briefing-watchdog-producer.py proof-all --quiet`; die route eindigde met `exit=2` omdat de watchdog terecht nog de foutstatus van de laatste run rapporteert, niet omdat het publicatiepad zelf kapot is
 
 ## Next
 - Mac-migratie en lokale media/LLM-workflows voorbereiden
 - Mailflow alleen weer oppakken als gebruik concrete problemen blootlegt
 
 ## Blocked
+- `daily-ai-update` is momenteel nog tijdsgebonden geblokkeerd: de run van `2026-04-17 09:00 CEST` liep in timeout op de oude limiet van 300s (`lastDurationMs: 300815`), de timeout staat nu op 480s, maar er kan vandaag geen kwalificerende proof-run meer bijkomen en de eerstvolgende kans ligt op `2026-04-18 09:00 CEST`
 - Goede beeldgeneratie-route ontbreekt nog in deze runtime, dus betere image-remakes wachten op sterkere/lokale modelroute
 - Control UI via LAN zonder SSH vraagt later nog een nette HTTPS-route
 

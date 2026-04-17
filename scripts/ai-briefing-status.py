@@ -2276,10 +2276,22 @@ def build_status(job_name=TARGET_JOB_NAME):
         else f"bewijsprogressie {len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs voor huidige config, nog {proof_runs_remaining} te gaan"
     )
 
+    config_newer_than_last_run = bool(updated_at and last_run_at and updated_at > last_run_at)
+
     if finished_runs:
-        status_text = f"{len(successful_runs)}/{len(finished_runs)} runs ok"
-        if delivered_runs:
-            status_text += f", {len(delivered_runs)} afgeleverd"
+        if config_newer_than_last_run:
+            status_text = 'huidige config wacht nog op eerste run'
+            status_text += f", vorige config {len(successful_runs)}/{len(finished_runs)} runs ok"
+            if delivered_runs:
+                status_text += f", {len(delivered_runs)} afgeleverd"
+        elif current_config_runs and len(proof_qualified_runs) < PROOF_TARGET_RUNS:
+            status_text = f"huidige config {len(current_config_successful_runs)}/{len(current_config_runs)} runs ok"
+            if current_config_delivered_runs:
+                status_text += f", {len(current_config_delivered_runs)} afgeleverd"
+        else:
+            status_text = f"{len(successful_runs)}/{len(finished_runs)} runs ok"
+            if delivered_runs:
+                status_text += f", {len(delivered_runs)} afgeleverd"
         if success_streak:
             status_text += f", streak {success_streak}"
         if last_run_summary and last_run_summary.get('duration_text'):
