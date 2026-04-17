@@ -189,6 +189,8 @@ MIN_FRESH_TOP3_ITEMS_FOR_STRONG_SIGNAL = 2
 MIN_TOP3_MULTI_SOURCE_ITEMS_FOR_STRONG_SIGNAL = 3
 MIN_TOP3_MULTI_DOMAIN_SOURCE_ITEMS_FOR_STRONG_SIGNAL = 3
 PROOF_TARGET_RUNS = 3
+TIMEOUT_HEADROOM_WARN_RATIO = 0.85
+TIMEOUT_HEADROOM_WARN_MIN_MS = 30 * 1000
 
 MONTH_NAME_TO_NUMBER = {
     'jan': 1, 'januari': 1, 'january': 1,
@@ -2031,6 +2033,58 @@ def audit_runtime(job, tz_name):
     }
 
 
+def audit_last_run_timeout_headroom(run, timeout_seconds):
+    timeout_seconds = int(timeout_seconds or 0)
+    duration_ms = int((run or {}).get('durationMs') or 0)
+
+    if timeout_seconds <= 0 or duration_ms <= 0:
+        return {
+            'available': False,
+            'ok': True,
+            'text': 'geen timeout-headroom beschikbaar',
+        }
+
+    timeout_ms = timeout_seconds * 1000
+    headroom_ms = timeout_ms - duration_ms
+    duration_ratio = duration_ms / timeout_ms if timeout_ms > 0 else None
+    warn_threshold_ms = max(TIMEOUT_HEADROOM_WARN_MIN_MS, int(timeout_ms * (1 - TIMEOUT_HEADROOM_WARN_RATIO)))
+    near_timeout = headroom_ms <= warn_threshold_ms
+
+    if headroom_ms < 0:
+        text = (
+            f'laatste run overschreed timeout met {duration_hint(abs(headroom_ms))} '
+            f'({duration_hint(duration_ms)} op limiet {duration_hint(timeout_ms)})'
+        )
+    elif near_timeout:
+        text = (
+            f'laatste run zat dicht op timeout, nog {duration_hint(headroom_ms)} speling '
+            f'({duration_hint(duration_ms)} op limiet {duration_hint(timeout_ms)})'
+        )
+    else:
+        text = (
+            f'laatste run had {duration_hint(headroom_ms)} timeout-speling '
+            f'({duration_hint(duration_ms)} op limiet {duration_hint(timeout_ms)})'
+        )
+
+    return {
+        'available': True,
+        'ok': headroom_ms >= 0 and not near_timeout,
+        'duration_ms': duration_ms,
+        'duration_text': duration_hint(duration_ms),
+        'timeout_seconds': timeout_seconds,
+        'timeout_ms': timeout_ms,
+        'timeout_text': duration_hint(timeout_ms),
+        'headroom_ms': headroom_ms,
+        'headroom_text': duration_hint(abs(headroom_ms)),
+        'duration_ratio': round(duration_ratio, 4) if duration_ratio is not None else None,
+        'warn_ratio': TIMEOUT_HEADROOM_WARN_RATIO,
+        'warn_min_ms': TIMEOUT_HEADROOM_WARN_MIN_MS,
+        'near_timeout': near_timeout,
+        'timed_out': headroom_ms < 0,
+        'text': text,
+    }
+
+
 def build_status(job_name=TARGET_JOB_NAME):
     jobs = load_jobs()
     job = next((job for job in jobs if job.get('name') == job_name), None)
@@ -2100,6 +2154,7 @@ def build_status(job_name=TARGET_JOB_NAME):
     proof_text = 'runlog aanwezig' if run_file_exists else 'runlog nog niet aangemaakt'
     payload_audit = audit_payload(job)
     runtime_audit = audit_runtime(job, tz_name)
+    last_run_timeout_audit = audit_last_run_timeout_headroom(last_run, payload_audit.get('timeout_seconds'))
     next_run_audit = audit_next_run(job, next_run_at, now_ms, tz_name)
     storage_audit = audit_storage(job['id'])
     runlog_audit = audit_runlog(runlog_info, finished_runs)
@@ -2141,6 +2196,8 @@ def build_status(job_name=TARGET_JOB_NAME):
         attention_reasons.append(f"prompt/config: {payload_audit.get('text')}")
     if not runtime_audit.get('ok'):
         attention_reasons.append(f"schedule/delivery: {runtime_audit.get('text')}")
+    if last_run_timeout_audit.get('available') and not last_run_timeout_audit.get('ok'):
+        attention_reasons.append(f"timeout-headroom: {last_run_timeout_audit.get('text')}")
     if not next_run_audit.get('ok'):
         attention_reasons.append(f"next run: {next_run_audit.get('text')}")
     if not storage_audit.get('ok'):
@@ -2177,6 +2234,7 @@ def build_status(job_name=TARGET_JOB_NAME):
         'schedule_tz': tz_name,
         'payload_audit': payload_audit,
         'runtime_audit': runtime_audit,
+        'last_run_timeout_audit': last_run_timeout_audit,
         'next_run_audit': next_run_audit,
         'storage_audit': storage_audit,
         'runlog_audit': runlog_audit,
@@ -2339,6 +2397,8 @@ def build_status(job_name=TARGET_JOB_NAME):
         proof_plan_text = 'bewijspad wacht op geldig kwalificatieslot'
 
     summary['text'] = status_text
+    summary['summary'] = status_text
+    summary['status_text'] = status_text
     summary['proof_progress_text'] = proof_progress_text
     summary['proof_plan_text'] = proof_plan_text
     summary['readiness_phase'] = readiness_phase
@@ -2455,6 +2515,7 @@ def render_text(data):
     if data.get('proof_text'):
         parts.append(data['proof_text'])
     payload_audit = data.get('payload_audit') or {}
+    last_run_timeout_audit = data.get('last_run_timeout_audit') or {}
     if data.get('attention_text'):
         parts.append(f"let op: {data['attention_text']}")
     else:
@@ -2515,6 +2576,8 @@ def render_text(data):
         if token_text:
             duration_text += f", {token_text}"
         parts.append(duration_text)
+    if last_run_timeout_audit.get('available') and last_run_timeout_audit.get('text'):
+        parts.append(f"timeout-headroom {last_run_timeout_audit['text']}")
     if last_run_summary.get('summary_preview'):
         parts.append(f"laatste briefing-preview {last_run_summary['summary_preview']}")
     if last_run_summary.get('summary_source'):
