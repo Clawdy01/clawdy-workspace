@@ -30,6 +30,18 @@ PRODUCER_MODES = {
 }
 
 
+def unique_bits(bits: list[str]) -> list[str]:
+    seen: set[str] = set()
+    unique: list[str] = []
+    for bit in bits:
+        cleaned = ' '.join((bit or '').split())
+        if not cleaned or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        unique.append(cleaned)
+    return unique
+
+
 def run_one(args):
     cmd = ['python3', str(WATCHDOG), *args]
     return subprocess.run(cmd, cwd=WORKSPACE, text=True, capture_output=True)
@@ -71,7 +83,9 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['summary']))
     if payload.get('readiness_text'):
         bits.append(str(payload['readiness_text']))
-    if payload.get('proof_waiting_for_next_scheduled_run'):
+    if payload.get('proof_state_text'):
+        bits.append(str(payload['proof_state_text']))
+    elif payload.get('proof_waiting_for_next_scheduled_run'):
         bits.append('wacht op eerstvolgende geplande kwalificatierun')
     if payload.get('proof_progress_text'):
         bits.append(str(payload['proof_progress_text']))
@@ -104,7 +118,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         reasons = [reason for reason in (payload.get('reasons') or []) if reason]
         if reasons:
             bits.append('redenen: ' + '; '.join(reasons[:2]))
-    return ' | '.join(bits) if bits else None
+    deduped_bits = unique_bits(bits)
+    return ' | '.join(deduped_bits) if deduped_bits else None
 
 
 def main():

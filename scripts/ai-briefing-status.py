@@ -2560,8 +2560,11 @@ def build_status(job_name=TARGET_JOB_NAME):
     elif finished_runs:
         readiness_text = f'{proof_progress_text}; runbewijs met aandachtspunt'
 
-    if expected_proof_freshness_wait and readiness_phase == 'proving':
-        readiness_text = f'{proof_progress_text}; wacht op eerstvolgende kwalificatierun'
+    if expected_proof_freshness_wait and finished_runs:
+        if summary['proof_today_block_text']:
+            readiness_text = f'{proof_progress_text}; tijdsgebonden wachtstatus tot het eerstvolgende kwalificatieslot van morgen'
+        else:
+            readiness_text = f'{proof_progress_text}; wacht op eerstvolgende kwalificatierun'
 
     if summary['proof_target_met']:
         proof_plan_text = f"bewijspad afgerond, {len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs binnen"
@@ -2592,12 +2595,33 @@ def build_status(job_name=TARGET_JOB_NAME):
     else:
         proof_schedule_risk_text = None
 
+    if summary['proof_target_met']:
+        proof_state = 'target-met'
+        proof_state_text = 'bewijsdoel gehaald'
+    elif expected_proof_freshness_wait and summary['proof_today_block_text']:
+        proof_state = 'waiting-next-scheduled-run-tomorrow'
+        proof_state_text = 'bewijs wacht tijdsgebonden op het eerstvolgende kwalificatieslot van morgen'
+    elif expected_proof_freshness_wait:
+        proof_state = 'waiting-next-scheduled-run'
+        proof_state_text = 'bewijs wacht op de eerstvolgende geplande kwalificatierun'
+    elif summary['proof_today_block_text']:
+        proof_state = 'no-more-qualifying-runs-today'
+        proof_state_text = 'bewijsdoel wacht tot morgen omdat er vandaag geen kwalificerende runs meer zijn'
+    elif proof_next_qualifying_slot_at:
+        proof_state = 'qualifying-runs-scheduled'
+        proof_state_text = 'kwalificerende runs staan ingepland'
+    else:
+        proof_state = 'waiting-valid-slot'
+        proof_state_text = 'bewijs wacht op een geldig kwalificatieslot'
+
     summary['text'] = status_text
     summary['summary'] = status_text
     summary['status_text'] = status_text
     summary['proof_progress_text'] = proof_progress_text
     summary['proof_plan_text'] = proof_plan_text
     summary['proof_schedule_risk_text'] = proof_schedule_risk_text
+    summary['proof_state'] = proof_state
+    summary['proof_state_text'] = proof_state_text
     summary['readiness_phase'] = readiness_phase
     summary['readiness_text'] = readiness_text
     return summary

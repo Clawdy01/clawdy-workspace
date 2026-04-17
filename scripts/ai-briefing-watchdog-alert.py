@@ -39,6 +39,18 @@ MODE_REQUIREMENTS = {
     'proof-target-check': 3,
 }
 
+
+def unique_bits(bits: list[str]) -> list[str]:
+    seen: set[str] = set()
+    unique: list[str] = []
+    for bit in bits:
+        cleaned = ' '.join((bit or '').split())
+        if not cleaned or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        unique.append(cleaned)
+    return unique
+
 def run_watchdog(timeout_seconds: int, require_qualified_runs: int) -> dict:
     cmd = [
         'python3',
@@ -74,7 +86,9 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     readiness_text = data.get('readiness_text')
     if readiness_text:
         bits.append(readiness_text)
-    if data.get('proof_waiting_for_next_scheduled_run'):
+    if data.get('proof_state_text'):
+        bits.append(data['proof_state_text'])
+    elif data.get('proof_waiting_for_next_scheduled_run'):
         bits.append('wacht op eerstvolgende geplande kwalificatierun')
     if require_qualified_runs > 0:
         proof_progress = data.get('proof_progress_text')
@@ -114,7 +128,7 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append('redenen: ' + '; '.join(reasons[:3]))
     if summary_output_examples:
         bits.append('bewijs: ' + ' | '.join(summary_output_examples[:proof_example_limit]))
-    return ' | '.join(bits)
+    return ' | '.join(unique_bits(bits))
 
 
 def should_suppress_before_proof_deadline(data: dict) -> bool:

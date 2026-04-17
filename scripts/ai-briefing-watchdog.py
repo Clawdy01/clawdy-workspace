@@ -27,6 +27,20 @@ def unique_reasons(reasons: list[str]) -> list[str]:
         normalized_seen.add(normalized)
         unique.append(cleaned)
     return unique
+
+
+def unique_bits(bits: list[str]) -> list[str]:
+    seen: set[str] = set()
+    unique: list[str] = []
+    for bit in bits:
+        cleaned = ' '.join((bit or '').split())
+        if not cleaned or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        unique.append(cleaned)
+    return unique
+
+
 CONSUMER_PRESETS = {
     'board-json': {
         'path': DEFAULT_REPORT_DIR / 'ai-briefing-watchdog.json',
@@ -326,6 +340,8 @@ def main() -> int:
         'proof_waiting_for_next_scheduled_run': status.get('expected_proof_freshness_wait'),
         'proof_progress_text': status.get('proof_progress_text'),
         'proof_plan_text': status.get('proof_plan_text'),
+        'proof_state': status.get('proof_state'),
+        'proof_state_text': status.get('proof_state_text'),
         'proof_target_runs': status.get('proof_target_runs'),
         'proof_qualified_runs': proof_qualified_runs,
         'proof_runs_remaining': proof_runs_remaining,
@@ -363,6 +379,8 @@ def main() -> int:
 
     state = 'ok' if ok else 'attention'
     lines = [f'ai briefing watchdog: {state} - {summary}']
+    if result['proof_state_text']:
+        lines.append(f"proof state: {result['proof_state_text']} ({result['proof_state']})")
     if reasons:
         lines.append('reasons:')
         lines.extend(f'- {reason}' for reason in reasons)
@@ -406,7 +424,7 @@ def main() -> int:
         lines.append(f"recent run duration audit: {result['recent_run_duration_text']}")
     if result['last_proof_qualified_run_at_text']:
         lines.append(f"last qualified run: {result['last_proof_qualified_run_at_text']}")
-    text_output = '\n'.join(lines) + '\n'
+    text_output = '\n'.join(unique_bits(lines)) + '\n'
 
     stdout_format = 'json' if args.json else 'text'
     consumer_output_path, consumer_output_format, consumer_append = resolve_consumer_settings(
