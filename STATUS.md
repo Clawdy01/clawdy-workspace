@@ -7,7 +7,9 @@
 ## Now
 - Dagelijkse AI-briefing bewijspad is nu het primaire spoor
 - Mail workflow slimmer maken is functioneel afgerond; vervolg alleen nog als praktijkgebruik nog concrete frictie laat zien
-- Nacheck op het nieuwe primaire spoor is gedaan: `python3 scripts/ai-briefing-status.py --json`, `python3 scripts/ai-briefing-watchdog.py --json` en `python3 scripts/ai-briefing-watchdog-alert.py --mode proof-check` bevestigen een gezonde job, `bewijsprogressie 0/3` voor de huidige config, eerstvolgende kwalificatierun `2026-04-17 09:00 CEST` en bewijsdoel `2026-04-19 09:15 CEST`, zonder harde blocker
+- Nacheck op het primaire spoor is opnieuw gedaan: `python3 scripts/ai-briefing-status.py --json`, `python3 scripts/ai-briefing-watchdog.py --json` en `python3 scripts/ai-briefing-watchdog-alert.py --mode proof-check` bevestigen een gezonde job, `bewijsprogressie 0/3` voor de huidige config, eerstvolgende kwalificatierun `2026-04-17 09:00 CEST` en bewijsdoel `2026-04-19 09:15 CEST`, zonder harde blocker
+- Actuele proving-status is nu ook opnieuw naar de standaard AI-briefing-consumer-artifacts gepubliceerd via `python3 scripts/ai-briefing-watchdog.py --require-qualified-runs 3 --consumer-bundle board-suite --consumer-format json --json`; de verse artifacts staan in `tmp/ai-briefing/reports/ai-briefing-watchdog.{json,txt,jsonl}` voor board/cron-consumers
+- `scripts/ai-briefing-watchdog-producer.py` ondersteunt nu ook vaste proving-routes `proof-board`, `proof-eventlog` en `proof-all`; de nieuwe `proof-all` route is direct gebruikt om dezelfde `require-qualified-runs=3` board-suite-publicatie zonder losse flags opnieuw uit te voeren
 
 ## Next
 - Mac-migratie en lokale media/LLM-workflows voorbereiden
@@ -71,4 +73,5 @@
 - `scripts/creative-smoke.py` verder automation-vriendelijk gemaakt en live getest met `--consumer-out`, `--consumer-format` en `--consumer-append`, zodat dezelfde compacte smoke-status direct naar een consumerbestand voor cron/board-ingest kan worden geschreven
 - `scripts/creative-smoke.py` verder gestandaardiseerd en live getest met vaste `--consumer-preset` routes (`board-json`, `board-text`, `eventlog-jsonl`), zodat standaard consumerbestanden zonder losse padflags gevuld kunnen worden
 - `scripts/creative-smoke.py` verder producer-vriendelijk gemaakt en live getest met `--consumer-bundle` (`board-pair`, `board-suite`), zodat één compacte smoke-run meerdere standaard consumerbestanden tegelijk publiceert
+- `scripts/ai-briefing-watchdog-producer.py` uitgebreid met vaste proving-modes `proof-board`, `proof-eventlog` en `proof-all`, zodat het AI-briefing-bewijspad dezelfde board/eventlog-publicatie zonder losse handmatige flags kan herhalen
 - Creative tooling/workflows als primair spoor afgerond en boardsync bevestigd: `creative-smoke-producer.py all --quiet` en `statusboard.py` tonen live een groene `creative smoke` status

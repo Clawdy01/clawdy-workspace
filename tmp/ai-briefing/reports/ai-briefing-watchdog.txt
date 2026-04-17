@@ -1,9 +1,11 @@
-ai briefing watchdog: attention - eerste run nog niet geweest, eerste run over 59 min, bewijs verwacht over 1u 14m
+ai briefing watchdog: attention - 2/2 runs ok, 2 afgeleverd, streak 2, laatste duur 2m 37s, laatste 47 uur geleden
 reasons:
-- onvoldoende gekwalificeerde runs voor huidige config (0/1)
+- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-15 09:05 CEST > 2026-04-15 09:02 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
+- onvoldoende gekwalificeerde runs voor huidige config (0/3)
+- geen gekwalificeerde run sinds verwacht dagslot 2026-04-16 09:00 CEST
 proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan
-proof requirement: 0/1 gekwalificeerde runs
-next run: 2026-04-14 09:00 CEST
-proof due: 2026-04-14 09:15 CEST
-proof target due: 2026-04-16 09:15 CEST
-qualifying run slots: 2026-04-14 09:00 CEST, 2026-04-15 09:00 CEST, 2026-04-16 09:00 CEST
+proof requirement: 0/3 gekwalificeerde runs
+next run: 2026-04-17 09:00 CEST
+proof target due: 2026-04-19 09:15 CEST
+next qualifying run: 2026-04-17 09:00 CEST (over 7 min)
+qualifying run slots: 2026-04-17 09:00 CEST, 2026-04-18 09:00 CEST, 2026-04-19 09:00 CEST

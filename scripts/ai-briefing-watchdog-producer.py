@@ -17,6 +17,15 @@ PRODUCER_MODES = {
     'all': [
         ['--json', '--consumer-bundle', 'board-suite'],
     ],
+    'proof-board': [
+        ['--json', '--require-qualified-runs', '3', '--consumer-bundle', 'board-pair'],
+    ],
+    'proof-eventlog': [
+        ['--json', '--require-qualified-runs', '3', '--consumer-preset', 'eventlog-jsonl'],
+    ],
+    'proof-all': [
+        ['--json', '--require-qualified-runs', '3', '--consumer-bundle', 'board-suite'],
+    ],
 }
 
 
