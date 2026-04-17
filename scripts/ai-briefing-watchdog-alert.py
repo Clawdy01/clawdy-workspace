@@ -102,6 +102,10 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     proof_target_run_slots_text = data.get('proof_target_run_slots_context_text') or data.get('proof_target_run_slots_text')
     if proof_target_run_slots_text and mode in {'proof-check', 'proof-progress', 'proof-target-check'}:
         bits.append(f"kwalificatie-slots {proof_target_run_slots_text}")
+    if data.get('last_run_timeout_text'):
+        bits.append(data['last_run_timeout_text'])
+    if data.get('recent_run_duration_text'):
+        bits.append(data['recent_run_duration_text'])
     if reasons:
         bits.append('redenen: ' + '; '.join(reasons[:3]))
     if summary_output_examples:

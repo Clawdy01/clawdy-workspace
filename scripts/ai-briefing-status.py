@@ -2129,6 +2129,83 @@ def audit_last_run_timeout_headroom(run, timeout_seconds, *, last_error_reason=N
     }
 
 
+def audit_recent_run_durations(runs, timeout_seconds, *, sample_size=3):
+    timeout_seconds = int(timeout_seconds or 0)
+    recent_runs = [run for run in (runs or []) if int(run.get('durationMs') or 0) > 0][-max(1, sample_size):]
+    durations = [int(run.get('durationMs') or 0) for run in recent_runs]
+
+    if not durations:
+        return {
+            'available': False,
+            'ok': True,
+            'text': 'geen recente duurtrend beschikbaar',
+        }
+
+    min_duration_ms = min(durations)
+    max_duration_ms = max(durations)
+    avg_duration_ms = int(round(sum(durations) / len(durations)))
+    latest_duration_ms = durations[-1]
+    timeout_ms = timeout_seconds * 1000 if timeout_seconds > 0 else None
+    max_headroom_ms = (timeout_ms - max_duration_ms) if timeout_ms is not None else None
+    latest_headroom_ms = (timeout_ms - latest_duration_ms) if timeout_ms is not None else None
+    near_timeout = bool(
+        timeout_ms
+        and max_headroom_ms is not None
+        and max_headroom_ms <= max(TIMEOUT_HEADROOM_WARN_MIN_MS, int(timeout_ms * (1 - TIMEOUT_HEADROOM_WARN_RATIO)))
+    )
+    exceeds_timeout = bool(timeout_ms and max_duration_ms > timeout_ms)
+
+    if timeout_ms:
+        if exceeds_timeout:
+            text = (
+                f'recente duurtrend {duration_hint(min_duration_ms)} tot {duration_hint(max_duration_ms)}, gemiddeld '
+                f'{duration_hint(avg_duration_ms)}, piek boven huidige limiet {duration_hint(timeout_ms)}'
+            )
+        elif near_timeout:
+            text = (
+                f'recente duurtrend {duration_hint(min_duration_ms)} tot {duration_hint(max_duration_ms)}, gemiddeld '
+                f'{duration_hint(avg_duration_ms)}, piek liet nog maar {duration_hint(max_headroom_ms)} speling onder '
+                f'huidige limiet {duration_hint(timeout_ms)}'
+            )
+        else:
+            text = (
+                f'recente duurtrend {duration_hint(min_duration_ms)} tot {duration_hint(max_duration_ms)}, gemiddeld '
+                f'{duration_hint(avg_duration_ms)}, onder huidige limiet {duration_hint(timeout_ms)}'
+            )
+    else:
+        text = (
+            f'recente duurtrend {duration_hint(min_duration_ms)} tot {duration_hint(max_duration_ms)}, gemiddeld '
+            f'{duration_hint(avg_duration_ms)}'
+        )
+
+    return {
+        'available': True,
+        'ok': not exceeds_timeout and not near_timeout,
+        'sample_size': len(durations),
+        'sample_requested': max(1, sample_size),
+        'duration_ms_values': durations,
+        'duration_text_values': [duration_hint(duration_ms) for duration_ms in durations],
+        'min_duration_ms': min_duration_ms,
+        'min_duration_text': duration_hint(min_duration_ms),
+        'max_duration_ms': max_duration_ms,
+        'max_duration_text': duration_hint(max_duration_ms),
+        'avg_duration_ms': avg_duration_ms,
+        'avg_duration_text': duration_hint(avg_duration_ms),
+        'latest_duration_ms': latest_duration_ms,
+        'latest_duration_text': duration_hint(latest_duration_ms),
+        'timeout_seconds': timeout_seconds if timeout_seconds > 0 else None,
+        'timeout_ms': timeout_ms,
+        'timeout_text': duration_hint(timeout_ms) if timeout_ms else None,
+        'max_headroom_ms': max_headroom_ms,
+        'max_headroom_text': duration_hint(max_headroom_ms) if max_headroom_ms is not None else None,
+        'latest_headroom_ms': latest_headroom_ms,
+        'latest_headroom_text': duration_hint(latest_headroom_ms) if latest_headroom_ms is not None else None,
+        'near_timeout': near_timeout,
+        'timed_out': exceeds_timeout,
+        'text': text,
+    }
+
+
 def build_status(job_name=TARGET_JOB_NAME):
     jobs = load_jobs()
     job = next((job for job in jobs if job.get('name') == job_name), None)
@@ -2204,6 +2281,10 @@ def build_status(job_name=TARGET_JOB_NAME):
         last_error_reason=state.get('lastErrorReason') or (last_run or {}).get('errorReason'),
         config_updated_after_run=bool(updated_at and last_run_at and updated_at > last_run_at),
     )
+    recent_run_duration_audit = audit_recent_run_durations(
+        finished_runs,
+        payload_audit.get('timeout_seconds'),
+    )
     next_run_audit = audit_next_run(job, next_run_at, now_ms, tz_name)
     storage_audit = audit_storage(job['id'])
     runlog_audit = audit_runlog(runlog_info, finished_runs)
@@ -2247,6 +2328,8 @@ def build_status(job_name=TARGET_JOB_NAME):
         attention_reasons.append(f"schedule/delivery: {runtime_audit.get('text')}")
     if last_run_timeout_audit.get('available') and not last_run_timeout_audit.get('ok'):
         attention_reasons.append(f"timeout-headroom: {last_run_timeout_audit.get('text')}")
+    if recent_run_duration_audit.get('available') and not recent_run_duration_audit.get('ok'):
+        attention_reasons.append(f"duurtrend: {recent_run_duration_audit.get('text')}")
     if not next_run_audit.get('ok'):
         attention_reasons.append(f"next run: {next_run_audit.get('text')}")
     if not storage_audit.get('ok'):
@@ -2284,6 +2367,7 @@ def build_status(job_name=TARGET_JOB_NAME):
         'payload_audit': payload_audit,
         'runtime_audit': runtime_audit,
         'last_run_timeout_audit': last_run_timeout_audit,
+        'recent_run_duration_audit': recent_run_duration_audit,
         'next_run_audit': next_run_audit,
         'storage_audit': storage_audit,
         'runlog_audit': runlog_audit,
@@ -2591,6 +2675,7 @@ def render_text(data):
         parts.append(data['proof_text'])
     payload_audit = data.get('payload_audit') or {}
     last_run_timeout_audit = data.get('last_run_timeout_audit') or {}
+    recent_run_duration_audit = data.get('recent_run_duration_audit') or {}
     if data.get('attention_text'):
         parts.append(f"let op: {data['attention_text']}")
     else:
@@ -2653,6 +2738,8 @@ def render_text(data):
         parts.append(duration_text)
     if last_run_timeout_audit.get('available') and last_run_timeout_audit.get('text'):
         parts.append(f"timeout-headroom {last_run_timeout_audit['text']}")
+    if recent_run_duration_audit.get('available') and recent_run_duration_audit.get('text'):
+        parts.append(f"duurtrend {recent_run_duration_audit['text']}")
     if last_run_summary.get('summary_preview'):
         parts.append(f"laatste briefing-preview {last_run_summary['summary_preview']}")
     if last_run_summary.get('summary_source'):

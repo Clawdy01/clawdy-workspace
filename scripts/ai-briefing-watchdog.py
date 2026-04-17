@@ -315,6 +315,7 @@ def main() -> int:
     required_qualified_runs = max(0, args.require_qualified_runs)
     proof_runs_remaining = int(status.get('proof_runs_remaining') or 0)
     last_run_timeout_audit = status.get('last_run_timeout_audit') or {}
+    recent_run_duration_audit = status.get('recent_run_duration_audit') or {}
     result = {
         'ok': ok,
         'summary': summary,
@@ -350,6 +351,9 @@ def main() -> int:
         'last_run_timeout_text': last_run_timeout_audit.get('text'),
         'last_run_timeout_near_timeout': last_run_timeout_audit.get('near_timeout'),
         'last_run_timeout_timed_out': last_run_timeout_audit.get('timed_out'),
+        'recent_run_duration_text': recent_run_duration_audit.get('text'),
+        'recent_run_duration_near_timeout': recent_run_duration_audit.get('near_timeout'),
+        'recent_run_duration_timed_out': recent_run_duration_audit.get('timed_out'),
         'summary_output_examples': summarize_output_examples(status),
     }
 
@@ -390,6 +394,8 @@ def main() -> int:
         lines.append(f"qualifying run slots: {result['proof_target_run_slots_text']}")
     if result['last_run_timeout_text']:
         lines.append(f"last run timeout audit: {result['last_run_timeout_text']}")
+    if result['recent_run_duration_text']:
+        lines.append(f"recent run duration audit: {result['recent_run_duration_text']}")
     if result['last_proof_qualified_run_at_text']:
         lines.append(f"last qualified run: {result['last_proof_qualified_run_at_text']}")
     text_output = '\n'.join(lines) + '\n'

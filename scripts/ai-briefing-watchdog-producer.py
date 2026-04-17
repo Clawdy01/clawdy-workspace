@@ -94,6 +94,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(f"kwalificatie-slots {proof_target_run_slots_text}")
     if payload.get('last_run_timeout_text'):
         bits.append(str(payload['last_run_timeout_text']))
+    if payload.get('recent_run_duration_text'):
+        bits.append(str(payload['recent_run_duration_text']))
     if returncode != 0:
         reasons = [reason for reason in (payload.get('reasons') or []) if reason]
         if reasons:
