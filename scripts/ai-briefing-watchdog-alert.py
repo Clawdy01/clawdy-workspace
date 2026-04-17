@@ -91,8 +91,9 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append(f"bewijs uiterlijk {data['proof_due_at_text']}")
     if data.get('proof_target_due_at_text') and mode in {'proof-progress', 'proof-target-check'}:
         bits.append(f"bewijsdoel {data['proof_target_due_at_text']}")
-    if data.get('proof_target_run_slots_text') and mode in {'proof-check', 'proof-progress', 'proof-target-check'}:
-        bits.append(f"kwalificatie-slots {data['proof_target_run_slots_text']}")
+    proof_target_run_slots_text = data.get('proof_target_run_slots_context_text') or data.get('proof_target_run_slots_text')
+    if proof_target_run_slots_text and mode in {'proof-check', 'proof-progress', 'proof-target-check'}:
+        bits.append(f"kwalificatie-slots {proof_target_run_slots_text}")
     if reasons:
         bits.append('redenen: ' + '; '.join(reasons[:3]))
     if summary_output_examples:

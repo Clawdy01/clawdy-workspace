@@ -82,8 +82,9 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(next_run)
     if payload.get('proof_target_due_at_text'):
         bits.append(f"bewijsdoel {payload['proof_target_due_at_text']}")
-    if payload.get('proof_target_run_slots_text'):
-        bits.append(f"kwalificatie-slots {payload['proof_target_run_slots_text']}")
+    proof_target_run_slots_text = payload.get('proof_target_run_slots_context_text') or payload.get('proof_target_run_slots_text')
+    if proof_target_run_slots_text:
+        bits.append(f"kwalificatie-slots {proof_target_run_slots_text}")
     if payload.get('last_run_timeout_text'):
         bits.append(str(payload['last_run_timeout_text']))
     if returncode != 0:

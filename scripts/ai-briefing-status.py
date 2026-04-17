@@ -277,6 +277,19 @@ def relative_day_label(ms, now_ms, tz_name):
     return target_date.isoformat()
 
 
+def format_slot_with_context(ms, now_ms, tz_name):
+    slot_text = fmt_ts(ms, tz_name)
+    if not slot_text:
+        return None
+    bits = [slot_text]
+    slot_hint = future_hint(ms, now_ms)
+    slot_day_label = relative_day_label(ms, now_ms, tz_name)
+    context_bits = [bit for bit in (slot_hint, slot_day_label) if bit]
+    if context_bits:
+        bits.append(f"({' | '.join(context_bits)})")
+    return ' '.join(bits)
+
+
 def duration_hint(ms):
     if ms is None:
         return None
@@ -2054,7 +2067,7 @@ def audit_runtime(job, tz_name):
     }
 
 
-def audit_last_run_timeout_headroom(run, timeout_seconds):
+def audit_last_run_timeout_headroom(run, timeout_seconds, *, last_error_reason=None, config_updated_after_run=False):
     timeout_seconds = int(timeout_seconds or 0)
     duration_ms = int((run or {}).get('durationMs') or 0)
 
@@ -2070,8 +2083,17 @@ def audit_last_run_timeout_headroom(run, timeout_seconds):
     duration_ratio = duration_ms / timeout_ms if timeout_ms > 0 else None
     warn_threshold_ms = max(TIMEOUT_HEADROOM_WARN_MIN_MS, int(timeout_ms * (1 - TIMEOUT_HEADROOM_WARN_RATIO)))
     near_timeout = headroom_ms <= warn_threshold_ms
+    timeout_reason = (last_error_reason or '').strip().lower()
+    historical_timeout_on_older_limit = bool(
+        config_updated_after_run and timeout_reason == 'timeout' and headroom_ms >= 0
+    )
 
-    if headroom_ms < 0:
+    if historical_timeout_on_older_limit:
+        text = (
+            f'laatste run time-outte op oudere limiet; onder huidige limiet zou {duration_hint(headroom_ms)} '
+            f'speling overblijven ({duration_hint(duration_ms)} op limiet {duration_hint(timeout_ms)})'
+        )
+    elif headroom_ms < 0:
         text = (
             f'laatste run overschreed timeout met {duration_hint(abs(headroom_ms))} '
             f'({duration_hint(duration_ms)} op limiet {duration_hint(timeout_ms)})'
@@ -2102,6 +2124,7 @@ def audit_last_run_timeout_headroom(run, timeout_seconds):
         'warn_min_ms': TIMEOUT_HEADROOM_WARN_MIN_MS,
         'near_timeout': near_timeout,
         'timed_out': headroom_ms < 0,
+        'historical_timeout_on_older_limit': historical_timeout_on_older_limit,
         'text': text,
     }
 
@@ -2175,7 +2198,12 @@ def build_status(job_name=TARGET_JOB_NAME):
     proof_text = 'runlog aanwezig' if run_file_exists else 'runlog nog niet aangemaakt'
     payload_audit = audit_payload(job)
     runtime_audit = audit_runtime(job, tz_name)
-    last_run_timeout_audit = audit_last_run_timeout_headroom(last_run, payload_audit.get('timeout_seconds'))
+    last_run_timeout_audit = audit_last_run_timeout_headroom(
+        last_run,
+        payload_audit.get('timeout_seconds'),
+        last_error_reason=state.get('lastErrorReason') or (last_run or {}).get('errorReason'),
+        config_updated_after_run=bool(updated_at and last_run_at and updated_at > last_run_at),
+    )
     next_run_audit = audit_next_run(job, next_run_at, now_ms, tz_name)
     storage_audit = audit_storage(job['id'])
     runlog_audit = audit_runlog(runlog_info, finished_runs)
@@ -2339,10 +2367,18 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_target_run_slots'] = proof_target_run_slots
     summary['proof_target_run_slot_texts'] = [fmt_ts(slot, tz_name) for slot in proof_target_run_slots]
     summary['proof_target_run_slot_hints'] = [future_hint(slot, now_ms) for slot in proof_target_run_slots]
+    summary['proof_target_run_slot_day_labels'] = [relative_day_label(slot, now_ms, tz_name) for slot in proof_target_run_slots]
+    summary['proof_target_run_slot_context_texts'] = [
+        format_slot_with_context(slot, now_ms, tz_name) for slot in proof_target_run_slots
+    ]
     if proof_target_run_slots:
         summary['proof_target_run_slots_text'] = ', '.join(summary['proof_target_run_slot_texts'])
+        summary['proof_target_run_slots_context_text'] = ', '.join(
+            text for text in summary['proof_target_run_slot_context_texts'] if text
+        )
     else:
         summary['proof_target_run_slots_text'] = None
+        summary['proof_target_run_slots_context_text'] = None
     proof_next_qualifying_slot_at = proof_target_run_slots[0] if proof_target_run_slots else None
     summary['proof_next_qualifying_slot_at'] = proof_next_qualifying_slot_at
     summary['proof_next_qualifying_slot_at_text'] = fmt_ts(proof_next_qualifying_slot_at, tz_name)

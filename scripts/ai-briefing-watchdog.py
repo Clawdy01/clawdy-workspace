@@ -330,6 +330,8 @@ def main() -> int:
         'proof_due_at_text': status.get('proof_due_at_text'),
         'proof_target_due_at_text': status.get('proof_target_due_at_text'),
         'proof_target_run_slots_text': status.get('proof_target_run_slots_text'),
+        'proof_target_run_slots_context_text': status.get('proof_target_run_slots_context_text'),
+        'proof_target_run_slot_day_labels': status.get('proof_target_run_slot_day_labels'),
         'proof_next_qualifying_slot_at_text': status.get('proof_next_qualifying_slot_at_text'),
         'proof_next_qualifying_slot_hint': status.get('proof_next_qualifying_slot_hint'),
         'proof_next_qualifying_slot_day_label': status.get('proof_next_qualifying_slot_day_label'),
@@ -372,7 +374,9 @@ def main() -> int:
         if result['proof_next_qualifying_slot_day_label']:
             next_qualifying_line += f" [{result['proof_next_qualifying_slot_day_label']}]"
         lines.append(next_qualifying_line)
-    if result['proof_target_run_slots_text']:
+    if result['proof_target_run_slots_context_text']:
+        lines.append(f"qualifying run slots: {result['proof_target_run_slots_context_text']}")
+    elif result['proof_target_run_slots_text']:
         lines.append(f"qualifying run slots: {result['proof_target_run_slots_text']}")
     if result['last_run_timeout_text']:
         lines.append(f"last run timeout audit: {result['last_run_timeout_text']}")
