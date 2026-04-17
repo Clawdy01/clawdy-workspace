@@ -41,13 +41,20 @@ MODE_REQUIREMENTS = {
 
 
 def unique_bits(bits: list[str]) -> list[str]:
-    seen: set[str] = set()
     unique: list[str] = []
     for bit in bits:
         cleaned = ' '.join((bit or '').split())
-        if not cleaned or cleaned in seen:
+        if not cleaned:
             continue
-        seen.add(cleaned)
+        skip = False
+        for existing in list(unique):
+            if cleaned == existing or cleaned in existing:
+                skip = True
+                break
+            if existing in cleaned:
+                unique.remove(existing)
+        if skip:
+            continue
         unique.append(cleaned)
     return unique
 
@@ -105,6 +112,14 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append(data['proof_today_block_text'])
     if data.get('proof_schedule_risk_text') and require_qualified_runs > 0:
         bits.append(data['proof_schedule_risk_text'])
+    proof_wait_until = data.get('proof_wait_until_text')
+    if proof_wait_until and require_qualified_runs > 0:
+        proof_wait_bit = f"bewijs wacht tot {proof_wait_until}"
+        if data.get('proof_wait_until_hint'):
+            proof_wait_bit += f" ({data['proof_wait_until_hint']})"
+        if data.get('proof_wait_until_reason_text'):
+            proof_wait_bit += f": {data['proof_wait_until_reason_text']}"
+        bits.append(proof_wait_bit)
     next_qualifying = data.get('proof_next_qualifying_slot_at_text')
     if next_qualifying and require_qualified_runs > 0:
         next_qualifying_bit = f"volgende kwalificatierun {next_qualifying}"

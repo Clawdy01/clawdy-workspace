@@ -2614,6 +2614,23 @@ def build_status(job_name=TARGET_JOB_NAME):
         proof_state = 'waiting-valid-slot'
         proof_state_text = 'bewijs wacht op een geldig kwalificatieslot'
 
+    proof_wait_until_at = None
+    proof_wait_until_text = None
+    proof_wait_until_hint = None
+    proof_wait_until_reason_text = None
+    if not summary['proof_target_met'] and proof_next_qualifying_slot_at and (
+        expected_proof_freshness_wait or summary['proof_today_block_text']
+    ):
+        proof_wait_until_at = proof_next_qualifying_slot_at
+        proof_wait_until_text = summary.get('proof_next_qualifying_slot_at_text')
+        proof_wait_until_hint = summary.get('proof_next_qualifying_slot_hint')
+        if expected_proof_freshness_wait and summary['proof_today_block_text']:
+            proof_wait_until_reason_text = 'bewijs blijft tijdsgebonden wachten tot het eerstvolgende kwalificatieslot van morgen'
+        elif expected_proof_freshness_wait:
+            proof_wait_until_reason_text = 'bewijs blijft wachten tot de eerstvolgende geplande kwalificatierun'
+        else:
+            proof_wait_until_reason_text = 'vandaag zijn geen kwalificerende runs meer mogelijk, bewijs wacht tot het volgende kwalificatieslot'
+
     summary['text'] = status_text
     summary['summary'] = status_text
     summary['status_text'] = status_text
@@ -2622,6 +2639,10 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_schedule_risk_text'] = proof_schedule_risk_text
     summary['proof_state'] = proof_state
     summary['proof_state_text'] = proof_state_text
+    summary['proof_wait_until_at'] = proof_wait_until_at
+    summary['proof_wait_until_text'] = proof_wait_until_text
+    summary['proof_wait_until_hint'] = proof_wait_until_hint
+    summary['proof_wait_until_reason_text'] = proof_wait_until_reason_text
     summary['readiness_phase'] = readiness_phase
     summary['readiness_text'] = readiness_text
     return summary

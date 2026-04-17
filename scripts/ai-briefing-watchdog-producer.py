@@ -31,13 +31,20 @@ PRODUCER_MODES = {
 
 
 def unique_bits(bits: list[str]) -> list[str]:
-    seen: set[str] = set()
     unique: list[str] = []
     for bit in bits:
         cleaned = ' '.join((bit or '').split())
-        if not cleaned or cleaned in seen:
+        if not cleaned:
             continue
-        seen.add(cleaned)
+        skip = False
+        for existing in list(unique):
+            if cleaned == existing or cleaned in existing:
+                skip = True
+                break
+            if existing in cleaned:
+                unique.remove(existing)
+        if skip:
+            continue
         unique.append(cleaned)
     return unique
 
@@ -98,6 +105,13 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['proof_today_block_text']))
     if payload.get('proof_schedule_risk_text'):
         bits.append(str(payload['proof_schedule_risk_text']))
+    if payload.get('proof_wait_until_text'):
+        proof_wait = f"bewijs wacht tot {payload['proof_wait_until_text']}"
+        if payload.get('proof_wait_until_hint'):
+            proof_wait += f" ({payload['proof_wait_until_hint']})"
+        if payload.get('proof_wait_until_reason_text'):
+            proof_wait += f": {payload['proof_wait_until_reason_text']}"
+        bits.append(proof_wait)
     if payload.get('proof_next_qualifying_slot_at_text'):
         next_run = f"volgende kwalificatierun {payload['proof_next_qualifying_slot_at_text']}"
         if payload.get('proof_next_qualifying_slot_hint'):

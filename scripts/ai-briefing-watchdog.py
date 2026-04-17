@@ -363,6 +363,10 @@ def main() -> int:
         'proof_no_more_qualifying_runs_today': status.get('proof_no_more_qualifying_runs_today'),
         'proof_today_block_text': status.get('proof_today_block_text'),
         'proof_schedule_risk_text': status.get('proof_schedule_risk_text'),
+        'proof_wait_until_at': status.get('proof_wait_until_at'),
+        'proof_wait_until_text': status.get('proof_wait_until_text'),
+        'proof_wait_until_hint': status.get('proof_wait_until_hint'),
+        'proof_wait_until_reason_text': status.get('proof_wait_until_reason_text'),
         'previous_run_slot_at_text': status.get('previous_run_slot_at_text'),
         'last_proof_qualified_run_at_text': status.get('last_proof_qualified_run_at_text'),
         'has_run_proof': status.get('has_run_proof'),
@@ -407,6 +411,13 @@ def main() -> int:
         lines.append(f"proof today block: {result['proof_today_block_text']}")
     if result['proof_schedule_risk_text']:
         lines.append(f"proof schedule risk: {result['proof_schedule_risk_text']}")
+    if result['proof_wait_until_text']:
+        proof_wait_line = f"proof wait until: {result['proof_wait_until_text']}"
+        if result['proof_wait_until_hint']:
+            proof_wait_line += f" ({result['proof_wait_until_hint']})"
+        if result['proof_wait_until_reason_text']:
+            proof_wait_line += f" - {result['proof_wait_until_reason_text']}"
+        lines.append(proof_wait_line)
     if result['proof_next_qualifying_slot_at_text']:
         next_qualifying_line = f"next qualifying run: {result['proof_next_qualifying_slot_at_text']}"
         if result['proof_next_qualifying_slot_hint']:
