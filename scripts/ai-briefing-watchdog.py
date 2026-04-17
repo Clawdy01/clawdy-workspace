@@ -313,17 +313,22 @@ def main() -> int:
     ok, reasons, summary = evaluate(status, require_qualified_runs=max(0, args.require_qualified_runs))
     proof_qualified_runs = int(status.get('proof_qualified_runs') or 0)
     required_qualified_runs = max(0, args.require_qualified_runs)
+    proof_runs_remaining = int(status.get('proof_runs_remaining') or 0)
     last_run_timeout_audit = status.get('last_run_timeout_audit') or {}
     result = {
         'ok': ok,
         'summary': summary,
         'reasons': reasons,
         'readiness_phase': status.get('readiness_phase'),
+        'readiness_text': status.get('readiness_text'),
         'proof_progress_text': status.get('proof_progress_text'),
+        'proof_plan_text': status.get('proof_plan_text'),
         'proof_target_runs': status.get('proof_target_runs'),
         'proof_qualified_runs': proof_qualified_runs,
+        'proof_runs_remaining': proof_runs_remaining,
         'required_qualified_runs': required_qualified_runs,
         'proof_requirement_met': proof_qualified_runs >= required_qualified_runs,
+        'proof_target_met': status.get('proof_target_met'),
         'proof_target_due_at': status.get('proof_target_due_at'),
         'job_name': status.get('job_name'),
         'next_run_at_text': status.get('next_run_at_text'),
@@ -353,18 +358,23 @@ def main() -> int:
     if reasons:
         lines.append('reasons:')
         lines.extend(f'- {reason}' for reason in reasons)
+    if result['readiness_text']:
+        lines.append(f"readiness: {result['readiness_text']}")
     if result['proof_progress_text']:
         lines.append(f"proof progress: {result['proof_progress_text']}")
     if required_qualified_runs > 0:
         lines.append(
             f"proof requirement: {proof_qualified_runs}/{required_qualified_runs} gekwalificeerde runs"
         )
+        lines.append(f"proof remaining: nog {proof_runs_remaining} te gaan")
     if result['next_run_at_text']:
         lines.append(f"next run: {result['next_run_at_text']}")
     if result['proof_due_at_text']:
         lines.append(f"proof due: {result['proof_due_at_text']}")
     if result['proof_target_due_at_text']:
         lines.append(f"proof target due: {result['proof_target_due_at_text']}")
+    if result['proof_plan_text']:
+        lines.append(f"proof plan: {result['proof_plan_text']}")
     if result['proof_today_block_text']:
         lines.append(f"proof today block: {result['proof_today_block_text']}")
     if result['proof_next_qualifying_slot_at_text']:

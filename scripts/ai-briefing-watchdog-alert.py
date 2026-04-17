@@ -71,12 +71,20 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     summary_output_examples = [example for example in (data.get('summary_output_examples') or []) if example]
     proof_example_limit = 2 if mode == 'preflight' else 3
     bits = [f"AI-briefing {mode}: {summary}"]
+    readiness_text = data.get('readiness_text')
+    if readiness_text:
+        bits.append(readiness_text)
     if require_qualified_runs > 0:
         proof_progress = data.get('proof_progress_text')
         if proof_progress:
             bits.append(proof_progress)
+        proof_runs_remaining = data.get('proof_runs_remaining')
+        if proof_runs_remaining is not None and not data.get('proof_target_met'):
+            bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
     if data.get('next_run_at_text'):
         bits.append(f"volgende run {data['next_run_at_text']}")
+    if data.get('proof_plan_text') and require_qualified_runs > 0:
+        bits.append(data['proof_plan_text'])
     if data.get('proof_today_block_text') and require_qualified_runs > 0:
         bits.append(data['proof_today_block_text'])
     next_qualifying = data.get('proof_next_qualifying_slot_at_text')
