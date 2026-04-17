@@ -17,6 +17,25 @@ ROOT = Path('/home/clawdy/.openclaw/workspace')
 BRIEF = ROOT / 'scripts' / 'clawdy-brief.py'
 
 
+def unique_bits(bits):
+    unique = []
+    for bit in bits:
+        cleaned = ' '.join((bit or '').split())
+        if not cleaned:
+            continue
+        skip = False
+        for existing in list(unique):
+            if cleaned == existing or cleaned in existing:
+                skip = True
+                break
+            if existing in cleaned:
+                unique.remove(existing)
+        if skip:
+            continue
+        unique.append(cleaned)
+    return unique
+
+
 def extract_json_document(text):
     text = (text or '').strip()
     if not text:
@@ -151,9 +170,33 @@ def render_text(data, show_preview=False):
             if ai_briefing_status.get('proof_target_due_hint'):
                 proof_target_due_text += f" ({ai_briefing_status['proof_target_due_hint']})"
             ai_bits.append(proof_target_due_text)
+        if ai_briefing_status.get('proof_state_text'):
+            ai_bits.append(ai_briefing_status['proof_state_text'])
         if ai_briefing_status.get('proof_plan_text'):
             ai_bits.append(ai_briefing_status['proof_plan_text'])
-        if ai_briefing_status.get('proof_target_run_slots_text'):
+        if ai_briefing_status.get('proof_next_action_text'):
+            ai_bits.append(ai_briefing_status['proof_next_action_text'])
+        if ai_briefing_status.get('proof_today_block_text'):
+            ai_bits.append(ai_briefing_status['proof_today_block_text'])
+        if ai_briefing_status.get('proof_schedule_risk_text'):
+            ai_bits.append(ai_briefing_status['proof_schedule_risk_text'])
+        if ai_briefing_status.get('proof_countdown_text'):
+            ai_bits.append(ai_briefing_status['proof_countdown_text'])
+        if ai_briefing_status.get('proof_wait_until_text'):
+            proof_wait_until_text = f"bewijs wacht tot {ai_briefing_status['proof_wait_until_text']}"
+            if ai_briefing_status.get('proof_wait_until_hint'):
+                proof_wait_until_text += f" ({ai_briefing_status['proof_wait_until_hint']})"
+            ai_bits.append(proof_wait_until_text)
+        if ai_briefing_status.get('proof_next_qualifying_slot_at_text'):
+            next_qualifying_text = f"volgende kwalificatierun {ai_briefing_status['proof_next_qualifying_slot_at_text']}"
+            if ai_briefing_status.get('proof_next_qualifying_slot_hint'):
+                next_qualifying_text += f" ({ai_briefing_status['proof_next_qualifying_slot_hint']})"
+            if ai_briefing_status.get('proof_next_qualifying_slot_day_label'):
+                next_qualifying_text += f" [{ai_briefing_status['proof_next_qualifying_slot_day_label']}]"
+            ai_bits.append(next_qualifying_text)
+        if ai_briefing_status.get('proof_target_run_slots_context_text'):
+            ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_context_text']}")
+        elif ai_briefing_status.get('proof_target_run_slots_text'):
             ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_text']}")
         if ai_briefing_status.get('last_run_at_text'):
             ai_bits.append(f"laatste {ai_briefing_status['last_run_at_text']}")
@@ -277,7 +320,7 @@ def render_text(data, show_preview=False):
                     run_bits.append(run['duration_text'])
                 recent_bits.append(' / '.join(run_bits))
             ai_bits.append(f"recente runs {'; '.join(recent_bits)}")
-        lines.append(f"- ai briefing: {'; '.join(ai_bits)}")
+        lines.append(f"- ai briefing: {'; '.join(unique_bits(ai_bits))}")
     mail_line = f"- mail: last_uid {mail['last_uid']}, notified {mail['tracked_notifications']} ({mail['account']})"
     recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))
     recent_high_groups = mail_high_recent.get('total_related_group_count', mail_high_recent.get('related_group_count', 0))
