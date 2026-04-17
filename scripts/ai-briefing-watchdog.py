@@ -313,6 +313,7 @@ def main() -> int:
     ok, reasons, summary = evaluate(status, require_qualified_runs=max(0, args.require_qualified_runs))
     proof_qualified_runs = int(status.get('proof_qualified_runs') or 0)
     required_qualified_runs = max(0, args.require_qualified_runs)
+    last_run_timeout_audit = status.get('last_run_timeout_audit') or {}
     result = {
         'ok': ok,
         'summary': summary,
@@ -336,6 +337,9 @@ def main() -> int:
         'has_run_proof': status.get('has_run_proof'),
         'attention_needed': status.get('attention_needed'),
         'status_text': status.get('text'),
+        'last_run_timeout_text': last_run_timeout_audit.get('text'),
+        'last_run_timeout_near_timeout': last_run_timeout_audit.get('near_timeout'),
+        'last_run_timeout_timed_out': last_run_timeout_audit.get('timed_out'),
         'summary_output_examples': summarize_output_examples(status),
     }
 
@@ -363,6 +367,8 @@ def main() -> int:
         lines.append(next_qualifying_line)
     if result['proof_target_run_slots_text']:
         lines.append(f"qualifying run slots: {result['proof_target_run_slots_text']}")
+    if result['last_run_timeout_text']:
+        lines.append(f"last run timeout audit: {result['last_run_timeout_text']}")
     if result['last_proof_qualified_run_at_text']:
         lines.append(f"last qualified run: {result['last_proof_qualified_run_at_text']}")
     text_output = '\n'.join(lines) + '\n'

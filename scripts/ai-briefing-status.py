@@ -9,6 +9,7 @@ import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
+from signal import SIG_DFL, SIGPIPE, signal
 from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
@@ -2713,4 +2714,5 @@ def main():
 
 
 if __name__ == '__main__':
+    signal(SIGPIPE, SIG_DFL)
     main()
