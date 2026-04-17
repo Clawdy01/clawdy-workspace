@@ -513,7 +513,8 @@ def help_payload():
         },
         {
             'slash': '/mail-inbox',
-            'description': 'recente mail snel bekijken',
+            'also': ['/mail-latest'],
+            'description': 'recente mail snel bekijken, ook via /mail-latest',
         },
         {
             'slash': '/mail-unread',
@@ -611,7 +612,8 @@ def help_payload():
         },
         {
             'slash': '/mail-first',
-            'description': 'beste eerstvolgende mail',
+            'also': ['/mail-focus'],
+            'description': 'beste eerstvolgende mail, ook via /mail-focus',
         },
         {
             'slash': '/mail-open-now',

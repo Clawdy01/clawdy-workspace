@@ -43,6 +43,11 @@ def quickstart_payload():
             'description': 'compact board met alleen reviewwaardige mail zonder losse flags',
         },
         {
+            'command': 'python3 scripts/mail-dispatch.py latest',
+            'also': ['inbox'],
+            'description': 'recente inboxmail snel bekijken',
+        },
+        {
             'command': 'python3 scripts/mail-dispatch.py latest --unread',
             'also': ['unread'],
             'description': 'alleen ongelezen mail',
