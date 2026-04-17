@@ -36,6 +36,14 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest', '--unread'],
         'description': 'Toon direct alleen ongelezen mail',
     },
+    'mail-unread-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'unread-now'],
+        'description': 'Bekijk direct alleen actuele ongelezen mail zonder losse --unread en --current-only vlaggen',
+    },
+    'mail-unread-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'unread-review'],
+        'description': 'Bekijk direct alleen reviewwaardige ongelezen mail zonder losse --unread en --review-worthy vlaggen',
+    },
     'mail-latest': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest'],
         'description': 'Laatste mails of ongelezen inbox-items bekijken',
@@ -315,6 +323,12 @@ ALIASES = {
     '/mail-board-review-worthy': 'mail-board-review',
     '/mail-inbox': 'mail-inbox',
     '/mail-unread': 'mail-unread',
+    '/mail-unread-now': 'mail-unread-now',
+    '/mail-now-unread': 'mail-unread-now',
+    '/mail-unread-current': 'mail-unread-now',
+    '/mail-unread-review': 'mail-unread-review',
+    '/mail-review-unread': 'mail-unread-review',
+    '/mail-unread-review-worthy': 'mail-unread-review',
     '/mail-latest': 'mail-latest',
     '/mail-latest-now': 'mail-latest-now',
     '/mail-now-latest': 'mail-latest-now',
@@ -521,6 +535,16 @@ def help_payload():
             'description': 'alleen ongelezen mail',
         },
         {
+            'slash': '/mail-unread-now',
+            'also': ['/mail-now-unread', '/mail-unread-current'],
+            'description': 'actuele ongelezen mail of threads zonder losse --unread en --current-only vlaggen',
+        },
+        {
+            'slash': '/mail-unread-review',
+            'also': ['/mail-review-unread', '/mail-unread-review-worthy'],
+            'description': 'reviewwaardige ongelezen mail of threads zonder losse --unread en --review-worthy vlaggen',
+        },
+        {
             'slash': '/mail-check',
             'also': ['/mail-new'],
             'description': 'alleen echt nieuwe mail sinds de laatste state-update',
@@ -668,13 +692,13 @@ def render_help():
     for item in payload.get('quickstart', []):
         label = item['slash']
         if item.get('also'):
-            label = f"{label} of {' of '.join(item['also'])}"
+            label = f"{label} (ook: {', '.join(item['also'])})"
         lines.append(f"  - {label}: {item['description']}")
     lines.append('- beschikbaar:')
     for item in payload['commands']:
         label = item['slash']
         if item.get('also'):
-            label = f"{label} of {' of '.join(item['also'])}"
+            label = f"{label} (ook: {', '.join(item['also'])})"
         lines.append(f"  - {label}: {item['description']}")
     if payload['aliases']:
         lines.append('- handige aliassen:')

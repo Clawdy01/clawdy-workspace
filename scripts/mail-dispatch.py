@@ -53,6 +53,18 @@ ROUTES = {
         'examples': ['mail-dispatch.py latest-review', 'mail-dispatch.py latest-review --threads --explain-empty -n 5', 'mail-dispatch.py latest-review --subject factuur --json'],
         'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-latest.py')] + with_defaults(args, '--review-worthy') + (['--json'] if json_mode else []),
     },
+    'unread-now': {
+        'description': 'Bekijk direct alleen actuele ongelezen mail zonder losse --unread en --current-only vlaggen',
+        'args': ['-n/--limit?', '--preview?', '--meaningful?', '--actionable?', '--threads?', '--explain-empty?', '--sender <tekst>?', '--subject <tekst>?', '--action <tekst>?', '--urgency <tekst>?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py unread-now', 'mail-dispatch.py unread-now --threads --explain-empty -n 5', 'mail-dispatch.py unread-now --sender github --json'],
+        'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-latest.py')] + with_defaults(args, '--unread', '--current-only') + (['--json'] if json_mode else []),
+    },
+    'unread-review': {
+        'description': 'Bekijk direct alleen reviewwaardige ongelezen mail zonder losse --unread en --review-worthy vlaggen',
+        'args': ['-n/--limit?', '--preview?', '--meaningful?', '--actionable?', '--threads?', '--explain-empty?', '--sender <tekst>?', '--subject <tekst>?', '--action <tekst>?', '--urgency <tekst>?', '--search-limit <n>?'],
+        'examples': ['mail-dispatch.py unread-review', 'mail-dispatch.py unread-review --threads --explain-empty -n 5', 'mail-dispatch.py unread-review --subject factuur --json'],
+        'runner': lambda args, json_mode=False: ['python3', str(SCRIPTS / 'mail-latest.py')] + with_defaults(args, '--unread', '--review-worthy') + (['--json'] if json_mode else []),
+    },
     'drafts': {
         'description': 'Concept-antwoorden op basis van nieuwe, ongelezen of recente mail',
         'args': ['-n/--limit?', '--unread?', '--all?'],
@@ -226,6 +238,9 @@ ALIASES = {
     'new': 'check',
     'inbox': 'latest',
     'unread': 'latest',
+    'unread-current': 'unread-now',
+    'unread-now-current': 'unread-now',
+    'unread-review-worthy': 'unread-review',
     'code': 'codes',
     'codes': 'codes',
     'verify': 'codes',
@@ -351,8 +366,18 @@ def catalog_payload():
             },
             {
                 'route': 'latest --unread',
-                'description': 'alleen ongelezen mail',
+                'description': 'alleen ongelezen mail, ook via unread',
                 'also': ['unread'],
+            },
+            {
+                'route': 'unread-now --threads --explain-empty',
+                'description': 'alleen actuele ongelezen threads, ook via unread-current en unread-now-current, met suppressed-uitleg als het leeg is',
+                'also': ['unread-current', 'unread-now-current'],
+            },
+            {
+                'route': 'unread-review --threads --explain-empty',
+                'description': 'alleen reviewwaardige ongelezen threads, ook via unread-review-worthy, met noop-uitleg als het leeg is',
+                'also': ['unread-review-worthy'],
             },
             {
                 'route': 'check',
@@ -441,13 +466,13 @@ def catalog_payload():
             },
             {
                 'route': 'open-now --explain-empty',
-                'description': 'aanbevolen actuele thread meteen openen, ook via open-now, open-current, review-now of review-next-current, met suppressed-uitleg bij noop',
-                'also': ['open-now', 'open-current', 'review-now', 'review-next-current'],
+                'description': 'aanbevolen actuele thread meteen openen, ook via open-current, review-now of review-next-current, met suppressed-uitleg bij noop',
+                'also': ['open-current', 'review-now', 'review-next-current'],
             },
             {
                 'route': 'open-review --explain-empty',
-                'description': 'aanbevolen reviewwaardige thread meteen openen, ook via open-review, open-review-worthy, review-review of review-next-review-worthy, met suppressed-uitleg bij noop',
-                'also': ['open-review', 'open-review-worthy', 'review-review', 'review-next-review-worthy'],
+                'description': 'aanbevolen reviewwaardige thread meteen openen, ook via open-review-worthy, review-review of review-next-review-worthy, met suppressed-uitleg bij noop',
+                'also': ['open-review-worthy', 'review-review', 'review-next-review-worthy'],
             },
             {
                 'route': 'open',

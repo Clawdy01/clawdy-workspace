@@ -50,7 +50,17 @@ def quickstart_payload():
         {
             'command': 'python3 scripts/mail-dispatch.py latest --unread',
             'also': ['unread'],
-            'description': 'alleen ongelezen mail',
+            'description': 'alleen ongelezen mail, ook via unread',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py unread-now --threads --explain-empty',
+            'also': ['unread-current', 'unread-now-current'],
+            'description': 'alleen actuele ongelezen threads, ook via unread-current en unread-now-current, met suppressed-uitleg als het leeg is',
+        },
+        {
+            'command': 'python3 scripts/mail-dispatch.py unread-review --threads --explain-empty',
+            'also': ['unread-review-worthy'],
+            'description': 'alleen reviewwaardige ongelezen threads, ook via unread-review-worthy, met noop-uitleg als het leeg is',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py check',
