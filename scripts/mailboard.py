@@ -69,13 +69,13 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest-now --threads --explain-empty',
-            'also': ['inbox-now', 'inbox-current', 'latest-current', 'latest-now-current'],
-            'description': 'alleen actuele recente threads, ook via inbox-now, inbox-current, latest-current en latest-now-current, met suppressed-uitleg als het leeg is',
+            'also': ['inbox-now', 'inbox-current', 'inbox-now-current', 'latest-current', 'latest-now-current'],
+            'description': 'alleen actuele recente threads, ook via inbox-now, inbox-current, inbox-now-current, latest-current en latest-now-current, met suppressed-uitleg als het leeg is',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest-review --threads --explain-empty',
-            'also': ['inbox-review', 'inbox-review-worthy', 'latest-review-worthy'],
-            'description': 'alleen reviewwaardige recente threads, ook via inbox-review, inbox-review-worthy en latest-review-worthy, met noop-uitleg als het leeg is',
+            'also': ['inbox-review', 'inbox-review-worthy', 'latest-review', 'latest-review-worthy'],
+            'description': 'alleen reviewwaardige recente threads, ook via inbox-review, inbox-review-worthy, latest-review en latest-review-worthy, met noop-uitleg als het leeg is',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py now --explain-empty',

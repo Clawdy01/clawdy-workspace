@@ -333,6 +333,7 @@ ALIASES = {
     '/mail-inbox-now': 'mail-inbox-now',
     '/mail-now-inbox': 'mail-inbox-now',
     '/mail-inbox-current': 'mail-inbox-now',
+    '/mail-inbox-now-current': 'mail-inbox-now',
     '/mail-inbox-review': 'mail-inbox-review',
     '/mail-review-inbox': 'mail-inbox-review',
     '/mail-inbox-review-worthy': 'mail-inbox-review',
@@ -548,13 +549,13 @@ def help_payload():
         },
         {
             'slash': '/mail-inbox-now',
-            'also': ['/mail-now-inbox', '/mail-inbox-current', '/mail-latest-current', '/mail-latest-now-current'],
-            'description': 'actuele inboxmail of threads zonder losse --current-only vlaggen, ook via /mail-latest-current en /mail-latest-now-current',
+            'also': ['/mail-now-inbox', '/mail-inbox-current', '/mail-inbox-now-current', '/mail-latest-current', '/mail-latest-now-current'],
+            'description': 'actuele inboxmail of threads zonder losse --current-only vlaggen, ook via /mail-inbox-now-current, /mail-latest-current en /mail-latest-now-current',
         },
         {
             'slash': '/mail-inbox-review',
-            'also': ['/mail-review-inbox', '/mail-inbox-review-worthy', '/mail-latest-review-worthy'],
-            'description': 'reviewwaardige inboxmail of threads zonder losse --review-worthy vlaggen, ook via /mail-latest-review-worthy',
+            'also': ['/mail-review-inbox', '/mail-inbox-review-worthy', '/mail-latest-review', '/mail-latest-review-worthy'],
+            'description': 'reviewwaardige inboxmail of threads zonder losse --review-worthy vlaggen, ook via /mail-latest-review en /mail-latest-review-worthy',
         },
         {
             'slash': '/mail-unread',
@@ -584,7 +585,7 @@ def help_payload():
         {
             'slash': '/mail-latest-review',
             'also': ['/mail-review-latest', '/mail-latest-review-worthy'],
-            'description': 'reviewwaardige recente mail of threads zonder losse --review-worthy vlag',
+            'description': 'reviewwaardige recente mail of threads zonder losse --review-worthy vlag, ook via /mail-latest-review-worthy',
         },
         {
             'slash': '/mail-now',

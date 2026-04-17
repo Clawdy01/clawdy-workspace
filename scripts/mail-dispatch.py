@@ -239,6 +239,7 @@ ALIASES = {
     'inbox': 'latest',
     'inbox-now': 'latest-now',
     'inbox-current': 'latest-now',
+    'inbox-now-current': 'latest-now',
     'inbox-review': 'latest-review',
     'inbox-review-worthy': 'latest-review',
     'unread': 'latest',
@@ -390,13 +391,13 @@ def catalog_payload():
             },
             {
                 'route': 'latest-now --threads --explain-empty',
-                'description': 'alleen actuele recente threads, ook via inbox-now, inbox-current, latest-current en latest-now-current, met suppressed-uitleg als het leeg is',
-                'also': ['inbox-now', 'inbox-current', 'latest-current', 'latest-now-current'],
+                'description': 'alleen actuele recente threads, ook via inbox-now, inbox-current, inbox-now-current, latest-current en latest-now-current, met suppressed-uitleg als het leeg is',
+                'also': ['inbox-now', 'inbox-current', 'inbox-now-current', 'latest-current', 'latest-now-current'],
             },
             {
                 'route': 'latest-review --threads --explain-empty',
-                'description': 'alleen reviewwaardige recente threads, ook via inbox-review, inbox-review-worthy en latest-review-worthy, met noop-uitleg als het leeg is',
-                'also': ['inbox-review', 'inbox-review-worthy', 'latest-review-worthy'],
+                'description': 'alleen reviewwaardige recente threads, ook via inbox-review, inbox-review-worthy, latest-review en latest-review-worthy, met noop-uitleg als het leeg is',
+                'also': ['inbox-review', 'inbox-review-worthy', 'latest-review', 'latest-review-worthy'],
             },
             {
                 'route': 'now --explain-empty',
