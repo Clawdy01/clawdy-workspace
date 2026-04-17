@@ -108,10 +108,14 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append(f"volgende run {data['next_run_at_text']}")
     if data.get('proof_plan_text') and require_qualified_runs > 0:
         bits.append(data['proof_plan_text'])
+    if data.get('proof_next_action_text') and require_qualified_runs > 0:
+        bits.append(data['proof_next_action_text'])
     if data.get('proof_today_block_text') and require_qualified_runs > 0:
         bits.append(data['proof_today_block_text'])
     if data.get('proof_schedule_risk_text') and require_qualified_runs > 0:
         bits.append(data['proof_schedule_risk_text'])
+    if data.get('proof_countdown_text') and require_qualified_runs > 0:
+        bits.append(data['proof_countdown_text'])
     proof_wait_until = data.get('proof_wait_until_text')
     if proof_wait_until and require_qualified_runs > 0:
         proof_wait_bit = f"bewijs wacht tot {proof_wait_until}"

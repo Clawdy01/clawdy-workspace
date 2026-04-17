@@ -257,6 +257,19 @@ def future_hint(ms, now_ms):
     return f'over {days} d'
 
 
+def remaining_ms(target_ms, now_ms):
+    if not target_ms:
+        return None
+    return int(target_ms - now_ms)
+
+
+def remaining_hours(target_ms, now_ms):
+    delta_ms = remaining_ms(target_ms, now_ms)
+    if delta_ms is None:
+        return None
+    return round(delta_ms / 3600000, 1)
+
+
 def relative_day_label(ms, now_ms, tz_name):
     if not ms:
         return None
@@ -2461,6 +2474,8 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_target_due_at'] = proof_target_due_at
     summary['proof_target_due_at_text'] = fmt_ts(proof_target_due_at, tz_name)
     summary['proof_target_due_hint'] = future_hint(proof_target_due_at, now_ms)
+    summary['proof_target_due_remaining_ms'] = remaining_ms(proof_target_due_at, now_ms)
+    summary['proof_target_due_remaining_hours'] = remaining_hours(proof_target_due_at, now_ms)
     proof_target_due_at_if_next_slot_missed = projected_proof_target_due_at_if_next_slots_missed(
         next_run_at=next_run_at,
         remaining_runs=summary['proof_runs_remaining'],
@@ -2470,6 +2485,8 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_target_due_at_if_next_slot_missed'] = proof_target_due_at_if_next_slot_missed
     summary['proof_target_due_at_if_next_slot_missed_text'] = fmt_ts(proof_target_due_at_if_next_slot_missed, tz_name)
     summary['proof_target_due_at_if_next_slot_missed_hint'] = future_hint(proof_target_due_at_if_next_slot_missed, now_ms)
+    summary['proof_target_due_at_if_next_slot_missed_remaining_ms'] = remaining_ms(proof_target_due_at_if_next_slot_missed, now_ms)
+    summary['proof_target_due_at_if_next_slot_missed_remaining_hours'] = remaining_hours(proof_target_due_at_if_next_slot_missed, now_ms)
     proof_target_run_slots = projected_proof_run_slots(
         next_run_at=next_run_at,
         remaining_runs=summary['proof_runs_remaining'],
@@ -2494,6 +2511,8 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_next_qualifying_slot_at'] = proof_next_qualifying_slot_at
     summary['proof_next_qualifying_slot_at_text'] = fmt_ts(proof_next_qualifying_slot_at, tz_name)
     summary['proof_next_qualifying_slot_hint'] = future_hint(proof_next_qualifying_slot_at, now_ms)
+    summary['proof_next_qualifying_slot_remaining_ms'] = remaining_ms(proof_next_qualifying_slot_at, now_ms)
+    summary['proof_next_qualifying_slot_remaining_hours'] = remaining_hours(proof_next_qualifying_slot_at, now_ms)
     summary['proof_next_qualifying_slot_day_label'] = relative_day_label(proof_next_qualifying_slot_at, now_ms, tz_name)
     summary['proof_no_more_qualifying_runs_today'] = bool(
         proof_next_qualifying_slot_at
@@ -2634,15 +2653,60 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['text'] = status_text
     summary['summary'] = status_text
     summary['status_text'] = status_text
+    if summary['proof_target_met']:
+        proof_next_action_text = 'bewijspad klaar; sync KANBAN/STATUS en activeer het volgende spoor'
+    elif proof_wait_until_text:
+        proof_next_action_text = (
+            f"wacht op geplande kwalificatierun {proof_wait_until_text}"
+            + (f" ({proof_wait_until_hint})" if proof_wait_until_hint else '')
+            + ' en draai daarna ai-briefing-status/watchdog opnieuw'
+        )
+    elif proof_next_qualifying_slot_at and summary['proof_next_qualifying_slot_at_text']:
+        proof_next_action_text = (
+            f"bewaak kwalificatierun {summary['proof_next_qualifying_slot_at_text']}"
+            + (f" ({summary['proof_next_qualifying_slot_hint']})" if summary['proof_next_qualifying_slot_hint'] else '')
+            + ' en draai daarna ai-briefing-status/watchdog opnieuw'
+        )
+    else:
+        proof_next_action_text = 'herstel een geldig kwalificatieslot en draai daarna ai-briefing-status/watchdog opnieuw'
+
     summary['proof_progress_text'] = proof_progress_text
     summary['proof_plan_text'] = proof_plan_text
     summary['proof_schedule_risk_text'] = proof_schedule_risk_text
     summary['proof_state'] = proof_state
     summary['proof_state_text'] = proof_state_text
+    summary['proof_next_action_text'] = proof_next_action_text
     summary['proof_wait_until_at'] = proof_wait_until_at
     summary['proof_wait_until_text'] = proof_wait_until_text
     summary['proof_wait_until_hint'] = proof_wait_until_hint
+    summary['proof_wait_until_remaining_ms'] = remaining_ms(proof_wait_until_at, now_ms)
+    summary['proof_wait_until_remaining_hours'] = remaining_hours(proof_wait_until_at, now_ms)
     summary['proof_wait_until_reason_text'] = proof_wait_until_reason_text
+    proof_schedule_slip_ms = None
+    proof_schedule_slip_hours = None
+    if proof_target_due_at and proof_target_due_at_if_next_slot_missed:
+        proof_schedule_slip_ms = int(proof_target_due_at_if_next_slot_missed - proof_target_due_at)
+        proof_schedule_slip_hours = round(proof_schedule_slip_ms / 3600000, 1)
+    summary['proof_schedule_slip_ms'] = proof_schedule_slip_ms
+    summary['proof_schedule_slip_hours'] = proof_schedule_slip_hours
+    proof_countdown_bits = []
+    if summary['proof_wait_until_text']:
+        bit = f"wachtvenster tot {summary['proof_wait_until_text']}"
+        if summary['proof_wait_until_hint']:
+            bit += f" ({summary['proof_wait_until_hint']})"
+        proof_countdown_bits.append(bit)
+    if summary['proof_target_due_at_text']:
+        bit = f"bewijsdoel {summary['proof_target_due_at_text']}"
+        if summary['proof_target_due_hint']:
+            bit += f" ({summary['proof_target_due_hint']})"
+        proof_countdown_bits.append(bit)
+    if summary.get('proof_target_due_at_if_next_slot_missed_text') and proof_schedule_slip_hours is not None:
+        bit = (
+            f"mist volgend slot => {summary['proof_target_due_at_if_next_slot_missed_text']}"
+            f" (slip +{proof_schedule_slip_hours:g}u)"
+        )
+        proof_countdown_bits.append(bit)
+    summary['proof_countdown_text'] = '; '.join(proof_countdown_bits) if proof_countdown_bits else None
     summary['readiness_phase'] = readiness_phase
     summary['readiness_text'] = readiness_text
     return summary

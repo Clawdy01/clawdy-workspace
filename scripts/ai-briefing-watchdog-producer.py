@@ -101,10 +101,14 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
     if payload.get('proof_plan_text'):
         bits.append(str(payload['proof_plan_text']))
+    if payload.get('proof_next_action_text'):
+        bits.append(str(payload['proof_next_action_text']))
     if payload.get('proof_today_block_text'):
         bits.append(str(payload['proof_today_block_text']))
     if payload.get('proof_schedule_risk_text'):
         bits.append(str(payload['proof_schedule_risk_text']))
+    if payload.get('proof_countdown_text'):
+        bits.append(str(payload['proof_countdown_text']))
     if payload.get('proof_wait_until_text'):
         proof_wait = f"bewijs wacht tot {payload['proof_wait_until_text']}"
         if payload.get('proof_wait_until_hint'):

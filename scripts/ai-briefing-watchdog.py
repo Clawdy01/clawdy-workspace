@@ -342,6 +342,7 @@ def main() -> int:
         'proof_plan_text': status.get('proof_plan_text'),
         'proof_state': status.get('proof_state'),
         'proof_state_text': status.get('proof_state_text'),
+        'proof_next_action_text': status.get('proof_next_action_text'),
         'proof_target_runs': status.get('proof_target_runs'),
         'proof_qualified_runs': proof_qualified_runs,
         'proof_runs_remaining': proof_runs_remaining,
@@ -353,12 +354,20 @@ def main() -> int:
         'next_run_at_text': status.get('next_run_at_text'),
         'proof_due_at_text': status.get('proof_due_at_text'),
         'proof_target_due_at_text': status.get('proof_target_due_at_text'),
+        'proof_target_due_remaining_ms': status.get('proof_target_due_remaining_ms'),
+        'proof_target_due_remaining_hours': status.get('proof_target_due_remaining_hours'),
         'proof_target_due_at_if_next_slot_missed_text': status.get('proof_target_due_at_if_next_slot_missed_text'),
+        'proof_target_due_at_if_next_slot_missed_remaining_ms': status.get('proof_target_due_at_if_next_slot_missed_remaining_ms'),
+        'proof_target_due_at_if_next_slot_missed_remaining_hours': status.get('proof_target_due_at_if_next_slot_missed_remaining_hours'),
+        'proof_schedule_slip_ms': status.get('proof_schedule_slip_ms'),
+        'proof_schedule_slip_hours': status.get('proof_schedule_slip_hours'),
         'proof_target_run_slots_text': status.get('proof_target_run_slots_text'),
         'proof_target_run_slots_context_text': status.get('proof_target_run_slots_context_text'),
         'proof_target_run_slot_day_labels': status.get('proof_target_run_slot_day_labels'),
         'proof_next_qualifying_slot_at_text': status.get('proof_next_qualifying_slot_at_text'),
         'proof_next_qualifying_slot_hint': status.get('proof_next_qualifying_slot_hint'),
+        'proof_next_qualifying_slot_remaining_ms': status.get('proof_next_qualifying_slot_remaining_ms'),
+        'proof_next_qualifying_slot_remaining_hours': status.get('proof_next_qualifying_slot_remaining_hours'),
         'proof_next_qualifying_slot_day_label': status.get('proof_next_qualifying_slot_day_label'),
         'proof_no_more_qualifying_runs_today': status.get('proof_no_more_qualifying_runs_today'),
         'proof_today_block_text': status.get('proof_today_block_text'),
@@ -366,7 +375,10 @@ def main() -> int:
         'proof_wait_until_at': status.get('proof_wait_until_at'),
         'proof_wait_until_text': status.get('proof_wait_until_text'),
         'proof_wait_until_hint': status.get('proof_wait_until_hint'),
+        'proof_wait_until_remaining_ms': status.get('proof_wait_until_remaining_ms'),
+        'proof_wait_until_remaining_hours': status.get('proof_wait_until_remaining_hours'),
         'proof_wait_until_reason_text': status.get('proof_wait_until_reason_text'),
+        'proof_countdown_text': status.get('proof_countdown_text'),
         'previous_run_slot_at_text': status.get('previous_run_slot_at_text'),
         'last_proof_qualified_run_at_text': status.get('last_proof_qualified_run_at_text'),
         'has_run_proof': status.get('has_run_proof'),
@@ -407,6 +419,8 @@ def main() -> int:
         lines.append(f"proof target due: {result['proof_target_due_at_text']}")
     if result['proof_plan_text']:
         lines.append(f"proof plan: {result['proof_plan_text']}")
+    if result['proof_next_action_text']:
+        lines.append(f"proof next action: {result['proof_next_action_text']}")
     if result['proof_today_block_text']:
         lines.append(f"proof today block: {result['proof_today_block_text']}")
     if result['proof_schedule_risk_text']:
@@ -415,6 +429,8 @@ def main() -> int:
         proof_wait_line = f"proof wait until: {result['proof_wait_until_text']}"
         if result['proof_wait_until_hint']:
             proof_wait_line += f" ({result['proof_wait_until_hint']})"
+        if result['proof_wait_until_remaining_hours'] is not None:
+            proof_wait_line += f" [T{result['proof_wait_until_remaining_hours']:+g}u]"
         if result['proof_wait_until_reason_text']:
             proof_wait_line += f" - {result['proof_wait_until_reason_text']}"
         lines.append(proof_wait_line)
@@ -422,9 +438,13 @@ def main() -> int:
         next_qualifying_line = f"next qualifying run: {result['proof_next_qualifying_slot_at_text']}"
         if result['proof_next_qualifying_slot_hint']:
             next_qualifying_line += f" ({result['proof_next_qualifying_slot_hint']})"
+        if result['proof_next_qualifying_slot_remaining_hours'] is not None:
+            next_qualifying_line += f" [T{result['proof_next_qualifying_slot_remaining_hours']:+g}u]"
         if result['proof_next_qualifying_slot_day_label']:
             next_qualifying_line += f" [{result['proof_next_qualifying_slot_day_label']}]"
         lines.append(next_qualifying_line)
+    if result.get('proof_countdown_text'):
+        lines.append(f"proof countdown: {result['proof_countdown_text']}")
     if result['proof_target_run_slots_context_text']:
         lines.append(f"qualifying run slots: {result['proof_target_run_slots_context_text']}")
     elif result['proof_target_run_slots_text']:
