@@ -49,8 +49,8 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest --unread',
-            'also': ['unread'],
-            'description': 'alleen ongelezen mail, ook via unread',
+            'also': ['unread', 'unread-now', 'unread-review'],
+            'description': 'alleen ongelezen mail, ook via unread, met directe actuele of reviewwaardige vervolgroute via unread-now en unread-review',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py unread-now --threads --explain-empty',
@@ -69,13 +69,13 @@ def quickstart_payload():
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest-now --threads --explain-empty',
-            'also': ['latest-current', 'latest-now-current'],
-            'description': 'alleen actuele recente threads, ook via latest-current en latest-now-current, met suppressed-uitleg als het leeg is',
+            'also': ['inbox-now', 'inbox-current', 'latest-current', 'latest-now-current'],
+            'description': 'alleen actuele recente threads, ook via inbox-now, inbox-current, latest-current en latest-now-current, met suppressed-uitleg als het leeg is',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py latest-review --threads --explain-empty',
-            'also': ['latest-review-worthy'],
-            'description': 'alleen reviewwaardige recente threads, met noop-uitleg als het leeg is',
+            'also': ['inbox-review', 'inbox-review-worthy', 'latest-review-worthy'],
+            'description': 'alleen reviewwaardige recente threads, ook via inbox-review, inbox-review-worthy en latest-review-worthy, met noop-uitleg als het leeg is',
         },
         {
             'command': 'python3 scripts/mail-dispatch.py now --explain-empty',

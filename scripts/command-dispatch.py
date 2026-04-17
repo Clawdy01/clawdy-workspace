@@ -32,6 +32,14 @@ COMMANDS = {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest'],
         'description': 'Snelle inbox-view van recente mail',
     },
+    'mail-inbox-now': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest-now'],
+        'description': 'Bekijk direct alleen actuele inboxmail of threads zonder losse --current-only vlag',
+    },
+    'mail-inbox-review': {
+        'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest-review'],
+        'description': 'Bekijk direct alleen reviewwaardige inboxmail of threads zonder losse --review-worthy vlag',
+    },
     'mail-unread': {
         'cmd': ['python3', str(ROOT / 'scripts' / 'mail-dispatch.py'), 'latest', '--unread'],
         'description': 'Toon direct alleen ongelezen mail',
@@ -322,6 +330,12 @@ ALIASES = {
     '/mail-overview-review-worthy': 'mail-board-review',
     '/mail-board-review-worthy': 'mail-board-review',
     '/mail-inbox': 'mail-inbox',
+    '/mail-inbox-now': 'mail-inbox-now',
+    '/mail-now-inbox': 'mail-inbox-now',
+    '/mail-inbox-current': 'mail-inbox-now',
+    '/mail-inbox-review': 'mail-inbox-review',
+    '/mail-review-inbox': 'mail-inbox-review',
+    '/mail-inbox-review-worthy': 'mail-inbox-review',
     '/mail-unread': 'mail-unread',
     '/mail-unread-now': 'mail-unread-now',
     '/mail-now-unread': 'mail-unread-now',
@@ -527,12 +541,23 @@ def help_payload():
         },
         {
             'slash': '/mail-inbox',
-            'also': ['/mail-latest'],
-            'description': 'recente mail snel bekijken, ook via /mail-latest',
+            'also': ['/mail-latest', '/mail-inbox-now', '/mail-inbox-review'],
+            'description': 'recente mail snel bekijken, ook via /mail-latest, met directe actuele of reviewwaardige inboxroute via /mail-inbox-now en /mail-inbox-review',
+        },
+        {
+            'slash': '/mail-inbox-now',
+            'also': ['/mail-now-inbox', '/mail-inbox-current'],
+            'description': 'actuele inboxmail of threads zonder losse --current-only vlaggen',
+        },
+        {
+            'slash': '/mail-inbox-review',
+            'also': ['/mail-review-inbox', '/mail-inbox-review-worthy'],
+            'description': 'reviewwaardige inboxmail of threads zonder losse --review-worthy vlaggen',
         },
         {
             'slash': '/mail-unread',
-            'description': 'alleen ongelezen mail',
+            'also': ['/mail-unread-now', '/mail-unread-review'],
+            'description': 'alleen ongelezen mail, met directe actuele of reviewwaardige vervolgroute via /mail-unread-now en /mail-unread-review',
         },
         {
             'slash': '/mail-unread-now',

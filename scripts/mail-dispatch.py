@@ -237,6 +237,10 @@ ROUTES = {
 ALIASES = {
     'new': 'check',
     'inbox': 'latest',
+    'inbox-now': 'latest-now',
+    'inbox-current': 'latest-now',
+    'inbox-review': 'latest-review',
+    'inbox-review-worthy': 'latest-review',
     'unread': 'latest',
     'unread-current': 'unread-now',
     'unread-now-current': 'unread-now',
@@ -366,8 +370,8 @@ def catalog_payload():
             },
             {
                 'route': 'latest --unread',
-                'description': 'alleen ongelezen mail, ook via unread',
-                'also': ['unread'],
+                'description': 'alleen ongelezen mail, ook via unread, met directe actuele of reviewwaardige vervolgroute via unread-now en unread-review',
+                'also': ['unread', 'unread-now', 'unread-review'],
             },
             {
                 'route': 'unread-now --threads --explain-empty',
@@ -386,13 +390,13 @@ def catalog_payload():
             },
             {
                 'route': 'latest-now --threads --explain-empty',
-                'description': 'alleen actuele recente threads, met suppressed-uitleg als het leeg is',
-                'also': ['latest-current', 'latest-now-current'],
+                'description': 'alleen actuele recente threads, ook via inbox-now, inbox-current, latest-current en latest-now-current, met suppressed-uitleg als het leeg is',
+                'also': ['inbox-now', 'inbox-current', 'latest-current', 'latest-now-current'],
             },
             {
                 'route': 'latest-review --threads --explain-empty',
-                'description': 'alleen reviewwaardige recente threads, met noop-uitleg als het leeg is',
-                'also': ['latest-review-worthy'],
+                'description': 'alleen reviewwaardige recente threads, ook via inbox-review, inbox-review-worthy en latest-review-worthy, met noop-uitleg als het leeg is',
+                'also': ['inbox-review', 'inbox-review-worthy', 'latest-review-worthy'],
             },
             {
                 'route': 'now --explain-empty',
