@@ -12,6 +12,7 @@
 - `scripts/ai-briefing-status.py` maakt de huidige wait-state nu expliciet config-bewust: als de config nieuwer is dan de laatste run krijgt de watchdogsamenvatting voortaan `huidige config wacht nog op eerste run` in plaats van alleen oude totaalcijfers; live geverifieerd met `python3 -m py_compile scripts/ai-briefing-status.py scripts/ai-briefing-watchdog.py scripts/ai-briefing-watchdog-alert.py scripts/ai-briefing-watchdog-producer.py`, `python3 scripts/ai-briefing-status.py --json` en `python3 scripts/ai-briefing-watchdog-alert.py --mode proof-check`
 - Eerstvolgende kwalificatierun blijft nu `2026-04-18 09:00 CEST` en het bewijsdoel `2026-04-20 09:15 CEST`
 - Actuele attention-status is opnieuw naar de standaard AI-briefing-consumer-artifacts gepubliceerd via `python3 scripts/ai-briefing-watchdog-producer.py proof-all --quiet`; die route eindigde met `exit=2` omdat de watchdog terecht nog de foutstatus van de laatste run rapporteert, niet omdat het publicatiepad zelf kapot is
+- `scripts/ai-briefing-watchdog-producer.py` geeft in `--quiet` nu ook direct de bewijscontext mee, inclusief watchdogsamenvatting, `bewijsprogressie`, eerstvolgende kwalificatierun, bewijsdoel en de eerste blockerredenen; live geverifieerd met `python3 -m py_compile scripts/ai-briefing-watchdog-producer.py scripts/ai-briefing-watchdog.py scripts/ai-briefing-watchdog-alert.py scripts/ai-briefing-status.py` en `python3 scripts/ai-briefing-watchdog-producer.py proof-all --quiet`
 
 ## Next
 - Mac-migratie en lokale media/LLM-workflows voorbereiden

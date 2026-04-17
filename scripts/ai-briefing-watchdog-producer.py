@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -33,6 +34,55 @@ def run_one(args):
     cmd = ['python3', str(WATCHDOG), *args]
     return subprocess.run(cmd, cwd=WORKSPACE, text=True, capture_output=True)
 
+
+def extract_json_document(text: str):
+    text = (text or '').strip()
+    if not text:
+        raise json.JSONDecodeError('Expecting value', text, 0)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.lstrip()
+        if not stripped.startswith(('{', '[')):
+            continue
+        candidate = '\n'.join(lines[index:]).strip()
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+    raise json.JSONDecodeError('Expecting value', text, 0)
+
+
+def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None:
+    payload_text = (stdout or '').strip() or (stderr or '').strip()
+    if not payload_text:
+        return None
+    try:
+        payload = extract_json_document(payload_text)
+    except json.JSONDecodeError:
+        return None
+
+    bits: list[str] = []
+    if payload.get('summary'):
+        bits.append(str(payload['summary']))
+    if payload.get('proof_progress_text'):
+        bits.append(str(payload['proof_progress_text']))
+    if payload.get('proof_next_qualifying_slot_at_text'):
+        next_run = f"volgende kwalificatierun {payload['proof_next_qualifying_slot_at_text']}"
+        if payload.get('proof_next_qualifying_slot_hint'):
+            next_run += f" ({payload['proof_next_qualifying_slot_hint']})"
+        bits.append(next_run)
+    if payload.get('proof_target_due_at_text'):
+        bits.append(f"bewijsdoel {payload['proof_target_due_at_text']}")
+    if returncode != 0:
+        reasons = [reason for reason in (payload.get('reasons') or []) if reason]
+        if reasons:
+            bits.append('redenen: ' + '; '.join(reasons[:2]))
+    return ' | '.join(bits) if bits else None
 
 
 def main():
@@ -68,7 +118,11 @@ def main():
         print(f'ai-briefing-watchdog-producer: {args.mode}')
         for item in summaries:
             label = ' '.join(item['args'])
-            print(f'- {label}: exit={item["returncode"]}')
+            summary = build_quiet_summary(item['stdout'], item['stderr'], item['returncode'])
+            if summary:
+                print(f'- {label}: exit={item["returncode"]} | {summary}')
+            else:
+                print(f'- {label}: exit={item["returncode"]}')
 
     raise SystemExit(exit_code)
 
