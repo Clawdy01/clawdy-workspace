@@ -342,6 +342,8 @@ def main() -> int:
         'proof_plan_text': status.get('proof_plan_text'),
         'proof_state': status.get('proof_state'),
         'proof_state_text': status.get('proof_state_text'),
+        'proof_config_hash': status.get('proof_config_hash'),
+        'proof_config_identity_text': status.get('proof_config_identity_text'),
         'proof_next_action_text': status.get('proof_next_action_text'),
         'proof_target_runs': status.get('proof_target_runs'),
         'proof_qualified_runs': proof_qualified_runs,
@@ -361,6 +363,8 @@ def main() -> int:
         'proof_target_due_at_if_next_slot_missed_remaining_hours': status.get('proof_target_due_at_if_next_slot_missed_remaining_hours'),
         'proof_schedule_slip_ms': status.get('proof_schedule_slip_ms'),
         'proof_schedule_slip_hours': status.get('proof_schedule_slip_hours'),
+        'proof_target_check_gate': status.get('proof_target_check_gate'),
+        'proof_target_check_gate_text': status.get('proof_target_check_gate_text'),
         'proof_target_run_slots_text': status.get('proof_target_run_slots_text'),
         'proof_target_run_slots_context_text': status.get('proof_target_run_slots_context_text'),
         'proof_target_run_slot_day_labels': status.get('proof_target_run_slot_day_labels'),
@@ -402,6 +406,8 @@ def main() -> int:
         lines.extend(f'- {reason}' for reason in reasons)
     if result['readiness_text']:
         lines.append(f"readiness: {result['readiness_text']}")
+    if result.get('proof_config_identity_text'):
+        lines.append(f"proof config: {result['proof_config_identity_text']}")
     if result['proof_progress_text']:
         lines.append(f"proof progress: {result['proof_progress_text']}")
     if result['proof_waiting_for_next_scheduled_run']:
@@ -445,6 +451,10 @@ def main() -> int:
         lines.append(next_qualifying_line)
     if result.get('proof_countdown_text'):
         lines.append(f"proof countdown: {result['proof_countdown_text']}")
+    if result['proof_target_check_gate_text']:
+        lines.append(
+            f"proof target check gate: {result['proof_target_check_gate_text']} ({result['proof_target_check_gate']})"
+        )
     if result['proof_target_run_slots_context_text']:
         lines.append(f"qualifying run slots: {result['proof_target_run_slots_context_text']}")
     elif result['proof_target_run_slots_text']:

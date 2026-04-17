@@ -2528,6 +2528,23 @@ def build_status(job_name=TARGET_JOB_NAME):
         proof_today_block_text = None
     summary['proof_today_block_text'] = proof_today_block_text
 
+    proof_config_hash = payload_audit.get('message_sha256_short')
+    proof_config_identity_text = None
+    if updated_at and proof_config_hash:
+        proof_config_identity_text = (
+            f"bewijsconfig {proof_config_hash}, gewijzigd {summary['updated_at_text']}"
+            + (f" ({summary['updated_at_hint']})" if summary['updated_at_hint'] else '')
+        )
+    elif updated_at:
+        proof_config_identity_text = (
+            f"bewijsconfig gewijzigd {summary['updated_at_text']}"
+            + (f" ({summary['updated_at_hint']})" if summary['updated_at_hint'] else '')
+        )
+    elif proof_config_hash:
+        proof_config_identity_text = f"bewijsconfig {proof_config_hash}"
+    summary['proof_config_hash'] = proof_config_hash
+    summary['proof_config_identity_text'] = proof_config_identity_text
+
     proof_runs_remaining = summary['proof_runs_remaining']
     proof_progress_text = (
         f"bewijsdoel gehaald ({len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs voor huidige config)"
@@ -2707,6 +2724,25 @@ def build_status(job_name=TARGET_JOB_NAME):
         )
         proof_countdown_bits.append(bit)
     summary['proof_countdown_text'] = '; '.join(proof_countdown_bits) if proof_countdown_bits else None
+    proof_target_check_gate = 'no-deadline'
+    proof_target_check_gate_text = 'proof-target-check mist een bewijsdeadline'
+    if summary['proof_target_met']:
+        proof_target_check_gate = 'met'
+        proof_target_check_gate_text = 'proof-target-check is al gehaald'
+    elif proof_target_due_at and summary['proof_target_due_remaining_hours'] is not None and summary['proof_target_due_remaining_hours'] > 0:
+        proof_target_check_gate = 'suppressed-until-deadline'
+        proof_target_check_gate_text = (
+            f"proof-target-check blijft stil tot {summary['proof_target_due_at_text']}"
+            + (f" ({summary['proof_target_due_hint']})" if summary['proof_target_due_hint'] else '')
+        )
+    elif proof_target_due_at:
+        proof_target_check_gate = 'deadline-reached'
+        proof_target_check_gate_text = (
+            f"proof-target-check is actief sinds {summary['proof_target_due_at_text']}"
+            + (f" ({summary['proof_target_due_hint']})" if summary['proof_target_due_hint'] else '')
+        )
+    summary['proof_target_check_gate'] = proof_target_check_gate
+    summary['proof_target_check_gate_text'] = proof_target_check_gate_text
     summary['readiness_phase'] = readiness_phase
     summary['readiness_text'] = readiness_text
     return summary
@@ -2884,6 +2920,8 @@ def render_text(data):
         parts.append(f"bewijsdoel bij groene runs uiterlijk {data['proof_target_due_at_text']}")
     if data.get('proof_plan_text'):
         parts.append(data['proof_plan_text'])
+    if data.get('proof_config_identity_text'):
+        parts.append(data['proof_config_identity_text'])
     if data.get('proof_state_text'):
         parts.append(data['proof_state_text'])
     if data.get('proof_next_action_text'):
@@ -2896,6 +2934,8 @@ def render_text(data):
         parts.append(f"kwalificatie-slots {data['proof_target_run_slots_context_text']}")
     elif data.get('proof_target_run_slots_text'):
         parts.append(f"kwalificatie-slots {data['proof_target_run_slots_text']}")
+    if data.get('proof_target_check_gate_text'):
+        parts.append(data['proof_target_check_gate_text'])
     if data.get('last_run_at_text'):
         parts.append(f"laatste {data['last_run_at_text']}")
     last_run_summary = data.get('last_run_summary') or {}

@@ -111,6 +111,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         proof_progress = data.get('proof_progress_text')
         if proof_progress and proof_progress not in (readiness_text or ''):
             bits.append(proof_progress)
+        if data.get('proof_config_identity_text'):
+            bits.append(data['proof_config_identity_text'])
         proof_runs_remaining = data.get('proof_runs_remaining')
         if proof_runs_remaining is not None and not data.get('proof_target_met'):
             bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
@@ -120,6 +122,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append(data['proof_schedule_risk_text'])
     if data.get('proof_countdown_text') and require_qualified_runs > 0:
         bits.append(data['proof_countdown_text'])
+    if data.get('proof_target_check_gate_text') and require_qualified_runs > 0:
+        bits.append(data['proof_target_check_gate_text'])
     if require_qualified_runs <= 0 and data.get('next_run_at_text'):
         bits.append(f"volgende run {data['next_run_at_text']}")
     proof_target_run_slots_text = data.get('proof_target_run_slots_context_text') or data.get('proof_target_run_slots_text')

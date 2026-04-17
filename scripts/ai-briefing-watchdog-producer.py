@@ -109,6 +109,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         proof_progress_text = str(payload['proof_progress_text'])
         if proof_progress_text not in readiness_text:
             bits.append(proof_progress_text)
+    if payload.get('proof_config_identity_text'):
+        bits.append(str(payload['proof_config_identity_text']))
     proof_runs_remaining = payload.get('proof_runs_remaining')
     if proof_runs_remaining is not None and not payload.get('proof_target_met'):
         bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
@@ -118,6 +120,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['proof_schedule_risk_text']))
     if payload.get('proof_countdown_text'):
         bits.append(str(payload['proof_countdown_text']))
+    if payload.get('proof_target_check_gate_text'):
+        bits.append(str(payload['proof_target_check_gate_text']))
     proof_target_run_slots_text = payload.get('proof_target_run_slots_context_text') or payload.get('proof_target_run_slots_text')
     if proof_target_run_slots_text and not payload.get('proof_countdown_text'):
         bits.append(f"kwalificatie-slots {proof_target_run_slots_text}")
