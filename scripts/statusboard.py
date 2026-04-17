@@ -155,7 +155,7 @@ def render_text(data, show_preview=False):
                 ai_bits.append(f"config {ai_briefing_status['updated_at_hint']} gewijzigd, hash {fingerprint}")
             else:
                 ai_bits.append(f"config {ai_briefing_status['updated_at_hint']} gewijzigd")
-        if ai_briefing_status.get('next_run_at_text'):
+        if ai_briefing_status.get('next_run_at_text') and not ai_briefing_status.get('proof_next_qualifying_slot_at_text'):
             next_run_text = f"volgende {ai_briefing_status['next_run_at_text']}"
             if ai_briefing_status.get('next_run_hint'):
                 next_run_text += f" ({ai_briefing_status['next_run_hint']})"
@@ -165,36 +165,20 @@ def render_text(data, show_preview=False):
             if ai_briefing_status.get('proof_due_hint'):
                 proof_due_text += f" ({ai_briefing_status['proof_due_hint']})"
             ai_bits.append(proof_due_text)
-        if ai_briefing_status.get('proof_target_due_at_text'):
+        if ai_briefing_status.get('proof_target_due_at_text') and not ai_briefing_status.get('proof_countdown_text'):
             proof_target_due_text = f"bewijsdoel bij groene runs uiterlijk {ai_briefing_status['proof_target_due_at_text']}"
             if ai_briefing_status.get('proof_target_due_hint'):
                 proof_target_due_text += f" ({ai_briefing_status['proof_target_due_hint']})"
             ai_bits.append(proof_target_due_text)
         if ai_briefing_status.get('proof_state_text'):
             ai_bits.append(ai_briefing_status['proof_state_text'])
-        if ai_briefing_status.get('proof_plan_text'):
-            ai_bits.append(ai_briefing_status['proof_plan_text'])
         if ai_briefing_status.get('proof_next_action_text'):
             ai_bits.append(ai_briefing_status['proof_next_action_text'])
-        if ai_briefing_status.get('proof_today_block_text'):
-            ai_bits.append(ai_briefing_status['proof_today_block_text'])
         if ai_briefing_status.get('proof_schedule_risk_text'):
             ai_bits.append(ai_briefing_status['proof_schedule_risk_text'])
         if ai_briefing_status.get('proof_countdown_text'):
             ai_bits.append(ai_briefing_status['proof_countdown_text'])
-        if ai_briefing_status.get('proof_wait_until_text'):
-            proof_wait_until_text = f"bewijs wacht tot {ai_briefing_status['proof_wait_until_text']}"
-            if ai_briefing_status.get('proof_wait_until_hint'):
-                proof_wait_until_text += f" ({ai_briefing_status['proof_wait_until_hint']})"
-            ai_bits.append(proof_wait_until_text)
-        if ai_briefing_status.get('proof_next_qualifying_slot_at_text'):
-            next_qualifying_text = f"volgende kwalificatierun {ai_briefing_status['proof_next_qualifying_slot_at_text']}"
-            if ai_briefing_status.get('proof_next_qualifying_slot_hint'):
-                next_qualifying_text += f" ({ai_briefing_status['proof_next_qualifying_slot_hint']})"
-            if ai_briefing_status.get('proof_next_qualifying_slot_day_label'):
-                next_qualifying_text += f" [{ai_briefing_status['proof_next_qualifying_slot_day_label']}]"
-            ai_bits.append(next_qualifying_text)
-        if ai_briefing_status.get('proof_target_run_slots_context_text'):
+        elif ai_briefing_status.get('proof_target_run_slots_context_text'):
             ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_context_text']}")
         elif ai_briefing_status.get('proof_target_run_slots_text'):
             ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_text']}")

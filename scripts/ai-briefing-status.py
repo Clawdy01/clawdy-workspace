@@ -2809,6 +2809,25 @@ def render_summary_audit_text(data):
     return ' | '.join(parts)
 
 
+def unique_bits(bits):
+    unique = []
+    for bit in bits:
+        cleaned = ' '.join((bit or '').split())
+        if not cleaned:
+            continue
+        skip = False
+        for existing in list(unique):
+            if cleaned == existing or cleaned in existing:
+                skip = True
+                break
+            if existing in cleaned:
+                unique.remove(existing)
+        if skip:
+            continue
+        unique.append(cleaned)
+    return unique
+
+
 def render_text(data):
     if not data.get('found'):
         return data.get('text', 'AI-briefingstatus onbekend')
@@ -2865,7 +2884,17 @@ def render_text(data):
         parts.append(f"bewijsdoel bij groene runs uiterlijk {data['proof_target_due_at_text']}")
     if data.get('proof_plan_text'):
         parts.append(data['proof_plan_text'])
-    if data.get('proof_target_run_slots_text'):
+    if data.get('proof_state_text'):
+        parts.append(data['proof_state_text'])
+    if data.get('proof_next_action_text'):
+        parts.append(data['proof_next_action_text'])
+    if data.get('proof_schedule_risk_text'):
+        parts.append(data['proof_schedule_risk_text'])
+    if data.get('proof_countdown_text'):
+        parts.append(data['proof_countdown_text'])
+    if data.get('proof_target_run_slots_context_text'):
+        parts.append(f"kwalificatie-slots {data['proof_target_run_slots_context_text']}")
+    elif data.get('proof_target_run_slots_text'):
         parts.append(f"kwalificatie-slots {data['proof_target_run_slots_text']}")
     if data.get('last_run_at_text'):
         parts.append(f"laatste {data['last_run_at_text']}")
@@ -2988,7 +3017,7 @@ def render_text(data):
         parts.append(f"recente runs: {'; '.join(recent_bits)}")
     if last_run_summary.get('error_text') and data.get('attention_text'):
         parts.append(f"laatste fout {last_run_summary['error_text']}")
-    return ' | '.join(parts)
+    return ' | '.join(unique_bits(parts))
 
 
 def main():

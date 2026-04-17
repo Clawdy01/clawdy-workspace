@@ -58,6 +58,16 @@ def unique_bits(bits: list[str]) -> list[str]:
         unique.append(cleaned)
     return unique
 
+
+def compact_reasons(reasons: list[str]) -> list[str]:
+    compact: list[str] = []
+    for reason in reasons:
+        cleaned = ' '.join((reason or '').split())
+        if not cleaned or cleaned == 'status not ok':
+            continue
+        compact.append(cleaned)
+    return compact
+
 def run_watchdog(timeout_seconds: int, require_qualified_runs: int) -> dict:
     cmd = [
         'python3',
@@ -86,7 +96,7 @@ def run_watchdog(timeout_seconds: int, require_qualified_runs: int) -> dict:
 
 def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     summary = data.get('summary') or data.get('status_text') or 'ai-briefing heeft aandacht nodig'
-    reasons = [reason for reason in (data.get('reasons') or []) if reason]
+    reasons = compact_reasons(data.get('reasons') or [])
     summary_output_examples = [example for example in (data.get('summary_output_examples') or []) if example]
     proof_example_limit = 2 if mode == 'preflight' else 3
     bits = [f"AI-briefing {mode}: {summary}"]
@@ -99,52 +109,28 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append('wacht op eerstvolgende geplande kwalificatierun')
     if require_qualified_runs > 0:
         proof_progress = data.get('proof_progress_text')
-        if proof_progress:
+        if proof_progress and proof_progress not in (readiness_text or ''):
             bits.append(proof_progress)
         proof_runs_remaining = data.get('proof_runs_remaining')
         if proof_runs_remaining is not None and not data.get('proof_target_met'):
             bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
-    if data.get('next_run_at_text'):
-        bits.append(f"volgende run {data['next_run_at_text']}")
-    if data.get('proof_plan_text') and require_qualified_runs > 0:
-        bits.append(data['proof_plan_text'])
     if data.get('proof_next_action_text') and require_qualified_runs > 0:
         bits.append(data['proof_next_action_text'])
-    if data.get('proof_today_block_text') and require_qualified_runs > 0:
-        bits.append(data['proof_today_block_text'])
     if data.get('proof_schedule_risk_text') and require_qualified_runs > 0:
         bits.append(data['proof_schedule_risk_text'])
     if data.get('proof_countdown_text') and require_qualified_runs > 0:
         bits.append(data['proof_countdown_text'])
-    proof_wait_until = data.get('proof_wait_until_text')
-    if proof_wait_until and require_qualified_runs > 0:
-        proof_wait_bit = f"bewijs wacht tot {proof_wait_until}"
-        if data.get('proof_wait_until_hint'):
-            proof_wait_bit += f" ({data['proof_wait_until_hint']})"
-        if data.get('proof_wait_until_reason_text'):
-            proof_wait_bit += f": {data['proof_wait_until_reason_text']}"
-        bits.append(proof_wait_bit)
-    next_qualifying = data.get('proof_next_qualifying_slot_at_text')
-    if next_qualifying and require_qualified_runs > 0:
-        next_qualifying_bit = f"volgende kwalificatierun {next_qualifying}"
-        if data.get('proof_next_qualifying_slot_hint'):
-            next_qualifying_bit += f" ({data['proof_next_qualifying_slot_hint']})"
-        if data.get('proof_next_qualifying_slot_day_label'):
-            next_qualifying_bit += f" [{data['proof_next_qualifying_slot_day_label']}]"
-        bits.append(next_qualifying_bit)
-    if data.get('proof_due_at_text'):
-        bits.append(f"bewijs uiterlijk {data['proof_due_at_text']}")
-    if data.get('proof_target_due_at_text') and mode in {'proof-progress', 'proof-target-check'}:
-        bits.append(f"bewijsdoel {data['proof_target_due_at_text']}")
+    if require_qualified_runs <= 0 and data.get('next_run_at_text'):
+        bits.append(f"volgende run {data['next_run_at_text']}")
     proof_target_run_slots_text = data.get('proof_target_run_slots_context_text') or data.get('proof_target_run_slots_text')
-    if proof_target_run_slots_text and mode in {'proof-check', 'proof-progress', 'proof-target-check'}:
+    if proof_target_run_slots_text and mode in {'proof-check', 'proof-target-check'}:
         bits.append(f"kwalificatie-slots {proof_target_run_slots_text}")
     if data.get('last_run_timeout_text'):
         bits.append(data['last_run_timeout_text'])
     if data.get('recent_run_duration_text'):
         bits.append(data['recent_run_duration_text'])
     if reasons:
-        bits.append('redenen: ' + '; '.join(reasons[:3]))
+        bits.append('redenen: ' + '; '.join(reasons[:2]))
     if summary_output_examples:
         bits.append('bewijs: ' + ' | '.join(summary_output_examples[:proof_example_limit]))
     return ' | '.join(unique_bits(bits))

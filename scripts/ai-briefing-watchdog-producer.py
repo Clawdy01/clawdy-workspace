@@ -49,6 +49,16 @@ def unique_bits(bits: list[str]) -> list[str]:
     return unique
 
 
+def compact_reasons(reasons: list[str]) -> list[str]:
+    compact: list[str] = []
+    for reason in reasons:
+        cleaned = ' '.join((reason or '').split())
+        if not cleaned or cleaned == 'status not ok':
+            continue
+        compact.append(cleaned)
+    return compact
+
+
 def run_one(args):
     cmd = ['python3', str(WATCHDOG), *args]
     return subprocess.run(cmd, cwd=WORKSPACE, text=True, capture_output=True)
@@ -95,45 +105,28 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
     elif payload.get('proof_waiting_for_next_scheduled_run'):
         bits.append('wacht op eerstvolgende geplande kwalificatierun')
     if payload.get('proof_progress_text'):
-        bits.append(str(payload['proof_progress_text']))
+        readiness_text = str(payload.get('readiness_text') or '')
+        proof_progress_text = str(payload['proof_progress_text'])
+        if proof_progress_text not in readiness_text:
+            bits.append(proof_progress_text)
     proof_runs_remaining = payload.get('proof_runs_remaining')
     if proof_runs_remaining is not None and not payload.get('proof_target_met'):
         bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
-    if payload.get('proof_plan_text'):
-        bits.append(str(payload['proof_plan_text']))
     if payload.get('proof_next_action_text'):
         bits.append(str(payload['proof_next_action_text']))
-    if payload.get('proof_today_block_text'):
-        bits.append(str(payload['proof_today_block_text']))
     if payload.get('proof_schedule_risk_text'):
         bits.append(str(payload['proof_schedule_risk_text']))
     if payload.get('proof_countdown_text'):
         bits.append(str(payload['proof_countdown_text']))
-    if payload.get('proof_wait_until_text'):
-        proof_wait = f"bewijs wacht tot {payload['proof_wait_until_text']}"
-        if payload.get('proof_wait_until_hint'):
-            proof_wait += f" ({payload['proof_wait_until_hint']})"
-        if payload.get('proof_wait_until_reason_text'):
-            proof_wait += f": {payload['proof_wait_until_reason_text']}"
-        bits.append(proof_wait)
-    if payload.get('proof_next_qualifying_slot_at_text'):
-        next_run = f"volgende kwalificatierun {payload['proof_next_qualifying_slot_at_text']}"
-        if payload.get('proof_next_qualifying_slot_hint'):
-            next_run += f" ({payload['proof_next_qualifying_slot_hint']})"
-        if payload.get('proof_next_qualifying_slot_day_label'):
-            next_run += f" [{payload['proof_next_qualifying_slot_day_label']}]"
-        bits.append(next_run)
-    if payload.get('proof_target_due_at_text'):
-        bits.append(f"bewijsdoel {payload['proof_target_due_at_text']}")
     proof_target_run_slots_text = payload.get('proof_target_run_slots_context_text') or payload.get('proof_target_run_slots_text')
-    if proof_target_run_slots_text:
+    if proof_target_run_slots_text and not payload.get('proof_countdown_text'):
         bits.append(f"kwalificatie-slots {proof_target_run_slots_text}")
     if payload.get('last_run_timeout_text'):
         bits.append(str(payload['last_run_timeout_text']))
     if payload.get('recent_run_duration_text'):
         bits.append(str(payload['recent_run_duration_text']))
     if returncode != 0:
-        reasons = [reason for reason in (payload.get('reasons') or []) if reason]
+        reasons = compact_reasons(payload.get('reasons') or [])
         if reasons:
             bits.append('redenen: ' + '; '.join(reasons[:2]))
     deduped_bits = unique_bits(bits)
