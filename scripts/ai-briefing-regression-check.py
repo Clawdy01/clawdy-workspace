@@ -1757,6 +1757,7 @@ PROOF_RECHECK_CASES = [
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
         'expect_proof_config_hash_present': True,
+        'expect_proof_recheck_schedule_audit_ok': True,
         'expect_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
@@ -1792,6 +1793,7 @@ PROOF_RECHECK_CASES = [
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
         'expect_proof_config_hash_present': True,
+        'expect_proof_recheck_schedule_audit_ok': True,
         'expect_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'kwalificatierun van 2026-04-19 09:00 CEST zit in grace-window',
@@ -1827,6 +1829,7 @@ PROOF_RECHECK_CASES = [
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
         'expect_proof_config_hash_present': True,
+        'expect_proof_recheck_schedule_audit_ok': True,
         'expect_substrings': [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
@@ -1880,6 +1883,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'referentietijd 2026-04-18 08:58 CEST',
         ],
         'expect_proof_config_hash_present': True,
+        'expect_proof_recheck_schedule_audit_ok': True,
         'expect_artifact_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
@@ -1923,6 +1927,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'referentietijd 2026-04-19 09:15 CEST',
         ],
         'expect_proof_config_hash_present': True,
+        'expect_proof_recheck_schedule_audit_ok': True,
         'expect_artifact_substrings': [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
@@ -2352,6 +2357,13 @@ def evaluate_proof_recheck_case(case):
         failures.append(f"watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {payload.get('watchdog_ok')}")
     if case.get('expect_proof_config_hash_present') and not payload.get('proof_config_hash'):
         failures.append('proof_config_hash ontbreekt in proof-recheck-payload')
+    if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
+        audit_ok = ((payload.get('proof_recheck_schedule_audit') or {}).get('ok'))
+        if audit_ok != case.get('expect_proof_recheck_schedule_audit_ok'):
+            failures.append(
+                'proof_recheck_schedule_audit.ok verwacht '
+                f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {audit_ok}"
+            )
 
     combined_text = ' || '.join(
         str(bit)
@@ -2470,6 +2482,13 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(f"overall.watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {overall.get('watchdog_ok')}")
         if case.get('expect_proof_config_hash_present') and not overall.get('proof_config_hash'):
             failures.append('overall.proof_config_hash ontbreekt in producer-json')
+        if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
+            overall_audit_ok = ((overall.get('proof_recheck_schedule_audit') or {}).get('ok'))
+            if overall_audit_ok != case.get('expect_proof_recheck_schedule_audit_ok'):
+                failures.append(
+                    'overall.proof_recheck_schedule_audit.ok verwacht '
+                    f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {overall_audit_ok}"
+                )
         if overall.get('proof_state') != case['expect_proof_state']:
             failures.append(f"overall.proof_state verwacht {case['expect_proof_state']}, kreeg {overall.get('proof_state')}")
         if overall.get('proof_blocker_kind') != case['expect_proof_blocker_kind']:
@@ -2622,6 +2641,13 @@ def evaluate_proof_recheck_producer_case(case):
             if artifact_payload:
                 if case.get('expect_proof_config_hash_present') and not artifact_payload.get('proof_config_hash'):
                     failures.append(f'{label} mist proof_config_hash')
+                if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
+                    artifact_audit_ok = ((artifact_payload.get('proof_recheck_schedule_audit') or {}).get('ok'))
+                    if artifact_audit_ok != case.get('expect_proof_recheck_schedule_audit_ok'):
+                        failures.append(
+                            f'{label} proof_recheck_schedule_audit.ok verwacht '
+                            f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {artifact_audit_ok}"
+                        )
                 if artifact_payload.get('result_kind') != case['expect_result_kind']:
                     failures.append(
                         f"{label} result_kind verwacht {case['expect_result_kind']}, kreeg {artifact_payload.get('result_kind')}"
@@ -2674,6 +2700,128 @@ def evaluate_proof_recheck_producer_case(case):
 
 
 
+def evaluate_proof_recheck_consumer_format_passthrough_case():
+    failures = []
+    audit_bits: list[str] = []
+
+    with tempfile.TemporaryDirectory(prefix='ai-briefing-proof-recheck-format-') as temp_dir:
+        text_artifact = Path(temp_dir) / 'proof-recheck-text.txt'
+        json_stdout_proc = subprocess.run(
+            [
+                'python3', str(PROOF_RECHECK_SCRIPT), '--json',
+                '--reference-ms', '1776495480000',
+                '--consumer-out', str(text_artifact),
+                '--consumer-format', 'text',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if json_stdout_proc.returncode != 2:
+            failures.append(f'json-stdout proof-recheck exitcode verwacht 2, kreeg {json_stdout_proc.returncode}')
+
+        json_payload = {}
+        json_stdout = json_stdout_proc.stdout.strip() or json_stdout_proc.stderr.strip()
+        if not json_stdout:
+            failures.append('json-stdout proof-recheck gaf geen output')
+        else:
+            try:
+                json_payload = json.loads(json_stdout)
+                audit_bits.append(json.dumps(json_payload, ensure_ascii=False))
+            except json.JSONDecodeError as exc:
+                failures.append(f'json-stdout proof-recheck hoort JSON te blijven, kreeg parsefout: {exc}')
+
+        if json_payload and (json_payload.get('consumer_outputs') or [{}])[0].get('format') != 'text':
+            failures.append(
+                'json-stdout proof-recheck consumer_outputs[0].format verwacht text, kreeg '
+                f"{(json_payload.get('consumer_outputs') or [{}])[0].get('format')}"
+            )
+        if not text_artifact.exists():
+            failures.append(f'tekstartifact ontbreekt: {text_artifact}')
+        else:
+            artifact_text = text_artifact.read_text(encoding='utf-8')
+            audit_bits.append(artifact_text.strip())
+            if not artifact_text.startswith('AI-briefing proof-recheck: '):
+                failures.append('tekstartifact hoort plain-text te blijven wanneer --consumer-format text is gebruikt')
+            try:
+                json.loads(artifact_text)
+                failures.append('tekstartifact hoort geen JSON te zijn wanneer --consumer-format text is gebruikt')
+            except json.JSONDecodeError:
+                pass
+
+        json_artifact = Path(temp_dir) / 'proof-recheck-json.json'
+        text_stdout_proc = subprocess.run(
+            [
+                'python3', str(PROOF_RECHECK_SCRIPT),
+                '--reference-ms', '1776495480000',
+                '--consumer-out', str(json_artifact),
+                '--consumer-format', 'json',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if text_stdout_proc.returncode != 2:
+            failures.append(f'text-stdout proof-recheck exitcode verwacht 2, kreeg {text_stdout_proc.returncode}')
+
+        plain_stdout = text_stdout_proc.stdout.strip() or text_stdout_proc.stderr.strip()
+        if not plain_stdout:
+            failures.append('text-stdout proof-recheck gaf geen output')
+        else:
+            audit_bits.append(plain_stdout)
+            if not plain_stdout.startswith('AI-briefing proof-recheck: '):
+                failures.append('stdout hoort plain-text te blijven wanneer alleen --consumer-format json is gebruikt')
+            try:
+                json.loads(plain_stdout)
+                failures.append('stdout hoort geen JSON te worden wanneer alleen --consumer-format json is gebruikt')
+            except json.JSONDecodeError:
+                pass
+
+        if not json_artifact.exists():
+            failures.append(f'json-artifact ontbreekt: {json_artifact}')
+        else:
+            try:
+                artifact_payload = json.loads(json_artifact.read_text(encoding='utf-8'))
+                audit_bits.append(json.dumps(artifact_payload, ensure_ascii=False))
+                if (artifact_payload.get('consumer_outputs') or [{}])[0].get('format') != 'json':
+                    failures.append(
+                        'json-artifact consumer_outputs[0].format verwacht json, kreeg '
+                        f"{(artifact_payload.get('consumer_outputs') or [{}])[0].get('format')}"
+                    )
+            except json.JSONDecodeError as exc:
+                failures.append(f'json-artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
+
+    return {
+        'name': 'proof-recheck-consumer-format-keeps-stdout-format',
+        'path': str(PROOF_RECHECK_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': ' || '.join(bit for bit in audit_bits if bit),
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description='Regressiecheck voor AI-briefing output-audits')
     parser.add_argument('--json', action='store_true', help='geef JSON-output')
@@ -2684,6 +2832,7 @@ def main():
     results.extend(evaluate_status_phase_case(module, case) for case in STATUS_PHASE_CASES)
     results.extend(evaluate_proof_recheck_case(case) for case in PROOF_RECHECK_CASES)
     results.extend(evaluate_proof_recheck_producer_case(case) for case in PROOF_RECHECK_PRODUCER_CASES)
+    results.append(evaluate_proof_recheck_consumer_format_passthrough_case())
     overall_ok = all(result['ok'] for result in results)
 
     if args.json:

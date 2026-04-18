@@ -149,6 +149,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_config_identity_text']))
     if payload.get('last_run_config_relation_text'):
         bits.append(str(payload['last_run_config_relation_text']))
+    if payload.get('proof_recheck_schedule_text'):
+        bits.append(str(payload['proof_recheck_schedule_text']))
     proof_runs_remaining = payload.get('proof_runs_remaining')
     if proof_runs_remaining is not None and not payload.get('proof_target_met'):
         bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
@@ -221,6 +223,8 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_config_hash': payload.get('proof_config_hash'),
         'proof_config_identity_text': payload.get('proof_config_identity_text'),
         'last_run_config_relation_text': payload.get('last_run_config_relation_text'),
+        'proof_recheck_schedule_audit': payload.get('proof_recheck_schedule_audit') or {},
+        'proof_recheck_schedule_text': payload.get('proof_recheck_schedule_text'),
         'proof_runs_remaining': payload.get('proof_runs_remaining'),
         'proof_recheck_ready': payload.get('proof_recheck_ready'),
         'proof_target_met': payload.get('proof_target_met'),

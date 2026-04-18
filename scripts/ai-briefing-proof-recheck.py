@@ -164,6 +164,8 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_config_hash': first_non_null(status_data.get('proof_config_hash'), watchdog_data.get('proof_config_hash')),
         'proof_config_identity_text': first_non_null(status_data.get('proof_config_identity_text'), watchdog_data.get('proof_config_identity_text')),
         'last_run_config_relation_text': first_non_null(status_data.get('last_run_config_relation_text'), watchdog_data.get('last_run_config_relation_text')),
+        'proof_recheck_schedule_audit': status_data.get('proof_recheck_schedule_audit') or {},
+        'proof_recheck_schedule_text': ((status_data.get('proof_recheck_schedule_audit') or {}).get('text')),
         'status_ok': status_ok,
         'status_returncode': status_data.get('_returncode'),
         'watchdog_ok': watchdog_ok,
@@ -224,6 +226,7 @@ def build_text(payload: dict) -> str:
         payload.get('proof_state_text'),
         payload.get('proof_config_identity_text'),
         payload.get('last_run_config_relation_text'),
+        payload.get('proof_recheck_schedule_text'),
         payload.get('proof_blocker_text'),
         payload.get('proof_wait_until_reason_text'),
         payload.get('proof_freshness_text'),
@@ -273,21 +276,22 @@ def write_output(rendered: str, *, output_path: str | None = None, append: bool 
     return str(path)
 
 
-def emit_output(*, text: str, payload: dict, output_format: str, output_path: str | None = None, append: bool = False) -> str | None:
-    rendered = render_output(text=text, payload=payload, output_format=output_format)
-    written_path = write_output(rendered, output_path=output_path, append=append)
-    sys.stdout.write(rendered)
+def emit_output(*, text: str, payload: dict, stdout_format: str, output_path: str | None = None, output_format: str | None = None, append: bool = False) -> str | None:
+    stdout_rendered = render_output(text=text, payload=payload, output_format=stdout_format)
+    file_rendered = render_output(text=text, payload=payload, output_format=output_format or stdout_format)
+    written_path = write_output(file_rendered, output_path=output_path, append=append)
+    sys.stdout.write(stdout_rendered)
     return written_path
 
 
-def collect_output_targets(*, stdout_format: str, stdout_output_path: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> list[dict]:
+def collect_output_targets(*, output_format: str, output_path: str | None = None, output_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> list[dict]:
     output_targets: list[dict] = []
-    if stdout_output_path:
+    if output_path:
         output_targets.append({
             'channel': 'stdout-output',
-            'path': str(Path(stdout_output_path).expanduser().resolve()),
-            'format': stdout_format,
-            'append': bool(stdout_append),
+            'path': str(Path(output_path).expanduser().resolve()),
+            'format': output_format,
+            'append': bool(output_append),
         })
     if consumer_bundle:
         for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
@@ -301,21 +305,22 @@ def collect_output_targets(*, stdout_format: str, stdout_output_path: str | None
     return output_targets
 
 
-def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> list[dict]:
+def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, output_path: str | None = None, output_format: str | None = None, output_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> list[dict]:
     written_outputs: list[dict] = []
     written_path = emit_output(
         text=text,
         payload=payload,
-        output_format=stdout_format,
-        output_path=stdout_output_path,
-        append=stdout_append,
+        stdout_format=stdout_format,
+        output_path=output_path,
+        output_format=output_format,
+        append=output_append,
     )
     if written_path:
         written_outputs.append({
             'channel': 'stdout-output',
             'path': written_path,
-            'format': stdout_format,
-            'append': bool(stdout_append),
+            'format': output_format or stdout_format,
+            'append': bool(output_append),
         })
     if not consumer_bundle:
         return written_outputs
@@ -367,9 +372,9 @@ def main() -> int:
         consumer_presets=consumer_presets,
     )
     payload['consumer_outputs'] = collect_output_targets(
-        stdout_format=consumer_output_format,
-        stdout_output_path=consumer_output_path,
-        stdout_append=consumer_append,
+        output_format=consumer_output_format,
+        output_path=consumer_output_path,
+        output_append=consumer_append,
         consumer_bundle=args.consumer_bundle,
         consumer_presets=consumer_presets,
     )
@@ -380,9 +385,10 @@ def main() -> int:
     emit_output_with_bundle(
         text=text_output,
         payload=payload,
-        stdout_format=consumer_output_format,
-        stdout_output_path=consumer_output_path,
-        stdout_append=consumer_append,
+        stdout_format=stdout_format,
+        output_path=consumer_output_path,
+        output_format=consumer_output_format,
+        output_append=consumer_append,
         consumer_bundle=args.consumer_bundle,
         consumer_presets=consumer_presets,
     )

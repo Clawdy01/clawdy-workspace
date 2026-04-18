@@ -19,6 +19,7 @@ RUNS_DIR = ROOT / 'cron' / 'runs'
 AGENTS_DIR = ROOT / 'agents'
 DEFAULT_TZ = 'Europe/Amsterdam'
 TARGET_JOB_NAME = 'daily-ai-update'
+PROOF_RECHECK_PRODUCER_JOB_NAME = 'ai-briefing-proof-recheck-producer'
 EXPECTED_SCHEDULE_EXPR = '0 9 * * *'
 EXPECTED_DELIVERY_CHANNEL = 'telegram'
 EXPECTED_DELIVERY_TO = '16584407'
@@ -482,6 +483,92 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
         'pending_current_slot_grace_ms': pending_current_slot_grace_ms,
         'next_run_delta_ms': next_run_delta_ms,
         'next_run_delta_text': duration_hint(abs(next_run_delta_ms)) if next_run_delta_ms is not None else None,
+        'reasons': reasons,
+        'text': text,
+    }
+
+
+def audit_proof_recheck_schedule(jobs, target_job, *, proof_recheck_job_name=PROOF_RECHECK_PRODUCER_JOB_NAME, grace_ms=15 * 60 * 1000):
+    reasons = []
+    proof_job = next((job for job in jobs if job.get('name') == proof_recheck_job_name), None)
+    expected_gap_minutes = None
+    if grace_ms is not None:
+        try:
+            expected_gap_minutes = max(0, int(grace_ms) // 60000)
+        except (TypeError, ValueError):
+            expected_gap_minutes = None
+
+    if not proof_job:
+        return {
+            'ok': False,
+            'found': False,
+            'enabled': False,
+            'job_name': proof_recheck_job_name,
+            'schedule_expr': None,
+            'schedule_tz': None,
+            'delta_minutes': None,
+            'expected_gap_minutes': expected_gap_minutes,
+            'same_day_after_target': None,
+            'matches_grace': None,
+            'reasons': [f'proof-recheck-job {proof_recheck_job_name} ontbreekt'],
+            'text': f'proof-recheck-job {proof_recheck_job_name} ontbreekt',
+        }
+
+    proof_schedule = proof_job.get('schedule') or {}
+    proof_tz = proof_schedule.get('tz') or DEFAULT_TZ
+    proof_expr = proof_schedule.get('expr')
+    target_schedule = target_job.get('schedule') or {}
+    target_tz = target_schedule.get('tz') or DEFAULT_TZ
+    target_expr = target_schedule.get('expr')
+    proof_hour, proof_minute = parse_cron_hour_minute(proof_expr)
+    target_hour, target_minute = parse_cron_hour_minute(target_expr)
+    delta_minutes = None
+    same_day_after_target = None
+    matches_grace = None
+
+    if not proof_job.get('enabled'):
+        reasons.append('proof-recheck-job staat uit')
+    if proof_schedule.get('kind') != 'cron':
+        reasons.append('proof-recheck-job gebruikt geen cron schedule')
+    if proof_tz != target_tz:
+        reasons.append(f'proof-recheck cron tz is {proof_tz}, verwacht {target_tz}')
+    if proof_hour is None or proof_minute is None:
+        reasons.append(f'proof-recheck cron expr is {proof_expr or "onbekend"}')
+    if target_hour is None or target_minute is None:
+        reasons.append(f'primary cron expr is {target_expr or "onbekend"}')
+
+    if proof_hour is not None and proof_minute is not None and target_hour is not None and target_minute is not None:
+        delta_minutes = (proof_hour * 60 + proof_minute) - (target_hour * 60 + target_minute)
+        same_day_after_target = delta_minutes > 0
+        if not same_day_after_target:
+            reasons.append('proof-recheck slot valt niet later op dezelfde dag dan daily-ai-update')
+        if expected_gap_minutes is not None:
+            matches_grace = delta_minutes == expected_gap_minutes
+            if not matches_grace:
+                reasons.append(
+                    f'proof-recheck slot ligt {delta_minutes}m na daily-ai-update, verwacht {expected_gap_minutes}m grace'
+                )
+
+    if reasons:
+        text = '; '.join(reasons)
+    else:
+        proof_time = f'{proof_hour:02d}:{proof_minute:02d}' if proof_hour is not None and proof_minute is not None else (proof_expr or 'onbekend')
+        if expected_gap_minutes is not None:
+            text = f'proof-recheck-cron ok ({proof_time} {proof_tz}, {expected_gap_minutes}m na daily-ai-update en gelijk aan grace-window)'
+        else:
+            text = f'proof-recheck-cron ok ({proof_time} {proof_tz})'
+
+    return {
+        'ok': not reasons,
+        'found': True,
+        'enabled': bool(proof_job.get('enabled')),
+        'job_name': proof_job.get('name'),
+        'schedule_expr': proof_expr,
+        'schedule_tz': proof_tz,
+        'delta_minutes': delta_minutes,
+        'expected_gap_minutes': expected_gap_minutes,
+        'same_day_after_target': same_day_after_target,
+        'matches_grace': matches_grace,
         'reasons': reasons,
         'text': text,
     }
@@ -2317,6 +2404,18 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         payload_audit.get('timeout_seconds'),
     )
     next_run_audit = audit_next_run(job, next_run_at, now_ms, tz_name)
+    grace_value = (next_run_audit or {}).get('pending_current_slot_grace_ms')
+    proof_recheck_grace_ms = None
+    if grace_value is not None:
+        try:
+            proof_recheck_grace_ms = max(0, int(grace_value))
+        except (TypeError, ValueError):
+            proof_recheck_grace_ms = None
+    proof_recheck_schedule_audit = audit_proof_recheck_schedule(
+        jobs,
+        job,
+        grace_ms=proof_recheck_grace_ms,
+    )
     storage_audit = audit_storage(job['id'])
     runlog_audit = audit_runlog(runlog_info, finished_runs)
     uniqueness_audit = audit_uniqueness(jobs, job)
@@ -2376,6 +2475,8 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
 
     if not uniqueness_audit.get('ok'):
         attention_reasons.append(f"uniqueness: {uniqueness_audit.get('text')}")
+    if not proof_recheck_schedule_audit.get('ok'):
+        attention_reasons.append(f"proof-recheck-cron: {proof_recheck_schedule_audit.get('text')}")
     if finished_runs and not proof_freshness.get('ok') and not expected_proof_freshness_wait:
         attention_reasons.append(f"proof freshness: {proof_freshness.get('text')}")
     last_run_output_audit = (last_run_summary or {}).get('summary_output_audit') or {}
@@ -2409,6 +2510,7 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         'last_run_timeout_audit': last_run_timeout_audit,
         'recent_run_duration_audit': recent_run_duration_audit,
         'next_run_audit': next_run_audit,
+        'proof_recheck_schedule_audit': proof_recheck_schedule_audit,
         'storage_audit': storage_audit,
         'runlog_audit': runlog_audit,
         'uniqueness_audit': uniqueness_audit,
@@ -2658,13 +2760,6 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     else:
         proof_schedule_risk_text = None
 
-    grace_value = (next_run_audit or {}).get('pending_current_slot_grace_ms')
-    proof_recheck_grace_ms = None
-    if grace_value is not None:
-        try:
-            proof_recheck_grace_ms = max(0, int(grace_value))
-        except (TypeError, ValueError):
-            proof_recheck_grace_ms = None
     proof_recheck_after_candidate_at = None
     if proof_next_qualifying_slot_at:
         proof_recheck_after_candidate_at = proof_next_qualifying_slot_at + (proof_recheck_grace_ms or 0)
@@ -3070,6 +3165,9 @@ def render_text(data):
         uniqueness_audit = data.get('uniqueness_audit') or {}
         if uniqueness_audit.get('text'):
             parts.append(uniqueness_audit.get('text'))
+        proof_recheck_schedule_audit = data.get('proof_recheck_schedule_audit') or {}
+        if proof_recheck_schedule_audit.get('text'):
+            parts.append(proof_recheck_schedule_audit.get('text'))
         proof_freshness = data.get('proof_freshness') or {}
         if proof_freshness.get('text'):
             parts.append(proof_freshness.get('text'))
