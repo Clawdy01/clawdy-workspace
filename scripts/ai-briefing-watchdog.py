@@ -352,6 +352,7 @@ def main() -> int:
         'last_run_config_relation_text': status.get('last_run_config_relation_text'),
         'proof_next_action_kind': status.get('proof_next_action_kind'),
         'proof_next_action_text': status.get('proof_next_action_text'),
+        'proof_next_action_window_text': status.get('proof_next_action_window_text'),
         'proof_recheck_commands': status.get('proof_recheck_commands'),
         'proof_recheck_commands_text': status.get('proof_recheck_commands_text'),
         'proof_target_runs': status.get('proof_target_runs'),
@@ -445,14 +446,17 @@ def main() -> int:
         lines.append(f"proof target due: {result['proof_target_due_at_text']}")
     if result['proof_plan_text']:
         lines.append(f"proof plan: {result['proof_plan_text']}")
-    if result['proof_next_action_text']:
+    if result.get('proof_next_action_window_text'):
+        lines.append(f"proof next action window: {result['proof_next_action_window_text']}")
+    elif result['proof_next_action_text']:
         lines.append(f"proof next action: {result['proof_next_action_text']}")
     if result.get('proof_recheck_commands_text'):
         lines.append(f"proof recheck commands: {result['proof_recheck_commands_text']}")
-    if result.get('proof_recheck_window_text') and result.get('proof_recheck_window_text') != result.get('proof_next_action_text'):
-        lines.append(f"proof recheck window: {result['proof_recheck_window_text']}")
-    elif result['proof_recheck_after_text_compact']:
-        lines.append(f"proof recheck: {result['proof_recheck_after_text_compact']}")
+    if not result.get('proof_next_action_window_text'):
+        if result.get('proof_recheck_window_text') and result.get('proof_recheck_window_text') != result.get('proof_next_action_text'):
+            lines.append(f"proof recheck window: {result['proof_recheck_window_text']}")
+        elif result['proof_recheck_after_text_compact']:
+            lines.append(f"proof recheck: {result['proof_recheck_after_text_compact']}")
     if result['proof_today_block_text']:
         lines.append(f"proof today block: {result['proof_today_block_text']}")
     if result['proof_schedule_risk_text']:

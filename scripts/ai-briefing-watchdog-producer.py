@@ -116,14 +116,17 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
     proof_runs_remaining = payload.get('proof_runs_remaining')
     if proof_runs_remaining is not None and not payload.get('proof_target_met'):
         bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
-    if payload.get('proof_next_action_text'):
+    if payload.get('proof_next_action_window_text'):
+        bits.append(str(payload['proof_next_action_window_text']))
+    elif payload.get('proof_next_action_text'):
         bits.append(str(payload['proof_next_action_text']))
     if payload.get('proof_recheck_commands_text'):
         bits.append(str(payload['proof_recheck_commands_text']))
-    if payload.get('proof_recheck_window_text') and payload.get('proof_recheck_window_text') != payload.get('proof_next_action_text'):
-        bits.append(str(payload['proof_recheck_window_text']))
-    elif payload.get('proof_recheck_after_text_compact'):
-        bits.append(str(payload['proof_recheck_after_text_compact']))
+    if not payload.get('proof_next_action_window_text'):
+        if payload.get('proof_recheck_window_text') and payload.get('proof_recheck_window_text') != payload.get('proof_next_action_text'):
+            bits.append(str(payload['proof_recheck_window_text']))
+        elif payload.get('proof_recheck_after_text_compact'):
+            bits.append(str(payload['proof_recheck_after_text_compact']))
     if payload.get('proof_schedule_risk_text'):
         bits.append(str(payload['proof_schedule_risk_text']))
     if payload.get('proof_countdown_text'):

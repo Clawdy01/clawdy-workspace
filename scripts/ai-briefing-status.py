@@ -2748,6 +2748,22 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         )
     else:
         summary['proof_recheck_after_text_compact'] = None
+    proof_next_action_window_text = None
+    if proof_recheck_window_open:
+        proof_next_action_window_text = 'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw'
+    elif proof_wait_until_text and summary['proof_recheck_after_text']:
+        proof_next_action_window_text = (
+            f"wacht op geplande kwalificatierun {proof_wait_until_text}"
+            + (f" ({proof_wait_until_hint})" if proof_wait_until_hint else '')
+            + f"; hercheck vanaf {summary['proof_recheck_after_text']}"
+            + (f" ({summary['proof_recheck_after_hint']})" if summary['proof_recheck_after_hint'] else '')
+        )
+    elif summary['proof_recheck_after_text']:
+        proof_next_action_window_text = (
+            f"hercheck vanaf {summary['proof_recheck_after_text']}"
+            + (f" ({summary['proof_recheck_after_hint']})" if summary['proof_recheck_after_hint'] else '')
+        )
+    summary['proof_next_action_window_text'] = proof_next_action_window_text
     proof_next_action_kind = 'repair-slot-then-recheck'
     if summary['proof_target_met']:
         proof_next_action_text = 'bewijspad klaar; sync KANBAN/STATUS en activeer het volgende spoor'
@@ -2999,14 +3015,17 @@ def render_text(data):
         parts.append(data['last_run_config_relation_text'])
     if data.get('proof_state_text'):
         parts.append(data['proof_state_text'])
-    if data.get('proof_next_action_text'):
+    if data.get('proof_next_action_window_text'):
+        parts.append(data['proof_next_action_window_text'])
+    elif data.get('proof_next_action_text'):
         parts.append(data['proof_next_action_text'])
     if data.get('proof_recheck_commands_text'):
         parts.append(data['proof_recheck_commands_text'])
-    if data.get('proof_recheck_window_text') and data.get('proof_recheck_window_text') != data.get('proof_next_action_text'):
-        parts.append(data['proof_recheck_window_text'])
-    elif data.get('proof_recheck_after_text_compact'):
-        parts.append(data['proof_recheck_after_text_compact'])
+    if not data.get('proof_next_action_window_text'):
+        if data.get('proof_recheck_window_text') and data.get('proof_recheck_window_text') != data.get('proof_next_action_text'):
+            parts.append(data['proof_recheck_window_text'])
+        elif data.get('proof_recheck_after_text_compact'):
+            parts.append(data['proof_recheck_after_text_compact'])
     if data.get('proof_schedule_risk_text'):
         parts.append(data['proof_schedule_risk_text'])
     if data.get('proof_countdown_text'):
