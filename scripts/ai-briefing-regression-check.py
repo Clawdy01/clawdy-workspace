@@ -12,6 +12,10 @@ STATUS_SCRIPT = ROOT / 'scripts' / 'ai-briefing-status.py'
 PROOF_RECHECK_SCRIPT = ROOT / 'scripts' / 'ai-briefing-proof-recheck.py'
 PROOF_RECHECK_PRODUCER_SCRIPT = ROOT / 'scripts' / 'ai-briefing-proof-recheck-producer.py'
 DEFAULT_REFERENCE_MS = int(datetime(2026, 4, 15, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
+EXPECTED_PROOF_RECHECK_JOB_NAME = 'ai-briefing-proof-recheck-producer'
+EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR = '15 9 * * *'
+EXPECTED_PROOF_RECHECK_SCHEDULE_TZ = 'Europe/Amsterdam'
+EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES = 15
 DEFAULT_CASES = [
     {
         'name': 'real-run-2026-04-14-0902-failed-summary',
@@ -1758,6 +1762,7 @@ PROOF_RECHECK_CASES = [
         'expect_watchdog_ok': False,
         'expect_proof_config_hash_present': True,
         'expect_proof_recheck_schedule_audit_ok': True,
+        'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
@@ -1794,6 +1799,7 @@ PROOF_RECHECK_CASES = [
         'expect_watchdog_ok': False,
         'expect_proof_config_hash_present': True,
         'expect_proof_recheck_schedule_audit_ok': True,
+        'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'kwalificatierun van 2026-04-19 09:00 CEST zit in grace-window',
@@ -1830,6 +1836,7 @@ PROOF_RECHECK_CASES = [
         'expect_watchdog_ok': False,
         'expect_proof_config_hash_present': True,
         'expect_proof_recheck_schedule_audit_ok': True,
+        'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
@@ -1884,6 +1891,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         ],
         'expect_proof_config_hash_present': True,
         'expect_proof_recheck_schedule_audit_ok': True,
+        'expect_proof_recheck_schedule_matches_grace': True,
         'expect_artifact_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
@@ -1928,6 +1936,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         ],
         'expect_proof_config_hash_present': True,
         'expect_proof_recheck_schedule_audit_ok': True,
+        'expect_proof_recheck_schedule_matches_grace': True,
         'expect_artifact_substrings': [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
@@ -2364,6 +2373,43 @@ def evaluate_proof_recheck_case(case):
                 'proof_recheck_schedule_audit.ok verwacht '
                 f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {audit_ok}"
             )
+        if payload.get('proof_recheck_schedule_ok') != case.get('expect_proof_recheck_schedule_audit_ok'):
+            failures.append(
+                'proof_recheck_schedule_ok verwacht '
+                f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {payload.get('proof_recheck_schedule_ok')}"
+            )
+    if case.get('expect_proof_recheck_schedule_matches_grace') is not None:
+        if payload.get('proof_recheck_schedule_matches_grace') != case.get('expect_proof_recheck_schedule_matches_grace'):
+            failures.append(
+                'proof_recheck_schedule_matches_grace verwacht '
+                f"{case.get('expect_proof_recheck_schedule_matches_grace')}, kreeg {payload.get('proof_recheck_schedule_matches_grace')}"
+            )
+    if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
+        if payload.get('proof_recheck_schedule_job_name') != EXPECTED_PROOF_RECHECK_JOB_NAME:
+            failures.append(
+                'proof_recheck_schedule_job_name verwacht '
+                f"{EXPECTED_PROOF_RECHECK_JOB_NAME}, kreeg {payload.get('proof_recheck_schedule_job_name')}"
+            )
+        if payload.get('proof_recheck_schedule_expr') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR:
+            failures.append(
+                'proof_recheck_schedule_expr verwacht '
+                f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR}, kreeg {payload.get('proof_recheck_schedule_expr')}"
+            )
+        if payload.get('proof_recheck_schedule_tz') != EXPECTED_PROOF_RECHECK_SCHEDULE_TZ:
+            failures.append(
+                'proof_recheck_schedule_tz verwacht '
+                f"{EXPECTED_PROOF_RECHECK_SCHEDULE_TZ}, kreeg {payload.get('proof_recheck_schedule_tz')}"
+            )
+        if payload.get('proof_recheck_schedule_expected_gap_minutes') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES:
+            failures.append(
+                'proof_recheck_schedule_expected_gap_minutes verwacht '
+                f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES}, kreeg {payload.get('proof_recheck_schedule_expected_gap_minutes')}"
+            )
+        if payload.get('proof_recheck_schedule_same_day_after_target') is not True:
+            failures.append(
+                'proof_recheck_schedule_same_day_after_target verwacht True, kreeg '
+                f"{payload.get('proof_recheck_schedule_same_day_after_target')}"
+            )
 
     combined_text = ' || '.join(
         str(bit)
@@ -2488,6 +2534,43 @@ def evaluate_proof_recheck_producer_case(case):
                 failures.append(
                     'overall.proof_recheck_schedule_audit.ok verwacht '
                     f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {overall_audit_ok}"
+                )
+            if overall.get('proof_recheck_schedule_ok') != case.get('expect_proof_recheck_schedule_audit_ok'):
+                failures.append(
+                    'overall.proof_recheck_schedule_ok verwacht '
+                    f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {overall.get('proof_recheck_schedule_ok')}"
+                )
+        if case.get('expect_proof_recheck_schedule_matches_grace') is not None:
+            if overall.get('proof_recheck_schedule_matches_grace') != case.get('expect_proof_recheck_schedule_matches_grace'):
+                failures.append(
+                    'overall.proof_recheck_schedule_matches_grace verwacht '
+                    f"{case.get('expect_proof_recheck_schedule_matches_grace')}, kreeg {overall.get('proof_recheck_schedule_matches_grace')}"
+                )
+        if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
+            if overall.get('proof_recheck_schedule_job_name') != EXPECTED_PROOF_RECHECK_JOB_NAME:
+                failures.append(
+                    'overall.proof_recheck_schedule_job_name verwacht '
+                    f"{EXPECTED_PROOF_RECHECK_JOB_NAME}, kreeg {overall.get('proof_recheck_schedule_job_name')}"
+                )
+            if overall.get('proof_recheck_schedule_expr') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR:
+                failures.append(
+                    'overall.proof_recheck_schedule_expr verwacht '
+                    f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR}, kreeg {overall.get('proof_recheck_schedule_expr')}"
+                )
+            if overall.get('proof_recheck_schedule_tz') != EXPECTED_PROOF_RECHECK_SCHEDULE_TZ:
+                failures.append(
+                    'overall.proof_recheck_schedule_tz verwacht '
+                    f"{EXPECTED_PROOF_RECHECK_SCHEDULE_TZ}, kreeg {overall.get('proof_recheck_schedule_tz')}"
+                )
+            if overall.get('proof_recheck_schedule_expected_gap_minutes') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES:
+                failures.append(
+                    'overall.proof_recheck_schedule_expected_gap_minutes verwacht '
+                    f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES}, kreeg {overall.get('proof_recheck_schedule_expected_gap_minutes')}"
+                )
+            if overall.get('proof_recheck_schedule_same_day_after_target') is not True:
+                failures.append(
+                    'overall.proof_recheck_schedule_same_day_after_target verwacht True, kreeg '
+                    f"{overall.get('proof_recheck_schedule_same_day_after_target')}"
                 )
         if overall.get('proof_state') != case['expect_proof_state']:
             failures.append(f"overall.proof_state verwacht {case['expect_proof_state']}, kreeg {overall.get('proof_state')}")
@@ -2647,6 +2730,43 @@ def evaluate_proof_recheck_producer_case(case):
                         failures.append(
                             f'{label} proof_recheck_schedule_audit.ok verwacht '
                             f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {artifact_audit_ok}"
+                        )
+                    if artifact_payload.get('proof_recheck_schedule_ok') != case.get('expect_proof_recheck_schedule_audit_ok'):
+                        failures.append(
+                            f'{label} proof_recheck_schedule_ok verwacht '
+                            f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {artifact_payload.get('proof_recheck_schedule_ok')}"
+                        )
+                if case.get('expect_proof_recheck_schedule_matches_grace') is not None:
+                    if artifact_payload.get('proof_recheck_schedule_matches_grace') != case.get('expect_proof_recheck_schedule_matches_grace'):
+                        failures.append(
+                            f'{label} proof_recheck_schedule_matches_grace verwacht '
+                            f"{case.get('expect_proof_recheck_schedule_matches_grace')}, kreeg {artifact_payload.get('proof_recheck_schedule_matches_grace')}"
+                        )
+                if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
+                    if artifact_payload.get('proof_recheck_schedule_job_name') != EXPECTED_PROOF_RECHECK_JOB_NAME:
+                        failures.append(
+                            f'{label} proof_recheck_schedule_job_name verwacht '
+                            f"{EXPECTED_PROOF_RECHECK_JOB_NAME}, kreeg {artifact_payload.get('proof_recheck_schedule_job_name')}"
+                        )
+                    if artifact_payload.get('proof_recheck_schedule_expr') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR:
+                        failures.append(
+                            f'{label} proof_recheck_schedule_expr verwacht '
+                            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR}, kreeg {artifact_payload.get('proof_recheck_schedule_expr')}"
+                        )
+                    if artifact_payload.get('proof_recheck_schedule_tz') != EXPECTED_PROOF_RECHECK_SCHEDULE_TZ:
+                        failures.append(
+                            f'{label} proof_recheck_schedule_tz verwacht '
+                            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_TZ}, kreeg {artifact_payload.get('proof_recheck_schedule_tz')}"
+                        )
+                    if artifact_payload.get('proof_recheck_schedule_expected_gap_minutes') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES:
+                        failures.append(
+                            f'{label} proof_recheck_schedule_expected_gap_minutes verwacht '
+                            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES}, kreeg {artifact_payload.get('proof_recheck_schedule_expected_gap_minutes')}"
+                        )
+                    if artifact_payload.get('proof_recheck_schedule_same_day_after_target') is not True:
+                        failures.append(
+                            f'{label} proof_recheck_schedule_same_day_after_target verwacht True, kreeg '
+                            f"{artifact_payload.get('proof_recheck_schedule_same_day_after_target')}"
                         )
                 if artifact_payload.get('result_kind') != case['expect_result_kind']:
                     failures.append(
