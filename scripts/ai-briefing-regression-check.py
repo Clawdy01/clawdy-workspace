@@ -1764,6 +1764,10 @@ PROOF_RECHECK_CASES = [
             'config f5b1d6e1b852',
             'laatste run hoorde nog bij de vorige config',
         ],
+        'expect_plain_not_substrings': [
+            '| 2026-04-21 09:15 CEST |',
+            '| 2026-04-22 09:15 CEST |',
+        ],
     },
     {
         'name': 'proof-recheck-grace-window-too-early',
@@ -1794,6 +1798,10 @@ PROOF_RECHECK_CASES = [
             'hercheck vanaf 2026-04-19 09:15 CEST',
             'config f5b1d6e1b852',
             'laatste run hoorde nog bij de vorige config',
+        ],
+        'expect_plain_not_substrings': [
+            '| 2026-04-21 09:15 CEST |',
+            '| 2026-04-22 09:15 CEST |',
         ],
     },
     {
@@ -1826,6 +1834,10 @@ PROOF_RECHECK_CASES = [
             'config f5b1d6e1b852',
             'laatste run hoorde nog bij de vorige config',
         ],
+        'expect_plain_not_substrings': [
+            '| 2026-04-21 09:15 CEST |',
+            '| 2026-04-22 09:15 CEST |',
+        ],
     },
 ]
 
@@ -1857,6 +1869,11 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'ai-briefing-proof-recheck-producer: all',
             'resultaat: too-early',
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
+        ],
+        'expect_quiet_absent_substrings': [
+            '--json --consumer-bundle board-suite: exit=',
+            '| 2026-04-21 09:15 CEST |',
+            '| 2026-04-22 09:15 CEST |',
         ],
         'expect_json_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
@@ -1895,6 +1912,11 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'ai-briefing-proof-recheck-producer: all',
             'resultaat: attention-needed',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+        'expect_quiet_absent_substrings': [
+            '--json --consumer-bundle board-suite: exit=',
+            '| 2026-04-21 09:15 CEST |',
+            '| 2026-04-22 09:15 CEST |',
         ],
         'expect_json_substrings': [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
@@ -2242,6 +2264,21 @@ def evaluate_proof_recheck_case(case):
             failures.append(f'ongeldige JSON van ai-briefing-proof-recheck.py: {exc}')
             payload = {}
 
+    text_proc = subprocess.run(
+        ['python3', str(PROOF_RECHECK_SCRIPT), '--reference-ms', str(case['reference_ms'])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    text_output = text_proc.stdout.strip() or text_proc.stderr.strip()
+    if text_proc.returncode != case['expect_exit_code']:
+        failures.append(
+            f"tekst-exitcode verwacht {case['expect_exit_code']}, kreeg {text_proc.returncode}"
+        )
+    if not text_output:
+        failures.append('geen tekstoutput van ai-briefing-proof-recheck.py')
+
     if proc.returncode != case['expect_exit_code']:
         failures.append(f"proces-exitcode verwacht {case['expect_exit_code']}, kreeg {proc.returncode}")
     if payload.get('exit_code') != case['expect_exit_code']:
@@ -2335,6 +2372,12 @@ def evaluate_proof_recheck_case(case):
     for snippet in case.get('expect_substrings', []):
         if snippet not in combined_text:
             failures.append(f"verwachte proof-recheck-tekst ontbreekt: {snippet}")
+        if text_output and snippet not in text_output:
+            failures.append(f"verwachte proof-recheck-plain-tekst ontbreekt: {snippet}")
+
+    for snippet in case.get('expect_plain_not_substrings', []):
+        if snippet and snippet in text_output:
+            failures.append(f"ongewenste proof-recheck-plain-tekst aanwezig: {snippet}")
 
     return {
         'name': case['name'],
@@ -2500,6 +2543,9 @@ def evaluate_proof_recheck_producer_case(case):
         for snippet in case.get('expect_quiet_substrings', []):
             if snippet not in quiet_text:
                 failures.append(f"verwachte producer-quiet-tekst ontbreekt: {snippet}")
+        for snippet in case.get('expect_quiet_absent_substrings', []):
+            if snippet in quiet_text:
+                failures.append(f"producer-quiet-tekst had juist moeten ontbreken: {snippet}")
 
         json_text = ' || '.join(
             str(bit)

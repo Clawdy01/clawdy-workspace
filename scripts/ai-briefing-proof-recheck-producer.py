@@ -91,6 +91,18 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
     except json.JSONDecodeError:
         return None, None
 
+    proof_target_due_text = payload.get('proof_target_due_at_text')
+    proof_target_due_if_missed_text = payload.get('proof_target_due_at_if_next_slot_missed_text')
+    richer_due_context = ' '.join(
+        str(bit)
+        for bit in [
+            payload.get('proof_schedule_risk_text'),
+            payload.get('proof_target_check_gate_text'),
+            payload.get('proof_countdown_text'),
+        ]
+        if bit
+    )
+
     bits: list[str] = []
     if payload.get('summary'):
         bits.append(str(payload['summary']))
@@ -119,10 +131,10 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_recheck_commands_text']))
     if payload.get('proof_schedule_risk_text'):
         bits.append(str(payload['proof_schedule_risk_text']))
-    if payload.get('proof_target_due_at_text'):
-        bits.append(str(payload['proof_target_due_at_text']))
-    if payload.get('proof_target_due_at_if_next_slot_missed_text'):
-        bits.append(str(payload['proof_target_due_at_if_next_slot_missed_text']))
+    if proof_target_due_text and proof_target_due_text not in richer_due_context:
+        bits.append(str(proof_target_due_text))
+    if proof_target_due_if_missed_text and proof_target_due_if_missed_text not in richer_due_context:
+        bits.append(str(proof_target_due_if_missed_text))
     if payload.get('proof_target_check_gate_text'):
         bits.append(str(payload['proof_target_check_gate_text']))
     if payload.get('proof_countdown_text'):
@@ -288,11 +300,18 @@ def main():
         print(f'ai-briefing-proof-recheck-producer: {args.mode}')
         if overall.get('summary'):
             print(f'- overall: exit={overall.get("returncode")} | {overall["summary"]}')
-        for item in producer_items:
-            if item['summary']:
-                print(f'- {item["label"]}: exit={item["returncode"]} | {item["summary"]}')
-            else:
-                print(f'- {item["label"]}: exit={item["returncode"]}')
+        duplicate_single_item = (
+            len(producer_items) == 1
+            and overall.get('returncode') == producer_items[0].get('returncode')
+            and overall.get('summary')
+            and overall.get('summary') == producer_items[0].get('summary')
+        )
+        if not duplicate_single_item:
+            for item in producer_items:
+                if item['summary']:
+                    print(f'- {item["label"]}: exit={item["returncode"]} | {item["summary"]}')
+                else:
+                    print(f'- {item["label"]}: exit={item["returncode"]}')
 
     raise SystemExit(exit_code)
 

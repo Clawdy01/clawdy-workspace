@@ -185,8 +185,38 @@ def format_consumer_outputs(outputs: list[dict]) -> str | None:
     return 'consumer-artifacts: ' + '; '.join(bits)
 
 
+def unique_bits(bits: list[str]) -> list[str]:
+    unique: list[str] = []
+    for bit in bits:
+        cleaned = ' '.join((bit or '').split())
+        if not cleaned:
+            continue
+        skip = False
+        for existing in list(unique):
+            if cleaned == existing or cleaned in existing:
+                skip = True
+                break
+            if existing in cleaned:
+                unique.remove(existing)
+        if skip:
+            continue
+        unique.append(cleaned)
+    return unique
+
+
 def build_text(payload: dict) -> str:
     summary_output_examples = payload.get('summary_output_examples') or []
+    proof_target_due_text = payload.get('proof_target_due_at_text')
+    proof_target_due_if_missed_text = payload.get('proof_target_due_at_if_next_slot_missed_text')
+    richer_due_context = ' '.join(
+        str(bit)
+        for bit in [
+            payload.get('proof_schedule_risk_text'),
+            payload.get('proof_target_check_gate_text'),
+            payload.get('proof_countdown_text'),
+        ]
+        if bit
+    )
     bits = [
         f"AI-briefing proof-recheck: {payload.get('summary')}",
         payload.get('result_text'),
@@ -200,20 +230,14 @@ def build_text(payload: dict) -> str:
         ('outputvoorbeelden: ' + '; '.join(summary_output_examples[:2])) if summary_output_examples else None,
         payload.get('proof_recheck_window_text'),
         payload.get('proof_schedule_risk_text'),
-        payload.get('proof_target_due_at_text'),
-        payload.get('proof_target_due_at_if_next_slot_missed_text'),
+        None if proof_target_due_text and proof_target_due_text in richer_due_context else proof_target_due_text,
+        None if proof_target_due_if_missed_text and proof_target_due_if_missed_text in richer_due_context else proof_target_due_if_missed_text,
         payload.get('proof_target_check_gate_text'),
         payload.get('proof_countdown_text'),
         payload.get('proof_recheck_commands_text'),
         payload.get('consumer_outputs_text'),
     ]
-    unique_bits: list[str] = []
-    for bit in bits:
-        cleaned = ' '.join((bit or '').split())
-        if not cleaned or cleaned in unique_bits:
-            continue
-        unique_bits.append(cleaned)
-    return ' | '.join(unique_bits)
+    return ' | '.join(unique_bits(bits))
 
 
 def resolve_consumer_settings(args, *, default_format: str, consumer_presets: dict[str, dict]):
