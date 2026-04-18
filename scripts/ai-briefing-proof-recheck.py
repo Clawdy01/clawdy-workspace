@@ -74,15 +74,23 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
     recheck_window_open = bool(status_data.get('proof_recheck_window_open'))
     proof_target_met = bool(watchdog_data.get('proof_target_met'))
     watchdog_ok = bool(watchdog_data.get('ok'))
+    status_ok = bool(status_data.get('ok'))
+    summary_output_examples = watchdog_data.get('summary_output_examples') or []
 
     state = 'waiting'
     exit_code = 2
+    result_kind = 'too-early'
+    result_text = 'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster'
     if recheck_window_open and not watchdog_ok:
         state = 'attention'
         exit_code = 3
+        result_kind = 'attention-needed'
+        result_text = 'hercheckvenster is open, maar bewijsdoel is nog niet gehaald'
     if proof_target_met and watchdog_ok:
         state = 'ok'
         exit_code = 0
+        result_kind = 'proof-target-met'
+        result_text = 'hercheck bevestigt dat het bewijsdoel gehaald is'
 
     summary_bits = [
         status_data.get('summary') or status_data.get('status_text'),
@@ -95,6 +103,8 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'ok': proof_target_met and watchdog_ok,
         'state': state,
         'exit_code': exit_code,
+        'result_kind': result_kind,
+        'result_text': result_text,
         'summary': summary,
         'reference_now_text': first_non_null(status_data.get('reference_now_text'), watchdog_data.get('reference_now_text')),
         'reference_context_text': first_non_null(status_data.get('reference_context_text'), watchdog_data.get('reference_context_text')),
@@ -102,6 +112,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_state_text': first_non_null(status_data.get('proof_state_text'), watchdog_data.get('proof_state_text')),
         'proof_progress_text': first_non_null(watchdog_data.get('proof_progress_text'), status_data.get('proof_progress_text')),
         'proof_target_met': proof_target_met,
+        'proof_recheck_ready': recheck_window_open,
         'proof_runs_remaining': watchdog_data.get('proof_runs_remaining'),
         'proof_recheck_window_open': recheck_window_open,
         'proof_recheck_window_text': status_data.get('proof_recheck_window_text'),
@@ -115,23 +126,31 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_recheck_commands_text': first_non_null(status_data.get('proof_recheck_commands_text'), watchdog_data.get('proof_recheck_commands_text')),
         'proof_blocker_kind': first_non_null(status_data.get('proof_blocker_kind'), watchdog_data.get('proof_blocker_kind')),
         'proof_blocker_text': first_non_null(status_data.get('proof_blocker_text'), watchdog_data.get('proof_blocker_text')),
+        'proof_freshness_text': first_non_null((status_data.get('proof_freshness') or {}).get('text'), watchdog_data.get('proof_freshness_text')),
+        'summary_output_examples': summary_output_examples,
         'proof_countdown_text': first_non_null(status_data.get('proof_countdown_text'), watchdog_data.get('proof_countdown_text')),
         'proof_schedule_risk_text': first_non_null(status_data.get('proof_schedule_risk_text'), watchdog_data.get('proof_schedule_risk_text')),
         'proof_target_due_at_text': first_non_null(status_data.get('proof_target_due_at_text'), watchdog_data.get('proof_target_due_at_text')),
         'proof_target_due_at_if_next_slot_missed_text': first_non_null(status_data.get('proof_target_due_at_if_next_slot_missed_text'), watchdog_data.get('proof_target_due_at_if_next_slot_missed_text')),
         'proof_config_identity_text': first_non_null(status_data.get('proof_config_identity_text'), watchdog_data.get('proof_config_identity_text')),
         'last_run_config_relation_text': first_non_null(status_data.get('last_run_config_relation_text'), watchdog_data.get('last_run_config_relation_text')),
+        'status_ok': status_ok,
+        'status_returncode': status_data.get('_returncode'),
         'watchdog_ok': watchdog_ok,
         'watchdog_returncode': watchdog_data.get('_returncode'),
     }
 
 
 def build_text(payload: dict) -> str:
+    summary_output_examples = payload.get('summary_output_examples') or []
     bits = [
         f"AI-briefing proof-recheck: {payload.get('summary')}",
+        payload.get('result_text'),
         payload.get('reference_context_text'),
         payload.get('proof_state_text'),
         payload.get('proof_blocker_text'),
+        payload.get('proof_freshness_text'),
+        ('outputvoorbeelden: ' + '; '.join(summary_output_examples[:2])) if summary_output_examples else None,
         payload.get('proof_recheck_window_text'),
         payload.get('proof_schedule_risk_text'),
         payload.get('proof_countdown_text'),
@@ -217,7 +236,8 @@ def main() -> int:
         status_cmd.extend(['--reference-ms', str(args.reference_ms)])
         watchdog_cmd.extend(['--reference-ms', str(args.reference_ms)])
 
-    _, status_data = run_json(status_cmd)
+    status_returncode, status_data = run_json(status_cmd)
+    status_data['_returncode'] = status_returncode
     watchdog_returncode, watchdog_data = run_json(watchdog_cmd)
     watchdog_data['_returncode'] = watchdog_returncode
 
