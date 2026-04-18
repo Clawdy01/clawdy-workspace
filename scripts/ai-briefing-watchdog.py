@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -519,4 +520,15 @@ def main() -> int:
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    try:
+        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    except (AttributeError, ValueError):
+        pass
+    try:
+        raise SystemExit(main())
+    except BrokenPipeError:
+        try:
+            sys.stdout.close()
+        except Exception:
+            pass
+        raise SystemExit(0)

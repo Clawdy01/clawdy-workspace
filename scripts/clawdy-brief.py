@@ -44,6 +44,25 @@ def extract_json_document(text):
     raise json.JSONDecodeError('Expecting value', text, 0)
 
 
+def unique_bits(bits):
+    unique = []
+    for bit in bits:
+        cleaned = ' '.join((bit or '').split())
+        if not cleaned:
+            continue
+        skip = False
+        for existing in list(unique):
+            if cleaned == existing or cleaned in existing:
+                skip = True
+                break
+            if existing in cleaned:
+                unique.remove(existing)
+        if skip:
+            continue
+        unique.append(cleaned)
+    return unique
+
+
 def run_json_command(command, default=None, timeout=12):
     try:
         proc = subprocess.run(
@@ -477,7 +496,7 @@ def render_text(summary):
                     run_bits.append(run['duration_text'])
                 recent_bits.append(' / '.join(run_bits))
             ai_bits.append(f"recente runs {'; '.join(recent_bits)}")
-        lines.append(f"- ai briefing: {'; '.join(ai_bits)}")
+        lines.append(f"- ai briefing: {'; '.join(unique_bits(ai_bits))}")
     mail_line = f"- mail {mail['account']} via {mail['host']}, last_uid {mail['last_uid']}, notified {mail['tracked_notifications']}"
     recent_high_count = mail_high_recent.get('total_count', mail_high_recent.get('count', 0))
     recent_high_groups = mail_high_recent.get('total_related_group_count', mail_high_recent.get('related_group_count', 0))
