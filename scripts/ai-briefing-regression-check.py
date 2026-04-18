@@ -2,11 +2,14 @@
 import argparse
 import importlib.util
 import json
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATUS_SCRIPT = ROOT / 'scripts' / 'ai-briefing-status.py'
+PROOF_RECHECK_SCRIPT = ROOT / 'scripts' / 'ai-briefing-proof-recheck.py'
+PROOF_RECHECK_PRODUCER_SCRIPT = ROOT / 'scripts' / 'ai-briefing-proof-recheck-producer.py'
 DEFAULT_REFERENCE_MS = int(datetime(2026, 4, 15, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
 DEFAULT_CASES = [
     {
@@ -1683,36 +1686,146 @@ STATUS_PHASE_CASES = [
     {
         'name': 'status-before-slot-waits-for-run',
         'reference_ms': 1776495480000,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_blocker_kind': 'time-gated-next-slot',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_proof_recheck_window_open': False,
+        'expect_substrings': [
+            'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
+            'hercheck vanaf 2026-04-19 09:15 CEST',
+        ],
+    },
+    {
+        'name': 'status-next-day-before-slot-waits-for-run',
+        'reference_ms': 1776581880000,
         'expect_proof_state': 'waiting-next-scheduled-run',
         'expect_proof_blocker_kind': 'time-gated-next-slot',
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_recheck_window_open': False,
         'expect_substrings': [
-            'wacht op geplande kwalificatierun 2026-04-18 09:00 CEST',
-            'hercheck vanaf 2026-04-18 09:15 CEST',
+            'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
+            'hercheck vanaf 2026-04-19 09:15 CEST',
         ],
     },
     {
         'name': 'status-current-slot-grace-window',
-        'reference_ms': 1776495900000,
+        'reference_ms': 1776582300000,
         'expect_proof_state': 'current-slot-grace-window',
         'expect_proof_blocker_kind': 'grace-window-before-recheck',
         'expect_proof_next_action_kind': 'wait-for-recheck-window',
         'expect_proof_recheck_window_open': False,
         'expect_substrings': [
-            'kwalificatierun van 2026-04-18 09:00 CEST zit in grace-window',
-            'hercheck vanaf 2026-04-18 09:15 CEST',
+            'kwalificatierun van 2026-04-19 09:00 CEST zit in grace-window',
+            'hercheck vanaf 2026-04-19 09:15 CEST',
         ],
     },
     {
         'name': 'status-recheck-window-open',
-        'reference_ms': 1776496500000,
+        'reference_ms': 1776582900000,
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_blocker_kind': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
         'expect_proof_recheck_window_open': True,
         'expect_substrings': [
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+]
+
+PROOF_RECHECK_CASES = [
+    {
+        'name': 'proof-recheck-before-slot-too-early',
+        'reference_ms': 1776495480000,
+        'expect_state': 'waiting',
+        'expect_exit_code': 2,
+        'expect_result_kind': 'too-early',
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_blocker_kind': 'time-gated-next-slot',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_proof_recheck_ready': False,
+        'expect_status_ok': False,
+        'expect_watchdog_ok': False,
+        'expect_substrings': [
+            'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+            'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
+            'hercheck vanaf 2026-04-19 09:15 CEST',
+        ],
+    },
+    {
+        'name': 'proof-recheck-grace-window-too-early',
+        'reference_ms': 1776582300000,
+        'expect_state': 'waiting',
+        'expect_exit_code': 2,
+        'expect_result_kind': 'too-early',
+        'expect_proof_state': 'current-slot-grace-window',
+        'expect_proof_blocker_kind': 'grace-window-before-recheck',
+        'expect_proof_next_action_kind': 'wait-for-recheck-window',
+        'expect_proof_recheck_ready': False,
+        'expect_status_ok': False,
+        'expect_watchdog_ok': False,
+        'expect_substrings': [
+            'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+            'kwalificatierun van 2026-04-19 09:00 CEST zit in grace-window',
+            'hercheck vanaf 2026-04-19 09:15 CEST',
+        ],
+    },
+    {
+        'name': 'proof-recheck-open-window-needs-attention',
+        'reference_ms': 1776582900000,
+        'expect_state': 'attention',
+        'expect_exit_code': 3,
+        'expect_result_kind': 'attention-needed',
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_blocker_kind': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_proof_recheck_ready': True,
+        'expect_status_ok': False,
+        'expect_watchdog_ok': False,
+        'expect_substrings': [
+            'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            'daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3',
+        ],
+    },
+]
+
+PROOF_RECHECK_PRODUCER_CASES = [
+    {
+        'name': 'proof-recheck-producer-before-slot-too-early',
+        'reference_ms': 1776495480000,
+        'expect_exit_code': 2,
+        'expect_result_kind': 'too-early',
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_blocker_kind': 'time-gated-next-slot',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_proof_recheck_ready': False,
+        'expect_quiet_substrings': [
+            'ai-briefing-proof-recheck-producer: all',
+            'resultaat: too-early',
+            'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
+        ],
+        'expect_json_substrings': [
+            'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+            'referentietijd 2026-04-18 08:58 CEST',
+        ],
+    },
+    {
+        'name': 'proof-recheck-producer-open-window-needs-attention',
+        'reference_ms': 1776582900000,
+        'expect_exit_code': 3,
+        'expect_result_kind': 'attention-needed',
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_blocker_kind': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_proof_recheck_ready': True,
+        'expect_quiet_substrings': [
+            'ai-briefing-proof-recheck-producer: all',
+            'resultaat: attention-needed',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+        'expect_json_substrings': [
+            'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
+            'referentietijd 2026-04-19 09:15 CEST',
         ],
     },
 ]
@@ -2030,6 +2143,208 @@ def evaluate_status_phase_case(module, case):
     }
 
 
+def evaluate_proof_recheck_case(case):
+    proc = subprocess.run(
+        ['python3', str(PROOF_RECHECK_SCRIPT), '--json', '--reference-ms', str(case['reference_ms'])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    output = proc.stdout.strip() or proc.stderr.strip()
+    failures = []
+
+    if not output:
+        failures.append('geen output van ai-briefing-proof-recheck.py')
+        payload = {}
+    else:
+        try:
+            payload = json.loads(output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van ai-briefing-proof-recheck.py: {exc}')
+            payload = {}
+
+    if proc.returncode != case['expect_exit_code']:
+        failures.append(f"proces-exitcode verwacht {case['expect_exit_code']}, kreeg {proc.returncode}")
+    if payload.get('exit_code') != case['expect_exit_code']:
+        failures.append(f"payload exit_code verwacht {case['expect_exit_code']}, kreeg {payload.get('exit_code')}")
+    if payload.get('state') != case['expect_state']:
+        failures.append(f"state verwacht {case['expect_state']}, kreeg {payload.get('state')}")
+    if payload.get('result_kind') != case['expect_result_kind']:
+        failures.append(f"result_kind verwacht {case['expect_result_kind']}, kreeg {payload.get('result_kind')}")
+    if payload.get('proof_state') != case['expect_proof_state']:
+        failures.append(f"proof_state verwacht {case['expect_proof_state']}, kreeg {payload.get('proof_state')}")
+    if payload.get('proof_blocker_kind') != case['expect_proof_blocker_kind']:
+        failures.append(
+            f"proof_blocker_kind verwacht {case['expect_proof_blocker_kind']}, kreeg {payload.get('proof_blocker_kind')}"
+        )
+    if payload.get('proof_next_action_kind') != case['expect_proof_next_action_kind']:
+        failures.append(
+            f"proof_next_action_kind verwacht {case['expect_proof_next_action_kind']}, kreeg {payload.get('proof_next_action_kind')}"
+        )
+    if payload.get('proof_recheck_ready') != case['expect_proof_recheck_ready']:
+        failures.append(
+            f"proof_recheck_ready verwacht {case['expect_proof_recheck_ready']}, kreeg {payload.get('proof_recheck_ready')}"
+        )
+    if payload.get('status_ok') != case['expect_status_ok']:
+        failures.append(f"status_ok verwacht {case['expect_status_ok']}, kreeg {payload.get('status_ok')}")
+    if payload.get('watchdog_ok') != case['expect_watchdog_ok']:
+        failures.append(f"watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {payload.get('watchdog_ok')}")
+
+    combined_text = ' || '.join(
+        str(bit)
+        for bit in [
+            payload.get('result_text'),
+            payload.get('summary'),
+            payload.get('proof_state_text'),
+            payload.get('proof_blocker_text'),
+            payload.get('proof_next_action_text'),
+            payload.get('proof_next_action_window_text'),
+            payload.get('proof_recheck_window_text'),
+            payload.get('proof_recheck_commands_text'),
+        ]
+        if bit
+    )
+    for snippet in case.get('expect_substrings', []):
+        if snippet not in combined_text:
+            failures.append(f"verwachte proof-recheck-tekst ontbreekt: {snippet}")
+
+    return {
+        'name': case['name'],
+        'path': str(PROOF_RECHECK_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': payload.get('ok'),
+        'audit_text': combined_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def evaluate_proof_recheck_producer_case(case):
+    json_proc = subprocess.run(
+        ['python3', str(PROOF_RECHECK_PRODUCER_SCRIPT), 'all', '--json', '--reference-ms', str(case['reference_ms'])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    quiet_proc = subprocess.run(
+        ['python3', str(PROOF_RECHECK_PRODUCER_SCRIPT), 'all', '--quiet', '--reference-ms', str(case['reference_ms'])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    failures = []
+    json_output = json_proc.stdout.strip() or json_proc.stderr.strip()
+    if not json_output:
+        failures.append('geen JSON-output van ai-briefing-proof-recheck-producer.py')
+        payload = {}
+    else:
+        try:
+            payload = json.loads(json_output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van ai-briefing-proof-recheck-producer.py: {exc}')
+            payload = {}
+
+    overall = payload.get('overall') or {}
+    if json_proc.returncode != case['expect_exit_code']:
+        failures.append(f"json-exitcode verwacht {case['expect_exit_code']}, kreeg {json_proc.returncode}")
+    if quiet_proc.returncode != case['expect_exit_code']:
+        failures.append(f"quiet-exitcode verwacht {case['expect_exit_code']}, kreeg {quiet_proc.returncode}")
+    if overall.get('returncode') != case['expect_exit_code']:
+        failures.append(f"overall.returncode verwacht {case['expect_exit_code']}, kreeg {overall.get('returncode')}")
+    if overall.get('result_kind') != case['expect_result_kind']:
+        failures.append(f"overall.result_kind verwacht {case['expect_result_kind']}, kreeg {overall.get('result_kind')}")
+    if overall.get('proof_state') != case['expect_proof_state']:
+        failures.append(f"overall.proof_state verwacht {case['expect_proof_state']}, kreeg {overall.get('proof_state')}")
+    if overall.get('proof_blocker_kind') != case['expect_proof_blocker_kind']:
+        failures.append(
+            'overall.proof_blocker_kind verwacht '
+            f"{case['expect_proof_blocker_kind']}, kreeg {overall.get('proof_blocker_kind')}"
+        )
+    if overall.get('proof_next_action_kind') != case['expect_proof_next_action_kind']:
+        failures.append(
+            'overall.proof_next_action_kind verwacht '
+            f"{case['expect_proof_next_action_kind']}, kreeg {overall.get('proof_next_action_kind')}"
+        )
+    if overall.get('proof_recheck_ready') != case['expect_proof_recheck_ready']:
+        failures.append(
+            'overall.proof_recheck_ready verwacht '
+            f"{case['expect_proof_recheck_ready']}, kreeg {overall.get('proof_recheck_ready')}"
+        )
+
+    quiet_text = ' || '.join(
+        bit for bit in [quiet_proc.stdout.strip(), quiet_proc.stderr.strip()] if bit
+    )
+    for snippet in case.get('expect_quiet_substrings', []):
+        if snippet not in quiet_text:
+            failures.append(f"verwachte producer-quiet-tekst ontbreekt: {snippet}")
+
+    json_text = ' || '.join(
+        str(bit)
+        for bit in [
+            overall.get('summary'),
+            overall.get('result_text'),
+            overall.get('reference_context_text'),
+            overall.get('proof_blocker_text'),
+            overall.get('proof_next_action_window_text'),
+            overall.get('proof_recheck_commands_text'),
+        ]
+        if bit
+    )
+    for snippet in case.get('expect_json_substrings', []):
+        if snippet not in json_text:
+            failures.append(f"verwachte producer-json-tekst ontbreekt: {snippet}")
+
+    return {
+        'name': case['name'],
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': payload.get('ok'),
+        'audit_text': json_text or quiet_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 
 def main():
     parser = argparse.ArgumentParser(description='Regressiecheck voor AI-briefing output-audits')
@@ -2039,6 +2354,8 @@ def main():
     module = load_status_module()
     results = [evaluate_case(module, case) for case in DEFAULT_CASES]
     results.extend(evaluate_status_phase_case(module, case) for case in STATUS_PHASE_CASES)
+    results.extend(evaluate_proof_recheck_case(case) for case in PROOF_RECHECK_CASES)
+    results.extend(evaluate_proof_recheck_producer_case(case) for case in PROOF_RECHECK_PRODUCER_CASES)
     overall_ok = all(result['ok'] for result in results)
 
     if args.json:
