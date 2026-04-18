@@ -2383,7 +2383,7 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         attention_reasons.append(f"briefing-output: {last_run_output_audit.get('text')}")
 
     reference_mode = 'simulated' if reference_ms is not None else 'live'
-    reference_context_text = None
+    reference_context_text = f"live referentietijd {fmt_ts(now_ms, tz_name)}"
     if reference_mode == 'simulated':
         reference_context_text = f"referentietijd {fmt_ts(now_ms, tz_name)}"
 

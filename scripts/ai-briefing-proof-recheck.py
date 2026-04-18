@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -220,6 +221,7 @@ def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, std
 
 
 def main() -> int:
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
     parser = argparse.ArgumentParser(description='Draai de AI-briefing status + watchdog hercheck in één commando.')
     parser.add_argument('--json', action='store_true', help='geef machinevriendelijke JSON terug')
     parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische herchecks')
@@ -260,4 +262,11 @@ def main() -> int:
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except BrokenPipeError:
+        try:
+            sys.stdout.close()
+        except Exception:
+            pass
+        raise SystemExit(0)
