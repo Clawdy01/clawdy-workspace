@@ -1,4 +1,4 @@
-ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 2/3 runs ok, 2 afgeleverd, laatste duur 5m 0s, laatste 15 uur geleden
+ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 2/3 runs ok, 2 afgeleverd, laatste duur 5m 0s, laatste 16 uur geleden
 proof state: bewijs wacht op de eerstvolgende geplande kwalificatierun (waiting-next-scheduled-run)
 reasons:
 - status not ok
@@ -7,21 +7,22 @@ reasons:
 - onvoldoende gekwalificeerde runs voor huidige config (0/3)
 - geen gekwalificeerde run sinds verwacht dagslot 2026-04-17 09:00 CEST
 readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan; wacht op eerstvolgende kwalificatierun
-proof config: bewijsconfig 83ca9556106b, gewijzigd 2026-04-17 09:23 CEST (15 uur geleden)
+proof config: bewijsconfig 83ca9556106b, gewijzigd 2026-04-17 09:23 CEST (16 uur geleden)
 proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan
 proof wait state: wacht op eerstvolgende geplande kwalificatierun
 proof requirement: 0/3 gekwalificeerde runs
 proof remaining: nog 3 te gaan
 next run: 2026-04-18 09:00 CEST
 proof target due: 2026-04-20 09:15 CEST
-proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-04-18 09:00 CEST (over 8u 33m), doel 2026-04-20 09:15 CEST
-proof next action: wacht op geplande kwalificatierun 2026-04-18 09:00 CEST (over 8u 33m) en draai daarna ai-briefing-status/watchdog opnieuw
-proof recheck: hercheck niet vóór 2026-04-18 09:15 CEST (over 8u 48m)
+proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-04-18 09:00 CEST (over 7u 2m), doel 2026-04-20 09:15 CEST
+proof next action: wacht op geplande kwalificatierun 2026-04-18 09:00 CEST (over 7u 2m) en draai daarna ai-briefing-status/watchdog opnieuw
+proof recheck commands: daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3
+proof recheck window: hercheckvenster opent 2026-04-18 09:15 CEST (over 7u 17m)
 proof schedule risk: als slot 2026-04-18 09:00 CEST mist, schuift bewijsdoel naar 2026-04-21 09:15 CEST
-proof wait until: 2026-04-18 09:00 CEST (over 8u 33m) [T+8.6u] - bewijs blijft wachten tot de eerstvolgende geplande kwalificatierun
-next qualifying run: 2026-04-18 09:00 CEST (over 8u 33m) [T+8.6u] [vandaag]
-proof countdown: wachtvenster tot 2026-04-18 09:00 CEST (over 8u 33m); bewijsdoel 2026-04-20 09:15 CEST (over 2 d 8 u); mist volgend slot => 2026-04-21 09:15 CEST (slip +24u)
-proof target check gate: proof-target-check blijft stil tot 2026-04-20 09:15 CEST (over 2 d 8 u) (suppressed-until-deadline)
-qualifying run slots: 2026-04-18 09:00 CEST (over 8u 33m | vandaag), 2026-04-19 09:00 CEST (over 1 d 8 u | morgen), 2026-04-20 09:00 CEST (over 2 d 8 u | over 2 d)
+proof wait until: 2026-04-18 09:00 CEST (over 7u 2m) [T+7u] - bewijs blijft wachten tot de eerstvolgende geplande kwalificatierun
+next qualifying run: 2026-04-18 09:00 CEST (over 7u 2m) [T+7u] [vandaag]
+proof countdown: wachtvenster tot 2026-04-18 09:00 CEST (over 7u 2m); bewijsdoel 2026-04-20 09:15 CEST (over 2 d 7 u); mist volgend slot => 2026-04-21 09:15 CEST (slip +24u)
+proof target check gate: proof-target-check blijft stil tot 2026-04-20 09:15 CEST (over 2 d 7 u) (suppressed-until-deadline)
+qualifying run slots: 2026-04-18 09:00 CEST (over 7u 2m | vandaag), 2026-04-19 09:00 CEST (over 1 d 7 u | morgen), 2026-04-20 09:00 CEST (over 2 d 7 u | over 2 d)
 last run timeout audit: laatste run time-outte op oudere limiet; onder huidige limiet zou 2m 59s speling overblijven (5m 0s op limiet 8m 0s)
 recent run duration audit: recente duurtrend 2m 37s tot 5m 0s, gemiddeld 4m 7s, onder huidige limiet 8m 0s

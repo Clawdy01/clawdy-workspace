@@ -2670,35 +2670,13 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['text'] = status_text
     summary['summary'] = status_text
     summary['status_text'] = status_text
-    if summary['proof_target_met']:
-        proof_next_action_text = 'bewijspad klaar; sync KANBAN/STATUS en activeer het volgende spoor'
-    elif proof_wait_until_text:
-        proof_next_action_text = (
-            f"wacht op geplande kwalificatierun {proof_wait_until_text}"
-            + (f" ({proof_wait_until_hint})" if proof_wait_until_hint else '')
-            + ' en draai daarna ai-briefing-status/watchdog opnieuw'
-        )
-    elif proof_next_qualifying_slot_at and summary['proof_next_qualifying_slot_at_text']:
-        proof_next_action_text = (
-            f"bewaak kwalificatierun {summary['proof_next_qualifying_slot_at_text']}"
-            + (f" ({summary['proof_next_qualifying_slot_hint']})" if summary['proof_next_qualifying_slot_hint'] else '')
-            + ' en draai daarna ai-briefing-status/watchdog opnieuw'
-        )
-    else:
-        proof_next_action_text = 'herstel een geldig kwalificatieslot en draai daarna ai-briefing-status/watchdog opnieuw'
-
     summary['proof_progress_text'] = proof_progress_text
     summary['proof_plan_text'] = proof_plan_text
     summary['proof_schedule_risk_text'] = proof_schedule_risk_text
-    proof_next_action_kind = 'repair-slot-then-recheck'
     proof_recheck_commands = [
         'python3 scripts/ai-briefing-status.py --json',
         'python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3',
     ]
-    if summary['proof_target_met']:
-        proof_next_action_kind = 'sync-and-activate-next-track'
-    elif proof_wait_until_at:
-        proof_next_action_kind = 'wait-then-recheck'
 
     proof_recheck_grace_ms = None
     if proof_wait_until_at:
@@ -2711,12 +2689,14 @@ def build_status(job_name=TARGET_JOB_NAME):
     proof_recheck_after_at = None
     if proof_wait_until_at:
         proof_recheck_after_at = proof_wait_until_at + (proof_recheck_grace_ms or 0)
+    proof_recheck_commands_text = None
+    if proof_recheck_commands:
+        proof_recheck_commands_text = 'daarna draai: ' + ' ; '.join(proof_recheck_commands)
 
     summary['proof_state'] = proof_state
     summary['proof_state_text'] = proof_state_text
-    summary['proof_next_action_kind'] = proof_next_action_kind
-    summary['proof_next_action_text'] = proof_next_action_text
     summary['proof_recheck_commands'] = proof_recheck_commands
+    summary['proof_recheck_commands_text'] = proof_recheck_commands_text
     summary['proof_wait_until_at'] = proof_wait_until_at
     summary['proof_wait_until_text'] = proof_wait_until_text
     summary['proof_wait_until_hint'] = proof_wait_until_hint
@@ -2729,6 +2709,20 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_recheck_after_hint'] = future_hint(proof_recheck_after_at, now_ms)
     summary['proof_recheck_after_remaining_ms'] = remaining_ms(proof_recheck_after_at, now_ms)
     summary['proof_recheck_after_remaining_hours'] = remaining_hours(proof_recheck_after_at, now_ms)
+    proof_recheck_window_open = None
+    proof_recheck_window_text = None
+    if proof_recheck_after_at:
+        proof_recheck_window_open = now_ms >= proof_recheck_after_at
+        if summary['proof_recheck_after_text']:
+            if proof_recheck_window_open:
+                proof_recheck_window_text = 'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw'
+            else:
+                proof_recheck_window_text = (
+                    f"hercheckvenster opent {summary['proof_recheck_after_text']}"
+                    + (f" ({summary['proof_recheck_after_hint']})" if summary['proof_recheck_after_hint'] else '')
+                )
+    summary['proof_recheck_window_open'] = proof_recheck_window_open
+    summary['proof_recheck_window_text'] = proof_recheck_window_text
     if proof_recheck_after_at and summary['proof_recheck_after_text']:
         summary['proof_recheck_after_text_compact'] = (
             f"hercheck niet vóór {summary['proof_recheck_after_text']}"
@@ -2736,6 +2730,30 @@ def build_status(job_name=TARGET_JOB_NAME):
         )
     else:
         summary['proof_recheck_after_text_compact'] = None
+    proof_next_action_kind = 'repair-slot-then-recheck'
+    if summary['proof_target_met']:
+        proof_next_action_text = 'bewijspad klaar; sync KANBAN/STATUS en activeer het volgende spoor'
+        proof_next_action_kind = 'sync-and-activate-next-track'
+    elif proof_recheck_window_open:
+        proof_next_action_text = 'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw'
+        proof_next_action_kind = 'recheck-now'
+    elif proof_wait_until_text:
+        proof_next_action_text = (
+            f"wacht op geplande kwalificatierun {proof_wait_until_text}"
+            + (f" ({proof_wait_until_hint})" if proof_wait_until_hint else '')
+            + ' en draai daarna ai-briefing-status/watchdog opnieuw'
+        )
+        proof_next_action_kind = 'wait-then-recheck'
+    elif proof_next_qualifying_slot_at and summary['proof_next_qualifying_slot_at_text']:
+        proof_next_action_text = (
+            f"bewaak kwalificatierun {summary['proof_next_qualifying_slot_at_text']}"
+            + (f" ({summary['proof_next_qualifying_slot_hint']})" if summary['proof_next_qualifying_slot_hint'] else '')
+            + ' en draai daarna ai-briefing-status/watchdog opnieuw'
+        )
+    else:
+        proof_next_action_text = 'herstel een geldig kwalificatieslot en draai daarna ai-briefing-status/watchdog opnieuw'
+    summary['proof_next_action_kind'] = proof_next_action_kind
+    summary['proof_next_action_text'] = proof_next_action_text
     proof_schedule_slip_ms = None
     proof_schedule_slip_hours = None
     if proof_target_due_at and proof_target_due_at_if_next_slot_missed:
@@ -2963,7 +2981,11 @@ def render_text(data):
         parts.append(data['proof_state_text'])
     if data.get('proof_next_action_text'):
         parts.append(data['proof_next_action_text'])
-    if data.get('proof_recheck_after_text_compact'):
+    if data.get('proof_recheck_commands_text'):
+        parts.append(data['proof_recheck_commands_text'])
+    if data.get('proof_recheck_window_text') and data.get('proof_recheck_window_text') != data.get('proof_next_action_text'):
+        parts.append(data['proof_recheck_window_text'])
+    elif data.get('proof_recheck_after_text_compact'):
         parts.append(data['proof_recheck_after_text_compact'])
     if data.get('proof_schedule_risk_text'):
         parts.append(data['proof_schedule_risk_text'])
