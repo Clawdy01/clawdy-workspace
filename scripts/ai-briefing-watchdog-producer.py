@@ -149,10 +149,14 @@ def main():
     parser = argparse.ArgumentParser(description='Vaste producer-wrapper voor AI-briefing-watchdog consumers.')
     parser.add_argument('mode', choices=sorted(PRODUCER_MODES), help='Welke vaste consumer-producerroute je wilt draaien')
     parser.add_argument('--quiet', action='store_true', help='Toon geen volledige child-output, alleen een compacte producer-status')
+    parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische producerchecks')
     args, extra = parser.parse_known_args()
 
     if extra and extra[0] == '--':
         extra = extra[1:]
+
+    if args.reference_ms is not None:
+        extra = ['--reference-ms', str(args.reference_ms), *extra]
 
     exit_code = 0
     summaries = []

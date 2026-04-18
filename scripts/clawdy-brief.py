@@ -71,7 +71,7 @@ def load_json(path, default):
         return default
 
 
-def build_summary():
+def build_summary(reference_ms=None):
     status_default = {
         'version': 'onbekend',
         'gateway': {'text': 'onbekend'},
@@ -81,6 +81,10 @@ def build_summary():
         'audit': {'errors': 0, 'warnings': 0, 'lost': 0, 'timestamp_warns': 0},
         'session': None,
     }
+
+    ai_briefing_status_command = ['python3', str(AI_BRIEFING_STATUS), '--json']
+    if reference_ms is not None:
+        ai_briefing_status_command.extend(['--reference-ms', str(reference_ms)])
 
     jobs = {
         'status': (
@@ -121,12 +125,12 @@ def build_summary():
         'mail_focus': (
             ['python3', str(ROOT / 'scripts/mail-focus.py'), '--json', '-n', '1'],
             {'scope': 'unread', 'focus': None, 'draft': None},
-            30,
+            60,
         ),
         'mail_high_recent': (
             ['python3', str(ROOT / 'scripts/mail-triage.py'), '--json', '-n', '5', '--high-only', '--all', '--search-limit', '50'],
             {'items': [], 'count': 0, 'total_count': 0, 'related_group_count': 0, 'total_related_group_count': 0, 'scope': 'latest+high'},
-            20,
+            40,
         ),
         'mail_next_step': (
             ['python3', str(ROOT / 'scripts/mail-next-step.py'), '--json', '-n', '3'],
@@ -139,7 +143,7 @@ def build_summary():
             45,
         ),
         'ai_briefing_status': (
-            ['python3', str(AI_BRIEFING_STATUS), '--json'],
+            ai_briefing_status_command,
             {'ok': False, 'found': False, 'text': 'onbekend'},
             10,
         ),
@@ -594,9 +598,10 @@ def render_text(summary):
 def main():
     parser = argparse.ArgumentParser(description='Gecombineerde Clawdy status- en mailbrief')
     parser.add_argument('--json', action='store_true', help='geef JSON-output')
+    parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische AI-briefing-statuschecks')
     args = parser.parse_args()
 
-    summary = build_summary()
+    summary = build_summary(reference_ms=args.reference_ms)
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:

@@ -68,7 +68,7 @@ def compact_reasons(reasons: list[str]) -> list[str]:
         compact.append(cleaned)
     return compact
 
-def run_watchdog(timeout_seconds: int, require_qualified_runs: int) -> dict:
+def run_watchdog(timeout_seconds: int, require_qualified_runs: int, reference_ms: int | None = None) -> dict:
     cmd = [
         'python3',
         str(WATCHDOG),
@@ -78,6 +78,8 @@ def run_watchdog(timeout_seconds: int, require_qualified_runs: int) -> dict:
         '--require-qualified-runs',
         str(require_qualified_runs),
     ]
+    if reference_ms is not None:
+        cmd.extend(['--reference-ms', str(reference_ms)])
     proc = subprocess.run(
         cmd,
         cwd=ROOT,
@@ -148,12 +150,12 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     return ' | '.join(unique_bits(bits))
 
 
-def should_suppress_before_proof_deadline(data: dict) -> bool:
+def should_suppress_before_proof_deadline(data: dict, reference_ms: int | None = None) -> bool:
     proof_target_due_at = data.get('proof_target_due_at')
     if not proof_target_due_at:
         return False
 
-    now_ms = int(datetime.now(tz=timezone.utc).timestamp() * 1000)
+    now_ms = reference_ms if reference_ms is not None else int(datetime.now(tz=timezone.utc).timestamp() * 1000)
     return now_ms < int(proof_target_due_at)
 
 
@@ -161,6 +163,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description='Geef alleen een korte alert terug als de AI-briefing-watchdog aandacht nodig heeft.')
     parser.add_argument('--mode', choices=sorted(MODE_REQUIREMENTS), default='preflight')
     parser.add_argument('--timeout', type=int, default=120)
+    parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische alertchecks')
     parser.add_argument('--require-qualified-runs', type=int, help='Override voor vereiste gekwalificeerde runs')
     args = parser.parse_args()
 
@@ -168,8 +171,8 @@ def main() -> int:
     if require_qualified_runs is None:
         require_qualified_runs = MODE_REQUIREMENTS[args.mode]
 
-    data = run_watchdog(args.timeout, max(0, require_qualified_runs))
-    if args.mode == 'proof-target-check' and should_suppress_before_proof_deadline(data):
+    data = run_watchdog(args.timeout, max(0, require_qualified_runs), reference_ms=args.reference_ms)
+    if args.mode == 'proof-target-check' and should_suppress_before_proof_deadline(data, reference_ms=args.reference_ms):
         print('NO_REPLY')
         return 0
     if data.get('ok'):

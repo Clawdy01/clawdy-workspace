@@ -58,10 +58,13 @@ def extract_json_document(text):
     raise json.JSONDecodeError('Expecting value', text, 0)
 
 
-def run_brief_json():
+def run_brief_json(reference_ms=None):
+    command = ['python3', str(BRIEF), '--json']
+    if reference_ms is not None:
+        command.extend(['--reference-ms', str(reference_ms)])
     try:
         proc = subprocess.run(
-            ['python3', str(BRIEF), '--json'],
+            command,
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -437,9 +440,10 @@ def main():
     parser = argparse.ArgumentParser(description='Compact statusboard voor command workflows')
     parser.add_argument('--json', action='store_true', help='geef JSON-output')
     parser.add_argument('--preview', action='store_true', help='toon korte preview van de laatste mail in tekstoutput')
+    parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische AI-briefing-statuschecks')
     args = parser.parse_args()
 
-    data = run_brief_json()
+    data = run_brief_json(reference_ms=args.reference_ms)
     if args.json:
         print(json.dumps(data, ensure_ascii=False, indent=2))
     else:
