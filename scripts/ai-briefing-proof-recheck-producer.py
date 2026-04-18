@@ -169,6 +169,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_schedule_slip_ms': payload.get('proof_schedule_slip_ms'),
         'proof_target_check_gate': payload.get('proof_target_check_gate'),
         'proof_target_check_gate_text': payload.get('proof_target_check_gate_text'),
+        'proof_config_hash': payload.get('proof_config_hash'),
         'proof_config_identity_text': payload.get('proof_config_identity_text'),
         'last_run_config_relation_text': payload.get('last_run_config_relation_text'),
         'proof_runs_remaining': payload.get('proof_runs_remaining'),
@@ -178,6 +179,8 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'status_returncode': payload.get('status_returncode'),
         'watchdog_ok': payload.get('watchdog_ok'),
         'watchdog_returncode': payload.get('watchdog_returncode'),
+        'consumer_outputs': payload.get('consumer_outputs') or [],
+        'consumer_output_paths': payload.get('consumer_output_paths') or [],
     }
 
 

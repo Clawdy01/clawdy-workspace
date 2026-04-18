@@ -146,6 +146,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_schedule_slip_ms': first_non_null(status_data.get('proof_schedule_slip_ms'), watchdog_data.get('proof_schedule_slip_ms')),
         'proof_target_check_gate': first_non_null(status_data.get('proof_target_check_gate'), watchdog_data.get('proof_target_check_gate')),
         'proof_target_check_gate_text': first_non_null(status_data.get('proof_target_check_gate_text'), watchdog_data.get('proof_target_check_gate_text')),
+        'proof_config_hash': first_non_null(status_data.get('proof_config_hash'), watchdog_data.get('proof_config_hash')),
         'proof_config_identity_text': first_non_null(status_data.get('proof_config_identity_text'), watchdog_data.get('proof_config_identity_text')),
         'last_run_config_relation_text': first_non_null(status_data.get('last_run_config_relation_text'), watchdog_data.get('last_run_config_relation_text')),
         'status_ok': status_ok,
@@ -204,36 +205,75 @@ def render_output(*, text: str, payload: dict, output_format: str) -> str:
     return text if text.endswith('\n') else text + '\n'
 
 
-def write_output(rendered: str, *, output_path: str | None = None, append: bool = False) -> None:
+def write_output(rendered: str, *, output_path: str | None = None, append: bool = False) -> str | None:
     if not output_path:
-        return
+        return None
     path = Path(output_path).expanduser().resolve()
     path.parent.mkdir(parents=True, exist_ok=True)
     mode = 'a' if append else 'w'
     with path.open(mode, encoding='utf-8') as handle:
         handle.write(rendered)
+    return str(path)
 
 
-def emit_output(*, text: str, payload: dict, output_format: str, output_path: str | None = None, append: bool = False) -> None:
+def emit_output(*, text: str, payload: dict, output_format: str, output_path: str | None = None, append: bool = False) -> str | None:
     rendered = render_output(text=text, payload=payload, output_format=output_format)
-    write_output(rendered, output_path=output_path, append=append)
+    written_path = write_output(rendered, output_path=output_path, append=append)
     sys.stdout.write(rendered)
+    return written_path
 
 
-def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> None:
-    emit_output(
+def collect_output_targets(*, stdout_format: str, stdout_output_path: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> list[dict]:
+    output_targets: list[dict] = []
+    if stdout_output_path:
+        output_targets.append({
+            'channel': 'stdout-output',
+            'path': str(Path(stdout_output_path).expanduser().resolve()),
+            'format': stdout_format,
+            'append': bool(stdout_append),
+        })
+    if consumer_bundle:
+        for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
+            preset = consumer_presets[preset_name]
+            output_targets.append({
+                'channel': preset_name,
+                'path': str(Path(preset['path']).expanduser().resolve()),
+                'format': preset['format'],
+                'append': bool(preset['append']),
+            })
+    return output_targets
+
+
+def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> list[dict]:
+    written_outputs: list[dict] = []
+    written_path = emit_output(
         text=text,
         payload=payload,
         output_format=stdout_format,
         output_path=stdout_output_path,
         append=stdout_append,
     )
+    if written_path:
+        written_outputs.append({
+            'channel': 'stdout-output',
+            'path': written_path,
+            'format': stdout_format,
+            'append': bool(stdout_append),
+        })
     if not consumer_bundle:
-        return
+        return written_outputs
     for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
         preset = consumer_presets[preset_name]
         rendered = render_output(text=text, payload=payload, output_format=preset['format'])
-        write_output(rendered, output_path=str(preset['path']), append=preset['append'])
+        written_path = write_output(rendered, output_path=str(preset['path']), append=preset['append'])
+        if written_path:
+            written_outputs.append({
+                'channel': preset_name,
+                'path': written_path,
+                'format': preset['format'],
+                'append': bool(preset['append']),
+            })
+    return written_outputs
 
 
 def main() -> int:
@@ -269,6 +309,14 @@ def main() -> int:
         default_format=stdout_format,
         consumer_presets=consumer_presets,
     )
+    payload['consumer_outputs'] = collect_output_targets(
+        stdout_format=consumer_output_format,
+        stdout_output_path=consumer_output_path,
+        stdout_append=consumer_append,
+        consumer_bundle=args.consumer_bundle,
+        consumer_presets=consumer_presets,
+    )
+    payload['consumer_output_paths'] = [item['path'] for item in payload['consumer_outputs']]
     emit_output_with_bundle(
         text=text_output,
         payload=payload,

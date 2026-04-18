@@ -1753,6 +1753,7 @@ PROOF_RECHECK_CASES = [
         'expect_proof_schedule_slip_ms': 86400000,
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
+        'expect_proof_config_hash_present': True,
         'expect_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
@@ -1778,6 +1779,7 @@ PROOF_RECHECK_CASES = [
         'expect_proof_schedule_slip_ms': 86400000,
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
+        'expect_proof_config_hash_present': True,
         'expect_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'kwalificatierun van 2026-04-19 09:00 CEST zit in grace-window',
@@ -1803,6 +1805,7 @@ PROOF_RECHECK_CASES = [
         'expect_proof_schedule_slip_ms': 86400000,
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
+        'expect_proof_config_hash_present': True,
         'expect_substrings': [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
@@ -1841,6 +1844,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'referentietijd 2026-04-18 08:58 CEST',
         ],
+        'expect_proof_config_hash_present': True,
         'expect_artifact_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
@@ -1875,6 +1879,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'referentietijd 2026-04-19 09:15 CEST',
         ],
+        'expect_proof_config_hash_present': True,
         'expect_artifact_substrings': [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
@@ -2274,6 +2279,8 @@ def evaluate_proof_recheck_case(case):
         failures.append(f"status_ok verwacht {case['expect_status_ok']}, kreeg {payload.get('status_ok')}")
     if payload.get('watchdog_ok') != case['expect_watchdog_ok']:
         failures.append(f"watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {payload.get('watchdog_ok')}")
+    if case.get('expect_proof_config_hash_present') and not payload.get('proof_config_hash'):
+        failures.append('proof_config_hash ontbreekt in proof-recheck-payload')
 
     combined_text = ' || '.join(
         str(bit)
@@ -2382,6 +2389,8 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(f"overall.status_ok verwacht {case['expect_status_ok']}, kreeg {overall.get('status_ok')}")
         if overall.get('watchdog_ok') != case['expect_watchdog_ok']:
             failures.append(f"overall.watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {overall.get('watchdog_ok')}")
+        if case.get('expect_proof_config_hash_present') and not overall.get('proof_config_hash'):
+            failures.append('overall.proof_config_hash ontbreekt in producer-json')
         if overall.get('proof_state') != case['expect_proof_state']:
             failures.append(f"overall.proof_state verwacht {case['expect_proof_state']}, kreeg {overall.get('proof_state')}")
         if overall.get('proof_blocker_kind') != case['expect_proof_blocker_kind']:
@@ -2461,7 +2470,19 @@ def evaluate_proof_recheck_producer_case(case):
         json_artifact = artifact_base / 'ai-briefing-proof-recheck.json'
         text_artifact = artifact_base / 'ai-briefing-proof-recheck.txt'
         jsonl_artifact = artifact_base / 'ai-briefing-proof-recheck.jsonl'
-        for artifact in (json_artifact, text_artifact, jsonl_artifact):
+        expected_artifacts = [json_artifact, text_artifact, jsonl_artifact]
+        overall_consumer_output_paths = overall.get('consumer_output_paths') or []
+        if sorted(overall_consumer_output_paths) != sorted(str(path.resolve()) for path in expected_artifacts):
+            failures.append(
+                'overall.consumer_output_paths verwacht '
+                f"{[str(path.resolve()) for path in expected_artifacts]}, kreeg {overall_consumer_output_paths}"
+            )
+        overall_consumer_outputs = overall.get('consumer_outputs') or []
+        if len(overall_consumer_outputs) != len(expected_artifacts):
+            failures.append(
+                f"overall.consumer_outputs verwacht {len(expected_artifacts)} items, kreeg {len(overall_consumer_outputs)}"
+            )
+        for artifact in expected_artifacts:
             if not artifact.exists():
                 failures.append(f'artifact ontbreekt: {artifact}')
 
@@ -2487,6 +2508,8 @@ def evaluate_proof_recheck_producer_case(case):
 
         for artifact_payload, label in ((artifact_json_payload, 'json-artifact'), (artifact_jsonl_payload, 'jsonl-artifact')):
             if artifact_payload:
+                if case.get('expect_proof_config_hash_present') and not artifact_payload.get('proof_config_hash'):
+                    failures.append(f'{label} mist proof_config_hash')
                 if artifact_payload.get('result_kind') != case['expect_result_kind']:
                     failures.append(
                         f"{label} result_kind verwacht {case['expect_result_kind']}, kreeg {artifact_payload.get('result_kind')}"
