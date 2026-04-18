@@ -155,8 +155,15 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_recheck_commands_text': payload.get('proof_recheck_commands_text'),
         'proof_countdown_text': payload.get('proof_countdown_text'),
         'proof_schedule_risk_text': payload.get('proof_schedule_risk_text'),
+        'proof_wait_until_at': payload.get('proof_wait_until_at'),
+        'proof_wait_until_remaining_ms': payload.get('proof_wait_until_remaining_ms'),
+        'proof_next_qualifying_slot_at': payload.get('proof_next_qualifying_slot_at'),
+        'proof_next_qualifying_slot_remaining_ms': payload.get('proof_next_qualifying_slot_remaining_ms'),
+        'proof_target_due_at': payload.get('proof_target_due_at'),
         'proof_target_due_at_text': payload.get('proof_target_due_at_text'),
+        'proof_target_due_at_if_next_slot_missed': payload.get('proof_target_due_at_if_next_slot_missed'),
         'proof_target_due_at_if_next_slot_missed_text': payload.get('proof_target_due_at_if_next_slot_missed_text'),
+        'proof_schedule_slip_ms': payload.get('proof_schedule_slip_ms'),
         'proof_target_check_gate': payload.get('proof_target_check_gate'),
         'proof_target_check_gate_text': payload.get('proof_target_check_gate_text'),
         'proof_config_identity_text': payload.get('proof_config_identity_text'),
@@ -175,6 +182,7 @@ def main():
     parser.add_argument('--quiet', action='store_true', help='Toon geen volledige child-output, alleen een compacte producer-status')
     parser.add_argument('--json', action='store_true', help='Geef een machinevriendelijke producer-samenvatting terug')
     parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische producerchecks')
+    parser.add_argument('--consumer-root', help='Alternatieve basismap voor vaste child-consumer-artifacts')
     args, extra = parser.parse_known_args()
 
     if extra and extra[0] == '--':
@@ -182,6 +190,8 @@ def main():
 
     if args.reference_ms is not None:
         extra = ['--reference-ms', str(args.reference_ms), *extra]
+    if args.consumer_root:
+        extra = ['--consumer-root', args.consumer_root, *extra]
 
     exit_code = 0
     summaries = []
@@ -222,6 +232,7 @@ def main():
             'ok': exit_code == 0,
             'mode': args.mode,
             'reference_ms': args.reference_ms,
+            'consumer_root': args.consumer_root,
             'overall': overall,
             'items': producer_items,
         }

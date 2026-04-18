@@ -10,28 +10,32 @@ ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATUS = ROOT / 'scripts' / 'ai-briefing-status.py'
 WATCHDOG = ROOT / 'scripts' / 'ai-briefing-watchdog.py'
 DEFAULT_REPORT_DIR = ROOT / 'tmp' / 'ai-briefing' / 'reports'
-
-CONSUMER_PRESETS = {
-    'board-json': {
-        'path': DEFAULT_REPORT_DIR / 'ai-briefing-proof-recheck.json',
-        'format': 'json',
-        'append': False,
-    },
-    'board-text': {
-        'path': DEFAULT_REPORT_DIR / 'ai-briefing-proof-recheck.txt',
-        'format': 'text',
-        'append': False,
-    },
-    'eventlog-jsonl': {
-        'path': DEFAULT_REPORT_DIR / 'ai-briefing-proof-recheck.jsonl',
-        'format': 'jsonl',
-        'append': True,
-    },
-}
+CONSUMER_PRESET_NAMES = ('board-json', 'board-text', 'eventlog-jsonl')
 CONSUMER_BUNDLES = {
     'board-pair': ['board-json', 'board-text'],
     'board-suite': ['board-json', 'board-text', 'eventlog-jsonl'],
 }
+
+
+def build_consumer_presets(base_dir: Path | None = None) -> dict[str, dict]:
+    report_dir = (base_dir or DEFAULT_REPORT_DIR).expanduser().resolve()
+    return {
+        'board-json': {
+            'path': report_dir / 'ai-briefing-proof-recheck.json',
+            'format': 'json',
+            'append': False,
+        },
+        'board-text': {
+            'path': report_dir / 'ai-briefing-proof-recheck.txt',
+            'format': 'text',
+            'append': False,
+        },
+        'eventlog-jsonl': {
+            'path': report_dir / 'ai-briefing-proof-recheck.jsonl',
+            'format': 'jsonl',
+            'append': True,
+        },
+    }
 
 
 def extract_json_document(text: str):
@@ -131,8 +135,15 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'summary_output_examples': summary_output_examples,
         'proof_countdown_text': first_non_null(status_data.get('proof_countdown_text'), watchdog_data.get('proof_countdown_text')),
         'proof_schedule_risk_text': first_non_null(status_data.get('proof_schedule_risk_text'), watchdog_data.get('proof_schedule_risk_text')),
+        'proof_wait_until_at': first_non_null(status_data.get('proof_wait_until_at'), watchdog_data.get('proof_wait_until_at')),
+        'proof_wait_until_remaining_ms': first_non_null(status_data.get('proof_wait_until_remaining_ms'), watchdog_data.get('proof_wait_until_remaining_ms')),
+        'proof_next_qualifying_slot_at': first_non_null(status_data.get('proof_next_qualifying_slot_at'), watchdog_data.get('proof_next_qualifying_slot_at')),
+        'proof_next_qualifying_slot_remaining_ms': first_non_null(status_data.get('proof_next_qualifying_slot_remaining_ms'), watchdog_data.get('proof_next_qualifying_slot_remaining_ms')),
+        'proof_target_due_at': first_non_null(status_data.get('proof_target_due_at'), watchdog_data.get('proof_target_due_at')),
         'proof_target_due_at_text': first_non_null(status_data.get('proof_target_due_at_text'), watchdog_data.get('proof_target_due_at_text')),
+        'proof_target_due_at_if_next_slot_missed': first_non_null(status_data.get('proof_target_due_at_if_next_slot_missed'), watchdog_data.get('proof_target_due_at_if_next_slot_missed')),
         'proof_target_due_at_if_next_slot_missed_text': first_non_null(status_data.get('proof_target_due_at_if_next_slot_missed_text'), watchdog_data.get('proof_target_due_at_if_next_slot_missed_text')),
+        'proof_schedule_slip_ms': first_non_null(status_data.get('proof_schedule_slip_ms'), watchdog_data.get('proof_schedule_slip_ms')),
         'proof_target_check_gate': first_non_null(status_data.get('proof_target_check_gate'), watchdog_data.get('proof_target_check_gate')),
         'proof_target_check_gate_text': first_non_null(status_data.get('proof_target_check_gate_text'), watchdog_data.get('proof_target_check_gate_text')),
         'proof_config_identity_text': first_non_null(status_data.get('proof_config_identity_text'), watchdog_data.get('proof_config_identity_text')),
@@ -171,13 +182,13 @@ def build_text(payload: dict) -> str:
     return ' | '.join(unique_bits)
 
 
-def resolve_consumer_settings(args, *, default_format: str):
+def resolve_consumer_settings(args, *, default_format: str, consumer_presets: dict[str, dict]):
     output_path = args.consumer_out
     output_format = args.consumer_format or default_format
     append = args.consumer_append
 
     if args.consumer_preset:
-        preset = CONSUMER_PRESETS[args.consumer_preset]
+        preset = consumer_presets[args.consumer_preset]
         output_path = str(preset['path'])
         output_format = args.consumer_format or preset['format']
         append = args.consumer_append or preset['append']
@@ -209,7 +220,7 @@ def emit_output(*, text: str, payload: dict, output_format: str, output_path: st
     sys.stdout.write(rendered)
 
 
-def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None) -> None:
+def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> None:
     emit_output(
         text=text,
         payload=payload,
@@ -220,7 +231,7 @@ def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, std
     if not consumer_bundle:
         return
     for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
-        preset = CONSUMER_PRESETS[preset_name]
+        preset = consumer_presets[preset_name]
         rendered = render_output(text=text, payload=payload, output_format=preset['format'])
         write_output(rendered, output_path=str(preset['path']), append=preset['append'])
 
@@ -231,7 +242,8 @@ def main() -> int:
     parser.add_argument('--json', action='store_true', help='geef machinevriendelijke JSON terug')
     parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische herchecks')
     parser.add_argument('--consumer-out', help='Schrijf de proof-recheck-uitvoer ook naar een bestand voor cron/board-consumers')
-    parser.add_argument('--consumer-preset', choices=sorted(CONSUMER_PRESETS), help='Gebruik een vaste consumer-outputroute')
+    parser.add_argument('--consumer-root', help='Alternatieve basismap voor vaste consumer-presets/bundles (handig voor tests of gescheiden artifacts)')
+    parser.add_argument('--consumer-preset', choices=sorted(CONSUMER_PRESET_NAMES), help='Gebruik een vaste consumer-outputroute')
     parser.add_argument('--consumer-bundle', choices=sorted(CONSUMER_BUNDLES), help='Schrijf dezelfde proof-recheck-status naar meerdere standaard consumerbestanden')
     parser.add_argument('--consumer-format', choices=['text', 'json', 'jsonl'], help='Outputformaat voor --consumer-out; default volgt stdout-formaat')
     parser.add_argument('--consumer-append', action='store_true', help='Append naar bestaand consumer-bestand in plaats van overschrijven')
@@ -251,9 +263,11 @@ def main() -> int:
     payload = build_payload(status_data, watchdog_data)
     text_output = build_text(payload)
     stdout_format = 'json' if args.json else 'text'
+    consumer_presets = build_consumer_presets(Path(args.consumer_root) if args.consumer_root else None)
     consumer_output_path, consumer_output_format, consumer_append = resolve_consumer_settings(
         args,
         default_format=stdout_format,
+        consumer_presets=consumer_presets,
     )
     emit_output_with_bundle(
         text=text_output,
@@ -262,6 +276,7 @@ def main() -> int:
         stdout_output_path=consumer_output_path,
         stdout_append=consumer_append,
         consumer_bundle=args.consumer_bundle,
+        consumer_presets=consumer_presets,
     )
     return int(payload['exit_code'])
 
