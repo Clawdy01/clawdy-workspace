@@ -151,6 +151,8 @@ def render_text(data, show_preview=False):
         payload_audit = ai_briefing_status.get('payload_audit') or {}
         if ai_briefing_status.get('proof_config_identity_text'):
             ai_bits.append(ai_briefing_status['proof_config_identity_text'])
+        if ai_briefing_status.get('last_run_config_relation_text'):
+            ai_bits.append(ai_briefing_status['last_run_config_relation_text'])
         elif ai_briefing_status.get('updated_at_hint'):
             fingerprint = payload_audit.get('message_sha256_short')
             if fingerprint:

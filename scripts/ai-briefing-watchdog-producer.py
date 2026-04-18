@@ -111,6 +111,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
             bits.append(proof_progress_text)
     if payload.get('proof_config_identity_text'):
         bits.append(str(payload['proof_config_identity_text']))
+    if payload.get('last_run_config_relation_text'):
+        bits.append(str(payload['last_run_config_relation_text']))
     proof_runs_remaining = payload.get('proof_runs_remaining')
     if proof_runs_remaining is not None and not payload.get('proof_target_met'):
         bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')

@@ -2237,10 +2237,10 @@ def audit_recent_run_durations(runs, timeout_seconds, *, sample_size=3):
     }
 
 
-def build_status(job_name=TARGET_JOB_NAME):
+def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     jobs = load_jobs()
     job = next((job for job in jobs if job.get('name') == job_name), None)
-    now_ms = int(datetime.now(tz=timezone.utc).timestamp() * 1000)
+    now_ms = int(reference_ms) if reference_ms is not None else int(datetime.now(tz=timezone.utc).timestamp() * 1000)
     if not job:
         return {
             'ok': False,
@@ -2528,6 +2528,8 @@ def build_status(job_name=TARGET_JOB_NAME):
         proof_today_block_text = None
     summary['proof_today_block_text'] = proof_today_block_text
 
+    config_newer_than_last_run = bool(updated_at and last_run_at and updated_at > last_run_at)
+
     proof_config_hash = payload_audit.get('message_sha256_short')
     proof_config_identity_text = None
     if updated_at and proof_config_hash:
@@ -2545,14 +2547,30 @@ def build_status(job_name=TARGET_JOB_NAME):
     summary['proof_config_hash'] = proof_config_hash
     summary['proof_config_identity_text'] = proof_config_identity_text
 
+    last_run_config_relation = 'unknown'
+    last_run_config_relation_text = None
+    if last_run_at and updated_at:
+        if config_newer_than_last_run:
+            last_run_config_relation = 'older-than-current-config'
+            last_run_config_relation_text = (
+                'laatste run hoorde nog bij de vorige config; '
+                f"huidige config wacht sinds {summary['updated_at_text']} nog op eerste run"
+            )
+        else:
+            last_run_config_relation = 'current-config'
+            last_run_config_relation_text = 'laatste run hoort bij de huidige config'
+    elif last_run_at:
+        last_run_config_relation = 'current-config'
+        last_run_config_relation_text = 'laatste run hoort bij de huidige config'
+    summary['last_run_config_relation'] = last_run_config_relation
+    summary['last_run_config_relation_text'] = last_run_config_relation_text
+
     proof_runs_remaining = summary['proof_runs_remaining']
     proof_progress_text = (
         f"bewijsdoel gehaald ({len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs voor huidige config)"
         if len(proof_qualified_runs) >= PROOF_TARGET_RUNS
         else f"bewijsprogressie {len(proof_qualified_runs)}/{PROOF_TARGET_RUNS} gekwalificeerde runs voor huidige config, nog {proof_runs_remaining} te gaan"
     )
-
-    config_newer_than_last_run = bool(updated_at and last_run_at and updated_at > last_run_at)
 
     if finished_runs:
         if config_newer_than_last_run:
@@ -2977,6 +2995,8 @@ def render_text(data):
         parts.append(data['proof_plan_text'])
     if data.get('proof_config_identity_text'):
         parts.append(data['proof_config_identity_text'])
+    if data.get('last_run_config_relation_text'):
+        parts.append(data['last_run_config_relation_text'])
     if data.get('proof_state_text'):
         parts.append(data['proof_state_text'])
     if data.get('proof_next_action_text'):
@@ -3127,6 +3147,7 @@ def main():
     parser.add_argument('--job-name', default=TARGET_JOB_NAME, help='cronjobnaam')
     parser.add_argument('--summary-file', help='audit alleen briefing-output uit bestand')
     parser.add_argument('--summary-stdin', action='store_true', help='audit alleen briefing-output van stdin')
+    parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische statuschecks')
     args = parser.parse_args()
 
     if args.summary_file and args.summary_stdin:
@@ -3144,7 +3165,7 @@ def main():
             print(render_summary_audit_text(data))
         return
 
-    data = build_status(job_name=args.job_name)
+    data = build_status(job_name=args.job_name, reference_ms=args.reference_ms)
     if args.json:
         print(json.dumps(data, ensure_ascii=False, indent=2))
     else:

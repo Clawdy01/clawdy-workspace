@@ -86,9 +86,12 @@ def extract_json_document(text: str):
     raise json.JSONDecodeError('Expecting value', text, 0)
 
 
-def load_status(timeout_seconds: int) -> dict:
+def load_status(timeout_seconds: int, reference_ms: int | None = None) -> dict:
+    command = ['python3', str(STATUS_SCRIPT), '--json']
+    if reference_ms is not None:
+        command.extend(['--reference-ms', str(reference_ms)])
     proc = subprocess.run(
-        ['python3', str(STATUS_SCRIPT), '--json'],
+        command,
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -315,6 +318,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description='Controleer of de dagelijkse AI-briefing gezond en bewijsbaar is.')
     parser.add_argument('--json', action='store_true', help='print resultaat als JSON')
     parser.add_argument('--timeout', type=int, default=120, help='timeout in seconden voor ai-briefing-status.py')
+    parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische statuschecks')
     parser.add_argument('--require-qualified-runs', type=int, default=0, help='markeer de watchdog pas groen als minstens zoveel gekwalificeerde runs voor de huidige config aanwezig zijn')
     parser.add_argument('--consumer-out', help='Schrijf de watchdog-uitvoer ook naar een bestand voor cron/board-consumers')
     parser.add_argument('--consumer-preset', choices=sorted(CONSUMER_PRESETS), help='Gebruik een vaste consumer-outputroute')
@@ -323,7 +327,7 @@ def main() -> int:
     parser.add_argument('--consumer-append', action='store_true', help='Append naar bestaand consumer-bestand in plaats van overschrijven')
     args = parser.parse_args()
 
-    status = load_status(args.timeout)
+    status = load_status(args.timeout, reference_ms=args.reference_ms)
     ok, reasons, summary = evaluate(status, require_qualified_runs=max(0, args.require_qualified_runs))
     proof_qualified_runs = int(status.get('proof_qualified_runs') or 0)
     required_qualified_runs = max(0, args.require_qualified_runs)
@@ -344,6 +348,8 @@ def main() -> int:
         'proof_state_text': status.get('proof_state_text'),
         'proof_config_hash': status.get('proof_config_hash'),
         'proof_config_identity_text': status.get('proof_config_identity_text'),
+        'last_run_config_relation': status.get('last_run_config_relation'),
+        'last_run_config_relation_text': status.get('last_run_config_relation_text'),
         'proof_next_action_kind': status.get('proof_next_action_kind'),
         'proof_next_action_text': status.get('proof_next_action_text'),
         'proof_recheck_commands': status.get('proof_recheck_commands'),
@@ -420,6 +426,8 @@ def main() -> int:
         lines.append(f"readiness: {result['readiness_text']}")
     if result.get('proof_config_identity_text'):
         lines.append(f"proof config: {result['proof_config_identity_text']}")
+    if result.get('last_run_config_relation_text'):
+        lines.append(f"last run config relation: {result['last_run_config_relation_text']}")
     if result['proof_progress_text']:
         lines.append(f"proof progress: {result['proof_progress_text']}")
     if result['proof_waiting_for_next_scheduled_run']:
