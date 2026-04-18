@@ -1745,6 +1745,7 @@ PROOF_RECHECK_CASES = [
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_recheck_ready': False,
         'expect_proof_wait_until_at': 1776582000000,
+        'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': 86520000,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
         'expect_proof_next_qualifying_slot_remaining_ms': 86520000,
@@ -1771,6 +1772,7 @@ PROOF_RECHECK_CASES = [
         'expect_proof_next_action_kind': 'wait-for-recheck-window',
         'expect_proof_recheck_ready': False,
         'expect_proof_wait_until_at': 1776582000000,
+        'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': -300000,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
         'expect_proof_next_qualifying_slot_remaining_ms': -300000,
@@ -1797,6 +1799,7 @@ PROOF_RECHECK_CASES = [
         'expect_proof_next_action_kind': 'recheck-now',
         'expect_proof_recheck_ready': True,
         'expect_proof_wait_until_at': None,
+        'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': None,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
         'expect_proof_next_qualifying_slot_remaining_ms': -900000,
@@ -1829,6 +1832,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_recheck_ready': False,
         'expect_proof_wait_until_at': 1776582000000,
+        'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': 86520000,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
         'expect_proof_next_qualifying_slot_remaining_ms': 86520000,
@@ -1864,6 +1868,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_next_action_kind': 'recheck-now',
         'expect_proof_recheck_ready': True,
         'expect_proof_wait_until_at': None,
+        'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': None,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
         'expect_proof_next_qualifying_slot_remaining_ms': -900000,
@@ -2247,6 +2252,10 @@ def evaluate_proof_recheck_case(case):
         failures.append(
             f"proof_wait_until_at verwacht {case.get('expect_proof_wait_until_at')}, kreeg {payload.get('proof_wait_until_at')}"
         )
+    if payload.get('proof_recheck_after_at') != case.get('expect_proof_recheck_after_at'):
+        failures.append(
+            f"proof_recheck_after_at verwacht {case.get('expect_proof_recheck_after_at')}, kreeg {payload.get('proof_recheck_after_at')}"
+        )
     if payload.get('proof_wait_until_remaining_ms') != case.get('expect_proof_wait_until_remaining_ms'):
         failures.append(
             'proof_wait_until_remaining_ms verwacht '
@@ -2412,6 +2421,11 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 f"overall.proof_wait_until_at verwacht {case.get('expect_proof_wait_until_at')}, kreeg {overall.get('proof_wait_until_at')}"
             )
+        if overall.get('proof_recheck_after_at') != case.get('expect_proof_recheck_after_at'):
+            failures.append(
+                'overall.proof_recheck_after_at verwacht '
+                f"{case.get('expect_proof_recheck_after_at')}, kreeg {overall.get('proof_recheck_after_at')}"
+            )
         if overall.get('proof_wait_until_remaining_ms') != case.get('expect_proof_wait_until_remaining_ms'):
             failures.append(
                 'overall.proof_wait_until_remaining_ms verwacht '
@@ -2472,11 +2486,26 @@ def evaluate_proof_recheck_producer_case(case):
         jsonl_artifact = artifact_base / 'ai-briefing-proof-recheck.jsonl'
         expected_artifacts = [json_artifact, text_artifact, jsonl_artifact]
         overall_consumer_output_paths = overall.get('consumer_output_paths') or []
-        if sorted(overall_consumer_output_paths) != sorted(str(path.resolve()) for path in expected_artifacts):
+        expected_artifact_paths = [str(path.resolve()) for path in expected_artifacts]
+        if sorted(overall_consumer_output_paths) != sorted(expected_artifact_paths):
             failures.append(
                 'overall.consumer_output_paths verwacht '
-                f"{[str(path.resolve()) for path in expected_artifacts]}, kreeg {overall_consumer_output_paths}"
+                f"{expected_artifact_paths}, kreeg {overall_consumer_output_paths}"
             )
+        overall_consumer_output_channels = overall.get('consumer_output_channels') or []
+        expected_channels = ['board-json', 'board-text', 'eventlog-jsonl']
+        if sorted(overall_consumer_output_channels) != sorted(expected_channels):
+            failures.append(
+                f"overall.consumer_output_channels verwacht {expected_channels}, kreeg {overall_consumer_output_channels}"
+            )
+        overall_consumer_outputs_text = overall.get('consumer_outputs_text') or ''
+        for expected_channel, expected_path in zip(expected_channels, expected_artifact_paths):
+            expected_fragment = f'{expected_channel}: {expected_path}'
+            if expected_fragment not in overall_consumer_outputs_text:
+                failures.append(
+                    'overall.consumer_outputs_text mist verwacht fragment: '
+                    f'{expected_fragment}'
+                )
         overall_consumer_outputs = overall.get('consumer_outputs') or []
         if len(overall_consumer_outputs) != len(expected_artifacts):
             failures.append(

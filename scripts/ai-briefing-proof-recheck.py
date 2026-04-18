@@ -121,6 +121,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_runs_remaining': watchdog_data.get('proof_runs_remaining'),
         'proof_recheck_window_open': recheck_window_open,
         'proof_recheck_window_text': status_data.get('proof_recheck_window_text'),
+        'proof_recheck_after_at': first_non_null(status_data.get('proof_recheck_after_at'), watchdog_data.get('proof_recheck_after_at')),
         'proof_recheck_after_text': first_non_null(status_data.get('proof_recheck_after_text'), watchdog_data.get('proof_recheck_after_text')),
         'proof_recheck_after_hint': first_non_null(status_data.get('proof_recheck_after_hint'), watchdog_data.get('proof_recheck_after_hint')),
         'proof_recheck_after_remaining_ms': first_non_null(status_data.get('proof_recheck_after_remaining_ms'), watchdog_data.get('proof_recheck_after_remaining_ms')),
@@ -156,6 +157,20 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
     }
 
 
+def format_consumer_outputs(outputs: list[dict]) -> str | None:
+    bits: list[str] = []
+    for item in outputs or []:
+        channel = str(item.get('channel') or '').strip()
+        path = str(item.get('path') or '').strip()
+        if channel and path:
+            bits.append(f'{channel}: {path}')
+        elif path:
+            bits.append(path)
+    if not bits:
+        return None
+    return 'consumer-artifacts: ' + '; '.join(bits)
+
+
 def build_text(payload: dict) -> str:
     summary_output_examples = payload.get('summary_output_examples') or []
     bits = [
@@ -173,6 +188,7 @@ def build_text(payload: dict) -> str:
         payload.get('proof_target_check_gate_text'),
         payload.get('proof_countdown_text'),
         payload.get('proof_recheck_commands_text'),
+        payload.get('consumer_outputs_text'),
     ]
     unique_bits: list[str] = []
     for bit in bits:
@@ -317,6 +333,9 @@ def main() -> int:
         consumer_presets=consumer_presets,
     )
     payload['consumer_output_paths'] = [item['path'] for item in payload['consumer_outputs']]
+    payload['consumer_output_channels'] = [item['channel'] for item in payload['consumer_outputs']]
+    payload['consumer_outputs_text'] = format_consumer_outputs(payload['consumer_outputs'])
+    text_output = build_text(payload)
     emit_output_with_bundle(
         text=text_output,
         payload=payload,

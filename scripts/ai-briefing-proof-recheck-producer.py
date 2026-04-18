@@ -68,6 +68,20 @@ def extract_json_document(text: str):
     raise json.JSONDecodeError('Expecting value', text, 0)
 
 
+def format_consumer_outputs(outputs: list[dict]) -> str | None:
+    bits: list[str] = []
+    for item in outputs or []:
+        channel = str(item.get('channel') or '').strip()
+        path = str(item.get('path') or '').strip()
+        if channel and path:
+            bits.append(f'{channel}: {path}')
+        elif path:
+            bits.append(path)
+    if not bits:
+        return None
+    return 'consumer-artifacts: ' + '; '.join(bits)
+
+
 def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str | None, dict | None]:
     payload_text = (stdout or '').strip() or (stderr or '').strip()
     if not payload_text:
@@ -111,6 +125,12 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_target_check_gate_text']))
     if payload.get('proof_countdown_text'):
         bits.append(str(payload['proof_countdown_text']))
+    if payload.get('consumer_outputs_text'):
+        bits.append(str(payload['consumer_outputs_text']))
+    elif payload.get('consumer_outputs'):
+        consumer_outputs_text = format_consumer_outputs(payload.get('consumer_outputs') or [])
+        if consumer_outputs_text:
+            bits.append(consumer_outputs_text)
     if payload.get('proof_config_identity_text'):
         bits.append(str(payload['proof_config_identity_text']))
     if payload.get('last_run_config_relation_text'):
@@ -148,6 +168,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'summary_output_examples': payload.get('summary_output_examples') or [],
         'proof_recheck_window_open': payload.get('proof_recheck_window_open'),
         'proof_recheck_window_text': payload.get('proof_recheck_window_text'),
+        'proof_recheck_after_at': payload.get('proof_recheck_after_at'),
         'proof_recheck_after_text': payload.get('proof_recheck_after_text'),
         'proof_recheck_after_hint': payload.get('proof_recheck_after_hint'),
         'proof_recheck_after_remaining_ms': payload.get('proof_recheck_after_remaining_ms'),
@@ -181,6 +202,8 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'watchdog_returncode': payload.get('watchdog_returncode'),
         'consumer_outputs': payload.get('consumer_outputs') or [],
         'consumer_output_paths': payload.get('consumer_output_paths') or [],
+        'consumer_output_channels': payload.get('consumer_output_channels') or [],
+        'consumer_outputs_text': payload.get('consumer_outputs_text') or format_consumer_outputs(payload.get('consumer_outputs') or []),
     }
 
 
