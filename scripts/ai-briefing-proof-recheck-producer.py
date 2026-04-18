@@ -102,6 +102,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_state_text']))
     if payload.get('proof_blocker_text'):
         bits.append(str(payload['proof_blocker_text']))
+    if payload.get('proof_wait_until_reason_text'):
+        bits.append(str(payload['proof_wait_until_reason_text']))
     if payload.get('proof_progress_text'):
         bits.append(str(payload['proof_progress_text']))
     if payload.get('proof_freshness_text'):
@@ -168,10 +170,18 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'summary_output_examples': payload.get('summary_output_examples') or [],
         'proof_recheck_window_open': payload.get('proof_recheck_window_open'),
         'proof_recheck_window_text': payload.get('proof_recheck_window_text'),
+        'proof_wait_until_at': payload.get('proof_wait_until_at'),
+        'proof_wait_until_text': payload.get('proof_wait_until_text'),
+        'proof_wait_until_hint': payload.get('proof_wait_until_hint'),
+        'proof_wait_until_reason_text': payload.get('proof_wait_until_reason_text'),
+        'proof_wait_until_remaining_ms': payload.get('proof_wait_until_remaining_ms'),
+        'proof_wait_until_remaining_hours': payload.get('proof_wait_until_remaining_hours'),
+        'proof_recheck_grace_ms': payload.get('proof_recheck_grace_ms'),
         'proof_recheck_after_at': payload.get('proof_recheck_after_at'),
         'proof_recheck_after_text': payload.get('proof_recheck_after_text'),
         'proof_recheck_after_hint': payload.get('proof_recheck_after_hint'),
         'proof_recheck_after_remaining_ms': payload.get('proof_recheck_after_remaining_ms'),
+        'proof_recheck_after_remaining_hours': payload.get('proof_recheck_after_remaining_hours'),
         'proof_next_action_kind': payload.get('proof_next_action_kind'),
         'proof_next_action_window_text': payload.get('proof_next_action_window_text'),
         'proof_next_action_text': payload.get('proof_next_action_text'),
@@ -179,15 +189,21 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_recheck_commands_text': payload.get('proof_recheck_commands_text'),
         'proof_countdown_text': payload.get('proof_countdown_text'),
         'proof_schedule_risk_text': payload.get('proof_schedule_risk_text'),
-        'proof_wait_until_at': payload.get('proof_wait_until_at'),
-        'proof_wait_until_remaining_ms': payload.get('proof_wait_until_remaining_ms'),
         'proof_next_qualifying_slot_at': payload.get('proof_next_qualifying_slot_at'),
+        'proof_next_qualifying_slot_at_text': payload.get('proof_next_qualifying_slot_at_text'),
+        'proof_next_qualifying_slot_hint': payload.get('proof_next_qualifying_slot_hint'),
         'proof_next_qualifying_slot_remaining_ms': payload.get('proof_next_qualifying_slot_remaining_ms'),
+        'proof_next_qualifying_slot_remaining_hours': payload.get('proof_next_qualifying_slot_remaining_hours'),
         'proof_target_due_at': payload.get('proof_target_due_at'),
         'proof_target_due_at_text': payload.get('proof_target_due_at_text'),
+        'proof_target_due_remaining_ms': payload.get('proof_target_due_remaining_ms'),
+        'proof_target_due_remaining_hours': payload.get('proof_target_due_remaining_hours'),
         'proof_target_due_at_if_next_slot_missed': payload.get('proof_target_due_at_if_next_slot_missed'),
         'proof_target_due_at_if_next_slot_missed_text': payload.get('proof_target_due_at_if_next_slot_missed_text'),
+        'proof_target_due_at_if_next_slot_missed_remaining_ms': payload.get('proof_target_due_at_if_next_slot_missed_remaining_ms'),
+        'proof_target_due_at_if_next_slot_missed_remaining_hours': payload.get('proof_target_due_at_if_next_slot_missed_remaining_hours'),
         'proof_schedule_slip_ms': payload.get('proof_schedule_slip_ms'),
+        'proof_schedule_slip_hours': payload.get('proof_schedule_slip_hours'),
         'proof_target_check_gate': payload.get('proof_target_check_gate'),
         'proof_target_check_gate_text': payload.get('proof_target_check_gate_text'),
         'proof_config_hash': payload.get('proof_config_hash'),

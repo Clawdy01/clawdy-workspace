@@ -1745,6 +1745,8 @@ PROOF_RECHECK_CASES = [
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_recheck_ready': False,
         'expect_proof_wait_until_at': 1776582000000,
+        'expect_proof_wait_until_text': '2026-04-19 09:00 CEST',
+        'expect_proof_wait_until_reason_text': 'bewijs blijft tijdsgebonden wachten tot het eerstvolgende kwalificatieslot van morgen',
         'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': 86520000,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
@@ -1759,6 +1761,8 @@ PROOF_RECHECK_CASES = [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
             'hercheck vanaf 2026-04-19 09:15 CEST',
+            'config f5b1d6e1b852',
+            'laatste run hoorde nog bij de vorige config',
         ],
     },
     {
@@ -1772,6 +1776,8 @@ PROOF_RECHECK_CASES = [
         'expect_proof_next_action_kind': 'wait-for-recheck-window',
         'expect_proof_recheck_ready': False,
         'expect_proof_wait_until_at': 1776582000000,
+        'expect_proof_wait_until_text': '2026-04-19 09:00 CEST',
+        'expect_proof_wait_until_reason_text': 'bewijs bewaakt het huidige kwalificatieslot tot het hercheckvenster opent',
         'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': -300000,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
@@ -1786,6 +1792,8 @@ PROOF_RECHECK_CASES = [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'kwalificatierun van 2026-04-19 09:00 CEST zit in grace-window',
             'hercheck vanaf 2026-04-19 09:15 CEST',
+            'config f5b1d6e1b852',
+            'laatste run hoorde nog bij de vorige config',
         ],
     },
     {
@@ -1799,6 +1807,8 @@ PROOF_RECHECK_CASES = [
         'expect_proof_next_action_kind': 'recheck-now',
         'expect_proof_recheck_ready': True,
         'expect_proof_wait_until_at': None,
+        'expect_proof_wait_until_text': None,
+        'expect_proof_wait_until_reason_text': None,
         'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': None,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
@@ -1813,6 +1823,8 @@ PROOF_RECHECK_CASES = [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             'daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3',
+            'config f5b1d6e1b852',
+            'laatste run hoorde nog bij de vorige config',
         ],
     },
 ]
@@ -1832,6 +1844,8 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_recheck_ready': False,
         'expect_proof_wait_until_at': 1776582000000,
+        'expect_proof_wait_until_text': '2026-04-19 09:00 CEST',
+        'expect_proof_wait_until_reason_text': 'bewijs blijft tijdsgebonden wachten tot het eerstvolgende kwalificatieslot van morgen',
         'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': 86520000,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
@@ -1868,6 +1882,8 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_next_action_kind': 'recheck-now',
         'expect_proof_recheck_ready': True,
         'expect_proof_wait_until_at': None,
+        'expect_proof_wait_until_text': None,
+        'expect_proof_wait_until_reason_text': None,
         'expect_proof_recheck_after_at': 1776582900000,
         'expect_proof_wait_until_remaining_ms': None,
         'expect_proof_next_qualifying_slot_at': 1776582000000,
@@ -2252,6 +2268,15 @@ def evaluate_proof_recheck_case(case):
         failures.append(
             f"proof_wait_until_at verwacht {case.get('expect_proof_wait_until_at')}, kreeg {payload.get('proof_wait_until_at')}"
         )
+    if payload.get('proof_wait_until_text') != case.get('expect_proof_wait_until_text'):
+        failures.append(
+            f"proof_wait_until_text verwacht {case.get('expect_proof_wait_until_text')}, kreeg {payload.get('proof_wait_until_text')}"
+        )
+    if payload.get('proof_wait_until_reason_text') != case.get('expect_proof_wait_until_reason_text'):
+        failures.append(
+            'proof_wait_until_reason_text verwacht '
+            f"{case.get('expect_proof_wait_until_reason_text')}, kreeg {payload.get('proof_wait_until_reason_text')}"
+        )
     if payload.get('proof_recheck_after_at') != case.get('expect_proof_recheck_after_at'):
         failures.append(
             f"proof_recheck_after_at verwacht {case.get('expect_proof_recheck_after_at')}, kreeg {payload.get('proof_recheck_after_at')}"
@@ -2297,6 +2322,8 @@ def evaluate_proof_recheck_case(case):
             payload.get('result_text'),
             payload.get('summary'),
             payload.get('proof_state_text'),
+            payload.get('proof_config_identity_text'),
+            payload.get('last_run_config_relation_text'),
             payload.get('proof_blocker_text'),
             payload.get('proof_next_action_text'),
             payload.get('proof_next_action_window_text'),
@@ -2420,6 +2447,16 @@ def evaluate_proof_recheck_producer_case(case):
         if overall.get('proof_wait_until_at') != case.get('expect_proof_wait_until_at'):
             failures.append(
                 f"overall.proof_wait_until_at verwacht {case.get('expect_proof_wait_until_at')}, kreeg {overall.get('proof_wait_until_at')}"
+            )
+        if overall.get('proof_wait_until_text') != case.get('expect_proof_wait_until_text'):
+            failures.append(
+                'overall.proof_wait_until_text verwacht '
+                f"{case.get('expect_proof_wait_until_text')}, kreeg {overall.get('proof_wait_until_text')}"
+            )
+        if overall.get('proof_wait_until_reason_text') != case.get('expect_proof_wait_until_reason_text'):
+            failures.append(
+                'overall.proof_wait_until_reason_text verwacht '
+                f"{case.get('expect_proof_wait_until_reason_text')}, kreeg {overall.get('proof_wait_until_reason_text')}"
             )
         if overall.get('proof_recheck_after_at') != case.get('expect_proof_recheck_after_at'):
             failures.append(
