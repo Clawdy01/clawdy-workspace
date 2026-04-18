@@ -133,6 +133,8 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_schedule_risk_text': first_non_null(status_data.get('proof_schedule_risk_text'), watchdog_data.get('proof_schedule_risk_text')),
         'proof_target_due_at_text': first_non_null(status_data.get('proof_target_due_at_text'), watchdog_data.get('proof_target_due_at_text')),
         'proof_target_due_at_if_next_slot_missed_text': first_non_null(status_data.get('proof_target_due_at_if_next_slot_missed_text'), watchdog_data.get('proof_target_due_at_if_next_slot_missed_text')),
+        'proof_target_check_gate': first_non_null(status_data.get('proof_target_check_gate'), watchdog_data.get('proof_target_check_gate')),
+        'proof_target_check_gate_text': first_non_null(status_data.get('proof_target_check_gate_text'), watchdog_data.get('proof_target_check_gate_text')),
         'proof_config_identity_text': first_non_null(status_data.get('proof_config_identity_text'), watchdog_data.get('proof_config_identity_text')),
         'last_run_config_relation_text': first_non_null(status_data.get('last_run_config_relation_text'), watchdog_data.get('last_run_config_relation_text')),
         'status_ok': status_ok,
@@ -154,6 +156,9 @@ def build_text(payload: dict) -> str:
         ('outputvoorbeelden: ' + '; '.join(summary_output_examples[:2])) if summary_output_examples else None,
         payload.get('proof_recheck_window_text'),
         payload.get('proof_schedule_risk_text'),
+        payload.get('proof_target_due_at_text'),
+        payload.get('proof_target_due_at_if_next_slot_missed_text'),
+        payload.get('proof_target_check_gate_text'),
         payload.get('proof_countdown_text'),
         payload.get('proof_recheck_commands_text'),
     ]

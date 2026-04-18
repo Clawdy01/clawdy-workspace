@@ -103,6 +103,12 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_recheck_commands_text']))
     if payload.get('proof_schedule_risk_text'):
         bits.append(str(payload['proof_schedule_risk_text']))
+    if payload.get('proof_target_due_at_text'):
+        bits.append(str(payload['proof_target_due_at_text']))
+    if payload.get('proof_target_due_at_if_next_slot_missed_text'):
+        bits.append(str(payload['proof_target_due_at_if_next_slot_missed_text']))
+    if payload.get('proof_target_check_gate_text'):
+        bits.append(str(payload['proof_target_check_gate_text']))
     if payload.get('proof_countdown_text'):
         bits.append(str(payload['proof_countdown_text']))
     if payload.get('proof_config_identity_text'):
@@ -136,16 +142,30 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_blocker_text': payload.get('proof_blocker_text'),
         'proof_progress_text': payload.get('proof_progress_text'),
         'proof_freshness_text': payload.get('proof_freshness_text'),
+        'summary_output_examples': payload.get('summary_output_examples') or [],
+        'proof_recheck_window_open': payload.get('proof_recheck_window_open'),
+        'proof_recheck_window_text': payload.get('proof_recheck_window_text'),
+        'proof_recheck_after_text': payload.get('proof_recheck_after_text'),
+        'proof_recheck_after_hint': payload.get('proof_recheck_after_hint'),
+        'proof_recheck_after_remaining_ms': payload.get('proof_recheck_after_remaining_ms'),
+        'proof_next_action_kind': payload.get('proof_next_action_kind'),
         'proof_next_action_window_text': payload.get('proof_next_action_window_text'),
         'proof_next_action_text': payload.get('proof_next_action_text'),
+        'proof_recheck_commands': payload.get('proof_recheck_commands') or [],
         'proof_recheck_commands_text': payload.get('proof_recheck_commands_text'),
         'proof_countdown_text': payload.get('proof_countdown_text'),
         'proof_schedule_risk_text': payload.get('proof_schedule_risk_text'),
+        'proof_target_due_at_text': payload.get('proof_target_due_at_text'),
+        'proof_target_due_at_if_next_slot_missed_text': payload.get('proof_target_due_at_if_next_slot_missed_text'),
+        'proof_target_check_gate': payload.get('proof_target_check_gate'),
+        'proof_target_check_gate_text': payload.get('proof_target_check_gate_text'),
         'proof_config_identity_text': payload.get('proof_config_identity_text'),
         'last_run_config_relation_text': payload.get('last_run_config_relation_text'),
         'proof_runs_remaining': payload.get('proof_runs_remaining'),
         'proof_recheck_ready': payload.get('proof_recheck_ready'),
         'proof_target_met': payload.get('proof_target_met'),
+        'status_returncode': payload.get('status_returncode'),
+        'watchdog_returncode': payload.get('watchdog_returncode'),
     }
 
 
