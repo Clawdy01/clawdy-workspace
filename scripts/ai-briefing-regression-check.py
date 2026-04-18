@@ -1697,9 +1697,12 @@ STATUS_PHASE_CASES = [
         'expect_proof_blocker_kind': 'time-gated-next-slot',
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_recheck_window_open': False,
+        'expect_proof_recheck_schedule_audit_ok': True,
+        'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
             'hercheck vanaf 2026-04-19 09:15 CEST',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
         ],
     },
     {
@@ -1709,9 +1712,12 @@ STATUS_PHASE_CASES = [
         'expect_proof_blocker_kind': 'time-gated-next-slot',
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_recheck_window_open': False,
+        'expect_proof_recheck_schedule_audit_ok': True,
+        'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
             'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
             'hercheck vanaf 2026-04-19 09:15 CEST',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
         ],
     },
     {
@@ -1721,9 +1727,12 @@ STATUS_PHASE_CASES = [
         'expect_proof_blocker_kind': 'grace-window-before-recheck',
         'expect_proof_next_action_kind': 'wait-for-recheck-window',
         'expect_proof_recheck_window_open': False,
+        'expect_proof_recheck_schedule_audit_ok': True,
+        'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
             'kwalificatierun van 2026-04-19 09:00 CEST zit in grace-window',
             'hercheck vanaf 2026-04-19 09:15 CEST',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
         ],
     },
     {
@@ -1733,8 +1742,11 @@ STATUS_PHASE_CASES = [
         'expect_proof_blocker_kind': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
         'expect_proof_recheck_window_open': True,
+        'expect_proof_recheck_schedule_audit_ok': True,
+        'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
         ],
     },
 ]
@@ -2216,6 +2228,49 @@ def evaluate_status_phase_case(module, case):
             'proof_recheck_window_open verwacht '
             f"{case['expect_proof_recheck_window_open']}, kreeg {status.get('proof_recheck_window_open')}"
         )
+    if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
+        audit_ok = ((status.get('proof_recheck_schedule_audit') or {}).get('ok'))
+        if audit_ok != case.get('expect_proof_recheck_schedule_audit_ok'):
+            failures.append(
+                'status proof_recheck_schedule_audit.ok verwacht '
+                f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {audit_ok}"
+            )
+        if status.get('proof_recheck_schedule_ok') != case.get('expect_proof_recheck_schedule_audit_ok'):
+            failures.append(
+                'status proof_recheck_schedule_ok verwacht '
+                f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {status.get('proof_recheck_schedule_ok')}"
+            )
+        if status.get('proof_recheck_schedule_job_name') != EXPECTED_PROOF_RECHECK_JOB_NAME:
+            failures.append(
+                'status proof_recheck_schedule_job_name verwacht '
+                f"{EXPECTED_PROOF_RECHECK_JOB_NAME}, kreeg {status.get('proof_recheck_schedule_job_name')}"
+            )
+        if status.get('proof_recheck_schedule_expr') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR:
+            failures.append(
+                'status proof_recheck_schedule_expr verwacht '
+                f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR}, kreeg {status.get('proof_recheck_schedule_expr')}"
+            )
+        if status.get('proof_recheck_schedule_tz') != EXPECTED_PROOF_RECHECK_SCHEDULE_TZ:
+            failures.append(
+                'status proof_recheck_schedule_tz verwacht '
+                f"{EXPECTED_PROOF_RECHECK_SCHEDULE_TZ}, kreeg {status.get('proof_recheck_schedule_tz')}"
+            )
+        if status.get('proof_recheck_schedule_expected_gap_minutes') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES:
+            failures.append(
+                'status proof_recheck_schedule_expected_gap_minutes verwacht '
+                f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES}, kreeg {status.get('proof_recheck_schedule_expected_gap_minutes')}"
+            )
+        if status.get('proof_recheck_schedule_same_day_after_target') is not True:
+            failures.append(
+                'status proof_recheck_schedule_same_day_after_target verwacht True, kreeg '
+                f"{status.get('proof_recheck_schedule_same_day_after_target')}"
+            )
+    if case.get('expect_proof_recheck_schedule_matches_grace') is not None:
+        if status.get('proof_recheck_schedule_matches_grace') != case.get('expect_proof_recheck_schedule_matches_grace'):
+            failures.append(
+                'status proof_recheck_schedule_matches_grace verwacht '
+                f"{case.get('expect_proof_recheck_schedule_matches_grace')}, kreeg {status.get('proof_recheck_schedule_matches_grace')}"
+            )
 
     combined_text = ' || '.join(
         str(bit) for bit in [
@@ -2224,6 +2279,7 @@ def evaluate_status_phase_case(module, case):
             status.get('proof_next_action_text'),
             status.get('proof_next_action_window_text'),
             status.get('proof_recheck_window_text'),
+            status.get('proof_recheck_schedule_text'),
         ] if bit
     )
     for snippet in case.get('expect_substrings', []):

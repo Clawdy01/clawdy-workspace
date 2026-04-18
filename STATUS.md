@@ -95,6 +95,9 @@
 - Mac-migratie en lokale media/LLM-workflows voorbereiden
 - Mailflow alleen weer oppakken als gebruik concrete problemen blootlegt
 
+- Nog een concrete nuttige stap op hetzelfde bewijspad: `scripts/ai-briefing-status.py` geeft de 09:15-proof-recheck-cronaudit nu ook direct door als top-level `proof_recheck_schedule_*`-velden naast het nested auditobject, zodat status-consumers en snelle `jq`-checks de route-identiteit (`ai-briefing-proof-recheck-producer`, `15 9 * * *`, `Europe/Amsterdam`) direct kunnen lezen zonder in `proof_recheck_schedule_audit` te graven. Live geverifieerd met `python3 -m py_compile scripts/ai-briefing-status.py` en `python3 scripts/ai-briefing-status.py --json | jq '{proof_state, proof_blocker_kind, proof_next_action_kind, proof_recheck_schedule_ok, proof_recheck_schedule_job_name, proof_recheck_schedule_expr, proof_recheck_schedule_tz, proof_recheck_schedule_text}'`
+- Extra concrete nuttige stap op hetzelfde bewijspad: `scripts/ai-briefing-regression-check.py` bewaakt die nieuwe top-level statusvelden nu ook expliciet voor alle 09:00/09:15-fases, inclusief `proof_recheck_schedule_text`, jobnaam, cronexpr, timezone, grace-match en same-day-gap, zodat een latere statusrefactor de directe schedule-identiteit niet stil kan breken. Live geverifieerd met `python3 -m py_compile scripts/ai-briefing-regression-check.py scripts/ai-briefing-status.py` en `python3 scripts/ai-briefing-regression-check.py --json`
+
 ## Blocked
 - `daily-ai-update` is momenteel nog tijdsgebonden geblokkeerd: na de zojuist aangescherpte versheidsconfig (`f5b1d6e1b852`) toont `python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3` nog steeds `bewijsprogressie 0/3`, `proof_blocker_kind: time-gated-next-slot`, en de eerstvolgende kwalificatierun ligt nu op `2026-04-19 09:00 CEST`
 - Goede beeldgeneratie-route ontbreekt nog in deze runtime, dus betere image-remakes wachten op sterkere/lokale modelroute
