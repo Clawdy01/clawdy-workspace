@@ -68,14 +68,14 @@ def extract_json_document(text: str):
     raise json.JSONDecodeError('Expecting value', text, 0)
 
 
-def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None:
+def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str | None, dict | None]:
     payload_text = (stdout or '').strip() or (stderr or '').strip()
     if not payload_text:
-        return None
+        return None, None
     try:
         payload = extract_json_document(payload_text)
     except json.JSONDecodeError:
-        return None
+        return None, None
 
     bits: list[str] = []
     if payload.get('summary'):
@@ -116,13 +116,44 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(f"resultaat: {payload['result_kind']}")
 
     deduped_bits = unique_bits(bits)
-    return ' | '.join(deduped_bits) if deduped_bits else None
+    summary = ' | '.join(deduped_bits) if deduped_bits else None
+    return summary, payload
+
+
+def build_overall_item(producer_items: list[dict]) -> dict:
+    primary = producer_items[0] if producer_items else None
+    payload = (primary or {}).get('payload') or {}
+    return {
+        'returncode': (primary or {}).get('returncode'),
+        'summary': (primary or {}).get('summary'),
+        'ok': payload.get('ok'),
+        'result_kind': payload.get('result_kind'),
+        'result_text': payload.get('result_text'),
+        'reference_context_text': payload.get('reference_context_text'),
+        'proof_state': payload.get('proof_state'),
+        'proof_state_text': payload.get('proof_state_text'),
+        'proof_blocker_kind': payload.get('proof_blocker_kind'),
+        'proof_blocker_text': payload.get('proof_blocker_text'),
+        'proof_progress_text': payload.get('proof_progress_text'),
+        'proof_freshness_text': payload.get('proof_freshness_text'),
+        'proof_next_action_window_text': payload.get('proof_next_action_window_text'),
+        'proof_next_action_text': payload.get('proof_next_action_text'),
+        'proof_recheck_commands_text': payload.get('proof_recheck_commands_text'),
+        'proof_countdown_text': payload.get('proof_countdown_text'),
+        'proof_schedule_risk_text': payload.get('proof_schedule_risk_text'),
+        'proof_config_identity_text': payload.get('proof_config_identity_text'),
+        'last_run_config_relation_text': payload.get('last_run_config_relation_text'),
+        'proof_runs_remaining': payload.get('proof_runs_remaining'),
+        'proof_recheck_ready': payload.get('proof_recheck_ready'),
+        'proof_target_met': payload.get('proof_target_met'),
+    }
 
 
 def main():
     parser = argparse.ArgumentParser(description='Vaste producer-wrapper voor AI-briefing proof-recheck consumers.')
     parser.add_argument('mode', choices=sorted(PRODUCER_MODES), help='Welke vaste consumer-producerroute je wilt draaien')
     parser.add_argument('--quiet', action='store_true', help='Toon geen volledige child-output, alleen een compacte producer-status')
+    parser.add_argument('--json', action='store_true', help='Geef een machinevriendelijke producer-samenvatting terug')
     parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische producerchecks')
     args, extra = parser.parse_known_args()
 
@@ -144,7 +175,7 @@ def main():
             'stdout': proc.stdout,
             'stderr': proc.stderr,
         })
-        if not args.quiet:
+        if not args.quiet and not args.json:
             if proc.stdout:
                 sys.stdout.write(proc.stdout)
                 if not proc.stdout.endswith('\n'):
@@ -152,15 +183,38 @@ def main():
             if proc.stderr:
                 sys.stderr.write(proc.stderr)
 
-    if args.quiet:
+    producer_items = []
+    for item in summaries:
+        label = ' '.join(item['args'])
+        summary, payload = build_quiet_summary(item['stdout'], item['stderr'], item['returncode'])
+        producer_items.append({
+            'label': label,
+            'args': item['args'],
+            'returncode': item['returncode'],
+            'summary': summary,
+            'payload': payload,
+        })
+
+    overall = build_overall_item(producer_items)
+
+    if args.json:
+        output = {
+            'ok': exit_code == 0,
+            'mode': args.mode,
+            'reference_ms': args.reference_ms,
+            'overall': overall,
+            'items': producer_items,
+        }
+        sys.stdout.write(json.dumps(output, ensure_ascii=False, indent=2) + '\n')
+    elif args.quiet:
         print(f'ai-briefing-proof-recheck-producer: {args.mode}')
-        for item in summaries:
-            label = ' '.join(item['args'])
-            summary = build_quiet_summary(item['stdout'], item['stderr'], item['returncode'])
-            if summary:
-                print(f'- {label}: exit={item["returncode"]} | {summary}')
+        if overall.get('summary'):
+            print(f'- overall: exit={overall.get("returncode")} | {overall["summary"]}')
+        for item in producer_items:
+            if item['summary']:
+                print(f'- {item["label"]}: exit={item["returncode"]} | {item["summary"]}')
             else:
-                print(f'- {label}: exit={item["returncode"]}')
+                print(f'- {item["label"]}: exit={item["returncode"]}')
 
     raise SystemExit(exit_code)
 
