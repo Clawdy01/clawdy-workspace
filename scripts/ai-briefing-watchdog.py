@@ -353,6 +353,18 @@ def main() -> int:
         'proof_config_identity_text': status.get('proof_config_identity_text'),
         'last_run_config_relation': status.get('last_run_config_relation'),
         'last_run_config_relation_text': status.get('last_run_config_relation_text'),
+        'proof_recheck_schedule_audit': status.get('proof_recheck_schedule_audit') or {},
+        'proof_recheck_schedule_ok': ((status.get('proof_recheck_schedule_audit') or {}).get('ok')),
+        'proof_recheck_schedule_found': ((status.get('proof_recheck_schedule_audit') or {}).get('found')),
+        'proof_recheck_schedule_enabled': ((status.get('proof_recheck_schedule_audit') or {}).get('enabled')),
+        'proof_recheck_schedule_job_name': ((status.get('proof_recheck_schedule_audit') or {}).get('job_name')),
+        'proof_recheck_schedule_expr': ((status.get('proof_recheck_schedule_audit') or {}).get('schedule_expr')),
+        'proof_recheck_schedule_tz': ((status.get('proof_recheck_schedule_audit') or {}).get('schedule_tz')),
+        'proof_recheck_schedule_expected_gap_minutes': ((status.get('proof_recheck_schedule_audit') or {}).get('expected_gap_minutes')),
+        'proof_recheck_schedule_same_day_after_target': ((status.get('proof_recheck_schedule_audit') or {}).get('same_day_after_target')),
+        'proof_recheck_schedule_matches_grace': ((status.get('proof_recheck_schedule_audit') or {}).get('matches_grace')),
+        'proof_recheck_schedule_delta_minutes': ((status.get('proof_recheck_schedule_audit') or {}).get('delta_minutes')),
+        'proof_recheck_schedule_text': ((status.get('proof_recheck_schedule_audit') or {}).get('text')),
         'proof_next_action_kind': status.get('proof_next_action_kind'),
         'proof_next_action_text': status.get('proof_next_action_text'),
         'proof_next_action_window_text': status.get('proof_next_action_window_text'),
@@ -440,6 +452,8 @@ def main() -> int:
         lines.append(f"proof config: {result['proof_config_identity_text']}")
     if result.get('last_run_config_relation_text'):
         lines.append(f"last run config relation: {result['last_run_config_relation_text']}")
+    if result.get('proof_recheck_schedule_text'):
+        lines.append(f"proof recheck schedule: {result['proof_recheck_schedule_text']}")
     if result['proof_progress_text']:
         lines.append(f"proof progress: {result['proof_progress_text']}")
     if result['proof_waiting_for_next_scheduled_run']:

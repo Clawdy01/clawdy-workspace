@@ -2,7 +2,9 @@
 import argparse
 import importlib.util
 import json
+import signal
 import subprocess
+import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -2970,4 +2972,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if hasattr(signal, 'SIGPIPE'):
+        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    try:
+        main()
+    except BrokenPipeError:
+        try:
+            sys.stdout.close()
+        finally:
+            raise SystemExit(0)
