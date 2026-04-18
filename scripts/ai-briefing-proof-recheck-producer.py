@@ -131,10 +131,13 @@ def build_overall_item(producer_items: list[dict]) -> dict:
     payload = (primary or {}).get('payload') or {}
     return {
         'returncode': (primary or {}).get('returncode'),
+        'exit_code': payload.get('exit_code'),
         'summary': (primary or {}).get('summary'),
         'ok': payload.get('ok'),
+        'state': payload.get('state'),
         'result_kind': payload.get('result_kind'),
         'result_text': payload.get('result_text'),
+        'reference_now_text': payload.get('reference_now_text'),
         'reference_context_text': payload.get('reference_context_text'),
         'proof_state': payload.get('proof_state'),
         'proof_state_text': payload.get('proof_state_text'),
@@ -171,7 +174,9 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_runs_remaining': payload.get('proof_runs_remaining'),
         'proof_recheck_ready': payload.get('proof_recheck_ready'),
         'proof_target_met': payload.get('proof_target_met'),
+        'status_ok': payload.get('status_ok'),
         'status_returncode': payload.get('status_returncode'),
+        'watchdog_ok': payload.get('watchdog_ok'),
         'watchdog_returncode': payload.get('watchdog_returncode'),
     }
 

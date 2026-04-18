@@ -1816,7 +1816,11 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'name': 'proof-recheck-producer-before-slot-too-early',
         'reference_ms': 1776495480000,
         'expect_exit_code': 2,
+        'expect_state': 'waiting',
         'expect_result_kind': 'too-early',
+        'expect_reference_now_text': '2026-04-18 08:58 CEST',
+        'expect_status_ok': False,
+        'expect_watchdog_ok': False,
         'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
         'expect_proof_blocker_kind': 'time-gated-next-slot',
         'expect_proof_next_action_kind': 'wait-then-recheck',
@@ -1846,7 +1850,11 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'name': 'proof-recheck-producer-open-window-needs-attention',
         'reference_ms': 1776582900000,
         'expect_exit_code': 3,
+        'expect_state': 'attention',
         'expect_result_kind': 'attention-needed',
+        'expect_reference_now_text': '2026-04-19 09:15 CEST',
+        'expect_status_ok': False,
+        'expect_watchdog_ok': False,
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_blocker_kind': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
@@ -2360,8 +2368,20 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(f"quiet-exitcode verwacht {case['expect_exit_code']}, kreeg {quiet_proc.returncode}")
         if overall.get('returncode') != case['expect_exit_code']:
             failures.append(f"overall.returncode verwacht {case['expect_exit_code']}, kreeg {overall.get('returncode')}")
+        if overall.get('exit_code') != case['expect_exit_code']:
+            failures.append(f"overall.exit_code verwacht {case['expect_exit_code']}, kreeg {overall.get('exit_code')}")
+        if overall.get('state') != case['expect_state']:
+            failures.append(f"overall.state verwacht {case['expect_state']}, kreeg {overall.get('state')}")
         if overall.get('result_kind') != case['expect_result_kind']:
             failures.append(f"overall.result_kind verwacht {case['expect_result_kind']}, kreeg {overall.get('result_kind')}")
+        if overall.get('reference_now_text') != case['expect_reference_now_text']:
+            failures.append(
+                f"overall.reference_now_text verwacht {case['expect_reference_now_text']}, kreeg {overall.get('reference_now_text')}"
+            )
+        if overall.get('status_ok') != case['expect_status_ok']:
+            failures.append(f"overall.status_ok verwacht {case['expect_status_ok']}, kreeg {overall.get('status_ok')}")
+        if overall.get('watchdog_ok') != case['expect_watchdog_ok']:
+            failures.append(f"overall.watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {overall.get('watchdog_ok')}")
         if overall.get('proof_state') != case['expect_proof_state']:
             failures.append(f"overall.proof_state verwacht {case['expect_proof_state']}, kreeg {overall.get('proof_state')}")
         if overall.get('proof_blocker_kind') != case['expect_proof_blocker_kind']:
