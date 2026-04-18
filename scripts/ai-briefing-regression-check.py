@@ -1679,6 +1679,44 @@ DEFAULT_CASES = [
     },
 ]
 
+STATUS_PHASE_CASES = [
+    {
+        'name': 'status-before-slot-waits-for-run',
+        'reference_ms': 1776495480000,
+        'expect_proof_state': 'waiting-next-scheduled-run',
+        'expect_proof_blocker_kind': 'time-gated-next-slot',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_proof_recheck_window_open': False,
+        'expect_substrings': [
+            'wacht op geplande kwalificatierun 2026-04-18 09:00 CEST',
+            'hercheck vanaf 2026-04-18 09:15 CEST',
+        ],
+    },
+    {
+        'name': 'status-current-slot-grace-window',
+        'reference_ms': 1776495900000,
+        'expect_proof_state': 'current-slot-grace-window',
+        'expect_proof_blocker_kind': 'grace-window-before-recheck',
+        'expect_proof_next_action_kind': 'wait-for-recheck-window',
+        'expect_proof_recheck_window_open': False,
+        'expect_substrings': [
+            'kwalificatierun van 2026-04-18 09:00 CEST zit in grace-window',
+            'hercheck vanaf 2026-04-18 09:15 CEST',
+        ],
+    },
+    {
+        'name': 'status-recheck-window-open',
+        'reference_ms': 1776496500000,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_blocker_kind': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_proof_recheck_window_open': True,
+        'expect_substrings': [
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+]
+
 
 def load_status_module():
     spec = importlib.util.spec_from_file_location('ai_briefing_status', STATUS_SCRIPT)
@@ -1928,6 +1966,71 @@ def evaluate_case(module, case):
     }
 
 
+def evaluate_status_phase_case(module, case):
+    status = module.build_status(reference_ms=case['reference_ms'])
+    failures = []
+
+    if status.get('proof_state') != case['expect_proof_state']:
+        failures.append(
+            f"proof_state verwacht {case['expect_proof_state']}, kreeg {status.get('proof_state')}"
+        )
+    if status.get('proof_blocker_kind') != case['expect_proof_blocker_kind']:
+        failures.append(
+            f"proof_blocker_kind verwacht {case['expect_proof_blocker_kind']}, kreeg {status.get('proof_blocker_kind')}"
+        )
+    if status.get('proof_next_action_kind') != case['expect_proof_next_action_kind']:
+        failures.append(
+            f"proof_next_action_kind verwacht {case['expect_proof_next_action_kind']}, kreeg {status.get('proof_next_action_kind')}"
+        )
+    if status.get('proof_recheck_window_open') != case['expect_proof_recheck_window_open']:
+        failures.append(
+            'proof_recheck_window_open verwacht '
+            f"{case['expect_proof_recheck_window_open']}, kreeg {status.get('proof_recheck_window_open')}"
+        )
+
+    combined_text = ' || '.join(
+        str(bit) for bit in [
+            status.get('proof_state_text'),
+            status.get('proof_blocker_text'),
+            status.get('proof_next_action_text'),
+            status.get('proof_next_action_window_text'),
+            status.get('proof_recheck_window_text'),
+        ] if bit
+    )
+    for snippet in case.get('expect_substrings', []):
+        if snippet not in combined_text:
+            failures.append(f"verwachte status-tekst ontbreekt: {snippet}")
+
+    return {
+        'name': case['name'],
+        'path': None,
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': status.get('ok'),
+        'audit_text': combined_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+
 def main():
     parser = argparse.ArgumentParser(description='Regressiecheck voor AI-briefing output-audits')
     parser.add_argument('--json', action='store_true', help='geef JSON-output')
@@ -1935,6 +2038,7 @@ def main():
 
     module = load_status_module()
     results = [evaluate_case(module, case) for case in DEFAULT_CASES]
+    results.extend(evaluate_status_phase_case(module, case) for case in STATUS_PHASE_CASES)
     overall_ok = all(result['ok'] for result in results)
 
     if args.json:

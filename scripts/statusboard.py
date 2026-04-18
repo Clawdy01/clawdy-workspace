@@ -128,6 +128,8 @@ def render_text(data, show_preview=False):
             ai_bits.append(ai_briefing_status['readiness_text'])
         if ai_briefing_status.get('delivery_text'):
             ai_bits.append(f"naar {ai_briefing_status['delivery_text']}")
+        if ai_briefing_status.get('reference_context_text'):
+            ai_bits.append(ai_briefing_status['reference_context_text'])
         if ai_briefing_status.get('proof_text'):
             ai_bits.append(ai_briefing_status['proof_text'])
         if ai_briefing_status.get('attention_text'):

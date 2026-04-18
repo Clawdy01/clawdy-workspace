@@ -2382,12 +2382,21 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     if last_run_output_audit.get('available') and not last_run_output_audit.get('ok'):
         attention_reasons.append(f"briefing-output: {last_run_output_audit.get('text')}")
 
+    reference_mode = 'simulated' if reference_ms is not None else 'live'
+    reference_context_text = None
+    if reference_mode == 'simulated':
+        reference_context_text = f"referentietijd {fmt_ts(now_ms, tz_name)}"
+
     summary = {
         'ok': not attention_reasons,
         'found': True,
         'job_id': job.get('id'),
         'job_name': job.get('name'),
         'enabled': bool(job.get('enabled')),
+        'reference_now_ms': now_ms,
+        'reference_now_text': fmt_ts(now_ms, tz_name),
+        'reference_mode': reference_mode,
+        'reference_context_text': reference_context_text,
         'delivery_channel': delivery_channel,
         'delivery_to': delivery_to,
         'delivery_text': f'{delivery_channel}:{delivery_to}',
@@ -2660,12 +2669,23 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     if proof_next_qualifying_slot_at:
         proof_recheck_after_candidate_at = proof_next_qualifying_slot_at + (proof_recheck_grace_ms or 0)
 
+    proof_current_slot_grace_window = bool(
+        not summary['proof_target_met']
+        and proof_next_qualifying_slot_at is not None
+        and now_ms >= proof_next_qualifying_slot_at
+        and proof_recheck_after_candidate_at is not None
+        and now_ms < proof_recheck_after_candidate_at
+    )
+
     if summary['proof_target_met']:
         proof_state = 'target-met'
         proof_state_text = 'bewijsdoel gehaald'
     elif proof_recheck_after_candidate_at and now_ms >= proof_recheck_after_candidate_at:
         proof_state = 'recheck-window-open'
         proof_state_text = 'hercheckvenster is open voor het huidige kwalificatieslot'
+    elif proof_current_slot_grace_window:
+        proof_state = 'current-slot-grace-window'
+        proof_state_text = 'kwalificatierun is bezig of zit nog in het grace-window vóór hercheck'
     elif expected_proof_freshness_wait and summary['proof_today_block_text']:
         proof_state = 'waiting-next-scheduled-run-tomorrow'
         proof_state_text = 'bewijs wacht tijdsgebonden op het eerstvolgende kwalificatieslot van morgen'
@@ -2746,6 +2766,11 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         if summary['proof_recheck_after_text']:
             if proof_recheck_window_open:
                 proof_recheck_window_text = 'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw'
+            elif proof_current_slot_grace_window:
+                proof_recheck_window_text = (
+                    f"kwalificatierun zit in grace-window; hercheck vanaf {summary['proof_recheck_after_text']}"
+                    + (f" ({summary['proof_recheck_after_hint']})" if summary['proof_recheck_after_hint'] else '')
+                )
             else:
                 proof_recheck_window_text = (
                     f"hercheckvenster opent {summary['proof_recheck_after_text']}"
@@ -2767,6 +2792,12 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     elif proof_recheck_window_open:
         proof_blocker_kind = 'recheck-window-open'
         proof_blocker_text = 'hercheckvenster is open, dus dit spoor wacht alleen nog op directe hercheck'
+    elif proof_current_slot_grace_window:
+        proof_blocker_kind = 'grace-window-before-recheck'
+        proof_blocker_text = (
+            f"kwalificatierun {summary['proof_next_qualifying_slot_at_text']} zit nog in het grace-window; hercheck vanaf {summary['proof_recheck_after_text']}"
+            + (f" ({summary['proof_recheck_after_hint']})" if summary.get('proof_recheck_after_hint') else '')
+        )
     elif expected_proof_freshness_wait and summary.get('proof_wait_until_text'):
         proof_blocker_kind = 'time-gated-next-slot'
         proof_blocker_text = (
@@ -2790,6 +2821,12 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     proof_next_action_window_text = None
     if proof_recheck_window_open:
         proof_next_action_window_text = 'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw'
+    elif proof_current_slot_grace_window and summary['proof_recheck_after_text']:
+        proof_next_action_window_text = (
+            f"kwalificatierun van {summary['proof_next_qualifying_slot_at_text']} zit in grace-window"
+            + f"; hercheck vanaf {summary['proof_recheck_after_text']}"
+            + (f" ({summary['proof_recheck_after_hint']})" if summary['proof_recheck_after_hint'] else '')
+        )
     elif proof_wait_until_text and summary['proof_recheck_after_text']:
         proof_next_action_window_text = (
             f"wacht op geplande kwalificatierun {proof_wait_until_text}"
@@ -2810,6 +2847,13 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     elif proof_recheck_window_open:
         proof_next_action_text = 'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw'
         proof_next_action_kind = 'recheck-now'
+    elif proof_current_slot_grace_window:
+        proof_next_action_text = (
+            f"kwalificatierun van {summary['proof_next_qualifying_slot_at_text']} zit nog in het grace-window"
+            + f"; hercheck vanaf {summary['proof_recheck_after_text']}"
+            + (f" ({summary['proof_recheck_after_hint']})" if summary['proof_recheck_after_hint'] else '')
+        )
+        proof_next_action_kind = 'wait-for-recheck-window'
     elif proof_wait_until_text:
         proof_next_action_text = (
             f"wacht op geplande kwalificatierun {proof_wait_until_text}"
@@ -3001,6 +3045,8 @@ def render_text(data):
         parts.append(data['readiness_text'])
     if data.get('delivery_text'):
         parts.append(f"naar {data['delivery_text']}")
+    if data.get('reference_context_text'):
+        parts.append(data['reference_context_text'])
     if data.get('proof_text'):
         parts.append(data['proof_text'])
     payload_audit = data.get('payload_audit') or {}

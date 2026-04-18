@@ -359,6 +359,10 @@ def main() -> int:
         'proof_recheck_commands': status.get('proof_recheck_commands'),
         'proof_recheck_commands_text': status.get('proof_recheck_commands_text'),
         'proof_target_runs': status.get('proof_target_runs'),
+        'reference_now_ms': status.get('reference_now_ms'),
+        'reference_now_text': status.get('reference_now_text'),
+        'reference_mode': status.get('reference_mode'),
+        'reference_context_text': status.get('reference_context_text'),
         'proof_qualified_runs': proof_qualified_runs,
         'proof_runs_remaining': proof_runs_remaining,
         'required_qualified_runs': required_qualified_runs,
@@ -430,6 +434,8 @@ def main() -> int:
         lines.extend(f'- {reason}' for reason in reasons)
     if result['readiness_text']:
         lines.append(f"readiness: {result['readiness_text']}")
+    if result.get('reference_context_text'):
+        lines.append(f"reference: {result['reference_context_text']}")
     if result.get('proof_config_identity_text'):
         lines.append(f"proof config: {result['proof_config_identity_text']}")
     if result.get('last_run_config_relation_text'):
