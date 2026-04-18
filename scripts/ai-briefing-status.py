@@ -2649,9 +2649,23 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     else:
         proof_schedule_risk_text = None
 
+    grace_value = (next_run_audit or {}).get('pending_current_slot_grace_ms')
+    proof_recheck_grace_ms = None
+    if grace_value is not None:
+        try:
+            proof_recheck_grace_ms = max(0, int(grace_value))
+        except (TypeError, ValueError):
+            proof_recheck_grace_ms = None
+    proof_recheck_after_candidate_at = None
+    if proof_next_qualifying_slot_at:
+        proof_recheck_after_candidate_at = proof_next_qualifying_slot_at + (proof_recheck_grace_ms or 0)
+
     if summary['proof_target_met']:
         proof_state = 'target-met'
         proof_state_text = 'bewijsdoel gehaald'
+    elif proof_recheck_after_candidate_at and now_ms >= proof_recheck_after_candidate_at:
+        proof_state = 'recheck-window-open'
+        proof_state_text = 'hercheckvenster is open voor het huidige kwalificatieslot'
     elif expected_proof_freshness_wait and summary['proof_today_block_text']:
         proof_state = 'waiting-next-scheduled-run-tomorrow'
         proof_state_text = 'bewijs wacht tijdsgebonden op het eerstvolgende kwalificatieslot van morgen'
@@ -2673,7 +2687,9 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     proof_wait_until_hint = None
     proof_wait_until_reason_text = None
     if not summary['proof_target_met'] and proof_next_qualifying_slot_at and (
-        expected_proof_freshness_wait or summary['proof_today_block_text']
+        expected_proof_freshness_wait
+        or summary['proof_today_block_text']
+        or (proof_recheck_after_candidate_at is not None and now_ms < proof_recheck_after_candidate_at)
     ):
         proof_wait_until_at = proof_next_qualifying_slot_at
         proof_wait_until_text = summary.get('proof_next_qualifying_slot_at_text')
@@ -2682,6 +2698,8 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
             proof_wait_until_reason_text = 'bewijs blijft tijdsgebonden wachten tot het eerstvolgende kwalificatieslot van morgen'
         elif expected_proof_freshness_wait:
             proof_wait_until_reason_text = 'bewijs blijft wachten tot de eerstvolgende geplande kwalificatierun'
+        elif proof_recheck_after_candidate_at is not None and now_ms < proof_recheck_after_candidate_at:
+            proof_wait_until_reason_text = 'bewijs bewaakt het huidige kwalificatieslot tot het hercheckvenster opent'
         else:
             proof_wait_until_reason_text = 'vandaag zijn geen kwalificerende runs meer mogelijk, bewijs wacht tot het volgende kwalificatieslot'
 
@@ -2696,17 +2714,11 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         'python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3',
     ]
 
-    proof_recheck_grace_ms = None
-    if proof_wait_until_at:
-        grace_value = (next_run_audit or {}).get('pending_current_slot_grace_ms')
-        if grace_value is not None:
-            try:
-                proof_recheck_grace_ms = max(0, int(grace_value))
-            except (TypeError, ValueError):
-                proof_recheck_grace_ms = None
     proof_recheck_after_at = None
     if proof_wait_until_at:
         proof_recheck_after_at = proof_wait_until_at + (proof_recheck_grace_ms or 0)
+    elif proof_recheck_after_candidate_at is not None:
+        proof_recheck_after_at = proof_recheck_after_candidate_at
     proof_recheck_commands_text = None
     if proof_recheck_commands:
         proof_recheck_commands_text = 'daarna draai: ' + ' ; '.join(proof_recheck_commands)
@@ -2748,6 +2760,33 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         )
     else:
         summary['proof_recheck_after_text_compact'] = None
+    proof_blocker_kind = 'none'
+    proof_blocker_text = None
+    if summary['proof_target_met']:
+        proof_blocker_kind = 'none'
+    elif proof_recheck_window_open:
+        proof_blocker_kind = 'recheck-window-open'
+        proof_blocker_text = 'hercheckvenster is open, dus dit spoor wacht alleen nog op directe hercheck'
+    elif expected_proof_freshness_wait and summary.get('proof_wait_until_text'):
+        proof_blocker_kind = 'time-gated-next-slot'
+        proof_blocker_text = (
+            f"tijdslotblokker: huidige config wacht op geplande kwalificatierun {summary['proof_wait_until_text']}"
+            + (f" ({summary['proof_wait_until_hint']})" if summary.get('proof_wait_until_hint') else '')
+        )
+    elif summary['proof_today_block_text']:
+        proof_blocker_kind = 'time-gated-tomorrow-slot'
+        proof_blocker_text = summary['proof_today_block_text']
+    elif summary.get('proof_next_qualifying_slot_at_text'):
+        proof_blocker_kind = 'scheduled-slot-pending'
+        proof_blocker_text = (
+            f"kwalificatieslot staat gepland op {summary['proof_next_qualifying_slot_at_text']}"
+            + (f" ({summary['proof_next_qualifying_slot_hint']})" if summary.get('proof_next_qualifying_slot_hint') else '')
+        )
+    else:
+        proof_blocker_kind = 'invalid-slot'
+        proof_blocker_text = 'geen geldig kwalificatieslot beschikbaar voor het bewijspad'
+    summary['proof_blocker_kind'] = proof_blocker_kind
+    summary['proof_blocker_text'] = proof_blocker_text
     proof_next_action_window_text = None
     if proof_recheck_window_open:
         proof_next_action_window_text = 'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw'
@@ -3015,6 +3054,8 @@ def render_text(data):
         parts.append(data['last_run_config_relation_text'])
     if data.get('proof_state_text'):
         parts.append(data['proof_state_text'])
+    if data.get('proof_blocker_text'):
+        parts.append(data['proof_blocker_text'])
     if data.get('proof_next_action_window_text'):
         parts.append(data['proof_next_action_window_text'])
     elif data.get('proof_next_action_text'):

@@ -346,6 +346,8 @@ def main() -> int:
         'proof_plan_text': status.get('proof_plan_text'),
         'proof_state': status.get('proof_state'),
         'proof_state_text': status.get('proof_state_text'),
+        'proof_blocker_kind': status.get('proof_blocker_kind'),
+        'proof_blocker_text': status.get('proof_blocker_text'),
         'proof_config_hash': status.get('proof_config_hash'),
         'proof_config_identity_text': status.get('proof_config_identity_text'),
         'last_run_config_relation': status.get('last_run_config_relation'),
@@ -420,6 +422,8 @@ def main() -> int:
     lines = [f'ai briefing watchdog: {state} - {summary}']
     if result['proof_state_text']:
         lines.append(f"proof state: {result['proof_state_text']} ({result['proof_state']})")
+    if result.get('proof_blocker_text'):
+        lines.append(f"proof blocker: {result['proof_blocker_text']} ({result.get('proof_blocker_kind')})")
     if reasons:
         lines.append('reasons:')
         lines.extend(f'- {reason}' for reason in reasons)

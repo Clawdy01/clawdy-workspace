@@ -328,6 +328,8 @@ def render_text(summary):
             ai_bits.append(proof_target_due_text)
         if ai_briefing_status.get('proof_state_text'):
             ai_bits.append(ai_briefing_status['proof_state_text'])
+        if ai_briefing_status.get('proof_blocker_text'):
+            ai_bits.append(ai_briefing_status['proof_blocker_text'])
         if ai_briefing_status.get('proof_next_action_window_text'):
             ai_bits.append(ai_briefing_status['proof_next_action_window_text'])
         elif ai_briefing_status.get('proof_next_action_text'):
