@@ -145,6 +145,10 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         consumer_outputs_text = format_consumer_outputs(payload.get('consumer_outputs') or [])
         if consumer_outputs_text:
             bits.append(consumer_outputs_text)
+    if payload.get('consumer_outputs_count_text'):
+        bits.append(str(payload['consumer_outputs_count_text']))
+    if payload.get('consumer_outputs_status_text'):
+        bits.append(str(payload['consumer_outputs_status_text']))
     if payload.get('proof_config_identity_text'):
         bits.append(str(payload['proof_config_identity_text']))
     if payload.get('last_run_config_relation_text'):
@@ -245,7 +249,20 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'consumer_requested_outputs': payload.get('consumer_requested_outputs') or [],
         'consumer_requested_output_paths': payload.get('consumer_requested_output_paths') or [],
         'consumer_requested_output_channels': payload.get('consumer_requested_output_channels') or [],
+        'consumer_requested_output_count': payload.get('consumer_requested_output_count'),
         'consumer_requested_outputs_text': payload.get('consumer_requested_outputs_text') or format_consumer_outputs(payload.get('consumer_requested_outputs') or []),
+        'consumer_outputs_match_requested': payload.get('consumer_outputs_match_requested'),
+        'consumer_output_count': payload.get('consumer_output_count'),
+        'consumer_outputs_count_text': payload.get('consumer_outputs_count_text'),
+        'consumer_outputs_status_text': payload.get('consumer_outputs_status_text'),
+        'consumer_outputs_missing_count': payload.get('consumer_outputs_missing_count'),
+        'consumer_outputs_missing': payload.get('consumer_outputs_missing') or [],
+        'consumer_outputs_missing_paths': payload.get('consumer_outputs_missing_paths') or [],
+        'consumer_outputs_missing_channels': payload.get('consumer_outputs_missing_channels') or [],
+        'consumer_outputs_unexpected_count': payload.get('consumer_outputs_unexpected_count'),
+        'consumer_outputs_unexpected': payload.get('consumer_outputs_unexpected') or [],
+        'consumer_outputs_unexpected_paths': payload.get('consumer_outputs_unexpected_paths') or [],
+        'consumer_outputs_unexpected_channels': payload.get('consumer_outputs_unexpected_channels') or [],
         'consumer_outputs': payload.get('consumer_outputs') or [],
         'consumer_output_paths': payload.get('consumer_output_paths') or [],
         'consumer_output_channels': payload.get('consumer_output_channels') or [],

@@ -2585,6 +2585,11 @@ def evaluate_proof_recheck_producer_case(case):
             'proof_config_hash',
             'consumer_output_paths',
             'consumer_requested_output_paths',
+            'consumer_requested_output_count',
+            'consumer_output_count',
+            'consumer_outputs_count_text',
+            'consumer_outputs_missing_count',
+            'consumer_outputs_unexpected_count',
         ]
         if payload.get('consumer_root') != temp_dir:
             failures.append(f"consumer_root verwacht {temp_dir}, kreeg {payload.get('consumer_root')}")
@@ -2783,6 +2788,51 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 f"overall.consumer_outputs verwacht {len(expected_artifacts)} items, kreeg {len(overall_consumer_outputs)}"
             )
+        if overall.get('consumer_requested_output_count') != len(expected_artifacts):
+            failures.append(
+                'overall.consumer_requested_output_count verwacht '
+                f"{len(expected_artifacts)}, kreeg {overall.get('consumer_requested_output_count')}"
+            )
+        if overall.get('consumer_output_count') != len(expected_artifacts):
+            failures.append(
+                'overall.consumer_output_count verwacht '
+                f"{len(expected_artifacts)}, kreeg {overall.get('consumer_output_count')}"
+            )
+        if overall.get('consumer_outputs_match_requested') is not True:
+            failures.append(
+                'overall.consumer_outputs_match_requested verwacht True, kreeg '
+                f"{overall.get('consumer_outputs_match_requested')}"
+            )
+        overall_consumer_outputs_count_text = overall.get('consumer_outputs_count_text') or ''
+        if overall_consumer_outputs_count_text != 'consumer-output-telling gevraagd=3, geschreven=3, ontbrekend=0, onverwacht=0':
+            failures.append(
+                'overall.consumer_outputs_count_text verwacht consumer-output-telling gevraagd=3, geschreven=3, ontbrekend=0, onverwacht=0, kreeg '
+                f'{overall_consumer_outputs_count_text}'
+            )
+        overall_consumer_outputs_status_text = overall.get('consumer_outputs_status_text') or ''
+        if 'consumer-output-audit ok' not in overall_consumer_outputs_status_text:
+            failures.append(
+                'overall.consumer_outputs_status_text mist consumer-output-audit ok: '
+                f'{overall_consumer_outputs_status_text}'
+            )
+        if overall.get('consumer_outputs_missing_count') not in (0, None):
+            failures.append(
+                'overall.consumer_outputs_missing_count verwacht 0, kreeg '
+                f"{overall.get('consumer_outputs_missing_count')}"
+            )
+        if overall.get('consumer_outputs_missing') not in ([], None):
+            failures.append(
+                f"overall.consumer_outputs_missing verwacht [], kreeg {overall.get('consumer_outputs_missing')}"
+            )
+        if overall.get('consumer_outputs_unexpected_count') not in (0, None):
+            failures.append(
+                'overall.consumer_outputs_unexpected_count verwacht 0, kreeg '
+                f"{overall.get('consumer_outputs_unexpected_count')}"
+            )
+        if overall.get('consumer_outputs_unexpected') not in ([], None):
+            failures.append(
+                f"overall.consumer_outputs_unexpected verwacht [], kreeg {overall.get('consumer_outputs_unexpected')}"
+            )
         for artifact in expected_artifacts:
             if not artifact.exists():
                 failures.append(f'artifact ontbreekt: {artifact}')
@@ -2811,6 +2861,43 @@ def evaluate_proof_recheck_producer_case(case):
             if artifact_payload:
                 if case.get('expect_proof_config_hash_present') and not artifact_payload.get('proof_config_hash'):
                     failures.append(f'{label} mist proof_config_hash')
+                if artifact_payload.get('consumer_requested_output_count') != len(expected_artifacts):
+                    failures.append(
+                        f'{label} consumer_requested_output_count verwacht {len(expected_artifacts)}, kreeg '
+                        f"{artifact_payload.get('consumer_requested_output_count')}"
+                    )
+                if artifact_payload.get('consumer_output_count') != len(expected_artifacts):
+                    failures.append(
+                        f'{label} consumer_output_count verwacht {len(expected_artifacts)}, kreeg '
+                        f"{artifact_payload.get('consumer_output_count')}"
+                    )
+                if artifact_payload.get('consumer_outputs_match_requested') is not True:
+                    failures.append(
+                        f'{label} consumer_outputs_match_requested verwacht True, kreeg '
+                        f"{artifact_payload.get('consumer_outputs_match_requested')}"
+                    )
+                artifact_consumer_outputs_count_text = artifact_payload.get('consumer_outputs_count_text') or ''
+                if artifact_consumer_outputs_count_text != 'consumer-output-telling gevraagd=3, geschreven=3, ontbrekend=0, onverwacht=0':
+                    failures.append(
+                        f'{label} consumer_outputs_count_text verwacht consumer-output-telling gevraagd=3, geschreven=3, ontbrekend=0, onverwacht=0, kreeg '
+                        f'{artifact_consumer_outputs_count_text}'
+                    )
+                artifact_consumer_outputs_status_text = artifact_payload.get('consumer_outputs_status_text') or ''
+                if 'consumer-output-audit ok' not in artifact_consumer_outputs_status_text:
+                    failures.append(
+                        f'{label} consumer_outputs_status_text mist consumer-output-audit ok: '
+                        f'{artifact_consumer_outputs_status_text}'
+                    )
+                if artifact_payload.get('consumer_outputs_missing_count') not in (0, None):
+                    failures.append(
+                        f'{label} consumer_outputs_missing_count verwacht 0, kreeg '
+                        f"{artifact_payload.get('consumer_outputs_missing_count')}"
+                    )
+                if artifact_payload.get('consumer_outputs_unexpected_count') not in (0, None):
+                    failures.append(
+                        f'{label} consumer_outputs_unexpected_count verwacht 0, kreeg '
+                        f"{artifact_payload.get('consumer_outputs_unexpected_count')}"
+                    )
                 if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
                     artifact_audit_ok = ((artifact_payload.get('proof_recheck_schedule_audit') or {}).get('ok'))
                     if artifact_audit_ok != case.get('expect_proof_recheck_schedule_audit_ok'):

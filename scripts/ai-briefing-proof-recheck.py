@@ -197,6 +197,63 @@ def format_consumer_outputs(outputs: list[dict]) -> str | None:
     return 'consumer-artifacts: ' + '; '.join(bits)
 
 
+def output_signature(item: dict) -> tuple[str, str, str, bool]:
+    return (
+        str(item.get('channel') or ''),
+        str(item.get('path') or ''),
+        str(item.get('format') or ''),
+        bool(item.get('append')),
+    )
+
+
+def update_consumer_output_audit(payload: dict) -> None:
+    requested_outputs = payload.get('consumer_requested_outputs') or []
+    written_outputs = payload.get('consumer_outputs') or []
+    requested_signatures = {output_signature(item) for item in requested_outputs}
+    written_signatures = {output_signature(item) for item in written_outputs}
+
+    missing_outputs = [item for item in requested_outputs if output_signature(item) not in written_signatures]
+    unexpected_outputs = [item for item in written_outputs if output_signature(item) not in requested_signatures]
+
+    payload['consumer_requested_output_count'] = len(requested_outputs)
+    payload['consumer_output_count'] = len(written_outputs)
+    payload['consumer_outputs_missing_count'] = len(missing_outputs)
+    payload['consumer_outputs_unexpected_count'] = len(unexpected_outputs)
+    payload['consumer_outputs_count_text'] = (
+        'consumer-output-telling '
+        f"gevraagd={payload['consumer_requested_output_count']}, "
+        f"geschreven={payload['consumer_output_count']}, "
+        f"ontbrekend={payload['consumer_outputs_missing_count']}, "
+        f"onverwacht={payload['consumer_outputs_unexpected_count']}"
+    )
+    payload['consumer_outputs_match_requested'] = not missing_outputs and not unexpected_outputs
+    payload['consumer_outputs_missing'] = missing_outputs
+    payload['consumer_outputs_missing_paths'] = [item['path'] for item in missing_outputs]
+    payload['consumer_outputs_missing_channels'] = [item['channel'] for item in missing_outputs]
+    payload['consumer_outputs_unexpected'] = unexpected_outputs
+    payload['consumer_outputs_unexpected_paths'] = [item['path'] for item in unexpected_outputs]
+    payload['consumer_outputs_unexpected_channels'] = [item['channel'] for item in unexpected_outputs]
+
+    if payload['consumer_outputs_match_requested']:
+        requested_count = len(requested_outputs)
+        if requested_count:
+            payload['consumer_outputs_status_text'] = (
+                f'consumer-output-audit ok ({requested_count}/{requested_count} gevraagde artifacts geschreven)'
+            )
+        else:
+            payload['consumer_outputs_status_text'] = 'consumer-output-audit ok (geen artifact-output gevraagd)'
+        return
+
+    parts: list[str] = []
+    missing_text = format_consumer_outputs(missing_outputs)
+    unexpected_text = format_consumer_outputs(unexpected_outputs)
+    if missing_text:
+        parts.append('ontbreekt: ' + missing_text.removeprefix('consumer-artifacts: '))
+    if unexpected_text:
+        parts.append('onverwacht: ' + unexpected_text.removeprefix('consumer-artifacts: '))
+    payload['consumer_outputs_status_text'] = 'consumer-output-audit mismatch (' + '; '.join(parts) + ')'
+
+
 def unique_bits(bits: list[str]) -> list[str]:
     unique: list[str] = []
     for bit in bits:
@@ -248,6 +305,8 @@ def build_text(payload: dict) -> str:
         payload.get('proof_target_check_gate_text'),
         payload.get('proof_countdown_text'),
         payload.get('proof_recheck_commands_text'),
+        payload.get('consumer_outputs_count_text'),
+        payload.get('consumer_outputs_status_text'),
         payload.get('consumer_outputs_text'),
     ]
     return ' | '.join(unique_bits(bits))
@@ -343,6 +402,7 @@ def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, out
     payload['consumer_output_paths'] = [item['path'] for item in written_outputs]
     payload['consumer_output_channels'] = [item['channel'] for item in written_outputs]
     payload['consumer_outputs_text'] = format_consumer_outputs(written_outputs)
+    update_consumer_output_audit(payload)
     sys.stdout.write(render_output(text=build_text(payload), payload=payload, output_format=stdout_format))
     return written_outputs
 
@@ -395,6 +455,7 @@ def main() -> int:
     payload['consumer_output_paths'] = [item['path'] for item in payload['consumer_outputs']]
     payload['consumer_output_channels'] = [item['channel'] for item in payload['consumer_outputs']]
     payload['consumer_outputs_text'] = format_consumer_outputs(payload['consumer_outputs'])
+    update_consumer_output_audit(payload)
     text_output = build_text(payload)
     emit_output_with_bundle(
         text=text_output,
