@@ -2271,6 +2271,21 @@ def evaluate_status_phase_case(module, case):
                 'status proof_recheck_schedule_ok verwacht '
                 f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {status.get('proof_recheck_schedule_ok')}"
             )
+        expected_schedule_kind = 'ok' if case.get('expect_proof_recheck_schedule_audit_ok') else None
+        audit_kind = ((status.get('proof_recheck_schedule_audit') or {}).get('kind'))
+        if expected_schedule_kind is not None and audit_kind != expected_schedule_kind:
+            failures.append(
+                f"status proof_recheck_schedule_audit.kind verwacht {expected_schedule_kind}, kreeg {audit_kind}"
+            )
+        if expected_schedule_kind is not None and status.get('proof_recheck_schedule_kind') != expected_schedule_kind:
+            failures.append(
+                f"status proof_recheck_schedule_kind verwacht {expected_schedule_kind}, kreeg {status.get('proof_recheck_schedule_kind')}"
+            )
+        if expected_schedule_kind is not None and status.get('proof_recheck_schedule_kind_text') != f'proof-recheck-cronstatus: {expected_schedule_kind}':
+            failures.append(
+                'status proof_recheck_schedule_kind_text verwacht '
+                f"proof-recheck-cronstatus: {expected_schedule_kind}, kreeg {status.get('proof_recheck_schedule_kind_text')}"
+            )
         if status.get('proof_recheck_schedule_job_name') != EXPECTED_PROOF_RECHECK_JOB_NAME:
             failures.append(
                 'status proof_recheck_schedule_job_name verwacht '
@@ -2469,6 +2484,21 @@ def evaluate_proof_recheck_case(case):
                 'proof_recheck_schedule_ok verwacht '
                 f"{case.get('expect_proof_recheck_schedule_audit_ok')}, kreeg {payload.get('proof_recheck_schedule_ok')}"
             )
+        expected_schedule_kind = 'ok' if case.get('expect_proof_recheck_schedule_audit_ok') else None
+        audit_kind = ((payload.get('proof_recheck_schedule_audit') or {}).get('kind'))
+        if expected_schedule_kind is not None and audit_kind != expected_schedule_kind:
+            failures.append(
+                f"proof_recheck_schedule_audit.kind verwacht {expected_schedule_kind}, kreeg {audit_kind}"
+            )
+        if expected_schedule_kind is not None and payload.get('proof_recheck_schedule_kind') != expected_schedule_kind:
+            failures.append(
+                f"proof_recheck_schedule_kind verwacht {expected_schedule_kind}, kreeg {payload.get('proof_recheck_schedule_kind')}"
+            )
+        if expected_schedule_kind is not None and payload.get('proof_recheck_schedule_kind_text') != f'proof-recheck-cronstatus: {expected_schedule_kind}':
+            failures.append(
+                'proof_recheck_schedule_kind_text verwacht '
+                f"proof-recheck-cronstatus: {expected_schedule_kind}, kreeg {payload.get('proof_recheck_schedule_kind_text')}"
+            )
     if case.get('expect_proof_recheck_schedule_matches_grace') is not None:
         if payload.get('proof_recheck_schedule_matches_grace') != case.get('expect_proof_recheck_schedule_matches_grace'):
             failures.append(
@@ -2643,6 +2673,8 @@ def evaluate_proof_recheck_producer_case(case):
             'proof_next_action_kind',
             'proof_next_action_window_text',
             'proof_recheck_schedule_ok',
+            'proof_recheck_schedule_kind',
+            'proof_recheck_schedule_kind_text',
             'proof_recheck_schedule_job_name',
             'proof_recheck_schedule_expr',
             'proof_recheck_schedule_tz',

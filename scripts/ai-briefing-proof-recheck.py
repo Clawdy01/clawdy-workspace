@@ -171,6 +171,8 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'last_run_config_relation_text': first_non_null(status_data.get('last_run_config_relation_text'), watchdog_data.get('last_run_config_relation_text')),
         'proof_recheck_schedule_audit': schedule_audit,
         'proof_recheck_schedule_ok': first_non_null(status_data.get('proof_recheck_schedule_ok'), watchdog_data.get('proof_recheck_schedule_ok'), schedule_audit.get('ok')),
+        'proof_recheck_schedule_kind': first_non_null(status_data.get('proof_recheck_schedule_kind'), watchdog_data.get('proof_recheck_schedule_kind'), schedule_audit.get('kind')),
+        'proof_recheck_schedule_kind_text': first_non_null(status_data.get('proof_recheck_schedule_kind_text'), watchdog_data.get('proof_recheck_schedule_kind_text'), schedule_audit.get('kind_text')),
         'proof_recheck_schedule_found': first_non_null(status_data.get('proof_recheck_schedule_found'), watchdog_data.get('proof_recheck_schedule_found'), schedule_audit.get('found')),
         'proof_recheck_schedule_enabled': first_non_null(status_data.get('proof_recheck_schedule_enabled'), watchdog_data.get('proof_recheck_schedule_enabled'), schedule_audit.get('enabled')),
         'proof_recheck_schedule_job_name': first_non_null(status_data.get('proof_recheck_schedule_job_name'), watchdog_data.get('proof_recheck_schedule_job_name'), schedule_audit.get('job_name')),

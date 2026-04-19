@@ -272,6 +272,8 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'last_run_config_relation_text': payload.get('last_run_config_relation_text'),
         'proof_recheck_schedule_audit': payload.get('proof_recheck_schedule_audit') or {},
         'proof_recheck_schedule_ok': payload.get('proof_recheck_schedule_ok'),
+        'proof_recheck_schedule_kind': payload.get('proof_recheck_schedule_kind'),
+        'proof_recheck_schedule_kind_text': payload.get('proof_recheck_schedule_kind_text'),
         'proof_recheck_schedule_found': payload.get('proof_recheck_schedule_found'),
         'proof_recheck_schedule_enabled': payload.get('proof_recheck_schedule_enabled'),
         'proof_recheck_schedule_job_name': payload.get('proof_recheck_schedule_job_name'),

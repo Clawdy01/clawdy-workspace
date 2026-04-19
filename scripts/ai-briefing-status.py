@@ -490,6 +490,7 @@ def audit_next_run(job, next_run_at, now_ms, tz_name):
 
 def audit_proof_recheck_schedule(jobs, target_job, *, proof_recheck_job_name=PROOF_RECHECK_PRODUCER_JOB_NAME, grace_ms=15 * 60 * 1000):
     reasons = []
+    audit_kind = 'ok'
     proof_job = next((job for job in jobs if job.get('name') == proof_recheck_job_name), None)
     expected_gap_minutes = None
     if grace_ms is not None:
@@ -501,6 +502,8 @@ def audit_proof_recheck_schedule(jobs, target_job, *, proof_recheck_job_name=PRO
     if not proof_job:
         return {
             'ok': False,
+            'kind': 'missing-job',
+            'kind_text': f'proof-recheck-cronstatus: ontbrekende job {proof_recheck_job_name}',
             'found': False,
             'enabled': False,
             'job_name': proof_recheck_job_name,
@@ -527,39 +530,56 @@ def audit_proof_recheck_schedule(jobs, target_job, *, proof_recheck_job_name=PRO
     matches_grace = None
 
     if not proof_job.get('enabled'):
+        audit_kind = 'disabled'
         reasons.append('proof-recheck-job staat uit')
     if proof_schedule.get('kind') != 'cron':
+        if audit_kind == 'ok':
+            audit_kind = 'non-cron'
         reasons.append('proof-recheck-job gebruikt geen cron schedule')
     if proof_tz != target_tz:
+        if audit_kind == 'ok':
+            audit_kind = 'tz-mismatch'
         reasons.append(f'proof-recheck cron tz is {proof_tz}, verwacht {target_tz}')
     if proof_hour is None or proof_minute is None:
+        if audit_kind == 'ok':
+            audit_kind = 'invalid-proof-expr'
         reasons.append(f'proof-recheck cron expr is {proof_expr or "onbekend"}')
     if target_hour is None or target_minute is None:
+        if audit_kind == 'ok':
+            audit_kind = 'invalid-target-expr'
         reasons.append(f'primary cron expr is {target_expr or "onbekend"}')
 
     if proof_hour is not None and proof_minute is not None and target_hour is not None and target_minute is not None:
         delta_minutes = (proof_hour * 60 + proof_minute) - (target_hour * 60 + target_minute)
         same_day_after_target = delta_minutes > 0
         if not same_day_after_target:
+            if audit_kind == 'ok':
+                audit_kind = 'not-after-target'
             reasons.append('proof-recheck slot valt niet later op dezelfde dag dan daily-ai-update')
         if expected_gap_minutes is not None:
             matches_grace = delta_minutes == expected_gap_minutes
             if not matches_grace:
+                if audit_kind == 'ok':
+                    audit_kind = 'grace-mismatch'
                 reasons.append(
                     f'proof-recheck slot ligt {delta_minutes}m na daily-ai-update, verwacht {expected_gap_minutes}m grace'
                 )
 
     if reasons:
         text = '; '.join(reasons)
+        kind_text = f'proof-recheck-cronstatus: {audit_kind}'
     else:
         proof_time = f'{proof_hour:02d}:{proof_minute:02d}' if proof_hour is not None and proof_minute is not None else (proof_expr or 'onbekend')
         if expected_gap_minutes is not None:
             text = f'proof-recheck-cron ok ({proof_time} {proof_tz}, {expected_gap_minutes}m na daily-ai-update en gelijk aan grace-window)'
         else:
             text = f'proof-recheck-cron ok ({proof_time} {proof_tz})'
+        kind_text = 'proof-recheck-cronstatus: ok'
 
     return {
         'ok': not reasons,
+        'kind': audit_kind,
+        'kind_text': kind_text,
         'found': True,
         'enabled': bool(proof_job.get('enabled')),
         'job_name': proof_job.get('name'),
@@ -2512,6 +2532,8 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         'next_run_audit': next_run_audit,
         'proof_recheck_schedule_audit': proof_recheck_schedule_audit,
         'proof_recheck_schedule_ok': proof_recheck_schedule_audit.get('ok'),
+        'proof_recheck_schedule_kind': proof_recheck_schedule_audit.get('kind'),
+        'proof_recheck_schedule_kind_text': proof_recheck_schedule_audit.get('kind_text'),
         'proof_recheck_schedule_found': proof_recheck_schedule_audit.get('found'),
         'proof_recheck_schedule_enabled': proof_recheck_schedule_audit.get('enabled'),
         'proof_recheck_schedule_job_name': proof_recheck_schedule_audit.get('job_name'),

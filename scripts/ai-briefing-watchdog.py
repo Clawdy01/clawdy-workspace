@@ -346,6 +346,8 @@ def main() -> int:
     if not proof_recheck_schedule_audit:
         proof_recheck_schedule_audit = {
             'ok': status.get('proof_recheck_schedule_ok'),
+            'kind': status.get('proof_recheck_schedule_kind'),
+            'kind_text': status.get('proof_recheck_schedule_kind_text'),
             'found': status.get('proof_recheck_schedule_found'),
             'enabled': status.get('proof_recheck_schedule_enabled'),
             'job_name': status.get('proof_recheck_schedule_job_name'),
@@ -377,6 +379,8 @@ def main() -> int:
         'last_run_config_relation_text': status.get('last_run_config_relation_text'),
         'proof_recheck_schedule_audit': proof_recheck_schedule_audit,
         'proof_recheck_schedule_ok': first_non_null(status.get('proof_recheck_schedule_ok'), proof_recheck_schedule_audit.get('ok')),
+        'proof_recheck_schedule_kind': first_non_null(status.get('proof_recheck_schedule_kind'), proof_recheck_schedule_audit.get('kind')),
+        'proof_recheck_schedule_kind_text': first_non_null(status.get('proof_recheck_schedule_kind_text'), proof_recheck_schedule_audit.get('kind_text')),
         'proof_recheck_schedule_found': first_non_null(status.get('proof_recheck_schedule_found'), proof_recheck_schedule_audit.get('found')),
         'proof_recheck_schedule_enabled': first_non_null(status.get('proof_recheck_schedule_enabled'), proof_recheck_schedule_audit.get('enabled')),
         'proof_recheck_schedule_job_name': first_non_null(status.get('proof_recheck_schedule_job_name'), proof_recheck_schedule_audit.get('job_name')),
