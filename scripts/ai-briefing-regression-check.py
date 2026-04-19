@@ -2114,6 +2114,22 @@ WATCHDOG_ALERT_CASES = [
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
         ],
     },
+    {
+        'name': 'watchdog-alert-proof-target-check-board-suite-unsuppresses-after-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_AFTER_PROOF_DEADLINE,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': False,
+        'expect_suppressed_before_proof_deadline': False,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'kwalificatie-slots',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+        'consumer_bundle': 'board-suite',
+    },
 ]
 
 WATCHDOG_PRODUCER_CASES = [
@@ -3960,6 +3976,31 @@ def evaluate_watchdog_alert_case(case):
                     'consumer board-json consumer_requested_outputs verwacht board-json/board-text/eventlog-jsonl, kreeg '
                     f'{requested_channels}'
                 )
+            expected_requested_outputs = [
+                {
+                    'channel': 'board-json',
+                    'path': str(board_json_path),
+                    'format': 'json',
+                    'append': False,
+                },
+                {
+                    'channel': 'board-text',
+                    'path': str(board_text_path),
+                    'format': 'text',
+                    'append': False,
+                },
+                {
+                    'channel': 'eventlog-jsonl',
+                    'path': str(eventlog_path),
+                    'format': 'jsonl',
+                    'append': True,
+                },
+            ]
+            if requested_outputs != expected_requested_outputs:
+                failures.append(
+                    'consumer board-json consumer_requested_outputs verwacht exacte board-suite metadata, kreeg '
+                    f'{requested_outputs} versus {expected_requested_outputs}'
+                )
             expected_requested_outputs_text = (
                 f'consumer-artifacts: board-json: {board_json_path}; '
                 f'board-text: {board_text_path}; '
@@ -4016,6 +4057,11 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl consumer_requested_outputs verwacht board-json/board-text/eventlog-jsonl, kreeg '
                             f'{eventlog_requested_channels}'
+                        )
+                    if eventlog_requested_outputs != expected_requested_outputs:
+                        failures.append(
+                            'consumer eventlog-jsonl consumer_requested_outputs verwacht exacte board-suite metadata, kreeg '
+                            f'{eventlog_requested_outputs} versus {expected_requested_outputs}'
                         )
 
     return {
