@@ -4006,6 +4006,26 @@ def evaluate_watchdog_alert_case(case):
                 f'board-text: {board_text_path}; '
                 f'eventlog-jsonl: {eventlog_path}'
             )
+            if board_payload.get('consumer_requested_output_count') != 3:
+                failures.append(
+                    'consumer board-json consumer_requested_output_count verwacht 3, kreeg '
+                    f"{board_payload.get('consumer_requested_output_count')}"
+                )
+            if board_payload.get('consumer_requested_output_channel_count') != 3:
+                failures.append(
+                    'consumer board-json consumer_requested_output_channel_count verwacht 3, kreeg '
+                    f"{board_payload.get('consumer_requested_output_channel_count')}"
+                )
+            if board_payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3':
+                failures.append(
+                    'consumer board-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3, kreeg '
+                    f"{board_payload.get('consumer_requested_output_channel_count_text')}"
+                )
+            if board_payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+                failures.append(
+                    'consumer board-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                    f"{board_payload.get('consumer_requested_output_channels_text')}"
+                )
             if board_payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
                 failures.append(
                     'consumer board-json consumer_requested_outputs_text verwacht '
@@ -4045,6 +4065,26 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl suppressed_before_proof_deadline verwacht '
                             f"{case.get('expect_suppressed_before_proof_deadline', False)}, kreeg {eventlog_payload.get('suppressed_before_proof_deadline')}"
+                        )
+                    if eventlog_payload.get('consumer_requested_output_count') != 3:
+                        failures.append(
+                            'consumer eventlog-jsonl consumer_requested_output_count verwacht 3, kreeg '
+                            f"{eventlog_payload.get('consumer_requested_output_count')}"
+                        )
+                    if eventlog_payload.get('consumer_requested_output_channel_count') != 3:
+                        failures.append(
+                            'consumer eventlog-jsonl consumer_requested_output_channel_count verwacht 3, kreeg '
+                            f"{eventlog_payload.get('consumer_requested_output_channel_count')}"
+                        )
+                    if eventlog_payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3':
+                        failures.append(
+                            'consumer eventlog-jsonl consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3, kreeg '
+                            f"{eventlog_payload.get('consumer_requested_output_channel_count_text')}"
+                        )
+                    if eventlog_payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+                        failures.append(
+                            'consumer eventlog-jsonl consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                            f"{eventlog_payload.get('consumer_requested_output_channels_text')}"
                         )
                     if eventlog_payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
                         failures.append(

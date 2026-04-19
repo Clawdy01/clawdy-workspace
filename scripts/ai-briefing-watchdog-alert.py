@@ -244,6 +244,13 @@ def format_consumer_outputs(outputs: list[dict]) -> str | None:
     return 'consumer-artifacts: ' + '; '.join(bits)
 
 
+def format_channel_summary(prefix: str, channels: list[str]) -> str:
+    cleaned = [str(channel).strip() for channel in channels or [] if str(channel).strip()]
+    if not cleaned:
+        return f'{prefix}: geen'
+    return f"{prefix}: {', '.join(cleaned)}"
+
+
 def render_output(*, text: str, payload: dict, output_format: str) -> str:
     if output_format == 'json':
         return json.dumps(payload, ensure_ascii=False, indent=2) + '\n'
@@ -294,6 +301,11 @@ def build_json_payload(
     suppressed_before_proof_deadline: bool,
     consumer_requested_outputs: list[dict],
 ) -> dict:
+    requested_channels: list[str] = []
+    for item in consumer_requested_outputs:
+        channel = str(item.get('channel') or '').strip()
+        if channel and channel not in requested_channels:
+            requested_channels.append(channel)
     return {
         'ok': bool(data.get('ok')),
         'mode': mode,
@@ -359,6 +371,16 @@ def build_json_payload(
         'last_run_timeout_text': data.get('last_run_timeout_text'),
         'recent_run_duration_text': data.get('recent_run_duration_text'),
         'consumer_requested_outputs': consumer_requested_outputs,
+        'consumer_requested_output_count': len(consumer_requested_outputs),
+        'consumer_requested_output_channel_count': len(requested_channels),
+        'consumer_requested_output_channel_count_text': (
+            'consumer-output-aanvraag-kanalen '
+            f'gevraagd={len(consumer_requested_outputs)}, kanalen={len(requested_channels)}'
+        ),
+        'consumer_requested_output_channels_text': format_channel_summary(
+            'consumer-output-aanvraag-kanalen',
+            requested_channels,
+        ),
         'consumer_requested_outputs_text': format_consumer_outputs(consumer_requested_outputs),
         'reasons': data.get('reasons') or [],
         'summary_output_examples': data.get('summary_output_examples') or [],
