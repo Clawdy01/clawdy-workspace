@@ -2088,6 +2088,18 @@ WATCHDOG_ALERT_CASES = [
         'expect_text_output': 'NO_REPLY',
     },
     {
+        'name': 'watchdog-alert-proof-target-check-board-suite-keeps-no-reply-before-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': True,
+        'expect_suppressed_before_proof_deadline': True,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_output': 'NO_REPLY',
+        'consumer_bundle': 'board-suite',
+    },
+    {
         'name': 'watchdog-alert-proof-target-check-unsuppresses-after-deadline',
         'mode': 'proof-target-check',
         'reference_ms': REFERENCE_MS_AFTER_PROOF_DEADLINE,
@@ -3773,30 +3785,38 @@ def evaluate_watchdog_alert_case(case):
     mode = case.get('mode', 'proof-progress')
     expect_require_qualified_runs = case.get('expect_require_qualified_runs', 3)
     expected_status = run_status_json(case['reference_ms'])
+    json_cmd = [
+        'python3',
+        str(WATCHDOG_ALERT_SCRIPT),
+        '--mode',
+        mode,
+        '--json',
+        '--reference-ms',
+        str(case['reference_ms']),
+    ]
+    text_cmd = [
+        'python3',
+        str(WATCHDOG_ALERT_SCRIPT),
+        '--mode',
+        mode,
+        '--reference-ms',
+        str(case['reference_ms']),
+    ]
+    consumer_bundle = case.get('consumer_bundle')
+    consumer_root = None
+    if consumer_bundle:
+        consumer_root = Path(tempfile.mkdtemp(prefix='watchdog-alert-consumer-', dir=str(ROOT / 'tmp')))
+        text_cmd.extend(['--consumer-root', str(consumer_root), '--consumer-bundle', consumer_bundle])
+
     json_proc = subprocess.run(
-        [
-            'python3',
-            str(WATCHDOG_ALERT_SCRIPT),
-            '--mode',
-            mode,
-            '--json',
-            '--reference-ms',
-            str(case['reference_ms']),
-        ],
+        json_cmd,
         cwd=ROOT,
         capture_output=True,
         text=True,
         check=False,
     )
     proc = subprocess.run(
-        [
-            'python3',
-            str(WATCHDOG_ALERT_SCRIPT),
-            '--mode',
-            mode,
-            '--reference-ms',
-            str(case['reference_ms']),
-        ],
+        text_cmd,
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -3906,6 +3926,54 @@ def evaluate_watchdog_alert_case(case):
         if snippet not in (payload.get('alert_text') or ''):
             failures.append(f"verwachte watchdog-alert-jsontekst ontbreekt: {snippet}")
 
+    if consumer_bundle and consumer_root is not None:
+        board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
+        board_text_path = consumer_root / 'ai-briefing-watchdog-alert.txt'
+        eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
+        if not board_json_path.exists():
+            failures.append(f'consumer board-json ontbreekt: {board_json_path}')
+        else:
+            try:
+                board_payload = json.loads(board_json_path.read_text(encoding='utf-8'))
+            except json.JSONDecodeError as exc:
+                failures.append(f'consumer board-json is geen geldige JSON: {exc}')
+                board_payload = {}
+            if board_payload.get('no_reply') is not case.get('expect_no_reply', False):
+                failures.append(
+                    'consumer board-json no_reply verwacht '
+                    f"{case.get('expect_no_reply', False)}, kreeg {board_payload.get('no_reply')}"
+                )
+            if board_payload.get('alert_text') != payload.get('alert_text'):
+                failures.append(
+                    'consumer board-json alert_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('alert_text')} versus {payload.get('alert_text')}"
+                )
+        if not board_text_path.exists():
+            failures.append(f'consumer board-text ontbreekt: {board_text_path}')
+        else:
+            board_text_output = board_text_path.read_text(encoding='utf-8').strip()
+            if board_text_output != text_output:
+                failures.append(
+                    f'consumer board-text verwacht {text_output}, kreeg {board_text_output}'
+                )
+        if not eventlog_path.exists():
+            failures.append(f'consumer eventlog-jsonl ontbreekt: {eventlog_path}')
+        else:
+            eventlog_lines = [line for line in eventlog_path.read_text(encoding='utf-8').splitlines() if line.strip()]
+            if not eventlog_lines:
+                failures.append('consumer eventlog-jsonl is leeg')
+            else:
+                try:
+                    eventlog_payload = json.loads(eventlog_lines[-1])
+                except json.JSONDecodeError as exc:
+                    failures.append(f'consumer eventlog-jsonl laatste regel is geen geldige JSON: {exc}')
+                else:
+                    if eventlog_payload.get('alert_text') != payload.get('alert_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl alert_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('alert_text')} versus {payload.get('alert_text')}"
+                        )
+
     return {
         'name': case['name'],
         'path': str(WATCHDOG_ALERT_SCRIPT),
@@ -3989,12 +4057,15 @@ def evaluate_watchdog_producer_case(case):
     if payload.get('item_count') != 1:
         failures.append(f"item_count verwacht 1, kreeg {payload.get('item_count')}")
     items = payload.get('items') or []
+    child_payload = {}
     if len(items) != 1:
         failures.append(f"items verwacht 1 item, kreeg {len(items)}")
-    elif items[0].get('returncode') != case['expect_exit_code']:
-        failures.append(
-            f"items[0].returncode verwacht {case['expect_exit_code']}, kreeg {items[0].get('returncode')}"
-        )
+    else:
+        child_payload = items[0].get('payload') or {}
+        if items[0].get('returncode') != case['expect_exit_code']:
+            failures.append(
+                f"items[0].returncode verwacht {case['expect_exit_code']}, kreeg {items[0].get('returncode')}"
+            )
 
     if quiet_proc.returncode != case['expect_exit_code']:
         failures.append(f"quiet-exitcode verwacht {case['expect_exit_code']}, kreeg {quiet_proc.returncode}")
@@ -4092,6 +4163,43 @@ def evaluate_watchdog_producer_case(case):
             'overall.proof_schedule_slip_ms verwacht '
             f"{expected_status.get('proof_schedule_slip_ms')}, kreeg {overall.get('proof_schedule_slip_ms')}"
         )
+    for expected_status_key in [
+        'reference_context_text',
+        'proof_config_identity_text',
+        'last_run_config_relation',
+        'last_run_config_relation_text',
+        'proof_wait_until_text',
+        'proof_wait_until_reason_text',
+        'proof_next_action_text',
+        'proof_next_action_window_text',
+        'proof_recheck_commands_text',
+        'proof_recheck_window_open',
+        'proof_recheck_window_text',
+        'proof_target_due_at_text',
+        'proof_target_due_at_if_next_slot_missed_text',
+        'proof_schedule_risk_text',
+        'proof_countdown_text',
+        'proof_target_check_gate',
+        'proof_target_check_gate_text',
+        'proof_target_run_slots_context_text',
+    ]:
+        if overall.get(expected_status_key) != expected_status.get(expected_status_key):
+            failures.append(
+                f'overall.{expected_status_key} verwacht {expected_status.get(expected_status_key)}, kreeg '
+                f"{overall.get(expected_status_key)}"
+            )
+    for child_payload_key in [
+        'proof_waiting_for_next_scheduled_run',
+        'proof_runs_remaining',
+        'proof_target_met',
+        'last_run_timeout_text',
+        'recent_run_duration_text',
+    ]:
+        if overall.get(child_payload_key) != child_payload.get(child_payload_key):
+            failures.append(
+                f'overall.{child_payload_key} verwacht passthrough {child_payload.get(child_payload_key)}, kreeg '
+                f"{overall.get(child_payload_key)}"
+            )
     if overall.get('proof_state') != case['expect_proof_state']:
         failures.append(
             f"overall.proof_state verwacht {case['expect_proof_state']}, kreeg {overall.get('proof_state')}"
@@ -4112,24 +4220,49 @@ def evaluate_watchdog_producer_case(case):
             f"{payload.get('proof_next_action_kind')} versus {overall.get('proof_next_action_kind')}"
         )
     for alias_key in [
+        'reference_context_text',
         'proof_state',
         'proof_state_text',
         'proof_blocker_kind',
         'proof_blocker_text',
+        'proof_progress_text',
+        'proof_runs_remaining',
+        'proof_target_met',
+        'proof_waiting_for_next_scheduled_run',
+        'proof_config_hash',
+        'proof_config_identity_text',
+        'last_run_config_relation',
+        'last_run_config_relation_text',
         'proof_next_action_text',
         'proof_next_action_window_text',
+        'proof_recheck_commands_text',
+        'proof_wait_until_at',
+        'proof_wait_until_text',
+        'proof_wait_until_reason_text',
+        'proof_next_qualifying_slot_at',
+        'proof_recheck_window_open',
+        'proof_recheck_window_text',
+        'proof_recheck_after_at',
+        'proof_recheck_after_text',
+        'proof_recheck_after_text_compact',
+        'proof_target_due_at',
+        'proof_target_due_at_text',
+        'proof_target_due_at_if_next_slot_missed',
+        'proof_target_due_at_if_next_slot_missed_text',
+        'proof_schedule_slip_ms',
+        'proof_schedule_risk_text',
+        'proof_countdown_text',
+        'proof_target_check_gate',
+        'proof_target_check_gate_text',
+        'proof_target_run_slots_context_text',
+        'proof_target_run_slots_text',
+        'last_run_timeout_text',
+        'recent_run_duration_text',
         'proof_recheck_schedule_kind_text',
         'proof_recheck_schedule_job_name',
         'proof_recheck_schedule_expr',
         'proof_recheck_schedule_tz',
         'proof_recheck_schedule_text',
-        'proof_config_hash',
-        'proof_wait_until_at',
-        'proof_next_qualifying_slot_at',
-        'proof_recheck_after_at',
-        'proof_target_due_at',
-        'proof_target_due_at_if_next_slot_missed',
-        'proof_schedule_slip_ms',
         'proof_recheck_schedule_found',
         'proof_recheck_schedule_enabled',
         'proof_recheck_schedule_expected_gap_minutes',

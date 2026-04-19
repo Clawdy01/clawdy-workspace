@@ -9,6 +9,34 @@ from pathlib import Path
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 WATCHDOG = ROOT / 'scripts' / 'ai-briefing-watchdog.py'
+DEFAULT_REPORT_DIR = ROOT / 'tmp' / 'ai-briefing' / 'reports'
+
+
+def build_consumer_presets(base_dir: Path | None = None) -> dict[str, dict]:
+    report_dir = base_dir or DEFAULT_REPORT_DIR
+    return {
+        'board-json': {
+            'path': report_dir / 'ai-briefing-watchdog-alert.json',
+            'format': 'json',
+            'append': False,
+        },
+        'board-text': {
+            'path': report_dir / 'ai-briefing-watchdog-alert.txt',
+            'format': 'text',
+            'append': False,
+        },
+        'eventlog-jsonl': {
+            'path': report_dir / 'ai-briefing-watchdog-alert.jsonl',
+            'format': 'jsonl',
+            'append': True,
+        },
+    }
+
+
+CONSUMER_BUNDLES = {
+    'board-pair': ['board-json', 'board-text'],
+    'board-suite': ['board-json', 'board-text', 'eventlog-jsonl'],
+}
 
 
 def extract_json_document(text: str):
@@ -160,6 +188,60 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     return ' | '.join(unique_bits(bits))
 
 
+def resolve_consumer_settings(args, *, default_format: str, consumer_presets: dict[str, dict]):
+    output_path = args.consumer_out
+    output_format = args.consumer_format or default_format
+    append = args.consumer_append
+
+    if args.consumer_preset:
+        preset = consumer_presets[args.consumer_preset]
+        output_path = str(preset['path'])
+        output_format = args.consumer_format or preset['format']
+        append = args.consumer_append or preset['append']
+
+    return output_path, output_format, append
+
+
+def render_output(*, text: str, payload: dict, output_format: str) -> str:
+    if output_format == 'json':
+        return json.dumps(payload, ensure_ascii=False, indent=2) + '\n'
+    if output_format == 'jsonl':
+        return json.dumps(payload, ensure_ascii=False) + '\n'
+    return text if text.endswith('\n') else text + '\n'
+
+
+def write_output(rendered: str, *, output_path: str | None = None, append: bool = False) -> None:
+    if not output_path:
+        return
+    path = Path(output_path).expanduser().resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    mode = 'a' if append else 'w'
+    with path.open(mode, encoding='utf-8') as handle:
+        handle.write(rendered)
+
+
+def emit_output(*, text: str, payload: dict, output_format: str, output_path: str | None = None, append: bool = False) -> None:
+    rendered = render_output(text=text, payload=payload, output_format=output_format)
+    write_output(rendered, output_path=output_path, append=append)
+    sys.stdout.write(rendered)
+
+
+def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> None:
+    emit_output(
+        text=text,
+        payload=payload,
+        output_format=stdout_format,
+        output_path=stdout_output_path,
+        append=stdout_append,
+    )
+    if not consumer_bundle:
+        return
+    for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
+        preset = consumer_presets[preset_name]
+        rendered = render_output(text=text, payload=payload, output_format=preset['format'])
+        write_output(rendered, output_path=str(preset['path']), append=preset['append'])
+
+
 def build_json_payload(
     data: dict,
     mode: str,
@@ -254,6 +336,12 @@ def main() -> int:
     parser.add_argument('--json', action='store_true', help='Geef een machinevriendelijke alertstatus terug')
     parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische alertchecks')
     parser.add_argument('--require-qualified-runs', type=int, help='Override voor vereiste gekwalificeerde runs')
+    parser.add_argument('--consumer-out', help='Schrijf de alert-uitvoer ook naar een bestand voor cron/board-consumers')
+    parser.add_argument('--consumer-root', help='Alternatieve basismap voor vaste consumer-presets/bundles (handig voor tests of gescheiden artifacts)')
+    parser.add_argument('--consumer-preset', choices=['board-json', 'board-text', 'eventlog-jsonl'], help='Gebruik een vaste consumer-outputroute')
+    parser.add_argument('--consumer-bundle', choices=sorted(CONSUMER_BUNDLES), help='Schrijf dezelfde alertstatus naar meerdere standaard consumerbestanden')
+    parser.add_argument('--consumer-format', choices=['text', 'json', 'jsonl'], help='Outputformaat voor --consumer-out; default volgt stdout-formaat')
+    parser.add_argument('--consumer-append', action='store_true', help='Append naar bestaand consumer-bestand in plaats van overschrijven')
     args = parser.parse_args()
 
     require_qualified_runs = args.require_qualified_runs
@@ -267,27 +355,44 @@ def main() -> int:
     )
     alert_text = build_alert(data, args.mode, max(0, require_qualified_runs))
     no_reply = suppressed_before_proof_deadline or bool(data.get('ok'))
+    stdout_format = 'json' if args.json else 'text'
+    consumer_presets = build_consumer_presets(Path(args.consumer_root) if args.consumer_root else None)
+    consumer_output_path, consumer_output_format, consumer_append = resolve_consumer_settings(
+        args,
+        default_format=stdout_format,
+        consumer_presets=consumer_presets,
+    )
+    payload = build_json_payload(
+        data,
+        args.mode,
+        max(0, require_qualified_runs),
+        'NO_REPLY' if no_reply else alert_text,
+        no_reply=no_reply,
+        suppressed_before_proof_deadline=suppressed_before_proof_deadline,
+    )
 
     if args.json:
-        print(json.dumps(
-            build_json_payload(
-                data,
-                args.mode,
-                max(0, require_qualified_runs),
-                'NO_REPLY' if no_reply else alert_text,
-                no_reply=no_reply,
-                suppressed_before_proof_deadline=suppressed_before_proof_deadline,
-            ),
-            ensure_ascii=False,
-            indent=2,
-        ))
+        emit_output_with_bundle(
+            text='NO_REPLY' if no_reply else alert_text,
+            payload=payload,
+            stdout_format=stdout_format,
+            stdout_output_path=consumer_output_path,
+            stdout_append=consumer_append,
+            consumer_bundle=args.consumer_bundle,
+            consumer_presets=consumer_presets,
+        )
         return 0
 
-    if no_reply:
-        print('NO_REPLY')
-        return 0
-
-    print(alert_text)
+    text_output = 'NO_REPLY' if no_reply else alert_text
+    emit_output_with_bundle(
+        text=text_output,
+        payload=payload,
+        stdout_format='text',
+        stdout_output_path=consumer_output_path,
+        stdout_append=consumer_append,
+        consumer_bundle=args.consumer_bundle,
+        consumer_presets=consumer_presets,
+    )
     return 0
 
 
