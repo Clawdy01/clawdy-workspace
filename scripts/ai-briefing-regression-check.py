@@ -2599,11 +2599,19 @@ def evaluate_proof_recheck_producer_case(case):
             'consumer_requested_output_count',
             'consumer_requested_output_channel_count',
             'consumer_requested_output_count_text',
+            'consumer_requested_output_channels_text',
             'consumer_requested_outputs_status_text',
             'consumer_output_count',
+            'consumer_output_channel_count',
+            'consumer_output_channel_count_text',
+            'consumer_output_channels_text',
             'consumer_outputs_count_text',
             'consumer_outputs_missing_count',
             'consumer_outputs_unexpected_count',
+            'consumer_effective_output_source_text',
+            'consumer_effective_output_channel_count',
+            'consumer_effective_output_channel_count_text',
+            'consumer_effective_output_channels_text',
         ]
         if payload.get('consumer_root') != temp_dir:
             failures.append(f"consumer_root verwacht {temp_dir}, kreeg {payload.get('consumer_root')}")
@@ -2838,6 +2846,29 @@ def evaluate_proof_recheck_producer_case(case):
                 'overall.consumer_effective_outputs_count_text verwacht consumer-effectieve-output-telling gevraagd=3, effectief=3, ontbrekend=0, onverwacht=0, kreeg '
                 f"{overall.get('consumer_effective_outputs_count_text')}"
             )
+        if overall.get('consumer_effective_output_channel_count') != len(expected_channels):
+            failures.append(
+                'overall.consumer_effective_output_channel_count verwacht '
+                f"{len(expected_channels)}, kreeg {overall.get('consumer_effective_output_channel_count')}"
+            )
+        overall_effective_output_channel_count_text = overall.get('consumer_effective_output_channel_count_text') or ''
+        if overall_effective_output_channel_count_text != 'consumer-effectieve-output-kanalen effectief=3, kanalen=3':
+            failures.append(
+                'overall.consumer_effective_output_channel_count_text verwacht consumer-effectieve-output-kanalen effectief=3, kanalen=3, kreeg '
+                f'{overall_effective_output_channel_count_text}'
+            )
+        overall_effective_output_source_text = overall.get('consumer_effective_output_source_text') or ''
+        if overall_effective_output_source_text != 'consumer-effectieve-outputbron: geschreven artifacts':
+            failures.append(
+                'overall.consumer_effective_output_source_text verwacht consumer-effectieve-outputbron: geschreven artifacts, kreeg '
+                f'{overall_effective_output_source_text}'
+            )
+        overall_effective_output_channels_text = overall.get('consumer_effective_output_channels_text') or ''
+        if overall_effective_output_channels_text != 'consumer-effectieve-output-kanalen: board-json, board-text, eventlog-jsonl':
+            failures.append(
+                'overall.consumer_effective_output_channels_text verwacht consumer-effectieve-output-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                f'{overall_effective_output_channels_text}'
+            )
         overall_effective_outputs_status_text = overall.get('consumer_effective_outputs_status_text') or ''
         if 'consumer-effectieve-output-audit ok' not in overall_effective_outputs_status_text:
             failures.append(
@@ -2860,6 +2891,12 @@ def evaluate_proof_recheck_producer_case(case):
                 'overall.consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg '
                 f'{overall_consumer_requested_output_count_text}'
             )
+        overall_consumer_requested_output_channels_text = overall.get('consumer_requested_output_channels_text') or ''
+        if overall_consumer_requested_output_channels_text != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+            failures.append(
+                'overall.consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                f'{overall_consumer_requested_output_channels_text}'
+            )
         overall_consumer_requested_outputs_status_text = overall.get('consumer_requested_outputs_status_text') or ''
         if overall_consumer_requested_outputs_status_text != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
             failures.append(
@@ -2871,6 +2908,11 @@ def evaluate_proof_recheck_producer_case(case):
                 'overall.consumer_output_count verwacht '
                 f"{len(expected_artifacts)}, kreeg {overall.get('consumer_output_count')}"
             )
+        if overall.get('consumer_output_channel_count') != len(expected_channels):
+            failures.append(
+                'overall.consumer_output_channel_count verwacht '
+                f"{len(expected_channels)}, kreeg {overall.get('consumer_output_channel_count')}"
+            )
         if overall.get('consumer_outputs_match_requested') is not True:
             failures.append(
                 'overall.consumer_outputs_match_requested verwacht True, kreeg '
@@ -2881,6 +2923,18 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'overall.consumer_outputs_count_text verwacht consumer-output-telling gevraagd=3, geschreven=3, ontbrekend=0, onverwacht=0, kreeg '
                 f'{overall_consumer_outputs_count_text}'
+            )
+        overall_consumer_output_channel_count_text = overall.get('consumer_output_channel_count_text') or ''
+        if overall_consumer_output_channel_count_text != 'consumer-output-kanalen geschreven=3, kanalen=3':
+            failures.append(
+                'overall.consumer_output_channel_count_text verwacht consumer-output-kanalen geschreven=3, kanalen=3, kreeg '
+                f'{overall_consumer_output_channel_count_text}'
+            )
+        overall_consumer_output_channels_text = overall.get('consumer_output_channels_text') or ''
+        if overall_consumer_output_channels_text != 'consumer-output-kanalen: board-json, board-text, eventlog-jsonl':
+            failures.append(
+                'overall.consumer_output_channels_text verwacht consumer-output-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                f'{overall_consumer_output_channels_text}'
             )
         overall_consumer_outputs_status_text = overall.get('consumer_outputs_status_text') or ''
         if 'consumer-output-audit ok' not in overall_consumer_outputs_status_text:
@@ -2952,6 +3006,12 @@ def evaluate_proof_recheck_producer_case(case):
                         f'{label} consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg '
                         f'{artifact_consumer_requested_output_count_text}'
                     )
+                artifact_consumer_requested_output_channels_text = artifact_payload.get('consumer_requested_output_channels_text') or ''
+                if artifact_consumer_requested_output_channels_text != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+                    failures.append(
+                        f'{label} consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                        f'{artifact_consumer_requested_output_channels_text}'
+                    )
                 artifact_consumer_requested_outputs_status_text = artifact_payload.get('consumer_requested_outputs_status_text') or ''
                 if artifact_consumer_requested_outputs_status_text != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
                     failures.append(
@@ -2963,6 +3023,11 @@ def evaluate_proof_recheck_producer_case(case):
                         f'{label} consumer_output_count verwacht {len(expected_artifacts)}, kreeg '
                         f"{artifact_payload.get('consumer_output_count')}"
                     )
+                if artifact_payload.get('consumer_output_channel_count') != len(expected_channels):
+                    failures.append(
+                        f'{label} consumer_output_channel_count verwacht {len(expected_channels)}, kreeg '
+                        f"{artifact_payload.get('consumer_output_channel_count')}"
+                    )
                 if artifact_payload.get('consumer_outputs_match_requested') is not True:
                     failures.append(
                         f'{label} consumer_outputs_match_requested verwacht True, kreeg '
@@ -2973,6 +3038,18 @@ def evaluate_proof_recheck_producer_case(case):
                     failures.append(
                         f'{label} consumer_outputs_count_text verwacht consumer-output-telling gevraagd=3, geschreven=3, ontbrekend=0, onverwacht=0, kreeg '
                         f'{artifact_consumer_outputs_count_text}'
+                    )
+                artifact_consumer_output_channel_count_text = artifact_payload.get('consumer_output_channel_count_text') or ''
+                if artifact_consumer_output_channel_count_text != 'consumer-output-kanalen geschreven=3, kanalen=3':
+                    failures.append(
+                        f'{label} consumer_output_channel_count_text verwacht consumer-output-kanalen geschreven=3, kanalen=3, kreeg '
+                        f'{artifact_consumer_output_channel_count_text}'
+                    )
+                artifact_consumer_output_channels_text = artifact_payload.get('consumer_output_channels_text') or ''
+                if artifact_consumer_output_channels_text != 'consumer-output-kanalen: board-json, board-text, eventlog-jsonl':
+                    failures.append(
+                        f'{label} consumer_output_channels_text verwacht consumer-output-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                        f'{artifact_consumer_output_channels_text}'
                     )
                 artifact_consumer_outputs_status_text = artifact_payload.get('consumer_outputs_status_text') or ''
                 if 'consumer-output-audit ok' not in artifact_consumer_outputs_status_text:
@@ -2990,6 +3067,29 @@ def evaluate_proof_recheck_producer_case(case):
                     failures.append(
                         f'{label} consumer_effective_outputs_count_text verwacht consumer-effectieve-output-telling gevraagd=3, effectief=3, ontbrekend=0, onverwacht=0, kreeg '
                         f'{artifact_effective_outputs_count_text}'
+                    )
+                if artifact_payload.get('consumer_effective_output_channel_count') != len(expected_channels):
+                    failures.append(
+                        f'{label} consumer_effective_output_channel_count verwacht {len(expected_channels)}, kreeg '
+                        f"{artifact_payload.get('consumer_effective_output_channel_count')}"
+                    )
+                artifact_effective_output_channel_count_text = artifact_payload.get('consumer_effective_output_channel_count_text') or ''
+                if artifact_effective_output_channel_count_text != 'consumer-effectieve-output-kanalen effectief=3, kanalen=3':
+                    failures.append(
+                        f'{label} consumer_effective_output_channel_count_text verwacht consumer-effectieve-output-kanalen effectief=3, kanalen=3, kreeg '
+                        f'{artifact_effective_output_channel_count_text}'
+                    )
+                artifact_effective_output_source_text = artifact_payload.get('consumer_effective_output_source_text') or ''
+                if artifact_effective_output_source_text != 'consumer-effectieve-outputbron: geschreven artifacts':
+                    failures.append(
+                        f'{label} consumer_effective_output_source_text verwacht consumer-effectieve-outputbron: geschreven artifacts, kreeg '
+                        f'{artifact_effective_output_source_text}'
+                    )
+                artifact_effective_output_channels_text = artifact_payload.get('consumer_effective_output_channels_text') or ''
+                if artifact_effective_output_channels_text != 'consumer-effectieve-output-kanalen: board-json, board-text, eventlog-jsonl':
+                    failures.append(
+                        f'{label} consumer_effective_output_channels_text verwacht consumer-effectieve-output-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                        f'{artifact_effective_output_channels_text}'
                     )
                 artifact_effective_outputs_status_text = artifact_payload.get('consumer_effective_outputs_status_text') or ''
                 if 'consumer-effectieve-output-audit ok' not in artifact_effective_outputs_status_text:
@@ -3109,18 +3209,22 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
         'summary': 'synthetische producer-mismatch',
         'result_text': 'consumer-write mismatch gedetecteerd',
         'consumer_requested_outputs_text': 'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer_requested_output_channels_text': 'consumer-output-aanvraag-kanalen: board-json, board-text',
         'consumer_requested_outputs': [
             {'channel': 'board-json', 'path': '/tmp/expected.json', 'format': 'json', 'append': False},
             {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
         ],
         'consumer_outputs': [],
         'consumer_outputs_text': None,
+        'consumer_output_channels_text': 'consumer-output-kanalen: geen',
         'consumer_effective_output_source': 'requested-fallback',
+        'consumer_effective_output_source_text': 'consumer-effectieve-outputbron: aangevraagde artifacts als fallback',
         'consumer_effective_outputs': [
             {'channel': 'board-json', 'path': '/tmp/expected.json', 'format': 'json', 'append': False},
             {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
         ],
         'consumer_effective_outputs_text': 'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer_effective_output_channels_text': 'consumer-effectieve-output-kanalen: board-json, board-text',
         'consumer_effective_outputs_match_requested': True,
         'consumer_effective_outputs_count_text': 'consumer-effectieve-output-telling gevraagd=2, effectief=2, ontbrekend=0, onverwacht=0',
         'consumer_effective_outputs_status_text': 'consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via requested-fallback)',
@@ -3141,8 +3245,12 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
         quiet_summary = ''
     expected_snippets = [
         'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer-output-aanvraag-kanalen: board-json, board-text',
+        'consumer-output-kanalen: geen',
         'consumer-output-telling gevraagd=2, geschreven=0, ontbrekend=2, onverwacht=0',
         'consumer-output-audit mismatch',
+        'consumer-effectieve-outputbron: aangevraagde artifacts als fallback',
+        'consumer-effectieve-output-kanalen: board-json, board-text',
         'consumer-effectieve-output-telling gevraagd=2, effectief=2, ontbrekend=0, onverwacht=0',
         'consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via requested-fallback)',
         'resultaat: attention-needed',

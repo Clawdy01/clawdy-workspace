@@ -159,14 +159,26 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
             bits.append(requested_outputs_text)
     if payload.get('consumer_requested_output_count_text'):
         bits.append(str(payload['consumer_requested_output_count_text']))
+    if payload.get('consumer_requested_output_channels_text'):
+        bits.append(str(payload['consumer_requested_output_channels_text']))
     if payload.get('consumer_requested_outputs_status_text'):
         bits.append(str(payload['consumer_requested_outputs_status_text']))
     if payload.get('consumer_outputs_count_text'):
         bits.append(str(payload['consumer_outputs_count_text']))
+    if payload.get('consumer_output_channel_count_text'):
+        bits.append(str(payload['consumer_output_channel_count_text']))
+    if payload.get('consumer_output_channels_text'):
+        bits.append(str(payload['consumer_output_channels_text']))
     if payload.get('consumer_outputs_status_text'):
         bits.append(str(payload['consumer_outputs_status_text']))
+    if payload.get('consumer_effective_output_source_text'):
+        bits.append(str(payload['consumer_effective_output_source_text']))
     if payload.get('consumer_effective_outputs_count_text'):
         bits.append(str(payload['consumer_effective_outputs_count_text']))
+    if payload.get('consumer_effective_output_channel_count_text'):
+        bits.append(str(payload['consumer_effective_output_channel_count_text']))
+    if payload.get('consumer_effective_output_channels_text'):
+        bits.append(str(payload['consumer_effective_output_channels_text']))
     if payload.get('consumer_effective_outputs_status_text'):
         bits.append(str(payload['consumer_effective_outputs_status_text']))
     if payload.get('proof_config_identity_text'):
@@ -273,10 +285,13 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'consumer_requested_output_count': payload.get('consumer_requested_output_count'),
         'consumer_requested_output_channel_count': payload.get('consumer_requested_output_channel_count'),
         'consumer_requested_output_count_text': payload.get('consumer_requested_output_count_text'),
+        'consumer_requested_output_channels_text': payload.get('consumer_requested_output_channels_text'),
         'consumer_requested_outputs_status_text': payload.get('consumer_requested_outputs_status_text'),
         'consumer_requested_outputs_text': payload.get('consumer_requested_outputs_text') or format_consumer_outputs(payload.get('consumer_requested_outputs') or []),
         'consumer_outputs_match_requested': payload.get('consumer_outputs_match_requested'),
         'consumer_output_count': payload.get('consumer_output_count'),
+        'consumer_output_channel_count': payload.get('consumer_output_channel_count'),
+        'consumer_output_channel_count_text': payload.get('consumer_output_channel_count_text'),
         'consumer_outputs_count_text': payload.get('consumer_outputs_count_text'),
         'consumer_outputs_status_text': payload.get('consumer_outputs_status_text'),
         'consumer_outputs_missing_count': payload.get('consumer_outputs_missing_count'),
@@ -290,12 +305,17 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'consumer_outputs': payload.get('consumer_outputs') or [],
         'consumer_output_paths': payload.get('consumer_output_paths') or [],
         'consumer_output_channels': payload.get('consumer_output_channels') or [],
+        'consumer_output_channels_text': payload.get('consumer_output_channels_text'),
         'consumer_outputs_text': payload.get('consumer_outputs_text') or format_consumer_outputs(payload.get('consumer_outputs') or []),
         'consumer_effective_output_source': payload.get('consumer_effective_output_source'),
+        'consumer_effective_output_source_text': payload.get('consumer_effective_output_source_text'),
         'consumer_effective_outputs': payload.get('consumer_effective_outputs') or [],
         'consumer_effective_output_count': payload.get('consumer_effective_output_count'),
+        'consumer_effective_output_channel_count': payload.get('consumer_effective_output_channel_count'),
+        'consumer_effective_output_channel_count_text': payload.get('consumer_effective_output_channel_count_text'),
         'consumer_effective_output_paths': payload.get('consumer_effective_output_paths') or [],
         'consumer_effective_output_channels': payload.get('consumer_effective_output_channels') or [],
+        'consumer_effective_output_channels_text': payload.get('consumer_effective_output_channels_text'),
         'consumer_effective_outputs_text': payload.get('consumer_effective_outputs_text') or format_consumer_outputs(payload.get('consumer_effective_outputs') or []),
         'consumer_effective_outputs_match_requested': payload.get('consumer_effective_outputs_match_requested'),
         'consumer_effective_outputs_missing_count': payload.get('consumer_effective_outputs_missing_count'),
