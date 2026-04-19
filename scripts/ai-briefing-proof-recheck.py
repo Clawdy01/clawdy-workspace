@@ -81,6 +81,10 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
     watchdog_ok = bool(watchdog_data.get('ok'))
     status_ok = bool(status_data.get('ok'))
     summary_output_examples = watchdog_data.get('summary_output_examples') or []
+    schedule_audit = {
+        **((watchdog_data.get('proof_recheck_schedule_audit') or {})),
+        **((status_data.get('proof_recheck_schedule_audit') or {})),
+    }
 
     state = 'waiting'
     exit_code = 2
@@ -165,18 +169,18 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_config_identity_text': first_non_null(status_data.get('proof_config_identity_text'), watchdog_data.get('proof_config_identity_text')),
         'last_run_config_relation': first_non_null(status_data.get('last_run_config_relation'), watchdog_data.get('last_run_config_relation')),
         'last_run_config_relation_text': first_non_null(status_data.get('last_run_config_relation_text'), watchdog_data.get('last_run_config_relation_text')),
-        'proof_recheck_schedule_audit': status_data.get('proof_recheck_schedule_audit') or {},
-        'proof_recheck_schedule_ok': ((status_data.get('proof_recheck_schedule_audit') or {}).get('ok')),
-        'proof_recheck_schedule_found': ((status_data.get('proof_recheck_schedule_audit') or {}).get('found')),
-        'proof_recheck_schedule_enabled': ((status_data.get('proof_recheck_schedule_audit') or {}).get('enabled')),
-        'proof_recheck_schedule_job_name': ((status_data.get('proof_recheck_schedule_audit') or {}).get('job_name')),
-        'proof_recheck_schedule_expr': ((status_data.get('proof_recheck_schedule_audit') or {}).get('schedule_expr')),
-        'proof_recheck_schedule_tz': ((status_data.get('proof_recheck_schedule_audit') or {}).get('schedule_tz')),
-        'proof_recheck_schedule_expected_gap_minutes': ((status_data.get('proof_recheck_schedule_audit') or {}).get('expected_gap_minutes')),
-        'proof_recheck_schedule_same_day_after_target': ((status_data.get('proof_recheck_schedule_audit') or {}).get('same_day_after_target')),
-        'proof_recheck_schedule_matches_grace': ((status_data.get('proof_recheck_schedule_audit') or {}).get('matches_grace')),
-        'proof_recheck_schedule_delta_minutes': ((status_data.get('proof_recheck_schedule_audit') or {}).get('delta_minutes')),
-        'proof_recheck_schedule_text': ((status_data.get('proof_recheck_schedule_audit') or {}).get('text')),
+        'proof_recheck_schedule_audit': schedule_audit,
+        'proof_recheck_schedule_ok': first_non_null(status_data.get('proof_recheck_schedule_ok'), watchdog_data.get('proof_recheck_schedule_ok'), schedule_audit.get('ok')),
+        'proof_recheck_schedule_found': first_non_null(status_data.get('proof_recheck_schedule_found'), watchdog_data.get('proof_recheck_schedule_found'), schedule_audit.get('found')),
+        'proof_recheck_schedule_enabled': first_non_null(status_data.get('proof_recheck_schedule_enabled'), watchdog_data.get('proof_recheck_schedule_enabled'), schedule_audit.get('enabled')),
+        'proof_recheck_schedule_job_name': first_non_null(status_data.get('proof_recheck_schedule_job_name'), watchdog_data.get('proof_recheck_schedule_job_name'), schedule_audit.get('job_name')),
+        'proof_recheck_schedule_expr': first_non_null(status_data.get('proof_recheck_schedule_expr'), watchdog_data.get('proof_recheck_schedule_expr'), schedule_audit.get('schedule_expr')),
+        'proof_recheck_schedule_tz': first_non_null(status_data.get('proof_recheck_schedule_tz'), watchdog_data.get('proof_recheck_schedule_tz'), schedule_audit.get('schedule_tz')),
+        'proof_recheck_schedule_expected_gap_minutes': first_non_null(status_data.get('proof_recheck_schedule_expected_gap_minutes'), watchdog_data.get('proof_recheck_schedule_expected_gap_minutes'), schedule_audit.get('expected_gap_minutes')),
+        'proof_recheck_schedule_same_day_after_target': first_non_null(status_data.get('proof_recheck_schedule_same_day_after_target'), watchdog_data.get('proof_recheck_schedule_same_day_after_target'), schedule_audit.get('same_day_after_target')),
+        'proof_recheck_schedule_matches_grace': first_non_null(status_data.get('proof_recheck_schedule_matches_grace'), watchdog_data.get('proof_recheck_schedule_matches_grace'), schedule_audit.get('matches_grace')),
+        'proof_recheck_schedule_delta_minutes': first_non_null(status_data.get('proof_recheck_schedule_delta_minutes'), watchdog_data.get('proof_recheck_schedule_delta_minutes'), schedule_audit.get('delta_minutes')),
+        'proof_recheck_schedule_text': first_non_null(status_data.get('proof_recheck_schedule_text'), watchdog_data.get('proof_recheck_schedule_text'), schedule_audit.get('text')),
         'status_ok': status_ok,
         'status_returncode': status_data.get('_returncode'),
         'watchdog_ok': watchdog_ok,
@@ -277,7 +281,20 @@ def update_consumer_output_audit(payload: dict) -> None:
     missing_outputs = [item for item in requested_outputs if output_signature(item) not in written_signatures]
     unexpected_outputs = [item for item in written_outputs if output_signature(item) not in requested_signatures]
 
+    requested_channels = sorted({item.get('channel') for item in requested_outputs if item.get('channel')})
     payload['consumer_requested_output_count'] = len(requested_outputs)
+    payload['consumer_requested_output_channel_count'] = len(requested_channels)
+    payload['consumer_requested_output_count_text'] = (
+        'consumer-output-aanvraag '
+        f"gevraagd={payload['consumer_requested_output_count']}, "
+        f"kanalen={payload['consumer_requested_output_channel_count']}"
+    )
+    if requested_outputs:
+        payload['consumer_requested_outputs_status_text'] = (
+            f"consumer-output-aanvraag vastgelegd voor {payload['consumer_requested_output_count']} artifact(s)"
+        )
+    else:
+        payload['consumer_requested_outputs_status_text'] = 'consumer-output-aanvraag leeg (geen artifact-output gevraagd)'
     payload['consumer_output_count'] = len(written_outputs)
     payload['consumer_outputs_missing_count'] = len(missing_outputs)
     payload['consumer_outputs_unexpected_count'] = len(unexpected_outputs)
@@ -368,6 +385,8 @@ def build_text(payload: dict) -> str:
         payload.get('proof_target_check_gate_text'),
         payload.get('proof_countdown_text'),
         payload.get('proof_recheck_commands_text'),
+        payload.get('consumer_requested_output_count_text'),
+        payload.get('consumer_requested_outputs_status_text'),
         payload.get('consumer_outputs_count_text'),
         payload.get('consumer_outputs_status_text'),
         payload.get('consumer_effective_outputs_count_text'),

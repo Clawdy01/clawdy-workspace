@@ -2597,6 +2597,9 @@ def evaluate_proof_recheck_producer_case(case):
             'consumer_output_paths',
             'consumer_requested_output_paths',
             'consumer_requested_output_count',
+            'consumer_requested_output_channel_count',
+            'consumer_requested_output_count_text',
+            'consumer_requested_outputs_status_text',
             'consumer_output_count',
             'consumer_outputs_count_text',
             'consumer_outputs_missing_count',
@@ -2846,6 +2849,23 @@ def evaluate_proof_recheck_producer_case(case):
                 'overall.consumer_requested_output_count verwacht '
                 f"{len(expected_artifacts)}, kreeg {overall.get('consumer_requested_output_count')}"
             )
+        if overall.get('consumer_requested_output_channel_count') != len(expected_channels):
+            failures.append(
+                'overall.consumer_requested_output_channel_count verwacht '
+                f"{len(expected_channels)}, kreeg {overall.get('consumer_requested_output_channel_count')}"
+            )
+        overall_consumer_requested_output_count_text = overall.get('consumer_requested_output_count_text') or ''
+        if overall_consumer_requested_output_count_text != 'consumer-output-aanvraag gevraagd=3, kanalen=3':
+            failures.append(
+                'overall.consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg '
+                f'{overall_consumer_requested_output_count_text}'
+            )
+        overall_consumer_requested_outputs_status_text = overall.get('consumer_requested_outputs_status_text') or ''
+        if overall_consumer_requested_outputs_status_text != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
+            failures.append(
+                'overall.consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 3 artifact(s), kreeg '
+                f'{overall_consumer_requested_outputs_status_text}'
+            )
         if overall.get('consumer_output_count') != len(expected_artifacts):
             failures.append(
                 'overall.consumer_output_count verwacht '
@@ -2920,6 +2940,23 @@ def evaluate_proof_recheck_producer_case(case):
                     failures.append(
                         f'{label} consumer_requested_output_count verwacht {len(expected_artifacts)}, kreeg '
                         f"{artifact_payload.get('consumer_requested_output_count')}"
+                    )
+                if artifact_payload.get('consumer_requested_output_channel_count') != len(expected_channels):
+                    failures.append(
+                        f'{label} consumer_requested_output_channel_count verwacht {len(expected_channels)}, kreeg '
+                        f"{artifact_payload.get('consumer_requested_output_channel_count')}"
+                    )
+                artifact_consumer_requested_output_count_text = artifact_payload.get('consumer_requested_output_count_text') or ''
+                if artifact_consumer_requested_output_count_text != 'consumer-output-aanvraag gevraagd=3, kanalen=3':
+                    failures.append(
+                        f'{label} consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg '
+                        f'{artifact_consumer_requested_output_count_text}'
+                    )
+                artifact_consumer_requested_outputs_status_text = artifact_payload.get('consumer_requested_outputs_status_text') or ''
+                if artifact_consumer_requested_outputs_status_text != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
+                    failures.append(
+                        f'{label} consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 3 artifact(s), kreeg '
+                        f'{artifact_consumer_requested_outputs_status_text}'
                     )
                 if artifact_payload.get('consumer_output_count') != len(expected_artifacts):
                     failures.append(
