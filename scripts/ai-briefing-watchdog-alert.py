@@ -160,6 +160,84 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     return ' | '.join(unique_bits(bits))
 
 
+def build_json_payload(
+    data: dict,
+    mode: str,
+    require_qualified_runs: int,
+    alert_text: str,
+    *,
+    no_reply: bool,
+    suppressed_before_proof_deadline: bool,
+) -> dict:
+    return {
+        'ok': bool(data.get('ok')),
+        'mode': mode,
+        'require_qualified_runs': require_qualified_runs,
+        'watchdog_returncode': data.get('_returncode'),
+        'no_reply': no_reply,
+        'suppressed_before_proof_deadline': suppressed_before_proof_deadline,
+        'summary': data.get('summary') or data.get('status_text'),
+        'alert_text': alert_text,
+        'readiness_text': data.get('readiness_text'),
+        'reference_context_text': data.get('reference_context_text'),
+        'proof_state': data.get('proof_state'),
+        'proof_state_text': data.get('proof_state_text'),
+        'proof_blocker_kind': data.get('proof_blocker_kind'),
+        'proof_blocker_text': data.get('proof_blocker_text'),
+        'proof_progress_text': data.get('proof_progress_text'),
+        'proof_runs_remaining': data.get('proof_runs_remaining'),
+        'proof_target_met': data.get('proof_target_met'),
+        'proof_waiting_for_next_scheduled_run': data.get('proof_waiting_for_next_scheduled_run'),
+        'proof_config_hash': data.get('proof_config_hash'),
+        'proof_config_identity_text': data.get('proof_config_identity_text'),
+        'last_run_config_relation': data.get('last_run_config_relation'),
+        'last_run_config_relation_text': data.get('last_run_config_relation_text'),
+        'proof_recheck_schedule_ok': data.get('proof_recheck_schedule_ok'),
+        'proof_recheck_schedule_kind': data.get('proof_recheck_schedule_kind'),
+        'proof_recheck_schedule_kind_text': data.get('proof_recheck_schedule_kind_text'),
+        'proof_recheck_schedule_found': data.get('proof_recheck_schedule_found'),
+        'proof_recheck_schedule_enabled': data.get('proof_recheck_schedule_enabled'),
+        'proof_recheck_schedule_job_name': data.get('proof_recheck_schedule_job_name'),
+        'proof_recheck_schedule_expr': data.get('proof_recheck_schedule_expr'),
+        'proof_recheck_schedule_tz': data.get('proof_recheck_schedule_tz'),
+        'proof_recheck_schedule_expected_gap_minutes': data.get('proof_recheck_schedule_expected_gap_minutes'),
+        'proof_recheck_schedule_same_day_after_target': data.get('proof_recheck_schedule_same_day_after_target'),
+        'proof_recheck_schedule_matches_grace': data.get('proof_recheck_schedule_matches_grace'),
+        'proof_recheck_schedule_delta_minutes': data.get('proof_recheck_schedule_delta_minutes'),
+        'proof_recheck_schedule_text': data.get('proof_recheck_schedule_text'),
+        'proof_next_action_kind': data.get('proof_next_action_kind'),
+        'proof_next_action_text': data.get('proof_next_action_text'),
+        'proof_next_action_window_text': data.get('proof_next_action_window_text'),
+        'proof_recheck_commands': data.get('proof_recheck_commands') or [],
+        'proof_recheck_commands_text': data.get('proof_recheck_commands_text'),
+        'proof_wait_until_at': data.get('proof_wait_until_at'),
+        'proof_wait_until_text': data.get('proof_wait_until_text'),
+        'proof_wait_until_reason_text': data.get('proof_wait_until_reason_text'),
+        'proof_next_qualifying_slot_at': data.get('proof_next_qualifying_slot_at'),
+        'proof_next_qualifying_slot_at_text': data.get('proof_next_qualifying_slot_at_text'),
+        'proof_recheck_window_open': data.get('proof_recheck_window_open'),
+        'proof_recheck_window_text': data.get('proof_recheck_window_text'),
+        'proof_recheck_after_at': data.get('proof_recheck_after_at'),
+        'proof_recheck_after_text': data.get('proof_recheck_after_text'),
+        'proof_recheck_after_text_compact': data.get('proof_recheck_after_text_compact'),
+        'proof_target_due_at': data.get('proof_target_due_at'),
+        'proof_target_due_at_text': data.get('proof_target_due_at_text'),
+        'proof_target_due_at_if_next_slot_missed': data.get('proof_target_due_at_if_next_slot_missed'),
+        'proof_target_due_at_if_next_slot_missed_text': data.get('proof_target_due_at_if_next_slot_missed_text'),
+        'proof_schedule_slip_ms': data.get('proof_schedule_slip_ms'),
+        'proof_schedule_risk_text': data.get('proof_schedule_risk_text'),
+        'proof_countdown_text': data.get('proof_countdown_text'),
+        'proof_target_check_gate': data.get('proof_target_check_gate'),
+        'proof_target_check_gate_text': data.get('proof_target_check_gate_text'),
+        'proof_target_run_slots_context_text': data.get('proof_target_run_slots_context_text'),
+        'proof_target_run_slots_text': data.get('proof_target_run_slots_text'),
+        'last_run_timeout_text': data.get('last_run_timeout_text'),
+        'recent_run_duration_text': data.get('recent_run_duration_text'),
+        'reasons': data.get('reasons') or [],
+        'summary_output_examples': data.get('summary_output_examples') or [],
+    }
+
+
 def should_suppress_before_proof_deadline(data: dict, reference_ms: int | None = None) -> bool:
     proof_target_due_at = data.get('proof_target_due_at')
     if not proof_target_due_at:
@@ -173,6 +251,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description='Geef alleen een korte alert terug als de AI-briefing-watchdog aandacht nodig heeft.')
     parser.add_argument('--mode', choices=sorted(MODE_REQUIREMENTS), default='preflight')
     parser.add_argument('--timeout', type=int, default=120)
+    parser.add_argument('--json', action='store_true', help='Geef een machinevriendelijke alertstatus terug')
     parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische alertchecks')
     parser.add_argument('--require-qualified-runs', type=int, help='Override voor vereiste gekwalificeerde runs')
     args = parser.parse_args()
@@ -182,14 +261,33 @@ def main() -> int:
         require_qualified_runs = MODE_REQUIREMENTS[args.mode]
 
     data = run_watchdog(args.timeout, max(0, require_qualified_runs), reference_ms=args.reference_ms)
-    if args.mode == 'proof-target-check' and should_suppress_before_proof_deadline(data, reference_ms=args.reference_ms):
-        print('NO_REPLY')
+    suppressed_before_proof_deadline = (
+        args.mode == 'proof-target-check'
+        and should_suppress_before_proof_deadline(data, reference_ms=args.reference_ms)
+    )
+    alert_text = build_alert(data, args.mode, max(0, require_qualified_runs))
+    no_reply = suppressed_before_proof_deadline or bool(data.get('ok'))
+
+    if args.json:
+        print(json.dumps(
+            build_json_payload(
+                data,
+                args.mode,
+                max(0, require_qualified_runs),
+                'NO_REPLY' if no_reply else alert_text,
+                no_reply=no_reply,
+                suppressed_before_proof_deadline=suppressed_before_proof_deadline,
+            ),
+            ensure_ascii=False,
+            indent=2,
+        ))
         return 0
-    if data.get('ok'):
+
+    if no_reply:
         print('NO_REPLY')
         return 0
 
-    print(build_alert(data, args.mode, max(0, require_qualified_runs)))
+    print(alert_text)
     return 0
 
 

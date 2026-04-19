@@ -34,10 +34,12 @@ def run_status_json(reference_ms: int | None = None) -> dict:
 LIVE_STATUS_BASELINE = run_status_json()
 CURRENT_PROOF_NEXT_SLOT_AT = LIVE_STATUS_BASELINE['proof_next_qualifying_slot_at']
 CURRENT_PROOF_RECHECK_AFTER_AT = LIVE_STATUS_BASELINE['proof_recheck_after_at']
+CURRENT_PROOF_TARGET_DUE_AT = LIVE_STATUS_BASELINE['proof_target_due_at']
 REFERENCE_MS_BEFORE_SLOT_TOMORROW = CURRENT_PROOF_NEXT_SLOT_AT - ((24 * 60 * 60 + 2 * 60) * 1000)
 REFERENCE_MS_NEXT_DAY_BEFORE_SLOT = CURRENT_PROOF_NEXT_SLOT_AT - (2 * 60 * 1000)
 REFERENCE_MS_CURRENT_SLOT_GRACE = CURRENT_PROOF_NEXT_SLOT_AT + (5 * 60 * 1000)
 REFERENCE_MS_RECHECK_WINDOW_OPEN = CURRENT_PROOF_RECHECK_AFTER_AT
+REFERENCE_MS_AFTER_PROOF_DEADLINE = CURRENT_PROOF_TARGET_DUE_AT + (60 * 1000)
 STATUS_BEFORE_SLOT_TOMORROW = run_status_json(REFERENCE_MS_BEFORE_SLOT_TOMORROW)
 STATUS_NEXT_DAY_BEFORE_SLOT = run_status_json(REFERENCE_MS_NEXT_DAY_BEFORE_SLOT)
 STATUS_CURRENT_SLOT_GRACE = run_status_json(REFERENCE_MS_CURRENT_SLOT_GRACE)
@@ -2046,7 +2048,13 @@ BRIEF_CONSUMER_CASES = [
 WATCHDOG_ALERT_CASES = [
     {
         'name': 'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
+        'mode': 'proof-progress',
         'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': False,
+        'expect_suppressed_before_proof_deadline': False,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
@@ -2055,10 +2063,42 @@ WATCHDOG_ALERT_CASES = [
     },
     {
         'name': 'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
+        'mode': 'proof-progress',
         'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': False,
+        'expect_suppressed_before_proof_deadline': False,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+    {
+        'name': 'watchdog-alert-proof-target-check-suppresses-before-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': True,
+        'expect_suppressed_before_proof_deadline': True,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_output': 'NO_REPLY',
+    },
+    {
+        'name': 'watchdog-alert-proof-target-check-unsuppresses-after-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_AFTER_PROOF_DEADLINE,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': False,
+        'expect_suppressed_before_proof_deadline': False,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'kwalificatie-slots',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
         ],
     },
@@ -2835,15 +2875,37 @@ def evaluate_proof_recheck_producer_case(case):
             'proof_blocker_kind',
             'proof_wait_until_at',
             'proof_wait_until_text',
+            'proof_wait_until_reason_text',
+            'proof_wait_until_remaining_ms',
+            'proof_wait_until_remaining_hours',
             'proof_recheck_after_at',
+            'proof_recheck_after_text',
+            'proof_recheck_after_remaining_ms',
+            'proof_recheck_after_remaining_hours',
             'proof_next_action_kind',
             'proof_next_action_window_text',
+            'proof_countdown_text',
+            'proof_schedule_risk_text',
+            'proof_next_qualifying_slot_at',
+            'proof_next_qualifying_slot_remaining_ms',
+            'proof_target_due_at',
+            'proof_target_due_at_if_next_slot_missed',
+            'proof_schedule_slip_ms',
+            'proof_target_check_gate',
+            'proof_target_check_gate_text',
             'proof_recheck_schedule_ok',
             'proof_recheck_schedule_kind',
             'proof_recheck_schedule_kind_text',
+            'proof_recheck_schedule_found',
+            'proof_recheck_schedule_enabled',
             'proof_recheck_schedule_job_name',
             'proof_recheck_schedule_expr',
             'proof_recheck_schedule_tz',
+            'proof_recheck_schedule_expected_gap_minutes',
+            'proof_recheck_schedule_same_day_after_target',
+            'proof_recheck_schedule_matches_grace',
+            'proof_recheck_schedule_delta_minutes',
+            'proof_recheck_schedule_text',
             'proof_config_hash',
             'last_run_config_relation',
             'consumer_output_paths',
@@ -2855,19 +2917,27 @@ def evaluate_proof_recheck_producer_case(case):
             'consumer_requested_output_channels_text',
             'consumer_requested_outputs_status_kind',
             'consumer_requested_outputs_status_text',
+            'consumer_requested_outputs_text',
             'consumer_output_count',
             'consumer_output_channel_count',
             'consumer_output_channel_count_text',
             'consumer_output_channels_text',
             'consumer_outputs_count_text',
             'consumer_outputs_status_kind',
+            'consumer_outputs_status_text',
             'consumer_outputs_missing_count',
+            'consumer_outputs_missing_text',
             'consumer_outputs_unexpected_count',
+            'consumer_outputs_unexpected_text',
+            'consumer_outputs_text',
+            'consumer_effective_output_source',
             'consumer_effective_output_source_text',
             'consumer_effective_output_channel_count',
             'consumer_effective_output_channel_count_text',
             'consumer_effective_output_channels_text',
             'consumer_effective_outputs_status_kind',
+            'consumer_effective_outputs_status_text',
+            'consumer_effective_outputs_text',
         ]
         if payload.get('consumer_root') != temp_dir:
             failures.append(f"consumer_root verwacht {temp_dir}, kreeg {payload.get('consumer_root')}")
@@ -3700,12 +3770,30 @@ def evaluate_brief_consumer_case(case):
 
 
 def evaluate_watchdog_alert_case(case):
+    mode = case.get('mode', 'proof-progress')
+    expect_require_qualified_runs = case.get('expect_require_qualified_runs', 3)
+    expected_status = run_status_json(case['reference_ms'])
+    json_proc = subprocess.run(
+        [
+            'python3',
+            str(WATCHDOG_ALERT_SCRIPT),
+            '--mode',
+            mode,
+            '--json',
+            '--reference-ms',
+            str(case['reference_ms']),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     proc = subprocess.run(
         [
             'python3',
             str(WATCHDOG_ALERT_SCRIPT),
             '--mode',
-            'proof-progress',
+            mode,
             '--reference-ms',
             str(case['reference_ms']),
         ],
@@ -3716,14 +3804,107 @@ def evaluate_watchdog_alert_case(case):
     )
 
     failures = []
+    json_output = json_proc.stdout.strip() or json_proc.stderr.strip()
     text_output = proc.stdout.strip() or proc.stderr.strip()
+    if json_proc.returncode != 0:
+        failures.append(f"json-exitcode verwacht 0, kreeg {json_proc.returncode}")
+        payload = {}
+    elif not json_output:
+        failures.append('geen JSON-output van ai-briefing-watchdog-alert.py')
+        payload = {}
+    else:
+        try:
+            payload = json.loads(json_output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van ai-briefing-watchdog-alert.py: {exc}')
+            payload = {}
+
     if proc.returncode != 0:
         failures.append(f"tekst-exitcode verwacht 0, kreeg {proc.returncode}")
     if not text_output:
         failures.append('geen tekstoutput van ai-briefing-watchdog-alert.py')
+
+    if payload.get('mode') != mode:
+        failures.append(f"mode verwacht {mode}, kreeg {payload.get('mode')}")
+    if payload.get('require_qualified_runs') != expect_require_qualified_runs:
+        failures.append(
+            f'require_qualified_runs verwacht {expect_require_qualified_runs}, kreeg '
+            f"{payload.get('require_qualified_runs')}"
+        )
+    if payload.get('no_reply') is not case.get('expect_no_reply', False):
+        failures.append(
+            f"no_reply verwacht {case.get('expect_no_reply', False)}, kreeg {payload.get('no_reply')}"
+        )
+    if payload.get('suppressed_before_proof_deadline') is not case.get('expect_suppressed_before_proof_deadline', False):
+        failures.append(
+            'suppressed_before_proof_deadline verwacht '
+            f"{case.get('expect_suppressed_before_proof_deadline', False)}, kreeg "
+            f"{payload.get('suppressed_before_proof_deadline')}"
+        )
+    if payload.get('proof_recheck_schedule_kind') != 'ok':
+        failures.append(
+            'proof_recheck_schedule_kind verwacht ok, kreeg '
+            f"{payload.get('proof_recheck_schedule_kind')}"
+        )
+    if payload.get('proof_recheck_schedule_kind_text') != 'proof-recheck-cronstatus: ok':
+        failures.append(
+            'proof_recheck_schedule_kind_text verwacht proof-recheck-cronstatus: ok, kreeg '
+            f"{payload.get('proof_recheck_schedule_kind_text')}"
+        )
+    if payload.get('proof_recheck_schedule_job_name') != EXPECTED_PROOF_RECHECK_JOB_NAME:
+        failures.append(
+            'proof_recheck_schedule_job_name verwacht '
+            f"{EXPECTED_PROOF_RECHECK_JOB_NAME}, kreeg {payload.get('proof_recheck_schedule_job_name')}"
+        )
+    if payload.get('proof_recheck_schedule_expr') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR:
+        failures.append(
+            'proof_recheck_schedule_expr verwacht '
+            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR}, kreeg {payload.get('proof_recheck_schedule_expr')}"
+        )
+    if payload.get('proof_recheck_schedule_tz') != EXPECTED_PROOF_RECHECK_SCHEDULE_TZ:
+        failures.append(
+            'proof_recheck_schedule_tz verwacht '
+            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_TZ}, kreeg {payload.get('proof_recheck_schedule_tz')}"
+        )
+    if payload.get('proof_state') != case['expect_proof_state']:
+        failures.append(
+            f"proof_state verwacht {case['expect_proof_state']}, kreeg {payload.get('proof_state')}"
+        )
+    if payload.get('proof_next_action_kind') != case['expect_proof_next_action_kind']:
+        failures.append(
+            'proof_next_action_kind verwacht '
+            f"{case['expect_proof_next_action_kind']}, kreeg {payload.get('proof_next_action_kind')}"
+        )
+    if payload.get('proof_config_hash') != expected_status.get('proof_config_hash'):
+        failures.append(
+            'proof_config_hash verwacht '
+            f"{expected_status.get('proof_config_hash')}, kreeg {payload.get('proof_config_hash')}"
+        )
+    if payload.get('proof_next_qualifying_slot_at') != expected_status.get('proof_next_qualifying_slot_at'):
+        failures.append(
+            'proof_next_qualifying_slot_at verwacht '
+            f"{expected_status.get('proof_next_qualifying_slot_at')}, kreeg {payload.get('proof_next_qualifying_slot_at')}"
+        )
+    if payload.get('proof_recheck_after_at') != expected_status.get('proof_recheck_after_at'):
+        failures.append(
+            'proof_recheck_after_at verwacht '
+            f"{expected_status.get('proof_recheck_after_at')}, kreeg {payload.get('proof_recheck_after_at')}"
+        )
+    if payload.get('alert_text') != text_output:
+        failures.append(
+            'alert_text verwacht pariteit met tekstoutput, kreeg '
+            f"{payload.get('alert_text')} versus {text_output}"
+        )
+    expected_text_output = case.get('expect_text_output')
+    if expected_text_output is not None and text_output != expected_text_output:
+        failures.append(
+            f'tekstoutput verwacht {expected_text_output}, kreeg {text_output}'
+        )
     for snippet in case.get('expect_text_substrings', []):
         if snippet not in text_output:
             failures.append(f"verwachte watchdog-alert-tekst ontbreekt: {snippet}")
+        if snippet not in (payload.get('alert_text') or ''):
+            failures.append(f"verwachte watchdog-alert-jsontekst ontbreekt: {snippet}")
 
     return {
         'name': case['name'],
