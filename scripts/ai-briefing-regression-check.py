@@ -1804,6 +1804,7 @@ PROOF_RECHECK_CASES = [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             f'hercheck vanaf {CURRENT_PROOF_RECHECK_AFTER_TEXT}',
+            'proof-recheck-cronstatus: ok',
             f'config {CURRENT_PROOF_CONFIG_HASH}',
             'laatste run hoorde nog bij de vorige config',
         ],
@@ -1841,6 +1842,7 @@ PROOF_RECHECK_CASES = [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             f'kwalificatierun van {CURRENT_PROOF_NEXT_SLOT_TEXT} zit in grace-window',
             f'hercheck vanaf {CURRENT_PROOF_RECHECK_AFTER_TEXT}',
+            'proof-recheck-cronstatus: ok',
             f'config {CURRENT_PROOF_CONFIG_HASH}',
             'laatste run hoorde nog bij de vorige config',
         ],
@@ -1878,6 +1880,7 @@ PROOF_RECHECK_CASES = [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             'daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3',
+            'proof-recheck-cronstatus: ok',
             f'config {CURRENT_PROOF_CONFIG_HASH}',
             'laatste run hoorde nog bij de vorige config',
         ],
@@ -1915,6 +1918,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_quiet_substrings': [
             'ai-briefing-proof-recheck-producer: all',
             'resultaat: too-early',
+            'proof-recheck-cronstatus: ok',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
         ],
         'expect_quiet_absent_substrings': [
@@ -1931,6 +1935,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_recheck_schedule_matches_grace': True,
         'expect_artifact_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+            'proof-recheck-cronstatus: ok',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
         ],
     },
@@ -1960,6 +1965,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_quiet_substrings': [
             'ai-briefing-proof-recheck-producer: all',
             'resultaat: attention-needed',
+            'proof-recheck-cronstatus: ok',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
         ],
         'expect_quiet_absent_substrings': [
@@ -1976,6 +1982,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_recheck_schedule_matches_grace': True,
         'expect_artifact_substrings': [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
+            'proof-recheck-cronstatus: ok',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
         ],
     },

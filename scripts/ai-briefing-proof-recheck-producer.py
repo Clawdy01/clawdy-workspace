@@ -197,6 +197,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['last_run_config_relation_text']))
     if payload.get('proof_recheck_schedule_text'):
         bits.append(str(payload['proof_recheck_schedule_text']))
+    if payload.get('proof_recheck_schedule_kind_text'):
+        bits.append(str(payload['proof_recheck_schedule_kind_text']))
     proof_runs_remaining = payload.get('proof_runs_remaining')
     if proof_runs_remaining is not None and not payload.get('proof_target_met'):
         bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')

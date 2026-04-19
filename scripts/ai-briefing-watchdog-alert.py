@@ -122,6 +122,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
             bits.append(data['last_run_config_relation_text'])
         if data.get('proof_recheck_schedule_text'):
             bits.append(data['proof_recheck_schedule_text'])
+        if data.get('proof_recheck_schedule_kind_text'):
+            bits.append(data['proof_recheck_schedule_kind_text'])
         proof_runs_remaining = data.get('proof_runs_remaining')
         if proof_runs_remaining is not None and not data.get('proof_target_met'):
             bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')

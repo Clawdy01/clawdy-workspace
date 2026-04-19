@@ -431,6 +431,7 @@ def build_text(payload: dict) -> str:
         payload.get('proof_config_identity_text'),
         payload.get('last_run_config_relation_text'),
         payload.get('proof_recheck_schedule_text'),
+        payload.get('proof_recheck_schedule_kind_text'),
         payload.get('proof_blocker_text'),
         payload.get('proof_wait_until_reason_text'),
         payload.get('proof_freshness_text'),
