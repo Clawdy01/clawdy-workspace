@@ -155,10 +155,84 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
     return ' | '.join(deduped_bits) if deduped_bits else None
 
 
+def extract_payload(stdout: str, stderr: str) -> dict:
+    payload_text = (stdout or '').strip() or (stderr or '').strip()
+    if not payload_text:
+        return {}
+    try:
+        payload = extract_json_document(payload_text)
+    except json.JSONDecodeError:
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def build_overall_summary(payload: dict, returncode: int) -> dict:
+    if not payload:
+        return {
+            'ok': returncode == 0,
+            'exit_code': returncode,
+        }
+    overall = {
+        'ok': returncode == 0 and bool(payload.get('ok', True)),
+        'exit_code': returncode,
+        'summary': payload.get('summary'),
+        'readiness_text': payload.get('readiness_text'),
+        'reference_context_text': payload.get('reference_context_text'),
+        'proof_state': payload.get('proof_state'),
+        'proof_state_text': payload.get('proof_state_text'),
+        'proof_blocker_kind': payload.get('proof_blocker_kind'),
+        'proof_blocker_text': payload.get('proof_blocker_text'),
+        'proof_progress_text': payload.get('proof_progress_text'),
+        'proof_runs_remaining': payload.get('proof_runs_remaining'),
+        'proof_target_met': payload.get('proof_target_met'),
+        'proof_waiting_for_next_scheduled_run': payload.get('proof_waiting_for_next_scheduled_run'),
+        'proof_config_identity_text': payload.get('proof_config_identity_text'),
+        'last_run_config_relation': payload.get('last_run_config_relation'),
+        'last_run_config_relation_text': payload.get('last_run_config_relation_text'),
+        'proof_recheck_schedule_ok': payload.get('proof_recheck_schedule_ok'),
+        'proof_recheck_schedule_kind': payload.get('proof_recheck_schedule_kind'),
+        'proof_recheck_schedule_kind_text': payload.get('proof_recheck_schedule_kind_text'),
+        'proof_recheck_schedule_job_name': payload.get('proof_recheck_schedule_job_name'),
+        'proof_recheck_schedule_expr': payload.get('proof_recheck_schedule_expr'),
+        'proof_recheck_schedule_tz': payload.get('proof_recheck_schedule_tz'),
+        'proof_recheck_schedule_text': payload.get('proof_recheck_schedule_text'),
+        'proof_next_action_kind': payload.get('proof_next_action_kind'),
+        'proof_next_action_text': payload.get('proof_next_action_text'),
+        'proof_next_action_window_text': payload.get('proof_next_action_window_text'),
+        'proof_recheck_commands': payload.get('proof_recheck_commands') or [],
+        'proof_recheck_commands_text': payload.get('proof_recheck_commands_text'),
+        'proof_recheck_window_open': payload.get('proof_recheck_window_open'),
+        'proof_recheck_window_text': payload.get('proof_recheck_window_text'),
+        'proof_recheck_after_at': payload.get('proof_recheck_after_at'),
+        'proof_recheck_after_text': payload.get('proof_recheck_after_text'),
+        'proof_recheck_after_text_compact': payload.get('proof_recheck_after_text_compact'),
+        'proof_schedule_risk_text': payload.get('proof_schedule_risk_text'),
+        'proof_countdown_text': payload.get('proof_countdown_text'),
+        'proof_target_check_gate': payload.get('proof_target_check_gate'),
+        'proof_target_check_gate_text': payload.get('proof_target_check_gate_text'),
+        'proof_target_run_slots_context_text': payload.get('proof_target_run_slots_context_text'),
+        'proof_target_run_slots_text': payload.get('proof_target_run_slots_text'),
+        'last_run_timeout_text': payload.get('last_run_timeout_text'),
+        'recent_run_duration_text': payload.get('recent_run_duration_text'),
+        'reasons': payload.get('reasons') or [],
+    }
+    return overall
+
+
+def build_top_level_overall_aliases(overall: dict) -> dict:
+    aliases: dict = {}
+    for key, value in (overall or {}).items():
+        if key == 'ok':
+            continue
+        aliases[key] = value
+    return aliases
+
+
 def main():
     parser = argparse.ArgumentParser(description='Vaste producer-wrapper voor AI-briefing-watchdog consumers.')
     parser.add_argument('mode', choices=sorted(PRODUCER_MODES), help='Welke vaste consumer-producerroute je wilt draaien')
     parser.add_argument('--quiet', action='store_true', help='Toon geen volledige child-output, alleen een compacte producer-status')
+    parser.add_argument('--json', action='store_true', help='Geef een machinevriendelijke producer-samenvatting terug')
     parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische producerchecks')
     args, extra = parser.parse_known_args()
 
@@ -179,14 +253,40 @@ def main():
             'returncode': proc.returncode,
             'stdout': proc.stdout,
             'stderr': proc.stderr,
+            'payload': extract_payload(proc.stdout, proc.stderr),
         })
-        if not args.quiet:
+        if not args.quiet and not args.json:
             if proc.stdout:
                 sys.stdout.write(proc.stdout)
                 if not proc.stdout.endswith('\n'):
                     print()
             if proc.stderr:
                 sys.stderr.write(proc.stderr)
+
+    if args.json:
+        items = []
+        overall = {}
+        for item in summaries:
+            payload = item.get('payload') or {}
+            quiet_summary = build_quiet_summary(item['stdout'], item['stderr'], item['returncode'])
+            item_summary = {
+                'args': item['args'],
+                'returncode': item['returncode'],
+                'summary': quiet_summary,
+                'payload': payload,
+            }
+            items.append(item_summary)
+            if not overall:
+                overall = build_overall_summary(payload, item['returncode'])
+        result = {
+            'mode': args.mode,
+            'ok': exit_code == 0,
+            'item_count': len(items),
+            'items': items,
+            'overall': overall,
+        }
+        result.update(build_top_level_overall_aliases(overall))
+        print(json.dumps(result, ensure_ascii=False, indent=2))
 
     if args.quiet:
         print(f'ai-briefing-watchdog-producer: {args.mode}')

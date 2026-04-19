@@ -2067,6 +2067,33 @@ WATCHDOG_ALERT_CASES = [
 WATCHDOG_PRODUCER_CASES = [
     {
         'name': 'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
+        'mode': 'proof-all',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_exit_code': 2,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+        ],
+    },
+    {
+        'name': 'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
+        'mode': 'proof-board',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_exit_code': 2,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+        ],
+    },
+    {
+        'name': 'watchdog-producer-proof-eventlog-before-slot-keeps-proof-recheck-cronstatus',
+        'mode': 'proof-eventlog',
         'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
         'expect_exit_code': 2,
         'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
@@ -2079,6 +2106,33 @@ WATCHDOG_PRODUCER_CASES = [
     },
     {
         'name': 'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
+        'mode': 'proof-all',
+        'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
+        'expect_exit_code': 2,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+    {
+        'name': 'watchdog-producer-proof-board-open-window-keeps-proof-recheck-cronstatus',
+        'mode': 'proof-board',
+        'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
+        'expect_exit_code': 2,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+    {
+        'name': 'watchdog-producer-proof-eventlog-open-window-keeps-proof-recheck-cronstatus',
+        'mode': 'proof-eventlog',
         'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
         'expect_exit_code': 2,
         'expect_proof_state': 'recheck-window-open',
@@ -3701,11 +3755,12 @@ def evaluate_watchdog_alert_case(case):
 
 
 def evaluate_watchdog_producer_case(case):
+    mode = case.get('mode', 'proof-all')
     json_proc = subprocess.run(
         [
             'python3',
             str(WATCHDOG_PRODUCER_SCRIPT),
-            'proof-all',
+            mode,
             '--json',
             '--reference-ms',
             str(case['reference_ms']),
@@ -3719,7 +3774,7 @@ def evaluate_watchdog_producer_case(case):
         [
             'python3',
             str(WATCHDOG_PRODUCER_SCRIPT),
-            'proof-all',
+            mode,
             '--quiet',
             '--reference-ms',
             str(case['reference_ms']),
@@ -3746,6 +3801,18 @@ def evaluate_watchdog_producer_case(case):
         except json.JSONDecodeError as exc:
             failures.append(f'ongeldige JSON van ai-briefing-watchdog-producer.py: {exc}')
             payload = {}
+
+    if payload.get('mode') != mode:
+        failures.append(f"mode verwacht {mode}, kreeg {payload.get('mode')}")
+    if payload.get('item_count') != 1:
+        failures.append(f"item_count verwacht 1, kreeg {payload.get('item_count')}")
+    items = payload.get('items') or []
+    if len(items) != 1:
+        failures.append(f"items verwacht 1 item, kreeg {len(items)}")
+    elif items[0].get('returncode') != case['expect_exit_code']:
+        failures.append(
+            f"items[0].returncode verwacht {case['expect_exit_code']}, kreeg {items[0].get('returncode')}"
+        )
 
     if quiet_proc.returncode != case['expect_exit_code']:
         failures.append(f"quiet-exitcode verwacht {case['expect_exit_code']}, kreeg {quiet_proc.returncode}")
@@ -3786,6 +3853,16 @@ def evaluate_watchdog_producer_case(case):
         failures.append(
             'overall.proof_next_action_kind verwacht '
             f"{case['expect_proof_next_action_kind']}, kreeg {overall.get('proof_next_action_kind')}"
+        )
+    if payload.get('proof_recheck_schedule_kind') != overall.get('proof_recheck_schedule_kind'):
+        failures.append(
+            'top-level proof_recheck_schedule_kind verwacht alias-pariteit met overall, kreeg '
+            f"{payload.get('proof_recheck_schedule_kind')} versus {overall.get('proof_recheck_schedule_kind')}"
+        )
+    if payload.get('proof_next_action_kind') != overall.get('proof_next_action_kind'):
+        failures.append(
+            'top-level proof_next_action_kind verwacht alias-pariteit met overall, kreeg '
+            f"{payload.get('proof_next_action_kind')} versus {overall.get('proof_next_action_kind')}"
         )
 
     combined_text = ' || '.join(
