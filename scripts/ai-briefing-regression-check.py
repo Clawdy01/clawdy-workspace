@@ -13,6 +13,10 @@ ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATUS_SCRIPT = ROOT / 'scripts' / 'ai-briefing-status.py'
 PROOF_RECHECK_SCRIPT = ROOT / 'scripts' / 'ai-briefing-proof-recheck.py'
 PROOF_RECHECK_PRODUCER_SCRIPT = ROOT / 'scripts' / 'ai-briefing-proof-recheck-producer.py'
+WATCHDOG_ALERT_SCRIPT = ROOT / 'scripts' / 'ai-briefing-watchdog-alert.py'
+WATCHDOG_PRODUCER_SCRIPT = ROOT / 'scripts' / 'ai-briefing-watchdog-producer.py'
+STATUSBOARD_SCRIPT = ROOT / 'scripts' / 'statusboard.py'
+CLAWDY_BRIEF_SCRIPT = ROOT / 'scripts' / 'clawdy-brief.py'
 DEFAULT_REFERENCE_MS = int(datetime(2026, 4, 15, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
 EXPECTED_PROOF_RECHECK_JOB_NAME = 'ai-briefing-proof-recheck-producer'
 EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR = '15 9 * * *'
@@ -1988,6 +1992,105 @@ PROOF_RECHECK_PRODUCER_CASES = [
     },
 ]
 
+BRIEF_CONSUMER_CASES = [
+    {
+        'name': 'statusboard-before-slot-keeps-proof-recheck-cronstatus',
+        'script': STATUSBOARD_SCRIPT,
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+        ],
+    },
+    {
+        'name': 'statusboard-open-window-keeps-proof-recheck-cronstatus',
+        'script': STATUSBOARD_SCRIPT,
+        'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+    {
+        'name': 'clawdy-brief-before-slot-keeps-proof-recheck-cronstatus',
+        'script': CLAWDY_BRIEF_SCRIPT,
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+        ],
+    },
+    {
+        'name': 'clawdy-brief-open-window-keeps-proof-recheck-cronstatus',
+        'script': CLAWDY_BRIEF_SCRIPT,
+        'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+]
+
+WATCHDOG_ALERT_CASES = [
+    {
+        'name': 'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+        ],
+    },
+    {
+        'name': 'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
+        'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+]
+
+WATCHDOG_PRODUCER_CASES = [
+    {
+        'name': 'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_exit_code': 2,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+        ],
+    },
+    {
+        'name': 'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
+        'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
+        'expect_exit_code': 2,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+]
+
 
 def load_status_module():
     spec = importlib.util.spec_from_file_location('ai_briefing_status', STATUS_SCRIPT)
@@ -2582,6 +2685,8 @@ def evaluate_proof_recheck_case(case):
             payload.get('proof_next_action_text'),
             payload.get('proof_next_action_window_text'),
             payload.get('proof_recheck_window_text'),
+            payload.get('proof_recheck_schedule_kind_text'),
+            payload.get('proof_recheck_schedule_text'),
             payload.get('proof_recheck_commands_text'),
         ]
         if bit
@@ -3361,6 +3466,7 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
         'result_kind': 'attention-needed',
     }
 
+
     quiet_summary, extracted_payload = producer_module.build_quiet_summary(
         json.dumps(payload, ensure_ascii=False),
         '',
@@ -3400,6 +3506,310 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
         'failures': failures,
         'audit_ok': not failures,
         'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def evaluate_brief_consumer_case(case):
+    script = Path(case['script'])
+    json_proc = subprocess.run(
+        ['python3', str(script), '--json', '--reference-ms', str(case['reference_ms'])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    text_proc = subprocess.run(
+        ['python3', str(script), '--reference-ms', str(case['reference_ms'])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    failures = []
+    json_output = json_proc.stdout.strip() or json_proc.stderr.strip()
+    text_output = text_proc.stdout.strip() or text_proc.stderr.strip()
+
+    if json_proc.returncode != 0:
+        failures.append(f"json-exitcode verwacht 0, kreeg {json_proc.returncode}")
+        payload = {}
+    elif not json_output:
+        failures.append(f'geen JSON-output van {script.name}')
+        payload = {}
+    else:
+        try:
+            payload = json.loads(json_output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van {script.name}: {exc}')
+            payload = {}
+
+    if text_proc.returncode != 0:
+        failures.append(f"tekst-exitcode verwacht 0, kreeg {text_proc.returncode}")
+    if not text_output:
+        failures.append(f'geen tekstoutput van {script.name}')
+
+    ai_briefing_status = payload.get('ai_briefing_status') or {}
+    if ai_briefing_status.get('proof_recheck_schedule_kind') != 'ok':
+        failures.append(
+            'ai_briefing_status.proof_recheck_schedule_kind verwacht ok, kreeg '
+            f"{ai_briefing_status.get('proof_recheck_schedule_kind')}"
+        )
+    if ai_briefing_status.get('proof_recheck_schedule_kind_text') != 'proof-recheck-cronstatus: ok':
+        failures.append(
+            'ai_briefing_status.proof_recheck_schedule_kind_text verwacht '
+            f"proof-recheck-cronstatus: ok, kreeg {ai_briefing_status.get('proof_recheck_schedule_kind_text')}"
+        )
+    if ai_briefing_status.get('proof_recheck_schedule_job_name') != EXPECTED_PROOF_RECHECK_JOB_NAME:
+        failures.append(
+            'ai_briefing_status.proof_recheck_schedule_job_name verwacht '
+            f"{EXPECTED_PROOF_RECHECK_JOB_NAME}, kreeg {ai_briefing_status.get('proof_recheck_schedule_job_name')}"
+        )
+    if ai_briefing_status.get('proof_recheck_schedule_expr') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR:
+        failures.append(
+            'ai_briefing_status.proof_recheck_schedule_expr verwacht '
+            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR}, kreeg {ai_briefing_status.get('proof_recheck_schedule_expr')}"
+        )
+    if ai_briefing_status.get('proof_recheck_schedule_tz') != EXPECTED_PROOF_RECHECK_SCHEDULE_TZ:
+        failures.append(
+            'ai_briefing_status.proof_recheck_schedule_tz verwacht '
+            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_TZ}, kreeg {ai_briefing_status.get('proof_recheck_schedule_tz')}"
+        )
+    if ai_briefing_status.get('proof_state') != case['expect_proof_state']:
+        failures.append(
+            f"ai_briefing_status.proof_state verwacht {case['expect_proof_state']}, kreeg {ai_briefing_status.get('proof_state')}"
+        )
+    if ai_briefing_status.get('proof_next_action_kind') != case['expect_proof_next_action_kind']:
+        failures.append(
+            'ai_briefing_status.proof_next_action_kind verwacht '
+            f"{case['expect_proof_next_action_kind']}, kreeg {ai_briefing_status.get('proof_next_action_kind')}"
+        )
+
+    combined_text = ' || '.join(
+        bit for bit in [
+            ai_briefing_status.get('proof_recheck_schedule_text'),
+            ai_briefing_status.get('proof_recheck_schedule_kind_text'),
+            ai_briefing_status.get('proof_next_action_window_text'),
+            ai_briefing_status.get('proof_next_action_text'),
+            text_output,
+        ] if bit
+    )
+    for snippet in case.get('expect_text_substrings', []):
+        if snippet not in combined_text:
+            failures.append(f"verwachte brief-consumer-tekst ontbreekt: {snippet}")
+
+    return {
+        'name': case['name'],
+        'path': str(script),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': combined_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def evaluate_watchdog_alert_case(case):
+    proc = subprocess.run(
+        [
+            'python3',
+            str(WATCHDOG_ALERT_SCRIPT),
+            '--mode',
+            'proof-progress',
+            '--reference-ms',
+            str(case['reference_ms']),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    failures = []
+    text_output = proc.stdout.strip() or proc.stderr.strip()
+    if proc.returncode != 0:
+        failures.append(f"tekst-exitcode verwacht 0, kreeg {proc.returncode}")
+    if not text_output:
+        failures.append('geen tekstoutput van ai-briefing-watchdog-alert.py')
+    for snippet in case.get('expect_text_substrings', []):
+        if snippet not in text_output:
+            failures.append(f"verwachte watchdog-alert-tekst ontbreekt: {snippet}")
+
+    return {
+        'name': case['name'],
+        'path': str(WATCHDOG_ALERT_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': text_output,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def evaluate_watchdog_producer_case(case):
+    json_proc = subprocess.run(
+        [
+            'python3',
+            str(WATCHDOG_PRODUCER_SCRIPT),
+            'proof-all',
+            '--json',
+            '--reference-ms',
+            str(case['reference_ms']),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    quiet_proc = subprocess.run(
+        [
+            'python3',
+            str(WATCHDOG_PRODUCER_SCRIPT),
+            'proof-all',
+            '--quiet',
+            '--reference-ms',
+            str(case['reference_ms']),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    failures = []
+    json_output = json_proc.stdout.strip() or json_proc.stderr.strip()
+    quiet_output = quiet_proc.stdout.strip() or quiet_proc.stderr.strip()
+
+    if json_proc.returncode != case['expect_exit_code']:
+        failures.append(f"json-exitcode verwacht {case['expect_exit_code']}, kreeg {json_proc.returncode}")
+        payload = {}
+    elif not json_output:
+        failures.append('geen JSON-output van ai-briefing-watchdog-producer.py')
+        payload = {}
+    else:
+        try:
+            payload = json.loads(json_output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van ai-briefing-watchdog-producer.py: {exc}')
+            payload = {}
+
+    if quiet_proc.returncode != case['expect_exit_code']:
+        failures.append(f"quiet-exitcode verwacht {case['expect_exit_code']}, kreeg {quiet_proc.returncode}")
+    if not quiet_output:
+        failures.append('geen quiet-output van ai-briefing-watchdog-producer.py')
+
+    overall = payload.get('overall') or payload
+    if overall.get('proof_recheck_schedule_kind') != 'ok':
+        failures.append(
+            'overall.proof_recheck_schedule_kind verwacht ok, kreeg '
+            f"{overall.get('proof_recheck_schedule_kind')}"
+        )
+    if overall.get('proof_recheck_schedule_kind_text') != 'proof-recheck-cronstatus: ok':
+        failures.append(
+            'overall.proof_recheck_schedule_kind_text verwacht '
+            f"proof-recheck-cronstatus: ok, kreeg {overall.get('proof_recheck_schedule_kind_text')}"
+        )
+    if overall.get('proof_recheck_schedule_job_name') != EXPECTED_PROOF_RECHECK_JOB_NAME:
+        failures.append(
+            'overall.proof_recheck_schedule_job_name verwacht '
+            f"{EXPECTED_PROOF_RECHECK_JOB_NAME}, kreeg {overall.get('proof_recheck_schedule_job_name')}"
+        )
+    if overall.get('proof_recheck_schedule_expr') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR:
+        failures.append(
+            'overall.proof_recheck_schedule_expr verwacht '
+            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR}, kreeg {overall.get('proof_recheck_schedule_expr')}"
+        )
+    if overall.get('proof_recheck_schedule_tz') != EXPECTED_PROOF_RECHECK_SCHEDULE_TZ:
+        failures.append(
+            'overall.proof_recheck_schedule_tz verwacht '
+            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_TZ}, kreeg {overall.get('proof_recheck_schedule_tz')}"
+        )
+    if overall.get('proof_state') != case['expect_proof_state']:
+        failures.append(
+            f"overall.proof_state verwacht {case['expect_proof_state']}, kreeg {overall.get('proof_state')}"
+        )
+    if overall.get('proof_next_action_kind') != case['expect_proof_next_action_kind']:
+        failures.append(
+            'overall.proof_next_action_kind verwacht '
+            f"{case['expect_proof_next_action_kind']}, kreeg {overall.get('proof_next_action_kind')}"
+        )
+
+    combined_text = ' || '.join(
+        bit for bit in [
+            payload.get('proof_recheck_schedule_text'),
+            payload.get('proof_recheck_schedule_kind_text'),
+            overall.get('proof_recheck_schedule_text'),
+            overall.get('proof_recheck_schedule_kind_text'),
+            overall.get('proof_next_action_window_text'),
+            overall.get('proof_next_action_text'),
+            quiet_output,
+        ] if bit
+    )
+    for snippet in case.get('expect_text_substrings', []):
+        if snippet not in combined_text:
+            failures.append(f"verwachte watchdog-producer-tekst ontbreekt: {snippet}")
+
+    return {
+        'name': case['name'],
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': combined_text,
         'item_count': None,
         'items_with_source_count': None,
         'items_with_valid_source_line_count': None,
@@ -3565,6 +3975,9 @@ def main():
     results.extend(evaluate_status_phase_case(module, case) for case in STATUS_PHASE_CASES)
     results.extend(evaluate_proof_recheck_case(case) for case in PROOF_RECHECK_CASES)
     results.extend(evaluate_proof_recheck_producer_case(case) for case in PROOF_RECHECK_PRODUCER_CASES)
+    results.extend(evaluate_brief_consumer_case(case) for case in BRIEF_CONSUMER_CASES)
+    results.extend(evaluate_watchdog_alert_case(case) for case in WATCHDOG_ALERT_CASES)
+    results.extend(evaluate_watchdog_producer_case(case) for case in WATCHDOG_PRODUCER_CASES)
     results.append(evaluate_producer_quiet_requested_outputs_fallback_case(producer_module))
     results.append(evaluate_proof_recheck_consumer_format_passthrough_case())
     overall_ok = all(result['ok'] for result in results)
