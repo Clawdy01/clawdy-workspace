@@ -139,12 +139,24 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_target_check_gate_text']))
     if payload.get('proof_countdown_text'):
         bits.append(str(payload['proof_countdown_text']))
-    if payload.get('consumer_outputs_text'):
+    if payload.get('consumer_effective_outputs_text'):
+        bits.append(str(payload['consumer_effective_outputs_text']))
+    elif payload.get('consumer_effective_outputs'):
+        effective_outputs_text = format_consumer_outputs(payload.get('consumer_effective_outputs') or [])
+        if effective_outputs_text:
+            bits.append(effective_outputs_text)
+    elif payload.get('consumer_outputs_text'):
         bits.append(str(payload['consumer_outputs_text']))
     elif payload.get('consumer_outputs'):
         consumer_outputs_text = format_consumer_outputs(payload.get('consumer_outputs') or [])
         if consumer_outputs_text:
             bits.append(consumer_outputs_text)
+    elif payload.get('consumer_requested_outputs_text'):
+        bits.append(str(payload['consumer_requested_outputs_text']))
+    elif payload.get('consumer_requested_outputs'):
+        requested_outputs_text = format_consumer_outputs(payload.get('consumer_requested_outputs') or [])
+        if requested_outputs_text:
+            bits.append(requested_outputs_text)
     if payload.get('consumer_outputs_count_text'):
         bits.append(str(payload['consumer_outputs_count_text']))
     if payload.get('consumer_outputs_status_text'):
@@ -267,6 +279,12 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'consumer_output_paths': payload.get('consumer_output_paths') or [],
         'consumer_output_channels': payload.get('consumer_output_channels') or [],
         'consumer_outputs_text': payload.get('consumer_outputs_text') or format_consumer_outputs(payload.get('consumer_outputs') or []),
+        'consumer_effective_output_source': payload.get('consumer_effective_output_source'),
+        'consumer_effective_outputs': payload.get('consumer_effective_outputs') or [],
+        'consumer_effective_output_count': payload.get('consumer_effective_output_count'),
+        'consumer_effective_output_paths': payload.get('consumer_effective_output_paths') or [],
+        'consumer_effective_output_channels': payload.get('consumer_effective_output_channels') or [],
+        'consumer_effective_outputs_text': payload.get('consumer_effective_outputs_text') or format_consumer_outputs(payload.get('consumer_effective_outputs') or []),
     }
 
 

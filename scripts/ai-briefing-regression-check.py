@@ -1967,6 +1967,14 @@ def load_status_module():
     return module
 
 
+def load_proof_recheck_producer_module():
+    spec = importlib.util.spec_from_file_location('ai_briefing_proof_recheck_producer', PROOF_RECHECK_PRODUCER_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    return module
+
+
 def evaluate_case(module, case):
     path = Path(case['path'])
     summary_text = path.read_text(encoding='utf-8')
@@ -2788,6 +2796,30 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 f"overall.consumer_outputs verwacht {len(expected_artifacts)} items, kreeg {len(overall_consumer_outputs)}"
             )
+        if overall.get('consumer_effective_output_source') != 'written':
+            failures.append(
+                'overall.consumer_effective_output_source verwacht written, kreeg '
+                f"{overall.get('consumer_effective_output_source')}"
+            )
+        overall_effective_output_paths = overall.get('consumer_effective_output_paths') or []
+        if sorted(overall_effective_output_paths) != sorted(expected_artifact_paths):
+            failures.append(
+                'overall.consumer_effective_output_paths verwacht '
+                f"{expected_artifact_paths}, kreeg {overall_effective_output_paths}"
+            )
+        overall_effective_output_channels = overall.get('consumer_effective_output_channels') or []
+        if sorted(overall_effective_output_channels) != sorted(expected_channels):
+            failures.append(
+                f"overall.consumer_effective_output_channels verwacht {expected_channels}, kreeg {overall_effective_output_channels}"
+            )
+        overall_effective_outputs_text = overall.get('consumer_effective_outputs_text') or ''
+        for expected_channel, expected_path in zip(expected_channels, expected_artifact_paths):
+            expected_fragment = f'{expected_channel}: {expected_path}'
+            if expected_fragment not in overall_effective_outputs_text:
+                failures.append(
+                    'overall.consumer_effective_outputs_text mist verwacht fragment: '
+                    f'{expected_fragment}'
+                )
         if overall.get('consumer_requested_output_count') != len(expected_artifacts):
             failures.append(
                 'overall.consumer_requested_output_count verwacht '
@@ -2994,6 +3026,83 @@ def evaluate_proof_recheck_producer_case(case):
 
 
 
+def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
+    failures = []
+    payload = {
+        'summary': 'synthetische producer-mismatch',
+        'result_text': 'consumer-write mismatch gedetecteerd',
+        'consumer_requested_outputs_text': 'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer_requested_outputs': [
+            {'channel': 'board-json', 'path': '/tmp/expected.json', 'format': 'json', 'append': False},
+            {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
+        ],
+        'consumer_outputs': [],
+        'consumer_outputs_text': None,
+        'consumer_effective_output_source': 'requested-fallback',
+        'consumer_effective_outputs': [
+            {'channel': 'board-json', 'path': '/tmp/expected.json', 'format': 'json', 'append': False},
+            {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
+        ],
+        'consumer_effective_outputs_text': 'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer_outputs_count_text': 'consumer-output-telling gevraagd=2, geschreven=0, ontbrekend=2, onverwacht=0',
+        'consumer_outputs_status_text': 'consumer-output-audit mismatch (ontbreekt: board-json: /tmp/expected.json; board-text: /tmp/expected.txt)',
+        'result_kind': 'attention-needed',
+    }
+
+    quiet_summary, extracted_payload = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        3,
+    )
+    if extracted_payload != payload:
+        failures.append('build_quiet_summary gaf niet dezelfde payload terug voor synthetische JSON-input')
+    if not quiet_summary:
+        failures.append('build_quiet_summary gaf geen quiet-summary terug voor synthetische mismatchpayload')
+        quiet_summary = ''
+    expected_snippets = [
+        'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer-output-telling gevraagd=2, geschreven=0, ontbrekend=2, onverwacht=0',
+        'consumer-output-audit mismatch',
+        'resultaat: attention-needed',
+    ]
+    if extracted_payload and extracted_payload.get('consumer_effective_output_source') != 'requested-fallback':
+        failures.append(
+            'build_quiet_summary payload consumer_effective_output_source verwacht requested-fallback, kreeg '
+            f"{extracted_payload.get('consumer_effective_output_source')}"
+        )
+    for snippet in expected_snippets:
+        if snippet not in quiet_summary:
+            failures.append(f'producer quiet-summary mist fallback-fragment: {snippet}')
+
+    return {
+        'name': 'proof-recheck-producer-quiet-falls-back-to-requested-outputs',
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def evaluate_proof_recheck_consumer_format_passthrough_case():
     failures = []
     audit_bits: list[str] = []
@@ -3132,10 +3241,12 @@ def main():
     args = parser.parse_args()
 
     module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
     results = [evaluate_case(module, case) for case in DEFAULT_CASES]
     results.extend(evaluate_status_phase_case(module, case) for case in STATUS_PHASE_CASES)
     results.extend(evaluate_proof_recheck_case(case) for case in PROOF_RECHECK_CASES)
     results.extend(evaluate_proof_recheck_producer_case(case) for case in PROOF_RECHECK_PRODUCER_CASES)
+    results.append(evaluate_producer_quiet_requested_outputs_fallback_case(producer_module))
     results.append(evaluate_proof_recheck_consumer_format_passthrough_case())
     overall_ok = all(result['ok'] for result in results)
     failing_results = [result for result in results if not result['ok']]

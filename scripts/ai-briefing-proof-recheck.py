@@ -197,6 +197,25 @@ def format_consumer_outputs(outputs: list[dict]) -> str | None:
     return 'consumer-artifacts: ' + '; '.join(bits)
 
 
+def update_effective_consumer_outputs(payload: dict) -> None:
+    written_outputs = payload.get('consumer_outputs') or []
+    requested_outputs = payload.get('consumer_requested_outputs') or []
+    effective_outputs = written_outputs or requested_outputs
+    if written_outputs:
+        source = 'written'
+    elif requested_outputs:
+        source = 'requested-fallback'
+    else:
+        source = 'none'
+
+    payload['consumer_effective_output_source'] = source
+    payload['consumer_effective_outputs'] = effective_outputs
+    payload['consumer_effective_output_count'] = len(effective_outputs)
+    payload['consumer_effective_output_paths'] = [item['path'] for item in effective_outputs]
+    payload['consumer_effective_output_channels'] = [item['channel'] for item in effective_outputs]
+    payload['consumer_effective_outputs_text'] = format_consumer_outputs(effective_outputs)
+
+
 def output_signature(item: dict) -> tuple[str, str, str, bool]:
     return (
         str(item.get('channel') or ''),
@@ -233,6 +252,7 @@ def update_consumer_output_audit(payload: dict) -> None:
     payload['consumer_outputs_unexpected'] = unexpected_outputs
     payload['consumer_outputs_unexpected_paths'] = [item['path'] for item in unexpected_outputs]
     payload['consumer_outputs_unexpected_channels'] = [item['channel'] for item in unexpected_outputs]
+    update_effective_consumer_outputs(payload)
 
     if payload['consumer_outputs_match_requested']:
         requested_count = len(requested_outputs)
@@ -307,7 +327,7 @@ def build_text(payload: dict) -> str:
         payload.get('proof_recheck_commands_text'),
         payload.get('consumer_outputs_count_text'),
         payload.get('consumer_outputs_status_text'),
-        payload.get('consumer_outputs_text'),
+        payload.get('consumer_effective_outputs_text') or payload.get('consumer_outputs_text'),
     ]
     return ' | '.join(unique_bits(bits))
 
