@@ -202,6 +202,48 @@ def resolve_consumer_settings(args, *, default_format: str, consumer_presets: di
     return output_path, output_format, append
 
 
+def describe_requested_outputs(
+    *,
+    output_path: str | None,
+    output_format: str | None,
+    append: bool,
+    consumer_bundle: str | None,
+    consumer_presets: dict[str, dict],
+) -> list[dict]:
+    outputs: list[dict] = []
+    if output_path:
+        outputs.append({
+            'channel': 'consumer-out',
+            'path': output_path,
+            'format': output_format or 'text',
+            'append': append,
+        })
+    if consumer_bundle:
+        for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
+            preset = consumer_presets[preset_name]
+            outputs.append({
+                'channel': preset_name,
+                'path': str(preset['path']),
+                'format': preset['format'],
+                'append': bool(preset['append']),
+            })
+    return outputs
+
+
+def format_consumer_outputs(outputs: list[dict]) -> str | None:
+    bits: list[str] = []
+    for item in outputs or []:
+        channel = str(item.get('channel') or '').strip()
+        path = str(item.get('path') or '').strip()
+        if channel and path:
+            bits.append(f'{channel}: {path}')
+        elif path:
+            bits.append(path)
+    if not bits:
+        return None
+    return 'consumer-artifacts: ' + '; '.join(bits)
+
+
 def render_output(*, text: str, payload: dict, output_format: str) -> str:
     if output_format == 'json':
         return json.dumps(payload, ensure_ascii=False, indent=2) + '\n'
@@ -250,6 +292,7 @@ def build_json_payload(
     *,
     no_reply: bool,
     suppressed_before_proof_deadline: bool,
+    consumer_requested_outputs: list[dict],
 ) -> dict:
     return {
         'ok': bool(data.get('ok')),
@@ -315,6 +358,8 @@ def build_json_payload(
         'proof_target_run_slots_text': data.get('proof_target_run_slots_text'),
         'last_run_timeout_text': data.get('last_run_timeout_text'),
         'recent_run_duration_text': data.get('recent_run_duration_text'),
+        'consumer_requested_outputs': consumer_requested_outputs,
+        'consumer_requested_outputs_text': format_consumer_outputs(consumer_requested_outputs),
         'reasons': data.get('reasons') or [],
         'summary_output_examples': data.get('summary_output_examples') or [],
     }
@@ -362,6 +407,13 @@ def main() -> int:
         default_format=stdout_format,
         consumer_presets=consumer_presets,
     )
+    consumer_requested_outputs = describe_requested_outputs(
+        output_path=consumer_output_path,
+        output_format=consumer_output_format,
+        append=consumer_append,
+        consumer_bundle=args.consumer_bundle,
+        consumer_presets=consumer_presets,
+    )
     payload = build_json_payload(
         data,
         args.mode,
@@ -369,6 +421,7 @@ def main() -> int:
         'NO_REPLY' if no_reply else alert_text,
         no_reply=no_reply,
         suppressed_before_proof_deadline=suppressed_before_proof_deadline,
+        consumer_requested_outputs=consumer_requested_outputs,
     )
 
     if args.json:

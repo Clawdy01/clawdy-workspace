@@ -3943,10 +3943,32 @@ def evaluate_watchdog_alert_case(case):
                     'consumer board-json no_reply verwacht '
                     f"{case.get('expect_no_reply', False)}, kreeg {board_payload.get('no_reply')}"
                 )
+            if board_payload.get('suppressed_before_proof_deadline') is not case.get('expect_suppressed_before_proof_deadline', False):
+                failures.append(
+                    'consumer board-json suppressed_before_proof_deadline verwacht '
+                    f"{case.get('expect_suppressed_before_proof_deadline', False)}, kreeg {board_payload.get('suppressed_before_proof_deadline')}"
+                )
             if board_payload.get('alert_text') != payload.get('alert_text'):
                 failures.append(
                     'consumer board-json alert_text verwacht pariteit met stdout-json, kreeg '
                     f"{board_payload.get('alert_text')} versus {payload.get('alert_text')}"
+                )
+            requested_outputs = board_payload.get('consumer_requested_outputs') or []
+            requested_channels = [item.get('channel') for item in requested_outputs]
+            if requested_channels != ['board-json', 'board-text', 'eventlog-jsonl']:
+                failures.append(
+                    'consumer board-json consumer_requested_outputs verwacht board-json/board-text/eventlog-jsonl, kreeg '
+                    f'{requested_channels}'
+                )
+            expected_requested_outputs_text = (
+                f'consumer-artifacts: board-json: {board_json_path}; '
+                f'board-text: {board_text_path}; '
+                f'eventlog-jsonl: {eventlog_path}'
+            )
+            if board_payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+                failures.append(
+                    'consumer board-json consumer_requested_outputs_text verwacht '
+                    f'{expected_requested_outputs_text}, kreeg {board_payload.get("consumer_requested_outputs_text")}'
                 )
         if not board_text_path.exists():
             failures.append(f'consumer board-text ontbreekt: {board_text_path}')
@@ -3972,6 +3994,28 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl alert_text verwacht pariteit met stdout-json, kreeg '
                             f"{eventlog_payload.get('alert_text')} versus {payload.get('alert_text')}"
+                        )
+                    if eventlog_payload.get('no_reply') is not case.get('expect_no_reply', False):
+                        failures.append(
+                            'consumer eventlog-jsonl no_reply verwacht '
+                            f"{case.get('expect_no_reply', False)}, kreeg {eventlog_payload.get('no_reply')}"
+                        )
+                    if eventlog_payload.get('suppressed_before_proof_deadline') is not case.get('expect_suppressed_before_proof_deadline', False):
+                        failures.append(
+                            'consumer eventlog-jsonl suppressed_before_proof_deadline verwacht '
+                            f"{case.get('expect_suppressed_before_proof_deadline', False)}, kreeg {eventlog_payload.get('suppressed_before_proof_deadline')}"
+                        )
+                    if eventlog_payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+                        failures.append(
+                            'consumer eventlog-jsonl consumer_requested_outputs_text verwacht '
+                            f'{expected_requested_outputs_text}, kreeg {eventlog_payload.get("consumer_requested_outputs_text")}'
+                        )
+                    eventlog_requested_outputs = eventlog_payload.get('consumer_requested_outputs') or []
+                    eventlog_requested_channels = [item.get('channel') for item in eventlog_requested_outputs]
+                    if eventlog_requested_channels != ['board-json', 'board-text', 'eventlog-jsonl']:
+                        failures.append(
+                            'consumer eventlog-jsonl consumer_requested_outputs verwacht board-json/board-text/eventlog-jsonl, kreeg '
+                            f'{eventlog_requested_channels}'
                         )
 
     return {
