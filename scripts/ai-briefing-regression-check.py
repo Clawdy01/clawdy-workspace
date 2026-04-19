@@ -1700,14 +1700,14 @@ STATUS_PHASE_CASES = [
         'expect_proof_recheck_schedule_audit_ok': True,
         'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
-            'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
-            'hercheck vanaf 2026-04-19 09:15 CEST',
+            'wacht op geplande kwalificatierun 2026-04-20 09:00 CEST',
+            'hercheck vanaf 2026-04-20 09:15 CEST',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
         ],
     },
     {
         'name': 'status-next-day-before-slot-waits-for-run',
-        'reference_ms': 1776581880000,
+        'reference_ms': 1776668280000,
         'expect_proof_state': 'waiting-next-scheduled-run',
         'expect_proof_blocker_kind': 'time-gated-next-slot',
         'expect_proof_next_action_kind': 'wait-then-recheck',
@@ -1715,14 +1715,14 @@ STATUS_PHASE_CASES = [
         'expect_proof_recheck_schedule_audit_ok': True,
         'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
-            'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
-            'hercheck vanaf 2026-04-19 09:15 CEST',
+            'wacht op geplande kwalificatierun 2026-04-20 09:00 CEST',
+            'hercheck vanaf 2026-04-20 09:15 CEST',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
         ],
     },
     {
         'name': 'status-current-slot-grace-window',
-        'reference_ms': 1776582300000,
+        'reference_ms': 1776668700000,
         'expect_proof_state': 'current-slot-grace-window',
         'expect_proof_blocker_kind': 'grace-window-before-recheck',
         'expect_proof_next_action_kind': 'wait-for-recheck-window',
@@ -1730,14 +1730,14 @@ STATUS_PHASE_CASES = [
         'expect_proof_recheck_schedule_audit_ok': True,
         'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
-            'kwalificatierun van 2026-04-19 09:00 CEST zit in grace-window',
-            'hercheck vanaf 2026-04-19 09:15 CEST',
+            'kwalificatierun van 2026-04-20 09:00 CEST zit in grace-window',
+            'hercheck vanaf 2026-04-20 09:15 CEST',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
         ],
     },
     {
         'name': 'status-recheck-window-open',
-        'reference_ms': 1776582900000,
+        'reference_ms': 1776669300000,
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_blocker_kind': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
@@ -1762,15 +1762,15 @@ PROOF_RECHECK_CASES = [
         'expect_proof_blocker_kind': 'time-gated-next-slot',
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_recheck_ready': False,
-        'expect_proof_wait_until_at': 1776582000000,
-        'expect_proof_wait_until_text': '2026-04-19 09:00 CEST',
+        'expect_proof_wait_until_at': 1776668400000,
+        'expect_proof_wait_until_text': '2026-04-20 09:00 CEST',
         'expect_proof_wait_until_reason_text': 'bewijs blijft tijdsgebonden wachten tot het eerstvolgende kwalificatieslot van morgen',
-        'expect_proof_recheck_after_at': 1776582900000,
-        'expect_proof_wait_until_remaining_ms': 86520000,
-        'expect_proof_next_qualifying_slot_at': 1776582000000,
-        'expect_proof_next_qualifying_slot_remaining_ms': 86520000,
-        'expect_proof_target_due_at': 1776755700000,
-        'expect_proof_target_due_at_if_next_slot_missed': 1776842100000,
+        'expect_proof_recheck_after_at': 1776669300000,
+        'expect_proof_wait_until_remaining_ms': 172920000,
+        'expect_proof_next_qualifying_slot_at': 1776668400000,
+        'expect_proof_next_qualifying_slot_remaining_ms': 172920000,
+        'expect_proof_target_due_at': 1776842100000,
+        'expect_proof_target_due_at_if_next_slot_missed': 1776928500000,
         'expect_proof_schedule_slip_ms': 86400000,
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
@@ -1779,9 +1779,9 @@ PROOF_RECHECK_CASES = [
         'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
-            'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
-            'hercheck vanaf 2026-04-19 09:15 CEST',
-            'config f5b1d6e1b852',
+            'wacht op geplande kwalificatierun 2026-04-20 09:00 CEST',
+            'hercheck vanaf 2026-04-20 09:15 CEST',
+            'config 36e4a0e11578',
             'laatste run hoorde nog bij de vorige config',
         ],
         'expect_plain_not_substrings': [
@@ -1791,7 +1791,7 @@ PROOF_RECHECK_CASES = [
     },
     {
         'name': 'proof-recheck-grace-window-too-early',
-        'reference_ms': 1776582300000,
+        'reference_ms': 1776668700000,
         'expect_state': 'waiting',
         'expect_exit_code': 2,
         'expect_result_kind': 'too-early',
@@ -1799,15 +1799,15 @@ PROOF_RECHECK_CASES = [
         'expect_proof_blocker_kind': 'grace-window-before-recheck',
         'expect_proof_next_action_kind': 'wait-for-recheck-window',
         'expect_proof_recheck_ready': False,
-        'expect_proof_wait_until_at': 1776582000000,
-        'expect_proof_wait_until_text': '2026-04-19 09:00 CEST',
+        'expect_proof_wait_until_at': 1776668400000,
+        'expect_proof_wait_until_text': '2026-04-20 09:00 CEST',
         'expect_proof_wait_until_reason_text': 'bewijs bewaakt het huidige kwalificatieslot tot het hercheckvenster opent',
-        'expect_proof_recheck_after_at': 1776582900000,
+        'expect_proof_recheck_after_at': 1776669300000,
         'expect_proof_wait_until_remaining_ms': -300000,
-        'expect_proof_next_qualifying_slot_at': 1776582000000,
+        'expect_proof_next_qualifying_slot_at': 1776668400000,
         'expect_proof_next_qualifying_slot_remaining_ms': -300000,
-        'expect_proof_target_due_at': 1776755700000,
-        'expect_proof_target_due_at_if_next_slot_missed': 1776842100000,
+        'expect_proof_target_due_at': 1776842100000,
+        'expect_proof_target_due_at_if_next_slot_missed': 1776928500000,
         'expect_proof_schedule_slip_ms': 86400000,
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
@@ -1816,9 +1816,9 @@ PROOF_RECHECK_CASES = [
         'expect_proof_recheck_schedule_matches_grace': True,
         'expect_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
-            'kwalificatierun van 2026-04-19 09:00 CEST zit in grace-window',
-            'hercheck vanaf 2026-04-19 09:15 CEST',
-            'config f5b1d6e1b852',
+            'kwalificatierun van 2026-04-20 09:00 CEST zit in grace-window',
+            'hercheck vanaf 2026-04-20 09:15 CEST',
+            'config 36e4a0e11578',
             'laatste run hoorde nog bij de vorige config',
         ],
         'expect_plain_not_substrings': [
@@ -1828,7 +1828,7 @@ PROOF_RECHECK_CASES = [
     },
     {
         'name': 'proof-recheck-open-window-needs-attention',
-        'reference_ms': 1776582900000,
+        'reference_ms': 1776669300000,
         'expect_state': 'attention',
         'expect_exit_code': 3,
         'expect_result_kind': 'attention-needed',
@@ -1839,12 +1839,12 @@ PROOF_RECHECK_CASES = [
         'expect_proof_wait_until_at': None,
         'expect_proof_wait_until_text': None,
         'expect_proof_wait_until_reason_text': None,
-        'expect_proof_recheck_after_at': 1776582900000,
+        'expect_proof_recheck_after_at': 1776669300000,
         'expect_proof_wait_until_remaining_ms': None,
-        'expect_proof_next_qualifying_slot_at': 1776582000000,
+        'expect_proof_next_qualifying_slot_at': 1776668400000,
         'expect_proof_next_qualifying_slot_remaining_ms': -900000,
-        'expect_proof_target_due_at': 1776755700000,
-        'expect_proof_target_due_at_if_next_slot_missed': 1776842100000,
+        'expect_proof_target_due_at': 1776842100000,
+        'expect_proof_target_due_at_if_next_slot_missed': 1776928500000,
         'expect_proof_schedule_slip_ms': 86400000,
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
@@ -1855,7 +1855,7 @@ PROOF_RECHECK_CASES = [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             'daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3',
-            'config f5b1d6e1b852',
+            'config 36e4a0e11578',
             'laatste run hoorde nog bij de vorige config',
         ],
         'expect_plain_not_substrings': [
@@ -1879,20 +1879,20 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_blocker_kind': 'time-gated-next-slot',
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_recheck_ready': False,
-        'expect_proof_wait_until_at': 1776582000000,
-        'expect_proof_wait_until_text': '2026-04-19 09:00 CEST',
+        'expect_proof_wait_until_at': 1776668400000,
+        'expect_proof_wait_until_text': '2026-04-20 09:00 CEST',
         'expect_proof_wait_until_reason_text': 'bewijs blijft tijdsgebonden wachten tot het eerstvolgende kwalificatieslot van morgen',
-        'expect_proof_recheck_after_at': 1776582900000,
-        'expect_proof_wait_until_remaining_ms': 86520000,
-        'expect_proof_next_qualifying_slot_at': 1776582000000,
-        'expect_proof_next_qualifying_slot_remaining_ms': 86520000,
-        'expect_proof_target_due_at': 1776755700000,
-        'expect_proof_target_due_at_if_next_slot_missed': 1776842100000,
+        'expect_proof_recheck_after_at': 1776669300000,
+        'expect_proof_wait_until_remaining_ms': 172920000,
+        'expect_proof_next_qualifying_slot_at': 1776668400000,
+        'expect_proof_next_qualifying_slot_remaining_ms': 172920000,
+        'expect_proof_target_due_at': 1776842100000,
+        'expect_proof_target_due_at_if_next_slot_missed': 1776928500000,
         'expect_proof_schedule_slip_ms': 86400000,
         'expect_quiet_substrings': [
             'ai-briefing-proof-recheck-producer: all',
             'resultaat: too-early',
-            'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
+            'wacht op geplande kwalificatierun 2026-04-20 09:00 CEST',
         ],
         'expect_quiet_absent_substrings': [
             '--json --consumer-bundle board-suite: exit=',
@@ -1908,16 +1908,16 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_recheck_schedule_matches_grace': True,
         'expect_artifact_substrings': [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
-            'wacht op geplande kwalificatierun 2026-04-19 09:00 CEST',
+            'wacht op geplande kwalificatierun 2026-04-20 09:00 CEST',
         ],
     },
     {
         'name': 'proof-recheck-producer-open-window-needs-attention',
-        'reference_ms': 1776582900000,
+        'reference_ms': 1776669300000,
         'expect_exit_code': 3,
         'expect_state': 'attention',
         'expect_result_kind': 'attention-needed',
-        'expect_reference_now_text': '2026-04-19 09:15 CEST',
+        'expect_reference_now_text': '2026-04-20 09:15 CEST',
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
         'expect_proof_state': 'recheck-window-open',
@@ -1927,12 +1927,12 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_wait_until_at': None,
         'expect_proof_wait_until_text': None,
         'expect_proof_wait_until_reason_text': None,
-        'expect_proof_recheck_after_at': 1776582900000,
+        'expect_proof_recheck_after_at': 1776669300000,
         'expect_proof_wait_until_remaining_ms': None,
-        'expect_proof_next_qualifying_slot_at': 1776582000000,
+        'expect_proof_next_qualifying_slot_at': 1776668400000,
         'expect_proof_next_qualifying_slot_remaining_ms': -900000,
-        'expect_proof_target_due_at': 1776755700000,
-        'expect_proof_target_due_at_if_next_slot_missed': 1776842100000,
+        'expect_proof_target_due_at': 1776842100000,
+        'expect_proof_target_due_at_if_next_slot_missed': 1776928500000,
         'expect_proof_schedule_slip_ms': 86400000,
         'expect_quiet_substrings': [
             'ai-briefing-proof-recheck-producer: all',
@@ -1946,7 +1946,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         ],
         'expect_json_substrings': [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
-            'referentietijd 2026-04-19 09:15 CEST',
+            'referentietijd 2026-04-20 09:15 CEST',
         ],
         'expect_proof_config_hash_present': True,
         'expect_proof_recheck_schedule_audit_ok': True,
@@ -2479,6 +2479,37 @@ def evaluate_proof_recheck_case(case):
                 f"{payload.get('proof_recheck_schedule_same_day_after_target')}"
             )
 
+    expected_requested_status_kind = 'requested' if payload.get('consumer_requested_output_count') else 'none-requested'
+    if payload.get('consumer_requested_outputs_status_kind') != expected_requested_status_kind:
+        failures.append(
+            'consumer_requested_outputs_status_kind verwacht '
+            f"{expected_requested_status_kind}, kreeg {payload.get('consumer_requested_outputs_status_kind')}"
+        )
+    expected_outputs_status_kind = (
+        'ok'
+        if payload.get('consumer_outputs_match_requested') and payload.get('consumer_requested_output_count')
+        else 'none-requested'
+        if payload.get('consumer_outputs_match_requested')
+        else 'mismatch'
+    )
+    if payload.get('consumer_outputs_status_kind') != expected_outputs_status_kind:
+        failures.append(
+            'consumer_outputs_status_kind verwacht '
+            f"{expected_outputs_status_kind}, kreeg {payload.get('consumer_outputs_status_kind')}"
+        )
+    expected_effective_status_kind = (
+        'ok'
+        if payload.get('consumer_effective_outputs_match_requested') and payload.get('consumer_requested_output_count')
+        else 'none-requested'
+        if payload.get('consumer_effective_outputs_match_requested')
+        else 'mismatch'
+    )
+    if payload.get('consumer_effective_outputs_status_kind') != expected_effective_status_kind:
+        failures.append(
+            'consumer_effective_outputs_status_kind verwacht '
+            f"{expected_effective_status_kind}, kreeg {payload.get('consumer_effective_outputs_status_kind')}"
+        )
+
     combined_text = ' || '.join(
         str(bit)
         for bit in [
@@ -2601,18 +2632,21 @@ def evaluate_proof_recheck_producer_case(case):
             'consumer_requested_output_count_text',
             'consumer_requested_output_channel_count_text',
             'consumer_requested_output_channels_text',
+            'consumer_requested_outputs_status_kind',
             'consumer_requested_outputs_status_text',
             'consumer_output_count',
             'consumer_output_channel_count',
             'consumer_output_channel_count_text',
             'consumer_output_channels_text',
             'consumer_outputs_count_text',
+            'consumer_outputs_status_kind',
             'consumer_outputs_missing_count',
             'consumer_outputs_unexpected_count',
             'consumer_effective_output_source_text',
             'consumer_effective_output_channel_count',
             'consumer_effective_output_channel_count_text',
             'consumer_effective_output_channels_text',
+            'consumer_effective_outputs_status_kind',
         ]
         if payload.get('consumer_root') != temp_dir:
             failures.append(f"consumer_root verwacht {temp_dir}, kreeg {payload.get('consumer_root')}")
@@ -2876,6 +2910,11 @@ def evaluate_proof_recheck_producer_case(case):
                 'overall.consumer_effective_outputs_status_text mist consumer-effectieve-output-audit ok: '
                 f'{overall_effective_outputs_status_text}'
             )
+        if overall.get('consumer_effective_outputs_status_kind') != 'ok':
+            failures.append(
+                'overall.consumer_effective_outputs_status_kind verwacht ok, kreeg '
+                f"{overall.get('consumer_effective_outputs_status_kind')}"
+            )
         if overall.get('consumer_requested_output_count') != len(expected_artifacts):
             failures.append(
                 'overall.consumer_requested_output_count verwacht '
@@ -2909,6 +2948,11 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'overall.consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 3 artifact(s), kreeg '
                 f'{overall_consumer_requested_outputs_status_text}'
+            )
+        if overall.get('consumer_requested_outputs_status_kind') != 'requested':
+            failures.append(
+                'overall.consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                f"{overall.get('consumer_requested_outputs_status_kind')}"
             )
         if overall.get('consumer_output_count') != len(expected_artifacts):
             failures.append(
@@ -2948,6 +2992,11 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'overall.consumer_outputs_status_text mist consumer-output-audit ok: '
                 f'{overall_consumer_outputs_status_text}'
+            )
+        if overall.get('consumer_outputs_status_kind') != 'ok':
+            failures.append(
+                'overall.consumer_outputs_status_kind verwacht ok, kreeg '
+                f"{overall.get('consumer_outputs_status_kind')}"
             )
         if overall.get('consumer_outputs_missing_count') not in (0, None):
             failures.append(

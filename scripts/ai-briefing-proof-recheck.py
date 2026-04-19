@@ -269,10 +269,12 @@ def update_effective_consumer_outputs(payload: dict) -> None:
     if payload['consumer_effective_outputs_match_requested']:
         requested_count = len(requested_outputs)
         if requested_count:
+            payload['consumer_effective_outputs_status_kind'] = 'ok'
             payload['consumer_effective_outputs_status_text'] = (
                 f'consumer-effectieve-output-audit ok ({requested_count}/{requested_count} gevraagde artifacts gedekt via {source})'
             )
         else:
+            payload['consumer_effective_outputs_status_kind'] = 'none-requested'
             payload['consumer_effective_outputs_status_text'] = 'consumer-effectieve-output-audit ok (geen artifact-output gevraagd)'
         return
 
@@ -283,6 +285,7 @@ def update_effective_consumer_outputs(payload: dict) -> None:
         parts.append('ontbreekt: ' + missing_text.removeprefix('consumer-artifacts: '))
     if unexpected_text:
         parts.append('onverwacht: ' + unexpected_text.removeprefix('consumer-artifacts: '))
+    payload['consumer_effective_outputs_status_kind'] = 'mismatch'
     payload['consumer_effective_outputs_status_text'] = (
         f'consumer-effectieve-output-audit mismatch via {source} (' + '; '.join(parts) + ')'
     )
@@ -324,10 +327,12 @@ def update_consumer_output_audit(payload: dict) -> None:
         f"kanalen={payload['consumer_requested_output_channel_count']}"
     )
     if requested_outputs:
+        payload['consumer_requested_outputs_status_kind'] = 'requested'
         payload['consumer_requested_outputs_status_text'] = (
             f"consumer-output-aanvraag vastgelegd voor {payload['consumer_requested_output_count']} artifact(s)"
         )
     else:
+        payload['consumer_requested_outputs_status_kind'] = 'none-requested'
         payload['consumer_requested_outputs_status_text'] = 'consumer-output-aanvraag leeg (geen artifact-output gevraagd)'
     output_channels = sorted({item.get('channel') for item in written_outputs if item.get('channel')})
     payload['consumer_output_count'] = len(written_outputs)
@@ -364,10 +369,12 @@ def update_consumer_output_audit(payload: dict) -> None:
     if payload['consumer_outputs_match_requested']:
         requested_count = len(requested_outputs)
         if requested_count:
+            payload['consumer_outputs_status_kind'] = 'ok'
             payload['consumer_outputs_status_text'] = (
                 f'consumer-output-audit ok ({requested_count}/{requested_count} gevraagde artifacts geschreven)'
             )
         else:
+            payload['consumer_outputs_status_kind'] = 'none-requested'
             payload['consumer_outputs_status_text'] = 'consumer-output-audit ok (geen artifact-output gevraagd)'
         return
 
@@ -378,6 +385,7 @@ def update_consumer_output_audit(payload: dict) -> None:
         parts.append('ontbreekt: ' + missing_text.removeprefix('consumer-artifacts: '))
     if unexpected_text:
         parts.append('onverwacht: ' + unexpected_text.removeprefix('consumer-artifacts: '))
+    payload['consumer_outputs_status_kind'] = 'mismatch'
     payload['consumer_outputs_status_text'] = 'consumer-output-audit mismatch (' + '; '.join(parts) + ')'
 
 

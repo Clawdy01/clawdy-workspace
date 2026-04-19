@@ -297,6 +297,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'consumer_requested_output_count_text': payload.get('consumer_requested_output_count_text'),
         'consumer_requested_output_channel_count_text': payload.get('consumer_requested_output_channel_count_text'),
         'consumer_requested_output_channels_text': payload.get('consumer_requested_output_channels_text'),
+        'consumer_requested_outputs_status_kind': payload.get('consumer_requested_outputs_status_kind'),
         'consumer_requested_outputs_status_text': payload.get('consumer_requested_outputs_status_text'),
         'consumer_requested_outputs_text': payload.get('consumer_requested_outputs_text') or format_consumer_outputs(payload.get('consumer_requested_outputs') or []),
         'consumer_outputs_match_requested': payload.get('consumer_outputs_match_requested'),
@@ -304,6 +305,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'consumer_output_channel_count': payload.get('consumer_output_channel_count'),
         'consumer_output_channel_count_text': payload.get('consumer_output_channel_count_text'),
         'consumer_outputs_count_text': payload.get('consumer_outputs_count_text'),
+        'consumer_outputs_status_kind': payload.get('consumer_outputs_status_kind'),
         'consumer_outputs_status_text': payload.get('consumer_outputs_status_text'),
         'consumer_outputs_missing_count': payload.get('consumer_outputs_missing_count'),
         'consumer_outputs_missing': payload.get('consumer_outputs_missing') or [],
@@ -342,6 +344,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'consumer_effective_outputs_unexpected_channels': payload.get('consumer_effective_outputs_unexpected_channels') or [],
         'consumer_effective_outputs_unexpected_text': payload.get('consumer_effective_outputs_unexpected_text'),
         'consumer_effective_outputs_count_text': payload.get('consumer_effective_outputs_count_text'),
+        'consumer_effective_outputs_status_kind': payload.get('consumer_effective_outputs_status_kind'),
         'consumer_effective_outputs_status_text': payload.get('consumer_effective_outputs_status_text'),
     }
 
