@@ -2562,12 +2562,41 @@ def evaluate_proof_recheck_producer_case(case):
                 payload = {}
 
         overall = payload.get('overall') or {}
+        top_level_overall_alias_keys = [
+            'returncode',
+            'exit_code',
+            'summary',
+            'state',
+            'result_kind',
+            'result_text',
+            'reference_now_text',
+            'reference_context_text',
+            'proof_state',
+            'proof_blocker_kind',
+            'proof_wait_until_at',
+            'proof_wait_until_text',
+            'proof_recheck_after_at',
+            'proof_next_action_kind',
+            'proof_next_action_window_text',
+            'proof_recheck_schedule_ok',
+            'proof_recheck_schedule_job_name',
+            'proof_recheck_schedule_expr',
+            'proof_recheck_schedule_tz',
+            'proof_config_hash',
+            'consumer_output_paths',
+            'consumer_requested_output_paths',
+        ]
         if payload.get('consumer_root') != temp_dir:
             failures.append(f"consumer_root verwacht {temp_dir}, kreeg {payload.get('consumer_root')}")
         if json_proc.returncode != case['expect_exit_code']:
             failures.append(f"json-exitcode verwacht {case['expect_exit_code']}, kreeg {json_proc.returncode}")
         if quiet_proc.returncode != case['expect_exit_code']:
             failures.append(f"quiet-exitcode verwacht {case['expect_exit_code']}, kreeg {quiet_proc.returncode}")
+        for alias_key in top_level_overall_alias_keys:
+            if payload.get(alias_key) != overall.get(alias_key):
+                failures.append(
+                    f"top-level alias {alias_key} verwacht {overall.get(alias_key)!r}, kreeg {payload.get(alias_key)!r}"
+                )
         if overall.get('returncode') != case['expect_exit_code']:
             failures.append(f"overall.returncode verwacht {case['expect_exit_code']}, kreeg {overall.get('returncode')}")
         if overall.get('exit_code') != case['expect_exit_code']:
@@ -3022,9 +3051,25 @@ def main():
     results.extend(evaluate_proof_recheck_producer_case(case) for case in PROOF_RECHECK_PRODUCER_CASES)
     results.append(evaluate_proof_recheck_consumer_format_passthrough_case())
     overall_ok = all(result['ok'] for result in results)
+    failing_results = [result for result in results if not result['ok']]
+    summary = {
+        'case_count': len(results),
+        'passed_count': len(results) - len(failing_results),
+        'failed_count': len(failing_results),
+        'failing_case_names': [result['name'] for result in failing_results],
+    }
 
     if args.json:
-        print(json.dumps({'ok': overall_ok, 'results': results}, ensure_ascii=False, indent=2))
+        print(json.dumps({
+            'ok': overall_ok,
+            'summary': summary,
+            'case_count': summary['case_count'],
+            'passed_count': summary['passed_count'],
+            'failed_count': summary['failed_count'],
+            'failing_case_names': summary['failing_case_names'],
+            'cases': results,
+            'results': results,
+        }, ensure_ascii=False, indent=2))
     else:
         for result in results:
             status = 'ok' if result['ok'] else 'FAIL'
@@ -3032,6 +3077,11 @@ def main():
             if result['failures']:
                 for failure in result['failures']:
                     print(f"  - {failure}")
+        print(
+            f"samenvatting: {summary['passed_count']}/{summary['case_count']} ok"
+            if overall_ok
+            else f"samenvatting: {summary['failed_count']} fail van {summary['case_count']}"
+        )
         print('ok' if overall_ok else 'FAIL')
 
     raise SystemExit(0 if overall_ok else 1)

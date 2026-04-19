@@ -253,6 +253,15 @@ def build_overall_item(producer_items: list[dict]) -> dict:
     }
 
 
+def build_top_level_overall_aliases(overall: dict) -> dict:
+    aliases: dict = {}
+    for key, value in (overall or {}).items():
+        if key == 'ok':
+            continue
+        aliases[key] = value
+    return aliases
+
+
 def main():
     parser = argparse.ArgumentParser(description='Vaste producer-wrapper voor AI-briefing proof-recheck consumers.')
     parser.add_argument('mode', choices=sorted(PRODUCER_MODES), help='Welke vaste consumer-producerroute je wilt draaien')
@@ -313,6 +322,7 @@ def main():
             'overall': overall,
             'items': producer_items,
         }
+        output.update(build_top_level_overall_aliases(overall))
         sys.stdout.write(json.dumps(output, ensure_ascii=False, indent=2) + '\n')
     elif args.quiet:
         print(f'ai-briefing-proof-recheck-producer: {args.mode}')
