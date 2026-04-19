@@ -253,10 +253,12 @@ def update_effective_consumer_outputs(payload: dict) -> None:
     payload['consumer_effective_outputs_missing'] = missing_outputs
     payload['consumer_effective_outputs_missing_paths'] = [item['path'] for item in missing_outputs]
     payload['consumer_effective_outputs_missing_channels'] = [item['channel'] for item in missing_outputs]
+    payload['consumer_effective_outputs_missing_text'] = format_consumer_outputs(missing_outputs)
     payload['consumer_effective_outputs_unexpected_count'] = len(unexpected_outputs)
     payload['consumer_effective_outputs_unexpected'] = unexpected_outputs
     payload['consumer_effective_outputs_unexpected_paths'] = [item['path'] for item in unexpected_outputs]
     payload['consumer_effective_outputs_unexpected_channels'] = [item['channel'] for item in unexpected_outputs]
+    payload['consumer_effective_outputs_unexpected_text'] = format_consumer_outputs(unexpected_outputs)
     payload['consumer_effective_outputs_count_text'] = (
         'consumer-effectieve-output-telling '
         f"gevraagd={len(requested_outputs)}, "
@@ -275,8 +277,8 @@ def update_effective_consumer_outputs(payload: dict) -> None:
         return
 
     parts: list[str] = []
-    missing_text = format_consumer_outputs(missing_outputs)
-    unexpected_text = format_consumer_outputs(unexpected_outputs)
+    missing_text = payload.get('consumer_effective_outputs_missing_text')
+    unexpected_text = payload.get('consumer_effective_outputs_unexpected_text')
     if missing_text:
         parts.append('ontbreekt: ' + missing_text.removeprefix('consumer-artifacts: '))
     if unexpected_text:
@@ -307,6 +309,11 @@ def update_consumer_output_audit(payload: dict) -> None:
     requested_channels = sorted({item.get('channel') for item in requested_outputs if item.get('channel')})
     payload['consumer_requested_output_count'] = len(requested_outputs)
     payload['consumer_requested_output_channel_count'] = len(requested_channels)
+    payload['consumer_requested_output_channel_count_text'] = (
+        'consumer-output-aanvraag-kanalen '
+        f"gevraagd={payload['consumer_requested_output_count']}, "
+        f"kanalen={payload['consumer_requested_output_channel_count']}"
+    )
     payload['consumer_requested_output_channels_text'] = format_channel_summary(
         'consumer-output-aanvraag-kanalen',
         requested_channels,
@@ -335,7 +342,9 @@ def update_consumer_output_audit(payload: dict) -> None:
         output_channels,
     )
     payload['consumer_outputs_missing_count'] = len(missing_outputs)
+    payload['consumer_outputs_missing_text'] = format_consumer_outputs(missing_outputs)
     payload['consumer_outputs_unexpected_count'] = len(unexpected_outputs)
+    payload['consumer_outputs_unexpected_text'] = format_consumer_outputs(unexpected_outputs)
     payload['consumer_outputs_count_text'] = (
         'consumer-output-telling '
         f"gevraagd={payload['consumer_requested_output_count']}, "
@@ -363,8 +372,8 @@ def update_consumer_output_audit(payload: dict) -> None:
         return
 
     parts: list[str] = []
-    missing_text = format_consumer_outputs(missing_outputs)
-    unexpected_text = format_consumer_outputs(unexpected_outputs)
+    missing_text = payload.get('consumer_outputs_missing_text')
+    unexpected_text = payload.get('consumer_outputs_unexpected_text')
     if missing_text:
         parts.append('ontbreekt: ' + missing_text.removeprefix('consumer-artifacts: '))
     if unexpected_text:
@@ -424,17 +433,22 @@ def build_text(payload: dict) -> str:
         payload.get('proof_countdown_text'),
         payload.get('proof_recheck_commands_text'),
         payload.get('consumer_requested_output_count_text'),
+        payload.get('consumer_requested_output_channel_count_text'),
         payload.get('consumer_requested_output_channels_text'),
         payload.get('consumer_requested_outputs_status_text'),
         payload.get('consumer_outputs_count_text'),
         payload.get('consumer_output_channel_count_text'),
         payload.get('consumer_output_channels_text'),
         payload.get('consumer_outputs_status_text'),
+        payload.get('consumer_outputs_missing_text'),
+        payload.get('consumer_outputs_unexpected_text'),
         payload.get('consumer_effective_output_source_text'),
         payload.get('consumer_effective_outputs_count_text'),
         payload.get('consumer_effective_output_channel_count_text'),
         payload.get('consumer_effective_output_channels_text'),
         payload.get('consumer_effective_outputs_status_text'),
+        payload.get('consumer_effective_outputs_missing_text'),
+        payload.get('consumer_effective_outputs_unexpected_text'),
         payload.get('consumer_effective_outputs_text') or payload.get('consumer_outputs_text'),
     ]
     return ' | '.join(unique_bits(bits))
