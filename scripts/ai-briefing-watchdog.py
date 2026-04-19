@@ -42,6 +42,13 @@ def unique_bits(bits: list[str]) -> list[str]:
     return unique
 
 
+def first_non_null(*values):
+    for value in values:
+        if value is not None:
+            return value
+    return None
+
+
 CONSUMER_PRESETS = {
     'board-json': {
         'path': DEFAULT_REPORT_DIR / 'ai-briefing-watchdog.json',
@@ -335,6 +342,21 @@ def main() -> int:
     proof_runs_remaining = int(status.get('proof_runs_remaining') or 0)
     last_run_timeout_audit = status.get('last_run_timeout_audit') or {}
     recent_run_duration_audit = status.get('recent_run_duration_audit') or {}
+    proof_recheck_schedule_audit = dict(status.get('proof_recheck_schedule_audit') or {})
+    if not proof_recheck_schedule_audit:
+        proof_recheck_schedule_audit = {
+            'ok': status.get('proof_recheck_schedule_ok'),
+            'found': status.get('proof_recheck_schedule_found'),
+            'enabled': status.get('proof_recheck_schedule_enabled'),
+            'job_name': status.get('proof_recheck_schedule_job_name'),
+            'schedule_expr': status.get('proof_recheck_schedule_expr'),
+            'schedule_tz': status.get('proof_recheck_schedule_tz'),
+            'expected_gap_minutes': status.get('proof_recheck_schedule_expected_gap_minutes'),
+            'same_day_after_target': status.get('proof_recheck_schedule_same_day_after_target'),
+            'matches_grace': status.get('proof_recheck_schedule_matches_grace'),
+            'delta_minutes': status.get('proof_recheck_schedule_delta_minutes'),
+            'text': status.get('proof_recheck_schedule_text'),
+        }
     result = {
         'ok': ok,
         'summary': summary,
@@ -353,18 +375,18 @@ def main() -> int:
         'proof_config_identity_text': status.get('proof_config_identity_text'),
         'last_run_config_relation': status.get('last_run_config_relation'),
         'last_run_config_relation_text': status.get('last_run_config_relation_text'),
-        'proof_recheck_schedule_audit': status.get('proof_recheck_schedule_audit') or {},
-        'proof_recheck_schedule_ok': ((status.get('proof_recheck_schedule_audit') or {}).get('ok')),
-        'proof_recheck_schedule_found': ((status.get('proof_recheck_schedule_audit') or {}).get('found')),
-        'proof_recheck_schedule_enabled': ((status.get('proof_recheck_schedule_audit') or {}).get('enabled')),
-        'proof_recheck_schedule_job_name': ((status.get('proof_recheck_schedule_audit') or {}).get('job_name')),
-        'proof_recheck_schedule_expr': ((status.get('proof_recheck_schedule_audit') or {}).get('schedule_expr')),
-        'proof_recheck_schedule_tz': ((status.get('proof_recheck_schedule_audit') or {}).get('schedule_tz')),
-        'proof_recheck_schedule_expected_gap_minutes': ((status.get('proof_recheck_schedule_audit') or {}).get('expected_gap_minutes')),
-        'proof_recheck_schedule_same_day_after_target': ((status.get('proof_recheck_schedule_audit') or {}).get('same_day_after_target')),
-        'proof_recheck_schedule_matches_grace': ((status.get('proof_recheck_schedule_audit') or {}).get('matches_grace')),
-        'proof_recheck_schedule_delta_minutes': ((status.get('proof_recheck_schedule_audit') or {}).get('delta_minutes')),
-        'proof_recheck_schedule_text': ((status.get('proof_recheck_schedule_audit') or {}).get('text')),
+        'proof_recheck_schedule_audit': proof_recheck_schedule_audit,
+        'proof_recheck_schedule_ok': first_non_null(status.get('proof_recheck_schedule_ok'), proof_recheck_schedule_audit.get('ok')),
+        'proof_recheck_schedule_found': first_non_null(status.get('proof_recheck_schedule_found'), proof_recheck_schedule_audit.get('found')),
+        'proof_recheck_schedule_enabled': first_non_null(status.get('proof_recheck_schedule_enabled'), proof_recheck_schedule_audit.get('enabled')),
+        'proof_recheck_schedule_job_name': first_non_null(status.get('proof_recheck_schedule_job_name'), proof_recheck_schedule_audit.get('job_name')),
+        'proof_recheck_schedule_expr': first_non_null(status.get('proof_recheck_schedule_expr'), proof_recheck_schedule_audit.get('schedule_expr')),
+        'proof_recheck_schedule_tz': first_non_null(status.get('proof_recheck_schedule_tz'), proof_recheck_schedule_audit.get('schedule_tz')),
+        'proof_recheck_schedule_expected_gap_minutes': first_non_null(status.get('proof_recheck_schedule_expected_gap_minutes'), proof_recheck_schedule_audit.get('expected_gap_minutes')),
+        'proof_recheck_schedule_same_day_after_target': first_non_null(status.get('proof_recheck_schedule_same_day_after_target'), proof_recheck_schedule_audit.get('same_day_after_target')),
+        'proof_recheck_schedule_matches_grace': first_non_null(status.get('proof_recheck_schedule_matches_grace'), proof_recheck_schedule_audit.get('matches_grace')),
+        'proof_recheck_schedule_delta_minutes': first_non_null(status.get('proof_recheck_schedule_delta_minutes'), proof_recheck_schedule_audit.get('delta_minutes')),
+        'proof_recheck_schedule_text': first_non_null(status.get('proof_recheck_schedule_text'), proof_recheck_schedule_audit.get('text')),
         'proof_next_action_kind': status.get('proof_next_action_kind'),
         'proof_next_action_text': status.get('proof_next_action_text'),
         'proof_next_action_window_text': status.get('proof_next_action_window_text'),
