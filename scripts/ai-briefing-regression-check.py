@@ -2432,6 +2432,8 @@ def evaluate_proof_recheck_case(case):
         failures.append(f"watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {payload.get('watchdog_ok')}")
     if case.get('expect_proof_config_hash_present') and not payload.get('proof_config_hash'):
         failures.append('proof_config_hash ontbreekt in proof-recheck-payload')
+    if payload.get('last_run_config_relation_text') and not payload.get('last_run_config_relation'):
+        failures.append('last_run_config_relation ontbreekt in proof-recheck-payload terwijl last_run_config_relation_text wel gezet is')
     if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
         audit_ok = ((payload.get('proof_recheck_schedule_audit') or {}).get('ok'))
         if audit_ok != case.get('expect_proof_recheck_schedule_audit_ok'):
@@ -2591,6 +2593,7 @@ def evaluate_proof_recheck_producer_case(case):
             'proof_recheck_schedule_expr',
             'proof_recheck_schedule_tz',
             'proof_config_hash',
+            'last_run_config_relation',
             'consumer_output_paths',
             'consumer_requested_output_paths',
             'consumer_requested_output_count',
@@ -2628,6 +2631,8 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(f"overall.watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {overall.get('watchdog_ok')}")
         if case.get('expect_proof_config_hash_present') and not overall.get('proof_config_hash'):
             failures.append('overall.proof_config_hash ontbreekt in producer-json')
+        if overall.get('last_run_config_relation_text') and not overall.get('last_run_config_relation'):
+            failures.append('overall.last_run_config_relation ontbreekt in producer-json terwijl last_run_config_relation_text wel gezet is')
         if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
             overall_audit_ok = ((overall.get('proof_recheck_schedule_audit') or {}).get('ok'))
             if overall_audit_ok != case.get('expect_proof_recheck_schedule_audit_ok'):
@@ -2820,6 +2825,22 @@ def evaluate_proof_recheck_producer_case(case):
                     'overall.consumer_effective_outputs_text mist verwacht fragment: '
                     f'{expected_fragment}'
                 )
+        if overall.get('consumer_effective_outputs_match_requested') is not True:
+            failures.append(
+                'overall.consumer_effective_outputs_match_requested verwacht True, kreeg '
+                f"{overall.get('consumer_effective_outputs_match_requested')}"
+            )
+        if overall.get('consumer_effective_outputs_count_text') != 'consumer-effectieve-output-telling gevraagd=3, effectief=3, ontbrekend=0, onverwacht=0':
+            failures.append(
+                'overall.consumer_effective_outputs_count_text verwacht consumer-effectieve-output-telling gevraagd=3, effectief=3, ontbrekend=0, onverwacht=0, kreeg '
+                f"{overall.get('consumer_effective_outputs_count_text')}"
+            )
+        overall_effective_outputs_status_text = overall.get('consumer_effective_outputs_status_text') or ''
+        if 'consumer-effectieve-output-audit ok' not in overall_effective_outputs_status_text:
+            failures.append(
+                'overall.consumer_effective_outputs_status_text mist consumer-effectieve-output-audit ok: '
+                f'{overall_effective_outputs_status_text}'
+            )
         if overall.get('consumer_requested_output_count') != len(expected_artifacts):
             failures.append(
                 'overall.consumer_requested_output_count verwacht '
@@ -2893,6 +2914,8 @@ def evaluate_proof_recheck_producer_case(case):
             if artifact_payload:
                 if case.get('expect_proof_config_hash_present') and not artifact_payload.get('proof_config_hash'):
                     failures.append(f'{label} mist proof_config_hash')
+                if artifact_payload.get('last_run_config_relation_text') and not artifact_payload.get('last_run_config_relation'):
+                    failures.append(f'{label} mist last_run_config_relation terwijl last_run_config_relation_text wel gezet is')
                 if artifact_payload.get('consumer_requested_output_count') != len(expected_artifacts):
                     failures.append(
                         f'{label} consumer_requested_output_count verwacht {len(expected_artifacts)}, kreeg '
@@ -2919,6 +2942,23 @@ def evaluate_proof_recheck_producer_case(case):
                     failures.append(
                         f'{label} consumer_outputs_status_text mist consumer-output-audit ok: '
                         f'{artifact_consumer_outputs_status_text}'
+                    )
+                if artifact_payload.get('consumer_effective_outputs_match_requested') is not True:
+                    failures.append(
+                        f'{label} consumer_effective_outputs_match_requested verwacht True, kreeg '
+                        f"{artifact_payload.get('consumer_effective_outputs_match_requested')}"
+                    )
+                artifact_effective_outputs_count_text = artifact_payload.get('consumer_effective_outputs_count_text') or ''
+                if artifact_effective_outputs_count_text != 'consumer-effectieve-output-telling gevraagd=3, effectief=3, ontbrekend=0, onverwacht=0':
+                    failures.append(
+                        f'{label} consumer_effective_outputs_count_text verwacht consumer-effectieve-output-telling gevraagd=3, effectief=3, ontbrekend=0, onverwacht=0, kreeg '
+                        f'{artifact_effective_outputs_count_text}'
+                    )
+                artifact_effective_outputs_status_text = artifact_payload.get('consumer_effective_outputs_status_text') or ''
+                if 'consumer-effectieve-output-audit ok' not in artifact_effective_outputs_status_text:
+                    failures.append(
+                        f'{label} consumer_effective_outputs_status_text mist consumer-effectieve-output-audit ok: '
+                        f'{artifact_effective_outputs_status_text}'
                     )
                 if artifact_payload.get('consumer_outputs_missing_count') not in (0, None):
                     failures.append(
@@ -3044,6 +3084,9 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
             {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
         ],
         'consumer_effective_outputs_text': 'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer_effective_outputs_match_requested': True,
+        'consumer_effective_outputs_count_text': 'consumer-effectieve-output-telling gevraagd=2, effectief=2, ontbrekend=0, onverwacht=0',
+        'consumer_effective_outputs_status_text': 'consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via requested-fallback)',
         'consumer_outputs_count_text': 'consumer-output-telling gevraagd=2, geschreven=0, ontbrekend=2, onverwacht=0',
         'consumer_outputs_status_text': 'consumer-output-audit mismatch (ontbreekt: board-json: /tmp/expected.json; board-text: /tmp/expected.txt)',
         'result_kind': 'attention-needed',
@@ -3063,6 +3106,8 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
         'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
         'consumer-output-telling gevraagd=2, geschreven=0, ontbrekend=2, onverwacht=0',
         'consumer-output-audit mismatch',
+        'consumer-effectieve-output-telling gevraagd=2, effectief=2, ontbrekend=0, onverwacht=0',
+        'consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via requested-fallback)',
         'resultaat: attention-needed',
     ]
     if extracted_payload and extracted_payload.get('consumer_effective_output_source') != 'requested-fallback':

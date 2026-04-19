@@ -163,6 +163,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_target_check_gate_text': first_non_null(status_data.get('proof_target_check_gate_text'), watchdog_data.get('proof_target_check_gate_text')),
         'proof_config_hash': first_non_null(status_data.get('proof_config_hash'), watchdog_data.get('proof_config_hash')),
         'proof_config_identity_text': first_non_null(status_data.get('proof_config_identity_text'), watchdog_data.get('proof_config_identity_text')),
+        'last_run_config_relation': first_non_null(status_data.get('last_run_config_relation'), watchdog_data.get('last_run_config_relation')),
         'last_run_config_relation_text': first_non_null(status_data.get('last_run_config_relation_text'), watchdog_data.get('last_run_config_relation_text')),
         'proof_recheck_schedule_audit': status_data.get('proof_recheck_schedule_audit') or {},
         'proof_recheck_schedule_ok': ((status_data.get('proof_recheck_schedule_audit') or {}).get('ok')),
@@ -214,6 +215,48 @@ def update_effective_consumer_outputs(payload: dict) -> None:
     payload['consumer_effective_output_paths'] = [item['path'] for item in effective_outputs]
     payload['consumer_effective_output_channels'] = [item['channel'] for item in effective_outputs]
     payload['consumer_effective_outputs_text'] = format_consumer_outputs(effective_outputs)
+
+    requested_signatures = {output_signature(item) for item in requested_outputs}
+    effective_signatures = {output_signature(item) for item in effective_outputs}
+    missing_outputs = [item for item in requested_outputs if output_signature(item) not in effective_signatures]
+    unexpected_outputs = [item for item in effective_outputs if output_signature(item) not in requested_signatures]
+
+    payload['consumer_effective_outputs_match_requested'] = not missing_outputs and not unexpected_outputs
+    payload['consumer_effective_outputs_missing_count'] = len(missing_outputs)
+    payload['consumer_effective_outputs_missing'] = missing_outputs
+    payload['consumer_effective_outputs_missing_paths'] = [item['path'] for item in missing_outputs]
+    payload['consumer_effective_outputs_missing_channels'] = [item['channel'] for item in missing_outputs]
+    payload['consumer_effective_outputs_unexpected_count'] = len(unexpected_outputs)
+    payload['consumer_effective_outputs_unexpected'] = unexpected_outputs
+    payload['consumer_effective_outputs_unexpected_paths'] = [item['path'] for item in unexpected_outputs]
+    payload['consumer_effective_outputs_unexpected_channels'] = [item['channel'] for item in unexpected_outputs]
+    payload['consumer_effective_outputs_count_text'] = (
+        'consumer-effectieve-output-telling '
+        f"gevraagd={len(requested_outputs)}, "
+        f"effectief={len(effective_outputs)}, "
+        f"ontbrekend={len(missing_outputs)}, "
+        f"onverwacht={len(unexpected_outputs)}"
+    )
+    if payload['consumer_effective_outputs_match_requested']:
+        requested_count = len(requested_outputs)
+        if requested_count:
+            payload['consumer_effective_outputs_status_text'] = (
+                f'consumer-effectieve-output-audit ok ({requested_count}/{requested_count} gevraagde artifacts gedekt via {source})'
+            )
+        else:
+            payload['consumer_effective_outputs_status_text'] = 'consumer-effectieve-output-audit ok (geen artifact-output gevraagd)'
+        return
+
+    parts: list[str] = []
+    missing_text = format_consumer_outputs(missing_outputs)
+    unexpected_text = format_consumer_outputs(unexpected_outputs)
+    if missing_text:
+        parts.append('ontbreekt: ' + missing_text.removeprefix('consumer-artifacts: '))
+    if unexpected_text:
+        parts.append('onverwacht: ' + unexpected_text.removeprefix('consumer-artifacts: '))
+    payload['consumer_effective_outputs_status_text'] = (
+        f'consumer-effectieve-output-audit mismatch via {source} (' + '; '.join(parts) + ')'
+    )
 
 
 def output_signature(item: dict) -> tuple[str, str, str, bool]:
@@ -327,6 +370,8 @@ def build_text(payload: dict) -> str:
         payload.get('proof_recheck_commands_text'),
         payload.get('consumer_outputs_count_text'),
         payload.get('consumer_outputs_status_text'),
+        payload.get('consumer_effective_outputs_count_text'),
+        payload.get('consumer_effective_outputs_status_text'),
         payload.get('consumer_effective_outputs_text') or payload.get('consumer_outputs_text'),
     ]
     return ' | '.join(unique_bits(bits))
