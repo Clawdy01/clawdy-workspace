@@ -373,6 +373,10 @@ def build_json_payload(
         'consumer_requested_outputs': consumer_requested_outputs,
         'consumer_requested_output_count': len(consumer_requested_outputs),
         'consumer_requested_output_channel_count': len(requested_channels),
+        'consumer_requested_output_count_text': (
+            'consumer-output-aanvraag '
+            f'gevraagd={len(consumer_requested_outputs)}, kanalen={len(requested_channels)}'
+        ),
         'consumer_requested_output_channel_count_text': (
             'consumer-output-aanvraag-kanalen '
             f'gevraagd={len(consumer_requested_outputs)}, kanalen={len(requested_channels)}'
@@ -380,6 +384,14 @@ def build_json_payload(
         'consumer_requested_output_channels_text': format_channel_summary(
             'consumer-output-aanvraag-kanalen',
             requested_channels,
+        ),
+        'consumer_requested_outputs_status_kind': (
+            'requested' if consumer_requested_outputs else 'none-requested'
+        ),
+        'consumer_requested_outputs_status_text': (
+            f'consumer-output-aanvraag vastgelegd voor {len(consumer_requested_outputs)} artifact(s)'
+            if consumer_requested_outputs
+            else 'consumer-output-aanvraag leeg (geen artifact-output gevraagd)'
         ),
         'consumer_requested_outputs_text': format_consumer_outputs(consumer_requested_outputs),
         'reasons': data.get('reasons') or [],
