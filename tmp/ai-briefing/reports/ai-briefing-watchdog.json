@@ -77,6 +77,7 @@
   "proof_target_due_at_text": "2026-04-22 09:15 CEST",
   "proof_target_due_remaining_ms": 172800000,
   "proof_target_due_remaining_hours": 48.0,
+  "proof_target_due_at_if_next_slot_missed": 1776928500000,
   "proof_target_due_at_if_next_slot_missed_text": "2026-04-23 09:15 CEST",
   "proof_target_due_at_if_next_slot_missed_remaining_ms": 259200000,
   "proof_target_due_at_if_next_slot_missed_remaining_hours": 72.0,
@@ -91,6 +92,7 @@
     "morgen",
     "over 2 d"
   ],
+  "proof_next_qualifying_slot_at": 1776668400000,
   "proof_next_qualifying_slot_at_text": "2026-04-20 09:00 CEST",
   "proof_next_qualifying_slot_hint": "nu",
   "proof_next_qualifying_slot_remaining_ms": -900000,

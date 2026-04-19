@@ -3756,6 +3756,7 @@ def evaluate_watchdog_alert_case(case):
 
 def evaluate_watchdog_producer_case(case):
     mode = case.get('mode', 'proof-all')
+    expected_status = run_status_json(case['reference_ms'])
     json_proc = subprocess.run(
         [
             'python3',
@@ -3845,6 +3846,71 @@ def evaluate_watchdog_producer_case(case):
             'overall.proof_recheck_schedule_tz verwacht '
             f"{EXPECTED_PROOF_RECHECK_SCHEDULE_TZ}, kreeg {overall.get('proof_recheck_schedule_tz')}"
         )
+    if overall.get('proof_recheck_schedule_found') is not True:
+        failures.append(
+            'overall.proof_recheck_schedule_found verwacht True, kreeg '
+            f"{overall.get('proof_recheck_schedule_found')}"
+        )
+    if overall.get('proof_recheck_schedule_enabled') is not True:
+        failures.append(
+            'overall.proof_recheck_schedule_enabled verwacht True, kreeg '
+            f"{overall.get('proof_recheck_schedule_enabled')}"
+        )
+    if overall.get('proof_recheck_schedule_expected_gap_minutes') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES:
+        failures.append(
+            'overall.proof_recheck_schedule_expected_gap_minutes verwacht '
+            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES}, kreeg {overall.get('proof_recheck_schedule_expected_gap_minutes')}"
+        )
+    if overall.get('proof_recheck_schedule_same_day_after_target') is not True:
+        failures.append(
+            'overall.proof_recheck_schedule_same_day_after_target verwacht True, kreeg '
+            f"{overall.get('proof_recheck_schedule_same_day_after_target')}"
+        )
+    if overall.get('proof_recheck_schedule_matches_grace') is not True:
+        failures.append(
+            'overall.proof_recheck_schedule_matches_grace verwacht True, kreeg '
+            f"{overall.get('proof_recheck_schedule_matches_grace')}"
+        )
+    if overall.get('proof_recheck_schedule_delta_minutes') != EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES:
+        failures.append(
+            'overall.proof_recheck_schedule_delta_minutes verwacht '
+            f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES}, kreeg {overall.get('proof_recheck_schedule_delta_minutes')}"
+        )
+    if overall.get('proof_config_hash') != expected_status.get('proof_config_hash'):
+        failures.append(
+            'overall.proof_config_hash verwacht '
+            f"{expected_status.get('proof_config_hash')}, kreeg {overall.get('proof_config_hash')}"
+        )
+    if overall.get('proof_wait_until_at') != expected_status.get('proof_wait_until_at'):
+        failures.append(
+            'overall.proof_wait_until_at verwacht '
+            f"{expected_status.get('proof_wait_until_at')}, kreeg {overall.get('proof_wait_until_at')}"
+        )
+    if overall.get('proof_next_qualifying_slot_at') != expected_status.get('proof_next_qualifying_slot_at'):
+        failures.append(
+            'overall.proof_next_qualifying_slot_at verwacht '
+            f"{expected_status.get('proof_next_qualifying_slot_at')}, kreeg {overall.get('proof_next_qualifying_slot_at')}"
+        )
+    if overall.get('proof_recheck_after_at') != expected_status.get('proof_recheck_after_at'):
+        failures.append(
+            'overall.proof_recheck_after_at verwacht '
+            f"{expected_status.get('proof_recheck_after_at')}, kreeg {overall.get('proof_recheck_after_at')}"
+        )
+    if overall.get('proof_target_due_at') != expected_status.get('proof_target_due_at'):
+        failures.append(
+            'overall.proof_target_due_at verwacht '
+            f"{expected_status.get('proof_target_due_at')}, kreeg {overall.get('proof_target_due_at')}"
+        )
+    if overall.get('proof_target_due_at_if_next_slot_missed') != expected_status.get('proof_target_due_at_if_next_slot_missed'):
+        failures.append(
+            'overall.proof_target_due_at_if_next_slot_missed verwacht '
+            f"{expected_status.get('proof_target_due_at_if_next_slot_missed')}, kreeg {overall.get('proof_target_due_at_if_next_slot_missed')}"
+        )
+    if overall.get('proof_schedule_slip_ms') != expected_status.get('proof_schedule_slip_ms'):
+        failures.append(
+            'overall.proof_schedule_slip_ms verwacht '
+            f"{expected_status.get('proof_schedule_slip_ms')}, kreeg {overall.get('proof_schedule_slip_ms')}"
+        )
     if overall.get('proof_state') != case['expect_proof_state']:
         failures.append(
             f"overall.proof_state verwacht {case['expect_proof_state']}, kreeg {overall.get('proof_state')}"
@@ -3864,6 +3930,37 @@ def evaluate_watchdog_producer_case(case):
             'top-level proof_next_action_kind verwacht alias-pariteit met overall, kreeg '
             f"{payload.get('proof_next_action_kind')} versus {overall.get('proof_next_action_kind')}"
         )
+    for alias_key in [
+        'proof_state',
+        'proof_state_text',
+        'proof_blocker_kind',
+        'proof_blocker_text',
+        'proof_next_action_text',
+        'proof_next_action_window_text',
+        'proof_recheck_schedule_kind_text',
+        'proof_recheck_schedule_job_name',
+        'proof_recheck_schedule_expr',
+        'proof_recheck_schedule_tz',
+        'proof_recheck_schedule_text',
+        'proof_config_hash',
+        'proof_wait_until_at',
+        'proof_next_qualifying_slot_at',
+        'proof_recheck_after_at',
+        'proof_target_due_at',
+        'proof_target_due_at_if_next_slot_missed',
+        'proof_schedule_slip_ms',
+        'proof_recheck_schedule_found',
+        'proof_recheck_schedule_enabled',
+        'proof_recheck_schedule_expected_gap_minutes',
+        'proof_recheck_schedule_same_day_after_target',
+        'proof_recheck_schedule_matches_grace',
+        'proof_recheck_schedule_delta_minutes',
+    ]:
+        if payload.get(alias_key) != overall.get(alias_key):
+            failures.append(
+                f'top-level {alias_key} verwacht alias-pariteit met overall, kreeg '
+                f"{payload.get(alias_key)} versus {overall.get(alias_key)}"
+            )
 
     combined_text = ' || '.join(
         bit for bit in [
