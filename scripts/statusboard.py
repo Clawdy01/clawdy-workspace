@@ -205,6 +205,8 @@ def render_text(data, show_preview=False):
             ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_text']}")
         if ai_briefing_status.get('proof_target_check_gate_text'):
             ai_bits.append(ai_briefing_status['proof_target_check_gate_text'])
+        if ai_briefing_status.get('proof_recheck_schedule_text'):
+            ai_bits.append(ai_briefing_status['proof_recheck_schedule_text'])
         if ai_briefing_status.get('proof_wait_until_reason_text'):
             ai_bits.append(ai_briefing_status['proof_wait_until_reason_text'])
         if ai_briefing_status.get('last_run_at_text'):

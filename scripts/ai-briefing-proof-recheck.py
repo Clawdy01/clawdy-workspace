@@ -317,34 +317,33 @@ def collect_output_targets(*, output_format: str, output_path: str | None = None
 
 def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, output_path: str | None = None, output_format: str | None = None, output_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict]) -> list[dict]:
     written_outputs: list[dict] = []
-    written_path = emit_output(
-        text=text,
-        payload=payload,
-        stdout_format=stdout_format,
-        output_path=output_path,
-        output_format=output_format,
-        append=output_append,
-    )
-    if written_path:
-        written_outputs.append({
-            'channel': 'stdout-output',
-            'path': written_path,
-            'format': output_format or stdout_format,
-            'append': bool(output_append),
-        })
-    if not consumer_bundle:
-        return written_outputs
-    for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
-        preset = consumer_presets[preset_name]
-        rendered = render_output(text=text, payload=payload, output_format=preset['format'])
-        written_path = write_output(rendered, output_path=str(preset['path']), append=preset['append'])
+    if output_path:
+        rendered = render_output(text=text, payload=payload, output_format=output_format or stdout_format)
+        written_path = write_output(rendered, output_path=output_path, append=output_append)
         if written_path:
             written_outputs.append({
-                'channel': preset_name,
+                'channel': 'stdout-output',
                 'path': written_path,
-                'format': preset['format'],
-                'append': bool(preset['append']),
+                'format': output_format or stdout_format,
+                'append': bool(output_append),
             })
+    if consumer_bundle:
+        for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
+            preset = consumer_presets[preset_name]
+            rendered = render_output(text=text, payload=payload, output_format=preset['format'])
+            written_path = write_output(rendered, output_path=str(preset['path']), append=preset['append'])
+            if written_path:
+                written_outputs.append({
+                    'channel': preset_name,
+                    'path': written_path,
+                    'format': preset['format'],
+                    'append': bool(preset['append']),
+                })
+    payload['consumer_outputs'] = written_outputs
+    payload['consumer_output_paths'] = [item['path'] for item in written_outputs]
+    payload['consumer_output_channels'] = [item['channel'] for item in written_outputs]
+    payload['consumer_outputs_text'] = format_consumer_outputs(written_outputs)
+    sys.stdout.write(render_output(text=build_text(payload), payload=payload, output_format=stdout_format))
     return written_outputs
 
 
@@ -381,13 +380,18 @@ def main() -> int:
         default_format=stdout_format,
         consumer_presets=consumer_presets,
     )
-    payload['consumer_outputs'] = collect_output_targets(
+    requested_outputs = collect_output_targets(
         output_format=consumer_output_format,
         output_path=consumer_output_path,
         output_append=consumer_append,
         consumer_bundle=args.consumer_bundle,
         consumer_presets=consumer_presets,
     )
+    payload['consumer_requested_outputs'] = requested_outputs
+    payload['consumer_requested_output_paths'] = [item['path'] for item in requested_outputs]
+    payload['consumer_requested_output_channels'] = [item['channel'] for item in requested_outputs]
+    payload['consumer_requested_outputs_text'] = format_consumer_outputs(requested_outputs)
+    payload['consumer_outputs'] = requested_outputs
     payload['consumer_output_paths'] = [item['path'] for item in payload['consumer_outputs']]
     payload['consumer_output_channels'] = [item['channel'] for item in payload['consumer_outputs']]
     payload['consumer_outputs_text'] = format_consumer_outputs(payload['consumer_outputs'])

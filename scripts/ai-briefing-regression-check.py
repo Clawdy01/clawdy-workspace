@@ -2915,6 +2915,11 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                 'json-stdout proof-recheck consumer_outputs[0].format verwacht text, kreeg '
                 f"{(json_payload.get('consumer_outputs') or [{}])[0].get('format')}"
             )
+        if json_payload and (json_payload.get('consumer_requested_outputs') or [{}])[0].get('format') != 'text':
+            failures.append(
+                'json-stdout proof-recheck consumer_requested_outputs[0].format verwacht text, kreeg '
+                f"{(json_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
+            )
         if not text_artifact.exists():
             failures.append(f'tekstartifact ontbreekt: {text_artifact}')
         else:
@@ -2967,6 +2972,11 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                     failures.append(
                         'json-artifact consumer_outputs[0].format verwacht json, kreeg '
                         f"{(artifact_payload.get('consumer_outputs') or [{}])[0].get('format')}"
+                    )
+                if (artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format') != 'json':
+                    failures.append(
+                        'json-artifact consumer_requested_outputs[0].format verwacht json, kreeg '
+                        f"{(artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
                     )
             except json.JSONDecodeError as exc:
                 failures.append(f'json-artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
