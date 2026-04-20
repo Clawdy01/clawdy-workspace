@@ -149,14 +149,16 @@ def emit_output(*, text: str, payload: dict, output_format: str, output_path: st
     sys.stdout.write(rendered)
 
 
-def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None) -> None:
-    emit_output(
-        text=text,
-        payload=payload,
-        output_format=stdout_format,
-        output_path=stdout_output_path,
-        append=stdout_append,
-    )
+def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_output_format: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None) -> None:
+    rendered_stdout = render_output(text=text, payload=payload, output_format=stdout_format)
+    sys.stdout.write(rendered_stdout)
+    if stdout_output_path:
+        rendered = render_output(
+            text=text,
+            payload=payload,
+            output_format=stdout_output_format or stdout_format,
+        )
+        write_output(rendered, output_path=stdout_output_path, append=stdout_append)
     if not consumer_bundle:
         return
     for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
@@ -560,6 +562,7 @@ def main() -> int:
         payload=result,
         stdout_format=stdout_format,
         stdout_output_path=consumer_output_path,
+        stdout_output_format=consumer_output_format,
         stdout_append=consumer_append,
         consumer_bundle=args.consumer_bundle,
     )

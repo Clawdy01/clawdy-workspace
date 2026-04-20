@@ -13,6 +13,7 @@ ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATUS_SCRIPT = ROOT / 'scripts' / 'ai-briefing-status.py'
 PROOF_RECHECK_SCRIPT = ROOT / 'scripts' / 'ai-briefing-proof-recheck.py'
 PROOF_RECHECK_PRODUCER_SCRIPT = ROOT / 'scripts' / 'ai-briefing-proof-recheck-producer.py'
+WATCHDOG_SCRIPT = ROOT / 'scripts' / 'ai-briefing-watchdog.py'
 WATCHDOG_ALERT_SCRIPT = ROOT / 'scripts' / 'ai-briefing-watchdog-alert.py'
 WATCHDOG_PRODUCER_SCRIPT = ROOT / 'scripts' / 'ai-briefing-watchdog-producer.py'
 STATUSBOARD_SCRIPT = ROOT / 'scripts' / 'statusboard.py'
@@ -4657,6 +4658,133 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
     }
 
 
+def evaluate_watchdog_consumer_format_passthrough_case():
+    failures = []
+    audit_bits: list[str] = []
+
+    with tempfile.TemporaryDirectory(prefix='ai-briefing-watchdog-format-') as temp_dir:
+        text_artifact = Path(temp_dir) / 'watchdog-text.txt'
+        json_stdout_proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_SCRIPT), '--json',
+                '--require-qualified-runs', '3',
+                '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                '--consumer-out', str(text_artifact),
+                '--consumer-format', 'text',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if json_stdout_proc.returncode != 2:
+            failures.append(f'json-stdout watchdog exitcode verwacht 2, kreeg {json_stdout_proc.returncode}')
+
+        json_payload = {}
+        json_stdout = json_stdout_proc.stdout.strip() or json_stdout_proc.stderr.strip()
+        if not json_stdout:
+            failures.append('json-stdout watchdog gaf geen output')
+        else:
+            try:
+                json_payload = json.loads(json_stdout)
+                audit_bits.append(json.dumps(json_payload, ensure_ascii=False))
+            except json.JSONDecodeError as exc:
+                failures.append(f'json-stdout watchdog hoort JSON te blijven, kreeg parsefout: {exc}')
+
+        if json_payload and json_payload.get('proof_waiting_for_next_scheduled_run') is not True:
+            failures.append(
+                'json-stdout watchdog verwacht proof_waiting_for_next_scheduled_run=True voor deze wachtfase'
+            )
+        if not text_artifact.exists():
+            failures.append(f'tekstartifact ontbreekt: {text_artifact}')
+        else:
+            artifact_text = text_artifact.read_text(encoding='utf-8')
+            audit_bits.append(artifact_text.strip())
+            if not artifact_text.startswith('ai briefing watchdog: attention - '):
+                failures.append('tekstartifact hoort plain-text te blijven wanneer --consumer-format text is gebruikt')
+            try:
+                json.loads(artifact_text)
+                failures.append('tekstartifact hoort geen JSON te zijn wanneer --consumer-format text is gebruikt')
+            except json.JSONDecodeError:
+                pass
+
+        json_artifact = Path(temp_dir) / 'watchdog-json.json'
+        text_stdout_proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_SCRIPT),
+                '--require-qualified-runs', '3',
+                '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                '--consumer-out', str(json_artifact),
+                '--consumer-format', 'json',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if text_stdout_proc.returncode != 2:
+            failures.append(f'text-stdout watchdog exitcode verwacht 2, kreeg {text_stdout_proc.returncode}')
+
+        plain_stdout = text_stdout_proc.stdout.strip() or text_stdout_proc.stderr.strip()
+        if not plain_stdout:
+            failures.append('text-stdout watchdog gaf geen output')
+        else:
+            audit_bits.append(plain_stdout)
+            if not plain_stdout.startswith('ai briefing watchdog: attention - '):
+                failures.append('stdout hoort plain-text te blijven wanneer alleen --consumer-format json is gebruikt')
+            try:
+                json.loads(plain_stdout)
+                failures.append('stdout hoort geen JSON te worden wanneer alleen --consumer-format json is gebruikt')
+            except json.JSONDecodeError:
+                pass
+
+        if not json_artifact.exists():
+            failures.append(f'json-artifact ontbreekt: {json_artifact}')
+        else:
+            try:
+                artifact_payload = json.loads(json_artifact.read_text(encoding='utf-8'))
+                audit_bits.append(json.dumps(artifact_payload, ensure_ascii=False))
+                if artifact_payload.get('proof_waiting_for_next_scheduled_run') is not True:
+                    failures.append(
+                        'json-artifact verwacht proof_waiting_for_next_scheduled_run=True voor deze wachtfase'
+                    )
+                if artifact_payload.get('proof_recheck_schedule_kind') != 'ok':
+                    failures.append(
+                        'json-artifact proof_recheck_schedule_kind verwacht ok, kreeg '
+                        f"{artifact_payload.get('proof_recheck_schedule_kind')}"
+                    )
+            except json.JSONDecodeError as exc:
+                failures.append(f'json-artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
+
+    return {
+        'name': 'watchdog-consumer-format-keeps-stdout-format',
+        'path': str(WATCHDOG_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': ' || '.join(bit for bit in audit_bits if bit),
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def evaluate_watchdog_alert_consumer_format_passthrough_case():
     failures = []
     audit_bits: list[str] = []
@@ -4788,6 +4916,102 @@ def evaluate_watchdog_alert_consumer_format_passthrough_case():
     }
 
 
+def evaluate_list_cases_output_case():
+    failures = []
+    audit_bits: list[str] = []
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases'],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(f'plain --list-cases exitcode verwacht 0, kreeg {plain_proc.returncode}')
+
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    audit_bits.append('plain=' + ', '.join(plain_lines[:8]))
+    if not plain_lines:
+        failures.append('plain --list-cases gaf geen casenamen terug')
+    if plain_lines != sorted(plain_lines):
+        failures.append('plain --list-cases hoort alfabetisch gesorteerd te zijn')
+    if len(plain_lines) != len(set(plain_lines)):
+        failures.append('plain --list-cases hoort geen dubbele casenamen te bevatten')
+    for expected_case_name in [
+        'watchdog-consumer-format-passthrough',
+        'watchdog-alert-consumer-format-passthrough',
+    ]:
+        if expected_case_name not in plain_lines:
+            failures.append(f'plain --list-cases mist verwachte casenaam {expected_case_name}')
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases'],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(f'json --list-cases exitcode verwacht 0, kreeg {json_proc.returncode}')
+
+    json_payload = {}
+    json_stdout = json_proc.stdout.strip() or json_proc.stderr.strip()
+    if not json_stdout:
+        failures.append('json --list-cases gaf geen output')
+    else:
+        try:
+            json_payload = json.loads(json_stdout)
+            audit_bits.append('json=' + json.dumps(json_payload, ensure_ascii=False))
+        except json.JSONDecodeError as exc:
+            failures.append(f'json --list-cases hoort parsebare JSON te geven, kreeg parsefout: {exc}')
+
+    if json_payload:
+        listed_cases = json_payload.get('cases')
+        if not isinstance(listed_cases, list):
+            failures.append(f'json --list-cases cases verwacht lijst, kreeg {type(listed_cases).__name__}')
+        else:
+            if listed_cases != plain_lines:
+                failures.append('json --list-cases cases hoort exact gelijk te zijn aan plain --list-cases')
+            if json_payload.get('case_count') != len(listed_cases):
+                failures.append(
+                    'json --list-cases case_count verwacht '
+                    f"{len(listed_cases)}, kreeg {json_payload.get('case_count')}"
+                )
+        if json_payload.get('ok') is not True:
+            failures.append(f"json --list-cases ok verwacht True, kreeg {json_payload.get('ok')}")
+        if json_payload.get('selected_case_names') != plain_lines:
+            failures.append('json --list-cases selected_case_names hoort de uitgegeven casenamen te weerspiegelen')
+
+    return {
+        'name': 'regression-check-list-cases-output',
+        'path': str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': ' || '.join(bit for bit in audit_bits if bit),
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def build_named_case_runners(module, producer_module):
     named_cases = {}
     named_cases.update({case['name']: (lambda case=case: evaluate_case(module, case)) for case in DEFAULT_CASES})
@@ -4800,7 +5024,9 @@ def build_named_case_runners(module, producer_module):
     named_cases['proof-recheck-producer-quiet-falls-back-to-requested-outputs'] = (
         lambda: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)
     )
+    named_cases['regression-check-list-cases-output'] = evaluate_list_cases_output_case
     named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
+    named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
     named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case
     return named_cases
 
@@ -4821,16 +5047,25 @@ def main():
     producer_module = load_proof_recheck_producer_module()
     named_cases = build_named_case_runners(module, producer_module)
 
-    if args.list_cases:
-        for case_name in sorted(named_cases):
-            print(case_name)
-        raise SystemExit(0)
-
     unknown_cases = [case_name for case_name in args.case if case_name not in named_cases]
     if unknown_cases:
         for case_name in unknown_cases:
             print(f'onbekende regressiecase: {case_name}', file=sys.stderr)
         raise SystemExit(2)
+
+    if args.list_cases:
+        selected_case_names = sorted(args.case or list(named_cases.keys()))
+        if args.json:
+            print(json.dumps({
+                'ok': True,
+                'case_count': len(selected_case_names),
+                'cases': selected_case_names,
+                'selected_case_names': selected_case_names,
+            }, ensure_ascii=False, indent=2))
+        else:
+            for case_name in selected_case_names:
+                print(case_name)
+        raise SystemExit(0)
 
     selected_case_names = args.case or list(named_cases.keys())
     results = [named_cases[case_name]() for case_name in selected_case_names]
