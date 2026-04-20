@@ -3932,6 +3932,10 @@ def evaluate_watchdog_alert_case(case):
             'proof_recheck_after_at verwacht '
             f"{expected_status.get('proof_recheck_after_at')}, kreeg {payload.get('proof_recheck_after_at')}"
         )
+    if not payload.get('last_run_timeout_text'):
+        failures.append('last_run_timeout_text verwacht niet-leeg runtime-headroomveld')
+    if not payload.get('recent_run_duration_text'):
+        failures.append('recent_run_duration_text verwacht niet-lege duurtrend')
     if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=0, kanalen=0':
         failures.append(
             'consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=0, kanalen=0, kreeg '
@@ -3989,6 +3993,16 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'consumer board-json alert_text verwacht pariteit met stdout-json, kreeg '
                     f"{board_payload.get('alert_text')} versus {payload.get('alert_text')}"
+                )
+            if board_payload.get('last_run_timeout_text') != payload.get('last_run_timeout_text'):
+                failures.append(
+                    'consumer board-json last_run_timeout_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('last_run_timeout_text')} versus {payload.get('last_run_timeout_text')}"
+                )
+            if board_payload.get('recent_run_duration_text') != payload.get('recent_run_duration_text'):
+                failures.append(
+                    'consumer board-json recent_run_duration_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('recent_run_duration_text')} versus {payload.get('recent_run_duration_text')}"
                 )
             requested_outputs = board_payload.get('consumer_requested_outputs') or []
             requested_channels = [item.get('channel') for item in requested_outputs]
@@ -4091,6 +4105,16 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl alert_text verwacht pariteit met stdout-json, kreeg '
                             f"{eventlog_payload.get('alert_text')} versus {payload.get('alert_text')}"
+                        )
+                    if eventlog_payload.get('last_run_timeout_text') != payload.get('last_run_timeout_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl last_run_timeout_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('last_run_timeout_text')} versus {payload.get('last_run_timeout_text')}"
+                        )
+                    if eventlog_payload.get('recent_run_duration_text') != payload.get('recent_run_duration_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl recent_run_duration_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('recent_run_duration_text')} versus {payload.get('recent_run_duration_text')}"
                         )
                     if eventlog_payload.get('no_reply') is not case.get('expect_no_reply', False):
                         failures.append(
