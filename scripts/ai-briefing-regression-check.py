@@ -4657,22 +4657,183 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
     }
 
 
+def evaluate_watchdog_alert_consumer_format_passthrough_case():
+    failures = []
+    audit_bits: list[str] = []
+
+    with tempfile.TemporaryDirectory(prefix='ai-briefing-watchdog-alert-format-') as temp_dir:
+        text_artifact = Path(temp_dir) / 'watchdog-alert-text.txt'
+        json_stdout_proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_ALERT_SCRIPT), '--mode', 'proof-target-check', '--json',
+                '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                '--consumer-out', str(text_artifact),
+                '--consumer-format', 'text',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if json_stdout_proc.returncode != 0:
+            failures.append(f'json-stdout watchdog-alert exitcode verwacht 0, kreeg {json_stdout_proc.returncode}')
+
+        json_payload = {}
+        json_stdout = json_stdout_proc.stdout.strip() or json_stdout_proc.stderr.strip()
+        if not json_stdout:
+            failures.append('json-stdout watchdog-alert gaf geen output')
+        else:
+            try:
+                json_payload = json.loads(json_stdout)
+                audit_bits.append(json.dumps(json_payload, ensure_ascii=False))
+            except json.JSONDecodeError as exc:
+                failures.append(f'json-stdout watchdog-alert hoort JSON te blijven, kreeg parsefout: {exc}')
+
+        if json_payload and (json_payload.get('consumer_requested_outputs') or [{}])[0].get('format') != 'text':
+            failures.append(
+                'json-stdout watchdog-alert consumer_requested_outputs[0].format verwacht text, kreeg '
+                f"{(json_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
+            )
+        if not text_artifact.exists():
+            failures.append(f'tekstartifact ontbreekt: {text_artifact}')
+        else:
+            artifact_text = text_artifact.read_text(encoding='utf-8').strip()
+            audit_bits.append(artifact_text)
+            if artifact_text != 'NO_REPLY':
+                failures.append(f'tekstartifact verwacht NO_REPLY, kreeg {artifact_text}')
+            try:
+                json.loads(artifact_text)
+                failures.append('tekstartifact hoort geen JSON te zijn wanneer --consumer-format text is gebruikt')
+            except json.JSONDecodeError:
+                pass
+
+        json_artifact = Path(temp_dir) / 'watchdog-alert-json.json'
+        text_stdout_proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_ALERT_SCRIPT), '--mode', 'proof-target-check',
+                '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                '--consumer-out', str(json_artifact),
+                '--consumer-format', 'json',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if text_stdout_proc.returncode != 0:
+            failures.append(f'text-stdout watchdog-alert exitcode verwacht 0, kreeg {text_stdout_proc.returncode}')
+
+        plain_stdout = text_stdout_proc.stdout.strip() or text_stdout_proc.stderr.strip()
+        if not plain_stdout:
+            failures.append('text-stdout watchdog-alert gaf geen output')
+        else:
+            audit_bits.append(plain_stdout)
+            if plain_stdout != 'NO_REPLY':
+                failures.append(f'stdout verwacht NO_REPLY, kreeg {plain_stdout}')
+            try:
+                json.loads(plain_stdout)
+                failures.append('stdout hoort geen JSON te worden wanneer alleen --consumer-format json is gebruikt')
+            except json.JSONDecodeError:
+                pass
+
+        if not json_artifact.exists():
+            failures.append(f'json-artifact ontbreekt: {json_artifact}')
+        else:
+            try:
+                artifact_payload = json.loads(json_artifact.read_text(encoding='utf-8'))
+                audit_bits.append(json.dumps(artifact_payload, ensure_ascii=False))
+                if (artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format') != 'json':
+                    failures.append(
+                        'json-artifact consumer_requested_outputs[0].format verwacht json, kreeg '
+                        f"{(artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
+                    )
+                if artifact_payload.get('alert_text') != 'NO_REPLY':
+                    failures.append(
+                        'json-artifact alert_text verwacht NO_REPLY, kreeg '
+                        f"{artifact_payload.get('alert_text')}"
+                    )
+                if artifact_payload.get('no_reply') is not True:
+                    failures.append(
+                        f"json-artifact no_reply verwacht True, kreeg {artifact_payload.get('no_reply')}"
+                    )
+            except json.JSONDecodeError as exc:
+                failures.append(f'json-artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
+
+    return {
+        'name': 'watchdog-alert-consumer-format-keeps-stdout-format',
+        'path': str(WATCHDOG_ALERT_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': ' || '.join(bit for bit in audit_bits if bit),
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def build_named_case_runners(module, producer_module):
+    named_cases = {}
+    named_cases.update({case['name']: (lambda case=case: evaluate_case(module, case)) for case in DEFAULT_CASES})
+    named_cases.update({case['name']: (lambda case=case: evaluate_status_phase_case(module, case)) for case in STATUS_PHASE_CASES})
+    named_cases.update({case['name']: (lambda case=case: evaluate_proof_recheck_case(case)) for case in PROOF_RECHECK_CASES})
+    named_cases.update({case['name']: (lambda case=case: evaluate_proof_recheck_producer_case(case)) for case in PROOF_RECHECK_PRODUCER_CASES})
+    named_cases.update({case['name']: (lambda case=case: evaluate_brief_consumer_case(case)) for case in BRIEF_CONSUMER_CASES})
+    named_cases.update({case['name']: (lambda case=case: evaluate_watchdog_alert_case(case)) for case in WATCHDOG_ALERT_CASES})
+    named_cases.update({case['name']: (lambda case=case: evaluate_watchdog_producer_case(case)) for case in WATCHDOG_PRODUCER_CASES})
+    named_cases['proof-recheck-producer-quiet-falls-back-to-requested-outputs'] = (
+        lambda: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)
+    )
+    named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
+    named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case
+    return named_cases
+
+
 def main():
     parser = argparse.ArgumentParser(description='Regressiecheck voor AI-briefing output-audits')
     parser.add_argument('--json', action='store_true', help='geef JSON-output')
+    parser.add_argument(
+        '--case',
+        action='append',
+        default=[],
+        help='draai alleen de opgegeven casenaam (mag meerdere keren)',
+    )
+    parser.add_argument('--list-cases', action='store_true', help='toon beschikbare casenamen en stop')
     args = parser.parse_args()
 
     module = load_status_module()
     producer_module = load_proof_recheck_producer_module()
-    results = [evaluate_case(module, case) for case in DEFAULT_CASES]
-    results.extend(evaluate_status_phase_case(module, case) for case in STATUS_PHASE_CASES)
-    results.extend(evaluate_proof_recheck_case(case) for case in PROOF_RECHECK_CASES)
-    results.extend(evaluate_proof_recheck_producer_case(case) for case in PROOF_RECHECK_PRODUCER_CASES)
-    results.extend(evaluate_brief_consumer_case(case) for case in BRIEF_CONSUMER_CASES)
-    results.extend(evaluate_watchdog_alert_case(case) for case in WATCHDOG_ALERT_CASES)
-    results.extend(evaluate_watchdog_producer_case(case) for case in WATCHDOG_PRODUCER_CASES)
-    results.append(evaluate_producer_quiet_requested_outputs_fallback_case(producer_module))
-    results.append(evaluate_proof_recheck_consumer_format_passthrough_case())
+    named_cases = build_named_case_runners(module, producer_module)
+
+    if args.list_cases:
+        for case_name in sorted(named_cases):
+            print(case_name)
+        raise SystemExit(0)
+
+    unknown_cases = [case_name for case_name in args.case if case_name not in named_cases]
+    if unknown_cases:
+        for case_name in unknown_cases:
+            print(f'onbekende regressiecase: {case_name}', file=sys.stderr)
+        raise SystemExit(2)
+
+    selected_case_names = args.case or list(named_cases.keys())
+    results = [named_cases[case_name]() for case_name in selected_case_names]
     overall_ok = all(result['ok'] for result in results)
     failing_results = [result for result in results if not result['ok']]
     summary = {
