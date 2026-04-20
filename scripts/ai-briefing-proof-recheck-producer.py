@@ -120,6 +120,10 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_progress_text']))
     if payload.get('proof_freshness_text'):
         bits.append(str(payload['proof_freshness_text']))
+    if payload.get('last_run_timeout_text'):
+        bits.append(str(payload['last_run_timeout_text']))
+    if payload.get('recent_run_duration_text'):
+        bits.append(str(payload['recent_run_duration_text']))
     examples = payload.get('summary_output_examples') or []
     if examples:
         bits.append('outputvoorbeelden: ' + '; '.join(str(example) for example in examples[:2]))
@@ -229,6 +233,8 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_blocker_text': payload.get('proof_blocker_text'),
         'proof_progress_text': payload.get('proof_progress_text'),
         'proof_freshness_text': payload.get('proof_freshness_text'),
+        'last_run_timeout_text': payload.get('last_run_timeout_text'),
+        'recent_run_duration_text': payload.get('recent_run_duration_text'),
         'summary_output_examples': payload.get('summary_output_examples') or [],
         'proof_recheck_window_open': payload.get('proof_recheck_window_open'),
         'proof_recheck_window_text': payload.get('proof_recheck_window_text'),
@@ -286,6 +292,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_recheck_schedule_matches_grace': payload.get('proof_recheck_schedule_matches_grace'),
         'proof_recheck_schedule_delta_minutes': payload.get('proof_recheck_schedule_delta_minutes'),
         'proof_recheck_schedule_text': payload.get('proof_recheck_schedule_text'),
+        'proof_waiting_for_next_scheduled_run': payload.get('proof_waiting_for_next_scheduled_run'),
         'proof_runs_remaining': payload.get('proof_runs_remaining'),
         'proof_recheck_ready': payload.get('proof_recheck_ready'),
         'proof_target_met': payload.get('proof_target_met'),

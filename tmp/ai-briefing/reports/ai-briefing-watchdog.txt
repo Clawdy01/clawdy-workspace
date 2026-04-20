@@ -1,30 +1,30 @@
-ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 4/6 runs ok, 4 afgeleverd, streak 1, laatste duur 2m 47s, laatste 23 uur geleden
+ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 5/7 runs ok, 5 afgeleverd, streak 2, laatste duur 4m 25s, laatste 24 uur geleden
 proof state: hercheckvenster is open voor het huidige kwalificatieslot (recheck-window-open)
 proof blocker: hercheckvenster is open, dus dit spoor wacht alleen nog op directe hercheck (recheck-window-open)
 reasons:
 - status not ok
 - 7 briefingcategorie(ën) missen; 10 promptanker(s) missen; 21 formaat/taal-anker(s) missen; bronnenlijst met URLs ontbreekt
-- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-19 09:47 CEST > 2026-04-19 09:44 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
-- prompt/config: 7 briefingcategorie(ën) missen; 10 promptanker(s) missen; 21 formaat/taal-anker(s) missen; bronnenlijst met URLs ontbreekt; proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-19 09:47 CEST > 2026-04-19 09:44 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: te weinig briefingitems met titel/nieuw/belangrijk-structuur (min 0, verwacht minstens 3); te weinig geldige bron-URLs op geldige Bron:-regels (0)
+- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-20 09:04 CEST > 2026-04-20 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
+- prompt/config: 7 briefingcategorie(ën) missen; 10 promptanker(s) missen; 21 formaat/taal-anker(s) missen; bronnenlijst met URLs ontbreekt; proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-20 09:04 CEST > 2026-04-20 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: te weinig briefingitems met titel/nieuw/belangrijk-structuur (min 0, verwacht minstens 3); te weinig geldige bron-URLs op geldige Bron:-regels (0)
 - onvoldoende gekwalificeerde runs voor huidige config (0/3)
-- geen gekwalificeerde run sinds verwacht dagslot 2026-04-19 09:00 CEST
+- geen gekwalificeerde run sinds verwacht dagslot 2026-04-20 09:00 CEST
 readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan; runbewijs met aandachtspunt
-reference: referentietijd 2026-04-20 09:15 CEST
-proof config: bewijsconfig 36e4a0e11578, gewijzigd 2026-04-19 09:47 CEST (23 uur geleden)
-last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-04-19 09:47 CEST nog op eerste run
+reference: referentietijd 2026-04-21 09:15 CEST
+proof config: bewijsconfig 36e4a0e11578, gewijzigd 2026-04-20 09:04 CEST (24 uur geleden)
+last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-04-20 09:04 CEST nog op eerste run
 proof recheck schedule: proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)
 proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan
 proof requirement: 0/3 gekwalificeerde runs
 proof remaining: nog 3 te gaan
-next run: 2026-04-20 09:00 CEST
-proof target due: 2026-04-22 09:15 CEST
-proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-04-20 09:00 CEST (nu), doel 2026-04-22 09:15 CEST
+next run: 2026-04-21 09:00 CEST
+proof target due: 2026-04-23 09:15 CEST
+proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-04-21 09:00 CEST (nu), doel 2026-04-23 09:15 CEST
 proof next action window: hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw
 proof recheck commands: daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3
-proof schedule risk: als slot 2026-04-20 09:00 CEST mist, schuift bewijsdoel naar 2026-04-23 09:15 CEST
-next qualifying run: 2026-04-20 09:00 CEST (nu) [T-0.2u] [vandaag]
-proof countdown: bewijsdoel 2026-04-22 09:15 CEST (over 2 d); mist volgend slot => 2026-04-23 09:15 CEST (slip +24u)
-proof target check gate: proof-target-check blijft stil tot 2026-04-22 09:15 CEST (over 2 d) (suppressed-until-deadline)
-qualifying run slots: 2026-04-20 09:00 CEST (nu | vandaag), 2026-04-21 09:00 CEST (over 23u 45m | morgen), 2026-04-22 09:00 CEST (over 1 d 23 u | over 2 d)
-last run timeout audit: laatste run had 9m 12s timeout-speling (2m 47s op limiet 12m 0s)
-recent run duration audit: recente duurtrend 2m 7s tot 8m 0s, gemiddeld 4m 18s, onder huidige limiet 12m 0s
+proof schedule risk: als slot 2026-04-21 09:00 CEST mist, schuift bewijsdoel naar 2026-04-24 09:15 CEST
+next qualifying run: 2026-04-21 09:00 CEST (nu) [T-0.2u] [vandaag]
+proof countdown: bewijsdoel 2026-04-23 09:15 CEST (over 2 d); mist volgend slot => 2026-04-24 09:15 CEST (slip +24u)
+proof target check gate: proof-target-check blijft stil tot 2026-04-23 09:15 CEST (over 2 d) (suppressed-until-deadline)
+qualifying run slots: 2026-04-21 09:00 CEST (nu | vandaag), 2026-04-22 09:00 CEST (over 23u 45m | morgen), 2026-04-23 09:00 CEST (over 1 d 23 u | over 2 d)
+last run timeout audit: laatste run had 7m 34s timeout-speling (4m 25s op limiet 12m 0s)
+recent run duration audit: recente duurtrend 2m 47s tot 8m 0s, gemiddeld 5m 4s, onder huidige limiet 12m 0s

@@ -2702,6 +2702,12 @@ def evaluate_proof_recheck_case(case):
         failures.append(f"watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {payload.get('watchdog_ok')}")
     if case.get('expect_proof_config_hash_present') and not payload.get('proof_config_hash'):
         failures.append('proof_config_hash ontbreekt in proof-recheck-payload')
+    if payload.get('proof_progress_text') and not payload.get('last_run_timeout_text'):
+        failures.append('last_run_timeout_text ontbreekt in proof-recheck-payload')
+    if payload.get('proof_progress_text') and not payload.get('recent_run_duration_text'):
+        failures.append('recent_run_duration_text ontbreekt in proof-recheck-payload')
+    if payload.get('proof_progress_text') and payload.get('proof_waiting_for_next_scheduled_run') is None:
+        failures.append('proof_waiting_for_next_scheduled_run ontbreekt in proof-recheck-payload')
     if payload.get('last_run_config_relation_text') and not payload.get('last_run_config_relation'):
         failures.append('last_run_config_relation ontbreekt in proof-recheck-payload terwijl last_run_config_relation_text wel gezet is')
     if case.get('expect_proof_recheck_schedule_audit_ok') is not None:
