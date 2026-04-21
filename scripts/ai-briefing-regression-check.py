@@ -2111,6 +2111,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
+            STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         ],
     },
     {
@@ -2124,6 +2125,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
+            STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         ],
     },
     {
@@ -2137,6 +2139,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
+            STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         ],
     },
     {
@@ -2150,6 +2153,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
+            STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         ],
     },
 ]
@@ -2253,6 +2257,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         ],
     },
     {
@@ -2266,6 +2271,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         ],
     },
     {
@@ -2279,6 +2285,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         ],
     },
     {
@@ -2292,6 +2299,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         ],
     },
     {
@@ -2305,6 +2313,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         ],
     },
     {
@@ -2318,6 +2327,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         ],
     },
 ]
@@ -3990,6 +4000,11 @@ def evaluate_brief_consumer_case(case):
         failures.append(
             'ai_briefing_status.proof_next_action_kind verwacht '
             f"{case['expect_proof_next_action_kind']}, kreeg {ai_briefing_status.get('proof_next_action_kind')}"
+        )
+    if ai_briefing_status.get('last_run_config_relation_text') and not ai_briefing_status.get('last_run_config_relation'):
+        failures.append(
+            'ai_briefing_status.last_run_config_relation ontbreekt terwijl '
+            'ai_briefing_status.last_run_config_relation_text wel gezet is'
         )
 
     combined_text = ' || '.join(
