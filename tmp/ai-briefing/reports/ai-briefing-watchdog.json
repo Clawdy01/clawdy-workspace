@@ -122,6 +122,7 @@
   "has_run_proof": true,
   "attention_needed": true,
   "status_text": "huidige config wacht nog op eerste run, vorige config 6/8 runs ok, 6 afgeleverd, streak 3, laatste duur 2m 54s, laatste 24 uur geleden",
+  "proof_freshness_text": "runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-21 09:12 CEST > 2026-04-21 09:09 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config",
   "last_run_timeout_text": "laatste run had 9m 5s timeout-speling (2m 54s op limiet 12m 0s)",
   "last_run_timeout_near_timeout": false,
   "last_run_timeout_timed_out": false,
@@ -151,11 +152,11 @@
   "consumer_requested_outputs_status_kind": "requested",
   "consumer_requested_outputs_status_text": "consumer-output-aanvraag vastgelegd voor 2 artifact(s)",
   "consumer_requested_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
-  "generated_at": "2026-04-21T08:16:29.817705+00:00",
-  "generated_at_text": "2026-04-21 10:16:29 CEST",
-  "started_at": "2026-04-21T08:16:29.710823+00:00",
-  "started_at_text": "2026-04-21 10:16:29 CEST",
-  "duration_ms": 107,
-  "duration_seconds": 0.107,
-  "duration_text": "0.107s"
+  "generated_at": "2026-04-21T17:11:47.377626+00:00",
+  "generated_at_text": "2026-04-21 19:11:47 CEST",
+  "started_at": "2026-04-21T17:11:47.273177+00:00",
+  "started_at_text": "2026-04-21 19:11:47 CEST",
+  "duration_ms": 104,
+  "duration_seconds": 0.104,
+  "duration_text": "0.104s"
 }

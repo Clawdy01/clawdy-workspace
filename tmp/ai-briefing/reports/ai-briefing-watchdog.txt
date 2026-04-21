@@ -19,6 +19,7 @@ proof remaining: nog 3 te gaan
 next run: 2026-04-22 09:00 CEST
 proof target due: 2026-04-24 09:15 CEST
 proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-04-22 09:00 CEST (nu), doel 2026-04-24 09:15 CEST
+proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-21 09:12 CEST > 2026-04-21 09:09 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
 proof next action window: hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw
 proof recheck commands: daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3
 proof schedule risk: als slot 2026-04-22 09:00 CEST mist, schuift bewijsdoel naar 2026-04-25 09:15 CEST

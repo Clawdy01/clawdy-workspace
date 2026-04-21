@@ -521,6 +521,7 @@ def main() -> int:
         'has_run_proof': status.get('has_run_proof'),
         'attention_needed': status.get('attention_needed'),
         'status_text': status.get('text'),
+        'proof_freshness_text': ((status.get('proof_freshness') or {}).get('text') or '').strip() or None,
         'last_run_timeout_text': last_run_timeout_audit.get('text'),
         'last_run_timeout_near_timeout': last_run_timeout_audit.get('near_timeout'),
         'last_run_timeout_timed_out': last_run_timeout_audit.get('timed_out'),
@@ -566,6 +567,8 @@ def main() -> int:
         lines.append(f"proof target due: {result['proof_target_due_at_text']}")
     if result['proof_plan_text']:
         lines.append(f"proof plan: {result['proof_plan_text']}")
+    if result.get('proof_freshness_text'):
+        lines.append(f"proof freshness: {result['proof_freshness_text']}")
     if result.get('proof_next_action_window_text'):
         lines.append(f"proof next action window: {result['proof_next_action_window_text']}")
     elif result['proof_next_action_text']:
@@ -613,6 +616,9 @@ def main() -> int:
         lines.append(f"last run timeout audit: {result['last_run_timeout_text']}")
     if result['recent_run_duration_text']:
         lines.append(f"recent run duration audit: {result['recent_run_duration_text']}")
+    for example in result.get('summary_output_examples') or []:
+        if example:
+            lines.append(f"proof example: {example}")
     if result['last_proof_qualified_run_at_text']:
         lines.append(f"last qualified run: {result['last_proof_qualified_run_at_text']}")
     text_output = '\n'.join(unique_bits(lines)) + '\n'

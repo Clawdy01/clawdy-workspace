@@ -122,6 +122,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['proof_recheck_schedule_text']))
     if payload.get('proof_recheck_schedule_kind_text'):
         bits.append(str(payload['proof_recheck_schedule_kind_text']))
+    if payload.get('proof_freshness_text'):
+        bits.append(str(payload['proof_freshness_text']))
     proof_runs_remaining = payload.get('proof_runs_remaining')
     if proof_runs_remaining is not None and not payload.get('proof_target_met'):
         bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
@@ -149,6 +151,9 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['last_run_timeout_text']))
     if payload.get('recent_run_duration_text'):
         bits.append(str(payload['recent_run_duration_text']))
+    summary_output_examples = [example for example in (payload.get('summary_output_examples') or []) if example]
+    if summary_output_examples:
+        bits.append('bewijs: ' + ' | '.join(summary_output_examples[:2]))
     if returncode != 0:
         reasons = compact_reasons(payload.get('reasons') or [])
         if reasons:
@@ -231,8 +236,10 @@ def build_overall_summary(payload: dict, returncode: int) -> dict:
         'proof_target_check_gate_text': payload.get('proof_target_check_gate_text'),
         'proof_target_run_slots_context_text': payload.get('proof_target_run_slots_context_text'),
         'proof_target_run_slots_text': payload.get('proof_target_run_slots_text'),
+        'proof_freshness_text': payload.get('proof_freshness_text'),
         'last_run_timeout_text': payload.get('last_run_timeout_text'),
         'recent_run_duration_text': payload.get('recent_run_duration_text'),
+        'summary_output_examples': payload.get('summary_output_examples') or [],
         'consumer_requested_outputs': payload.get('consumer_requested_outputs') or [],
         'consumer_requested_output_count': payload.get('consumer_requested_output_count'),
         'consumer_requested_output_channel_count': payload.get('consumer_requested_output_channel_count'),

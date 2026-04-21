@@ -2266,6 +2266,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
+            ((STATUS_BEFORE_SLOT_TOMORROW.get('proof_freshness') or {}).get('text') or ''),
         ],
     },
     {
@@ -2280,6 +2281,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
+            ((STATUS_BEFORE_SLOT_TOMORROW.get('proof_freshness') or {}).get('text') or ''),
         ],
     },
     {
@@ -2294,6 +2296,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
+            ((STATUS_BEFORE_SLOT_TOMORROW.get('proof_freshness') or {}).get('text') or ''),
         ],
     },
     {
@@ -2308,6 +2311,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
+            ((STATUS_RECHECK_WINDOW_OPEN.get('proof_freshness') or {}).get('text') or ''),
         ],
     },
     {
@@ -2322,6 +2326,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
+            ((STATUS_RECHECK_WINDOW_OPEN.get('proof_freshness') or {}).get('text') or ''),
         ],
     },
     {
@@ -2336,6 +2341,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
+            ((STATUS_RECHECK_WINDOW_OPEN.get('proof_freshness') or {}).get('text') or ''),
         ],
     },
 ]
@@ -4729,8 +4735,10 @@ def evaluate_watchdog_producer_case(case):
         'proof_waiting_for_next_scheduled_run',
         'proof_runs_remaining',
         'proof_target_met',
+        'proof_freshness_text',
         'last_run_timeout_text',
         'recent_run_duration_text',
+        'summary_output_examples',
         'consumer_requested_outputs',
         'consumer_requested_output_count',
         'consumer_requested_output_channel_count',
@@ -4802,8 +4810,10 @@ def evaluate_watchdog_producer_case(case):
         'proof_target_check_gate_text',
         'proof_target_run_slots_context_text',
         'proof_target_run_slots_text',
+        'proof_freshness_text',
         'last_run_timeout_text',
         'recent_run_duration_text',
+        'summary_output_examples',
         'consumer_requested_outputs',
         'consumer_requested_output_count',
         'consumer_requested_output_channel_count',
