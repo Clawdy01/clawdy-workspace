@@ -128,5 +128,33 @@
   "recent_run_duration_text": "recente duurtrend 2m 47s tot 8m 0s, gemiddeld 5m 4s, onder huidige limiet 12m 0s",
   "recent_run_duration_near_timeout": false,
   "recent_run_duration_timed_out": false,
-  "summary_output_examples": []
+  "summary_output_examples": [],
+  "consumer_requested_outputs": [
+    {
+      "channel": "board-json",
+      "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json",
+      "format": "json",
+      "append": false
+    },
+    {
+      "channel": "board-text",
+      "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
+      "format": "text",
+      "append": false
+    },
+    {
+      "channel": "eventlog-jsonl",
+      "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
+      "format": "jsonl",
+      "append": true
+    }
+  ],
+  "consumer_requested_output_count": 3,
+  "consumer_requested_output_channel_count": 3,
+  "consumer_requested_output_count_text": "consumer-output-aanvraag gevraagd=3, kanalen=3",
+  "consumer_requested_output_channel_count_text": "consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3",
+  "consumer_requested_output_channels_text": "consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl",
+  "consumer_requested_outputs_status_kind": "requested",
+  "consumer_requested_outputs_status_text": "consumer-output-aanvraag vastgelegd voor 3 artifact(s)",
+  "consumer_requested_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt; eventlog-jsonl: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl"
 }

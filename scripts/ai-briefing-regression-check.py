@@ -2975,6 +2975,9 @@ def evaluate_proof_recheck_producer_case(case):
                 failures.append(f'ongeldige JSON van ai-briefing-proof-recheck-producer.py: {exc}')
                 payload = {}
 
+        if payload:
+            assert_runtime_metadata(payload, 'proof-recheck-producer stdout-json', failures)
+
         overall = payload.get('overall') or {}
         top_level_overall_alias_keys = [
             'returncode',
@@ -4393,6 +4396,9 @@ def evaluate_watchdog_producer_case(case):
             failures.append(f'ongeldige JSON van ai-briefing-watchdog-producer.py: {exc}')
             payload = {}
 
+    if payload:
+        assert_runtime_metadata(payload, 'watchdog-producer stdout-json', failures)
+
     if payload.get('mode') != mode:
         failures.append(f"mode verwacht {mode}, kreeg {payload.get('mode')}")
     if payload.get('item_count') != 1:
@@ -4535,6 +4541,15 @@ def evaluate_watchdog_producer_case(case):
         'proof_target_met',
         'last_run_timeout_text',
         'recent_run_duration_text',
+        'consumer_requested_outputs',
+        'consumer_requested_output_count',
+        'consumer_requested_output_channel_count',
+        'consumer_requested_output_count_text',
+        'consumer_requested_output_channel_count_text',
+        'consumer_requested_output_channels_text',
+        'consumer_requested_outputs_status_kind',
+        'consumer_requested_outputs_status_text',
+        'consumer_requested_outputs_text',
     ]:
         if overall.get(child_payload_key) != child_payload.get(child_payload_key):
             failures.append(
@@ -4599,6 +4614,15 @@ def evaluate_watchdog_producer_case(case):
         'proof_target_run_slots_text',
         'last_run_timeout_text',
         'recent_run_duration_text',
+        'consumer_requested_outputs',
+        'consumer_requested_output_count',
+        'consumer_requested_output_channel_count',
+        'consumer_requested_output_count_text',
+        'consumer_requested_output_channel_count_text',
+        'consumer_requested_output_channels_text',
+        'consumer_requested_outputs_status_kind',
+        'consumer_requested_outputs_status_text',
+        'consumer_requested_outputs_text',
         'proof_recheck_schedule_kind_text',
         'proof_recheck_schedule_job_name',
         'proof_recheck_schedule_expr',

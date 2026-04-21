@@ -4,6 +4,8 @@ import json
 import signal
 import subprocess
 import sys
+from datetime import datetime, timezone
+from time import monotonic
 from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent.parent
@@ -369,6 +371,19 @@ def build_top_level_overall_aliases(overall: dict) -> dict:
     return aliases
 
 
+def build_run_metadata(*, started_at: datetime, finished_at: datetime, duration_ms: int) -> dict:
+    duration_seconds = round(duration_ms / 1000, 3)
+    return {
+        'generated_at': finished_at.isoformat(),
+        'generated_at_text': finished_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'started_at': started_at.isoformat(),
+        'started_at_text': started_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'duration_ms': duration_ms,
+        'duration_seconds': duration_seconds,
+        'duration_text': f'{duration_seconds:.3f}s',
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description='Vaste producer-wrapper voor AI-briefing proof-recheck consumers.')
     parser.add_argument('mode', choices=sorted(PRODUCER_MODES), help='Welke vaste consumer-producerroute je wilt draaien')
@@ -385,6 +400,9 @@ def main():
         extra = ['--reference-ms', str(args.reference_ms), *extra]
     if args.consumer_root:
         extra = ['--consumer-root', args.consumer_root, *extra]
+
+    started_at = datetime.now(timezone.utc)
+    started_monotonic = monotonic()
 
     exit_code = 0
     summaries = []
@@ -430,6 +448,13 @@ def main():
             'items': producer_items,
         }
         output.update(build_top_level_overall_aliases(overall))
+        output.update(
+            build_run_metadata(
+                started_at=started_at,
+                finished_at=datetime.now(timezone.utc),
+                duration_ms=int(round((monotonic() - started_monotonic) * 1000)),
+            )
+        )
         sys.stdout.write(json.dumps(output, ensure_ascii=False, indent=2) + '\n')
     elif args.quiet:
         print(f'ai-briefing-proof-recheck-producer: {args.mode}')

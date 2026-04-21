@@ -125,6 +125,54 @@ def resolve_consumer_settings(args, *, default_format: str):
     return output_path, output_format, append
 
 
+def describe_requested_outputs(
+    *,
+    output_path: str | None,
+    output_format: str | None,
+    append: bool,
+    consumer_bundle: str | None,
+) -> list[dict]:
+    outputs: list[dict] = []
+    if output_path:
+        outputs.append({
+            'channel': 'consumer-out',
+            'path': output_path,
+            'format': output_format or 'text',
+            'append': append,
+        })
+    if consumer_bundle:
+        for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
+            preset = CONSUMER_PRESETS[preset_name]
+            outputs.append({
+                'channel': preset_name,
+                'path': str(preset['path']),
+                'format': preset['format'],
+                'append': bool(preset['append']),
+            })
+    return outputs
+
+
+def format_consumer_outputs(outputs: list[dict]) -> str | None:
+    bits: list[str] = []
+    for item in outputs or []:
+        channel = str(item.get('channel') or '').strip()
+        path = str(item.get('path') or '').strip()
+        if channel and path:
+            bits.append(f'{channel}: {path}')
+        elif path:
+            bits.append(path)
+    if not bits:
+        return None
+    return 'consumer-artifacts: ' + '; '.join(bits)
+
+
+def format_channel_summary(prefix: str, channels: list[str]) -> str:
+    cleaned = [str(channel).strip() for channel in channels or [] if str(channel).strip()]
+    if not cleaned:
+        return f'{prefix}: geen'
+    return f"{prefix}: {', '.join(cleaned)}"
+
+
 def render_output(*, text: str, payload: dict, output_format: str) -> str:
     if output_format == 'json':
         return json.dumps(payload, ensure_ascii=False, indent=2) + '\n'
@@ -557,6 +605,43 @@ def main() -> int:
         args,
         default_format=stdout_format,
     )
+    consumer_requested_outputs = describe_requested_outputs(
+        output_path=consumer_output_path,
+        output_format=consumer_output_format,
+        append=consumer_append,
+        consumer_bundle=args.consumer_bundle,
+    )
+    requested_channels: list[str] = []
+    for item in consumer_requested_outputs:
+        channel = str(item.get('channel') or '').strip()
+        if channel and channel not in requested_channels:
+            requested_channels.append(channel)
+    result.update({
+        'consumer_requested_outputs': consumer_requested_outputs,
+        'consumer_requested_output_count': len(consumer_requested_outputs),
+        'consumer_requested_output_channel_count': len(requested_channels),
+        'consumer_requested_output_count_text': (
+            'consumer-output-aanvraag '
+            f'gevraagd={len(consumer_requested_outputs)}, kanalen={len(requested_channels)}'
+        ),
+        'consumer_requested_output_channel_count_text': (
+            'consumer-output-aanvraag-kanalen '
+            f'gevraagd={len(consumer_requested_outputs)}, kanalen={len(requested_channels)}'
+        ),
+        'consumer_requested_output_channels_text': format_channel_summary(
+            'consumer-output-aanvraag-kanalen',
+            requested_channels,
+        ),
+        'consumer_requested_outputs_status_kind': (
+            'requested' if consumer_requested_outputs else 'none-requested'
+        ),
+        'consumer_requested_outputs_status_text': (
+            f'consumer-output-aanvraag vastgelegd voor {len(consumer_requested_outputs)} artifact(s)'
+            if consumer_requested_outputs
+            else 'consumer-output-aanvraag leeg (geen artifact-output gevraagd)'
+        ),
+        'consumer_requested_outputs_text': format_consumer_outputs(consumer_requested_outputs),
+    })
     emit_output_with_bundle(
         text=text_output,
         payload=result,

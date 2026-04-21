@@ -4,6 +4,8 @@ import json
 import signal
 import subprocess
 import sys
+from datetime import datetime, timezone
+from time import monotonic
 from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent.parent
@@ -231,6 +233,15 @@ def build_overall_summary(payload: dict, returncode: int) -> dict:
         'proof_target_run_slots_text': payload.get('proof_target_run_slots_text'),
         'last_run_timeout_text': payload.get('last_run_timeout_text'),
         'recent_run_duration_text': payload.get('recent_run_duration_text'),
+        'consumer_requested_outputs': payload.get('consumer_requested_outputs') or [],
+        'consumer_requested_output_count': payload.get('consumer_requested_output_count'),
+        'consumer_requested_output_channel_count': payload.get('consumer_requested_output_channel_count'),
+        'consumer_requested_output_count_text': payload.get('consumer_requested_output_count_text'),
+        'consumer_requested_output_channel_count_text': payload.get('consumer_requested_output_channel_count_text'),
+        'consumer_requested_output_channels_text': payload.get('consumer_requested_output_channels_text'),
+        'consumer_requested_outputs_status_kind': payload.get('consumer_requested_outputs_status_kind'),
+        'consumer_requested_outputs_status_text': payload.get('consumer_requested_outputs_status_text'),
+        'consumer_requested_outputs_text': payload.get('consumer_requested_outputs_text'),
         'reasons': payload.get('reasons') or [],
     }
     return overall
@@ -243,6 +254,19 @@ def build_top_level_overall_aliases(overall: dict) -> dict:
             continue
         aliases[key] = value
     return aliases
+
+
+def build_run_metadata(*, started_at: datetime, finished_at: datetime, duration_ms: int) -> dict:
+    duration_seconds = round(duration_ms / 1000, 3)
+    return {
+        'generated_at': finished_at.isoformat(),
+        'generated_at_text': finished_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'started_at': started_at.isoformat(),
+        'started_at_text': started_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'duration_ms': duration_ms,
+        'duration_seconds': duration_seconds,
+        'duration_text': f'{duration_seconds:.3f}s',
+    }
 
 
 def main():
@@ -258,6 +282,9 @@ def main():
 
     if args.reference_ms is not None:
         extra = ['--reference-ms', str(args.reference_ms), *extra]
+
+    started_at = datetime.now(timezone.utc)
+    started_monotonic = monotonic()
 
     exit_code = 0
     summaries = []
@@ -303,6 +330,13 @@ def main():
             'overall': overall,
         }
         result.update(build_top_level_overall_aliases(overall))
+        result.update(
+            build_run_metadata(
+                started_at=started_at,
+                finished_at=datetime.now(timezone.utc),
+                duration_ms=int(round((monotonic() - started_monotonic) * 1000)),
+            )
+        )
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     if args.quiet:
