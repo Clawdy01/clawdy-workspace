@@ -9,6 +9,7 @@ import tempfile
 from datetime import datetime, timezone
 from difflib import get_close_matches
 from pathlib import Path
+from time import monotonic
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATUS_SCRIPT = ROOT / 'scripts' / 'ai-briefing-status.py'
@@ -69,6 +70,7 @@ def emit_unknown_case_error(
     available_case_names: list[str],
     available_case_count: int,
     as_json: bool,
+    run_metadata: dict | None = None,
 ) -> None:
     unique_requested_case_names = unique_case_names(requested_case_names)
     unique_unknown_cases = unique_case_names(unknown_cases)
@@ -94,6 +96,7 @@ def emit_unknown_case_error(
             'available_case_names': available_case_names,
             'available_case_count': available_case_count,
             'suggested_case_names_by_input': suggested_case_names_by_input,
+            **(run_metadata or {}),
         }, ensure_ascii=False, indent=2))
         return
     if selected_case_names:
@@ -109,6 +112,19 @@ def emit_unknown_case_error(
                 '  suggesties: ' + ', '.join(suggestions),
                 file=sys.stderr,
             )
+
+
+def build_run_metadata(*, started_at: datetime, finished_at: datetime, duration_ms: int) -> dict:
+    duration_seconds = round(duration_ms / 1000, 3)
+    return {
+        'generated_at': finished_at.isoformat(),
+        'generated_at_text': finished_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'started_at': started_at.isoformat(),
+        'started_at_text': started_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'duration_ms': duration_ms,
+        'duration_seconds': duration_seconds,
+        'duration_text': f'{duration_seconds:.3f}s',
+    }
 
 
 DEFAULT_CASES = [
@@ -3867,6 +3883,58 @@ def evaluate_brief_consumer_case(case):
     }
 
 
+def assert_runtime_metadata(payload: dict, label: str, failures: list[str]) -> None:
+    generated_at = payload.get('generated_at')
+    started_at = payload.get('started_at')
+    generated_at_text = payload.get('generated_at_text')
+    started_at_text = payload.get('started_at_text')
+    duration_ms = payload.get('duration_ms')
+    duration_seconds = payload.get('duration_seconds')
+    duration_text = payload.get('duration_text')
+
+    if not isinstance(generated_at, str) or not generated_at:
+        failures.append(f'{label} generated_at hoort een niet-lege ISO-tijdstring te zijn')
+    else:
+        try:
+            datetime.fromisoformat(generated_at)
+        except ValueError as exc:
+            failures.append(f'{label} generated_at hoort parsebare ISO-tijd te zijn, kreeg {exc}')
+
+    if not isinstance(started_at, str) or not started_at:
+        failures.append(f'{label} started_at hoort een niet-lege ISO-tijdstring te zijn')
+    else:
+        try:
+            started_dt = datetime.fromisoformat(started_at)
+            finished_dt = datetime.fromisoformat(generated_at) if isinstance(generated_at, str) and generated_at else None
+            if finished_dt is not None and started_dt > finished_dt:
+                failures.append(f'{label} started_at hoort niet ná generated_at te liggen')
+        except ValueError as exc:
+            failures.append(f'{label} started_at hoort parsebare ISO-tijd te zijn, kreeg {exc}')
+
+    if not isinstance(generated_at_text, str) or not generated_at_text.strip():
+        failures.append(f'{label} generated_at_text hoort een niet-lege teksttimestamp te zijn')
+    if not isinstance(started_at_text, str) or not started_at_text.strip():
+        failures.append(f'{label} started_at_text hoort een niet-lege teksttimestamp te zijn')
+    if not isinstance(duration_ms, int) or duration_ms < 0:
+        failures.append(f'{label} duration_ms hoort een niet-negatieve int te zijn')
+    if not isinstance(duration_seconds, (int, float)) or duration_seconds < 0:
+        failures.append(f'{label} duration_seconds hoort een niet-negatief getal te zijn')
+    elif isinstance(duration_ms, int):
+        expected_duration_seconds = round(duration_ms / 1000, 3)
+        if abs(float(duration_seconds) - expected_duration_seconds) > 0.0005:
+            failures.append(
+                f'{label} duration_seconds hoort duration_ms/1000 af te ronden op 3 decimalen'
+            )
+    if not isinstance(duration_text, str) or not duration_text.endswith('s'):
+        failures.append(f'{label} duration_text hoort een secondenlabel te zijn')
+    elif isinstance(duration_seconds, (int, float)):
+        expected_duration_text = f'{float(duration_seconds):.3f}s'
+        if duration_text != expected_duration_text:
+            failures.append(
+                f'{label} duration_text hoort exact {expected_duration_text} te spiegelen, kreeg {duration_text}'
+            )
+
+
 def evaluate_watchdog_alert_case(case):
     mode = case.get('mode', 'proof-progress')
     expect_require_qualified_runs = case.get('expect_require_qualified_runs', 3)
@@ -3929,6 +3997,8 @@ def evaluate_watchdog_alert_case(case):
         failures.append(f"tekst-exitcode verwacht 0, kreeg {proc.returncode}")
     if not text_output:
         failures.append('geen tekstoutput van ai-briefing-watchdog-alert.py')
+
+    assert_runtime_metadata(payload, 'watchdog-alert stdout-json', failures)
 
     if payload.get('mode') != mode:
         failures.append(f"mode verwacht {mode}, kreeg {payload.get('mode')}")
@@ -4043,6 +4113,7 @@ def evaluate_watchdog_alert_case(case):
             except json.JSONDecodeError as exc:
                 failures.append(f'consumer board-json is geen geldige JSON: {exc}')
                 board_payload = {}
+            assert_runtime_metadata(board_payload, 'watchdog-alert consumer board-json', failures)
             if board_payload.get('no_reply') is not case.get('expect_no_reply', False):
                 failures.append(
                     'consumer board-json no_reply verwacht '
@@ -4165,6 +4236,7 @@ def evaluate_watchdog_alert_case(case):
                 except json.JSONDecodeError as exc:
                     failures.append(f'consumer eventlog-jsonl laatste regel is geen geldige JSON: {exc}')
                 else:
+                    assert_runtime_metadata(eventlog_payload, 'watchdog-alert consumer eventlog-jsonl', failures)
                     if eventlog_payload.get('alert_text') != payload.get('alert_text'):
                         failures.append(
                             'consumer eventlog-jsonl alert_text verwacht pariteit met stdout-json, kreeg '
@@ -4991,6 +5063,57 @@ def evaluate_list_cases_output_case():
     expected_suggested_case_name = 'regression-check-list-cases-output'
     sorted_filtered_case_names = sorted(filtered_case_names)
 
+    def assert_runtime_metadata(payload: dict, label: str) -> None:
+        generated_at = payload.get('generated_at')
+        started_at = payload.get('started_at')
+        generated_at_text = payload.get('generated_at_text')
+        started_at_text = payload.get('started_at_text')
+        duration_ms = payload.get('duration_ms')
+        duration_seconds = payload.get('duration_seconds')
+        duration_text = payload.get('duration_text')
+
+        if not isinstance(generated_at, str) or not generated_at:
+            failures.append(f'{label} generated_at hoort een niet-lege ISO-tijdstring te zijn')
+        else:
+            try:
+                datetime.fromisoformat(generated_at)
+            except ValueError as exc:
+                failures.append(f'{label} generated_at hoort parsebare ISO-tijd te zijn, kreeg {exc}')
+
+        if not isinstance(started_at, str) or not started_at:
+            failures.append(f'{label} started_at hoort een niet-lege ISO-tijdstring te zijn')
+        else:
+            try:
+                started_dt = datetime.fromisoformat(started_at)
+                finished_dt = datetime.fromisoformat(generated_at) if isinstance(generated_at, str) and generated_at else None
+                if finished_dt is not None and started_dt > finished_dt:
+                    failures.append(f'{label} started_at hoort niet ná generated_at te liggen')
+            except ValueError as exc:
+                failures.append(f'{label} started_at hoort parsebare ISO-tijd te zijn, kreeg {exc}')
+
+        if not isinstance(generated_at_text, str) or not generated_at_text.strip():
+            failures.append(f'{label} generated_at_text hoort een niet-lege teksttimestamp te zijn')
+        if not isinstance(started_at_text, str) or not started_at_text.strip():
+            failures.append(f'{label} started_at_text hoort een niet-lege teksttimestamp te zijn')
+        if not isinstance(duration_ms, int) or duration_ms < 0:
+            failures.append(f'{label} duration_ms hoort een niet-negatieve int te zijn')
+        if not isinstance(duration_seconds, (int, float)) or duration_seconds < 0:
+            failures.append(f'{label} duration_seconds hoort een niet-negatief getal te zijn')
+        elif isinstance(duration_ms, int):
+            expected_duration_seconds = round(duration_ms / 1000, 3)
+            if abs(float(duration_seconds) - expected_duration_seconds) > 0.0005:
+                failures.append(
+                    f'{label} duration_seconds hoort duration_ms/1000 af te ronden op 3 decimalen'
+                )
+        if not isinstance(duration_text, str) or not duration_text.endswith('s'):
+            failures.append(f'{label} duration_text hoort een secondenlabel te zijn')
+        elif isinstance(duration_seconds, (int, float)):
+            expected_duration_text = f'{float(duration_seconds):.3f}s'
+            if duration_text != expected_duration_text:
+                failures.append(
+                    f'{label} duration_text hoort exact {expected_duration_text} te spiegelen, kreeg {duration_text}'
+                )
+
     plain_proc = subprocess.run(
         ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases'],
         cwd=ROOT,
@@ -5035,6 +5158,7 @@ def evaluate_list_cases_output_case():
             failures.append(f'json --list-cases hoort parsebare JSON te geven, kreeg parsefout: {exc}')
 
     if json_payload:
+        assert_runtime_metadata(json_payload, 'json --list-cases')
         listed_cases = json_payload.get('cases')
         if not isinstance(listed_cases, list):
             failures.append(f'json --list-cases cases verwacht lijst, kreeg {type(listed_cases).__name__}')
@@ -5124,6 +5248,7 @@ def evaluate_list_cases_output_case():
             )
 
     if filtered_json_payload:
+        assert_runtime_metadata(filtered_json_payload, 'json --list-cases met --case')
         filtered_listed_cases = filtered_json_payload.get('cases')
         if filtered_listed_cases != sorted_filtered_case_names:
             failures.append(
@@ -5229,6 +5354,7 @@ def evaluate_list_cases_output_case():
             )
 
     if duplicate_json_payload:
+        assert_runtime_metadata(duplicate_json_payload, 'json --list-cases met dubbele --case')
         if duplicate_json_payload.get('cases') != duplicate_expected_case_names:
             failures.append(
                 'json --list-cases met dubbele --case cases hoort dubbele invoer te dedupliceren'
@@ -5302,6 +5428,7 @@ def evaluate_list_cases_output_case():
             )
 
     if duplicate_run_payload:
+        assert_runtime_metadata(duplicate_run_payload, 'json regressierun met dubbele --case')
         if duplicate_run_payload.get('requested_case_names') != duplicate_expected_case_names:
             failures.append(
                 'json regressierun met dubbele --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
@@ -5405,6 +5532,7 @@ def evaluate_list_cases_output_case():
             )
 
     if unknown_json_payload:
+        assert_runtime_metadata(unknown_json_payload, 'json onbekende --case')
         if unknown_json_payload.get('ok') is not False:
             failures.append(f"json onbekende --case ok verwacht False, kreeg {unknown_json_payload.get('ok')}")
         if unknown_json_payload.get('error') != 'unknown-cases':
@@ -5483,6 +5611,7 @@ def evaluate_list_cases_output_case():
             )
 
     if mixed_unknown_payload:
+        assert_runtime_metadata(mixed_unknown_payload, 'json gemengde geldige/onbekende --case')
         if mixed_unknown_payload.get('ok') is not False:
             failures.append(
                 'json gemengde geldige/onbekende --case ok verwacht False bij onbekende subset'
@@ -5558,6 +5687,7 @@ def evaluate_list_cases_output_case():
             )
 
     if suggested_json_payload:
+        assert_runtime_metadata(suggested_json_payload, 'json onbekende typofout-case')
         if suggested_json_payload.get('ok') is not False:
             failures.append('json onbekende typofout-case ok verwacht False bij onbekende invoer')
         if suggested_json_payload.get('error') != 'unknown-cases':
@@ -5657,6 +5787,8 @@ def build_named_case_runners(module, producer_module):
 
 
 def main():
+    started_at = datetime.now(timezone.utc)
+    started_monotonic = monotonic()
     parser = argparse.ArgumentParser(description='Regressiecheck voor AI-briefing output-audits')
     parser.add_argument('--json', action='store_true', help='geef JSON-output')
     parser.add_argument(
@@ -5680,12 +5812,22 @@ def main():
             available_case_names=sorted(named_cases.keys()),
             available_case_count=len(named_cases),
             as_json=args.json,
+            run_metadata=build_run_metadata(
+                started_at=started_at,
+                finished_at=datetime.now(timezone.utc),
+                duration_ms=int(round((monotonic() - started_monotonic) * 1000)),
+            ),
         )
         raise SystemExit(2)
 
     if args.list_cases:
         requested_case_names = unique_case_names(args.case)
         selected_case_names = sorted(unique_case_names(args.case or list(named_cases.keys())))
+        run_metadata = build_run_metadata(
+            started_at=started_at,
+            finished_at=datetime.now(timezone.utc),
+            duration_ms=int(round((monotonic() - started_monotonic) * 1000)),
+        )
         if args.json:
             print(json.dumps({
                 'ok': True,
@@ -5697,6 +5839,7 @@ def main():
                 'selected_case_count': len(selected_case_names),
                 'available_case_names': sorted(named_cases.keys()),
                 'available_case_count': len(named_cases),
+                **run_metadata,
             }, ensure_ascii=False, indent=2))
         else:
             for case_name in selected_case_names:
@@ -5714,6 +5857,11 @@ def main():
         'failed_count': len(failing_results),
         'failing_case_names': [result['name'] for result in failing_results],
     }
+    run_metadata = build_run_metadata(
+        started_at=started_at,
+        finished_at=datetime.now(timezone.utc),
+        duration_ms=int(round((monotonic() - started_monotonic) * 1000)),
+    )
 
     if args.json:
         print(json.dumps({
@@ -5731,6 +5879,7 @@ def main():
             'available_case_count': len(named_cases),
             'cases': results,
             'results': results,
+            **run_metadata,
         }, ensure_ascii=False, indent=2))
     else:
         for result in results:

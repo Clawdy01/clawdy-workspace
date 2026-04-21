@@ -6,6 +6,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from time import monotonic
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 WATCHDOG = ROOT / 'scripts' / 'ai-briefing-watchdog.py'
@@ -292,6 +293,19 @@ def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, std
         write_output(rendered, output_path=str(preset['path']), append=preset['append'])
 
 
+def build_run_metadata(*, started_at: datetime, finished_at: datetime, duration_ms: int) -> dict:
+    duration_seconds = round(duration_ms / 1000, 3)
+    return {
+        'generated_at': finished_at.isoformat(),
+        'generated_at_text': finished_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'started_at': started_at.isoformat(),
+        'started_at_text': started_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'duration_ms': duration_ms,
+        'duration_seconds': duration_seconds,
+        'duration_text': f'{duration_seconds:.3f}s',
+    }
+
+
 def build_json_payload(
     data: dict,
     mode: str,
@@ -301,6 +315,7 @@ def build_json_payload(
     no_reply: bool,
     suppressed_before_proof_deadline: bool,
     consumer_requested_outputs: list[dict],
+    run_metadata: dict | None = None,
 ) -> dict:
     requested_channels: list[str] = []
     for item in consumer_requested_outputs:
@@ -397,6 +412,7 @@ def build_json_payload(
         'consumer_requested_outputs_text': format_consumer_outputs(consumer_requested_outputs),
         'reasons': data.get('reasons') or [],
         'summary_output_examples': data.get('summary_output_examples') or [],
+        **(run_metadata or {}),
     }
 
 
@@ -424,6 +440,9 @@ def main() -> int:
     parser.add_argument('--consumer-append', action='store_true', help='Append naar bestaand consumer-bestand in plaats van overschrijven')
     args = parser.parse_args()
 
+    started_at = datetime.now(timezone.utc)
+    started_monotonic = monotonic()
+
     require_qualified_runs = args.require_qualified_runs
     if require_qualified_runs is None:
         require_qualified_runs = MODE_REQUIREMENTS[args.mode]
@@ -449,6 +468,8 @@ def main() -> int:
         consumer_bundle=args.consumer_bundle,
         consumer_presets=consumer_presets,
     )
+    finished_at = datetime.now(timezone.utc)
+    duration_ms = int(round((monotonic() - started_monotonic) * 1000))
     payload = build_json_payload(
         data,
         args.mode,
@@ -457,6 +478,11 @@ def main() -> int:
         no_reply=no_reply,
         suppressed_before_proof_deadline=suppressed_before_proof_deadline,
         consumer_requested_outputs=consumer_requested_outputs,
+        run_metadata=build_run_metadata(
+            started_at=started_at,
+            finished_at=finished_at,
+            duration_ms=duration_ms,
+        ),
     )
 
     if args.json:
