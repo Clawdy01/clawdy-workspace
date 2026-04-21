@@ -2106,6 +2106,8 @@ BRIEF_CONSUMER_CASES = [
         'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
         'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
         'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_proof_plan_text': STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
@@ -2120,6 +2122,8 @@ BRIEF_CONSUMER_CASES = [
         'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
+        'expect_proof_plan_text': STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
+        'expect_last_run_config_relation_text': STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
@@ -2134,6 +2138,8 @@ BRIEF_CONSUMER_CASES = [
         'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
         'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
         'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_proof_plan_text': STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
@@ -2148,6 +2154,8 @@ BRIEF_CONSUMER_CASES = [
         'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
+        'expect_proof_plan_text': STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
+        'expect_last_run_config_relation_text': STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
@@ -4001,6 +4009,21 @@ def evaluate_brief_consumer_case(case):
             'ai_briefing_status.proof_next_action_kind verwacht '
             f"{case['expect_proof_next_action_kind']}, kreeg {ai_briefing_status.get('proof_next_action_kind')}"
         )
+    expected_proof_plan_text = case.get('expect_proof_plan_text')
+    if expected_proof_plan_text is not None and ai_briefing_status.get('proof_plan_text') != expected_proof_plan_text:
+        failures.append(
+            'ai_briefing_status.proof_plan_text verwacht '
+            f"{expected_proof_plan_text}, kreeg {ai_briefing_status.get('proof_plan_text')}"
+        )
+    expected_last_run_config_relation_text = case.get('expect_last_run_config_relation_text')
+    if (
+        expected_last_run_config_relation_text is not None
+        and ai_briefing_status.get('last_run_config_relation_text') != expected_last_run_config_relation_text
+    ):
+        failures.append(
+            'ai_briefing_status.last_run_config_relation_text verwacht '
+            f"{expected_last_run_config_relation_text}, kreeg {ai_briefing_status.get('last_run_config_relation_text')}"
+        )
     if ai_briefing_status.get('last_run_config_relation_text') and not ai_briefing_status.get('last_run_config_relation'):
         failures.append(
             'ai_briefing_status.last_run_config_relation ontbreekt terwijl '
@@ -4011,6 +4034,8 @@ def evaluate_brief_consumer_case(case):
         bit for bit in [
             ai_briefing_status.get('proof_recheck_schedule_text'),
             ai_briefing_status.get('proof_recheck_schedule_kind_text'),
+            ai_briefing_status.get('proof_plan_text'),
+            ai_briefing_status.get('last_run_config_relation_text'),
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
             text_output,
