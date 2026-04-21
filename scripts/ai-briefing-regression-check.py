@@ -5062,6 +5062,14 @@ def evaluate_list_cases_output_case():
             )
         if json_payload.get('selected_case_names') != plain_lines:
             failures.append('json --list-cases selected_case_names hoort de uitgegeven casenamen te weerspiegelen')
+        if json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json --list-cases available_case_names hoort ook bij succes de volledige alfabetische caselijst mee te geven'
+            )
+        if json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json --list-cases available_case_count hoort ook bij succes exact de volledige caseteller te geven'
+            )
 
     filtered_plain_proc = subprocess.run(
         [
@@ -5147,6 +5155,14 @@ def evaluate_list_cases_output_case():
         if filtered_json_payload.get('ok') is not True:
             failures.append(
                 f"json --list-cases met --case ok verwacht True, kreeg {filtered_json_payload.get('ok')}"
+            )
+        if filtered_json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json --list-cases met --case available_case_names hoort ook bij succes de volledige alfabetische caselijst mee te geven'
+            )
+        if filtered_json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json --list-cases met --case available_case_count hoort ook bij succes exact de volledige caseteller te geven'
             )
 
     duplicate_filtered_case_names = [
@@ -5244,6 +5260,14 @@ def evaluate_list_cases_output_case():
             failures.append(
                 f"json --list-cases met dubbele --case ok verwacht True, kreeg {duplicate_json_payload.get('ok')}"
             )
+        if duplicate_json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json --list-cases met dubbele --case available_case_names hoort ook bij succes de volledige alfabetische caselijst mee te geven'
+            )
+        if duplicate_json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json --list-cases met dubbele --case available_case_count hoort ook bij succes exact de volledige caseteller te geven'
+            )
 
     duplicate_run_proc = subprocess.run(
         [
@@ -5308,6 +5332,14 @@ def evaluate_list_cases_output_case():
             )
         if duplicate_run_payload.get('failed_count') != 0 or duplicate_run_payload.get('ok') is not True:
             failures.append('json regressierun met dubbele --case hoort groen te blijven voor dezelfde unieke subset')
+        if duplicate_run_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json regressierun met dubbele --case available_case_names hoort ook bij succes de volledige alfabetische caselijst mee te geven'
+            )
+        if duplicate_run_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json regressierun met dubbele --case available_case_count hoort ook bij succes exact de volledige caseteller te geven'
+            )
 
     unknown_plain_proc = subprocess.run(
         [
@@ -5451,6 +5483,15 @@ def evaluate_list_cases_output_case():
             )
 
     if mixed_unknown_payload:
+        if mixed_unknown_payload.get('ok') is not False:
+            failures.append(
+                'json gemengde geldige/onbekende --case ok verwacht False bij onbekende subset'
+            )
+        if mixed_unknown_payload.get('error') != 'unknown-cases':
+            failures.append(
+                'json gemengde geldige/onbekende --case error verwacht unknown-cases, kreeg '
+                f"{mixed_unknown_payload.get('error')}"
+            )
         if mixed_unknown_payload.get('requested_case_names') != [expected_case_name, unknown_case_name]:
             failures.append(
                 'json gemengde geldige/onbekende --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
@@ -5472,6 +5513,11 @@ def evaluate_list_cases_output_case():
         if mixed_unknown_payload.get('unknown_case_names') != [unknown_case_name]:
             failures.append(
                 'json gemengde geldige/onbekende --case unknown_case_names hoort alleen de onbekende subset te tonen'
+            )
+        if mixed_unknown_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json gemengde geldige/onbekende --case unknown_case_count verwacht 1, kreeg '
+                f"{mixed_unknown_payload.get('unknown_case_count')}"
             )
         if mixed_unknown_payload.get('available_case_names') != plain_lines:
             failures.append(
@@ -5512,6 +5558,38 @@ def evaluate_list_cases_output_case():
             )
 
     if suggested_json_payload:
+        if suggested_json_payload.get('ok') is not False:
+            failures.append('json onbekende typofout-case ok verwacht False bij onbekende invoer')
+        if suggested_json_payload.get('error') != 'unknown-cases':
+            failures.append(
+                'json onbekende typofout-case error verwacht unknown-cases, kreeg '
+                f"{suggested_json_payload.get('error')}"
+            )
+        if suggested_json_payload.get('requested_case_names') != [suggested_unknown_case_name]:
+            failures.append(
+                'json onbekende typofout-case requested_case_names hoort de typo-invoer te spiegelen'
+            )
+        if suggested_json_payload.get('requested_case_count') != 1:
+            failures.append(
+                'json onbekende typofout-case requested_case_count verwacht 1, kreeg '
+                f"{suggested_json_payload.get('requested_case_count')}"
+            )
+        if suggested_json_payload.get('selected_case_names') != []:
+            failures.append('json onbekende typofout-case selected_case_names hoort leeg te zijn zonder geldige matches')
+        if suggested_json_payload.get('selected_case_count') != 0:
+            failures.append(
+                'json onbekende typofout-case selected_case_count verwacht 0, kreeg '
+                f"{suggested_json_payload.get('selected_case_count')}"
+            )
+        if suggested_json_payload.get('unknown_case_names') != [suggested_unknown_case_name]:
+            failures.append(
+                'json onbekende typofout-case unknown_case_names hoort de typo-subset te tonen'
+            )
+        if suggested_json_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json onbekende typofout-case unknown_case_count verwacht 1, kreeg '
+                f"{suggested_json_payload.get('unknown_case_count')}"
+            )
         if suggested_json_payload.get('available_case_names') != plain_lines:
             failures.append(
                 'json onbekende typofout-case available_case_names hoort de volledige alfabetische caselijst mee te geven'
@@ -5617,6 +5695,8 @@ def main():
                 'cases': selected_case_names,
                 'selected_case_names': selected_case_names,
                 'selected_case_count': len(selected_case_names),
+                'available_case_names': sorted(named_cases.keys()),
+                'available_case_count': len(named_cases),
             }, ensure_ascii=False, indent=2))
         else:
             for case_name in selected_case_names:
@@ -5647,6 +5727,8 @@ def main():
             'failing_case_names': summary['failing_case_names'],
             'selected_case_names': selected_case_names,
             'selected_case_count': len(selected_case_names),
+            'available_case_names': sorted(named_cases.keys()),
+            'available_case_count': len(named_cases),
             'cases': results,
             'results': results,
         }, ensure_ascii=False, indent=2))
