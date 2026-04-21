@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from signal import SIG_DFL, SIGPIPE, signal
 from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
+from time import monotonic
 from zoneinfo import ZoneInfo
 
 ROOT = Path('/home/clawdy/.openclaw')
@@ -3378,6 +3379,19 @@ def render_text(data):
     return ' | '.join(unique_bits(parts))
 
 
+def build_run_metadata(*, started_at, finished_at, duration_ms):
+    duration_seconds = round(duration_ms / 1000, 3)
+    return {
+        'generated_at': finished_at.isoformat(),
+        'generated_at_text': finished_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'started_at': started_at.isoformat(),
+        'started_at_text': started_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'duration_ms': duration_ms,
+        'duration_seconds': duration_seconds,
+        'duration_text': f'{duration_seconds:.3f}s',
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description='Status van dagelijkse AI-briefing cronjob')
     parser.add_argument('--json', action='store_true', help='geef JSON-output')
@@ -3386,6 +3400,9 @@ def main():
     parser.add_argument('--summary-stdin', action='store_true', help='audit alleen briefing-output van stdin')
     parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische statuschecks')
     args = parser.parse_args()
+
+    started_at = datetime.now(timezone.utc)
+    started_monotonic = monotonic()
 
     if args.summary_file and args.summary_stdin:
         raise SystemExit('kies óf --summary-file óf --summary-stdin')
@@ -3397,14 +3414,24 @@ def main():
             summary_text = sys.stdin.read()
         data = audit_summary_output(summary_text)
         if args.json:
-            print(json.dumps(data, ensure_ascii=False, indent=2))
+            finished_at = datetime.now(timezone.utc)
+            duration_ms = int(round((monotonic() - started_monotonic) * 1000))
+            print(json.dumps({
+                **data,
+                **build_run_metadata(started_at=started_at, finished_at=finished_at, duration_ms=duration_ms),
+            }, ensure_ascii=False, indent=2))
         else:
             print(render_summary_audit_text(data))
         return
 
     data = build_status(job_name=args.job_name, reference_ms=args.reference_ms)
     if args.json:
-        print(json.dumps(data, ensure_ascii=False, indent=2))
+        finished_at = datetime.now(timezone.utc)
+        duration_ms = int(round((monotonic() - started_monotonic) * 1000))
+        print(json.dumps({
+            **data,
+            **build_run_metadata(started_at=started_at, finished_at=finished_at, duration_ms=duration_ms),
+        }, ensure_ascii=False, indent=2))
     else:
         print(render_text(data))
 

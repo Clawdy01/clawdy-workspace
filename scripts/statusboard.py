@@ -3,7 +3,9 @@ import argparse
 import json
 import signal
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
+from time import monotonic
 
 from mail_heuristics import (
     format_attachment_hint,
@@ -448,6 +450,19 @@ def render_text(data, show_preview=False):
     return '\n'.join(lines)
 
 
+def build_run_metadata(*, started_at, finished_at, duration_ms):
+    duration_seconds = round(duration_ms / 1000, 3)
+    return {
+        'generated_at': finished_at.isoformat(),
+        'generated_at_text': finished_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'started_at': started_at.isoformat(),
+        'started_at_text': started_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'duration_ms': duration_ms,
+        'duration_seconds': duration_seconds,
+        'duration_text': f'{duration_seconds:.3f}s',
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description='Compact statusboard voor command workflows')
     parser.add_argument('--json', action='store_true', help='geef JSON-output')
@@ -455,9 +470,16 @@ def main():
     parser.add_argument('--reference-ms', type=int, help='gebruik deze epoch-millis als referentietijd voor deterministische AI-briefing-statuschecks')
     args = parser.parse_args()
 
+    started_at = datetime.now(timezone.utc)
+    started_monotonic = monotonic()
     data = run_brief_json(reference_ms=args.reference_ms)
+    finished_at = datetime.now(timezone.utc)
+    duration_ms = int(round((monotonic() - started_monotonic) * 1000))
     if args.json:
-        print(json.dumps(data, ensure_ascii=False, indent=2))
+        print(json.dumps({
+            **data,
+            **build_run_metadata(started_at=started_at, finished_at=finished_at, duration_ms=duration_ms),
+        }, ensure_ascii=False, indent=2))
     else:
         print(render_text(data, show_preview=args.preview))
 

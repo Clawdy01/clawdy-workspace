@@ -156,5 +156,12 @@
   "consumer_requested_output_channels_text": "consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl",
   "consumer_requested_outputs_status_kind": "requested",
   "consumer_requested_outputs_status_text": "consumer-output-aanvraag vastgelegd voor 3 artifact(s)",
-  "consumer_requested_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt; eventlog-jsonl: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl"
+  "consumer_requested_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt; eventlog-jsonl: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
+  "generated_at": "2026-04-21T06:04:16.488788+00:00",
+  "generated_at_text": "2026-04-21 08:04:16 CEST",
+  "started_at": "2026-04-21T06:04:16.367795+00:00",
+  "started_at_text": "2026-04-21 08:04:16 CEST",
+  "duration_ms": 121,
+  "duration_seconds": 0.121,
+  "duration_text": "0.121s"
 }

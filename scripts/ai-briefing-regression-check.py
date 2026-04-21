@@ -1860,6 +1860,31 @@ STATUS_PHASE_CASES = [
     },
 ]
 
+STATUS_STDOUT_CASES = [
+    {
+        'name': 'status-stdout-json-before-slot-has-runtime-metadata',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+        ],
+    },
+    {
+        'name': 'status-stdout-json-open-window-has-runtime-metadata',
+        'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+]
+
 PROOF_RECHECK_CASES = [
     {
         'name': 'proof-recheck-before-slot-too-early',
@@ -2673,6 +2698,107 @@ def evaluate_status_phase_case(module, case):
     }
 
 
+def evaluate_status_stdout_case(case):
+    json_proc = subprocess.run(
+        ['python3', str(STATUS_SCRIPT), '--json', '--reference-ms', str(case['reference_ms'])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    text_proc = subprocess.run(
+        ['python3', str(STATUS_SCRIPT), '--reference-ms', str(case['reference_ms'])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    failures = []
+    json_output = json_proc.stdout.strip() or json_proc.stderr.strip()
+    text_output = text_proc.stdout.strip() or text_proc.stderr.strip()
+
+    if json_proc.returncode != 0:
+        failures.append(f"json-exitcode verwacht 0, kreeg {json_proc.returncode}")
+        payload = {}
+    elif not json_output:
+        failures.append('geen JSON-output van ai-briefing-status.py')
+        payload = {}
+    else:
+        try:
+            payload = json.loads(json_output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van ai-briefing-status.py: {exc}')
+            payload = {}
+
+    if text_proc.returncode != 0:
+        failures.append(f"tekst-exitcode verwacht 0, kreeg {text_proc.returncode}")
+    if not text_output:
+        failures.append('geen tekstoutput van ai-briefing-status.py')
+
+    assert_runtime_metadata(payload, 'ai-briefing-status stdout-json', failures)
+
+    if payload.get('proof_state') != case['expect_proof_state']:
+        failures.append(
+            f"proof_state verwacht {case['expect_proof_state']}, kreeg {payload.get('proof_state')}"
+        )
+    if payload.get('proof_next_action_kind') != case['expect_proof_next_action_kind']:
+        failures.append(
+            'proof_next_action_kind verwacht '
+            f"{case['expect_proof_next_action_kind']}, kreeg {payload.get('proof_next_action_kind')}"
+        )
+    if payload.get('proof_recheck_schedule_kind') != 'ok':
+        failures.append(
+            f"proof_recheck_schedule_kind verwacht ok, kreeg {payload.get('proof_recheck_schedule_kind')}"
+        )
+    if payload.get('proof_recheck_schedule_kind_text') != 'proof-recheck-cronstatus: ok':
+        failures.append(
+            'proof_recheck_schedule_kind_text verwacht proof-recheck-cronstatus: ok, kreeg '
+            f"{payload.get('proof_recheck_schedule_kind_text')}"
+        )
+
+    combined_text = ' || '.join(
+        bit for bit in [
+            payload.get('proof_recheck_schedule_text'),
+            payload.get('proof_recheck_schedule_kind_text'),
+            payload.get('proof_next_action_window_text'),
+            payload.get('proof_next_action_text'),
+            text_output,
+        ] if bit
+    )
+    for snippet in case.get('expect_text_substrings', []):
+        if snippet not in combined_text:
+            failures.append(f"verwachte ai-briefing-status-tekst ontbreekt: {snippet}")
+
+    return {
+        'name': case['name'],
+        'path': str(STATUS_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': combined_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def evaluate_proof_recheck_case(case):
     proc = subprocess.run(
         ['python3', str(PROOF_RECHECK_SCRIPT), '--json', '--reference-ms', str(case['reference_ms'])],
@@ -2979,6 +3105,8 @@ def evaluate_proof_recheck_producer_case(case):
             assert_runtime_metadata(payload, 'proof-recheck-producer stdout-json', failures)
 
         overall = payload.get('overall') or {}
+        items = payload.get('items') or []
+        child_payload = {}
         top_level_overall_alias_keys = [
             'returncode',
             'exit_code',
@@ -3058,6 +3186,18 @@ def evaluate_proof_recheck_producer_case(case):
         ]
         if payload.get('consumer_root') != temp_dir:
             failures.append(f"consumer_root verwacht {temp_dir}, kreeg {payload.get('consumer_root')}")
+        if payload.get('item_count') != 1:
+            failures.append(f"item_count verwacht 1, kreeg {payload.get('item_count')}")
+        if len(items) != 1:
+            failures.append(f"items verwacht 1 item, kreeg {len(items)}")
+        else:
+            child_payload = items[0].get('payload') or {}
+            if items[0].get('returncode') != case['expect_exit_code']:
+                failures.append(
+                    f"items[0].returncode verwacht {case['expect_exit_code']}, kreeg {items[0].get('returncode')}"
+                )
+            if child_payload:
+                assert_runtime_metadata(child_payload, 'proof-recheck-producer child payload', failures)
         if json_proc.returncode != case['expect_exit_code']:
             failures.append(f"json-exitcode verwacht {case['expect_exit_code']}, kreeg {json_proc.returncode}")
         if quiet_proc.returncode != case['expect_exit_code']:
@@ -3808,6 +3948,8 @@ def evaluate_brief_consumer_case(case):
     if not text_output:
         failures.append(f'geen tekstoutput van {script.name}')
 
+    assert_runtime_metadata(payload, f'{script.name} stdout-json', failures)
+
     ai_briefing_status = payload.get('ai_briefing_status') or {}
     if ai_briefing_status.get('proof_recheck_schedule_kind') != 'ok':
         failures.append(
@@ -4413,6 +4555,8 @@ def evaluate_watchdog_producer_case(case):
             failures.append(
                 f"items[0].returncode verwacht {case['expect_exit_code']}, kreeg {items[0].get('returncode')}"
             )
+        if child_payload:
+            assert_runtime_metadata(child_payload, 'watchdog-producer child payload', failures)
 
     if quiet_proc.returncode != case['expect_exit_code']:
         failures.append(f"quiet-exitcode verwacht {case['expect_exit_code']}, kreeg {quiet_proc.returncode}")
@@ -5795,6 +5939,7 @@ def build_named_case_runners(module, producer_module):
     named_cases = {}
     named_cases.update({case['name']: (lambda case=case: evaluate_case(module, case)) for case in DEFAULT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_status_phase_case(module, case)) for case in STATUS_PHASE_CASES})
+    named_cases.update({case['name']: (lambda case=case: evaluate_status_stdout_case(case)) for case in STATUS_STDOUT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_proof_recheck_case(case)) for case in PROOF_RECHECK_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_proof_recheck_producer_case(case)) for case in PROOF_RECHECK_PRODUCER_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_brief_consumer_case(case)) for case in BRIEF_CONSUMER_CASES})

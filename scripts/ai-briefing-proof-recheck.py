@@ -4,7 +4,9 @@ import json
 import signal
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
+from time import monotonic
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATUS = ROOT / 'scripts' / 'ai-briefing-status.py'
@@ -73,6 +75,19 @@ def first_non_null(*values):
         if value is not None:
             return value
     return None
+
+
+def build_run_metadata(*, started_at: datetime, finished_at: datetime, duration_ms: int) -> dict:
+    duration_seconds = round(duration_ms / 1000, 3)
+    return {
+        'generated_at': finished_at.isoformat(),
+        'generated_at_text': finished_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'started_at': started_at.isoformat(),
+        'started_at_text': started_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'duration_ms': duration_ms,
+        'duration_seconds': duration_seconds,
+        'duration_text': f'{duration_seconds:.3f}s',
+    }
 
 
 def build_payload(status_data: dict, watchdog_data: dict) -> dict:
@@ -564,6 +579,8 @@ def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, out
 
 
 def main() -> int:
+    started_at = datetime.now(timezone.utc)
+    started_monotonic = monotonic()
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
     parser = argparse.ArgumentParser(description='Draai de AI-briefing status + watchdog hercheck in één commando.')
     parser.add_argument('--json', action='store_true', help='geef machinevriendelijke JSON terug')
@@ -612,6 +629,13 @@ def main() -> int:
     payload['consumer_output_channels'] = [item['channel'] for item in payload['consumer_outputs']]
     payload['consumer_outputs_text'] = format_consumer_outputs(payload['consumer_outputs'])
     update_consumer_output_audit(payload)
+    payload.update(
+        build_run_metadata(
+            started_at=started_at,
+            finished_at=datetime.now(timezone.utc),
+            duration_ms=int(round((monotonic() - started_monotonic) * 1000)),
+        )
+    )
     text_output = build_text(payload)
     emit_output_with_bundle(
         text=text_output,

@@ -4,7 +4,9 @@ import json
 import signal
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
+from time import monotonic
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 STATUS_SCRIPT = ROOT / 'scripts' / 'ai-briefing-status.py'
@@ -47,6 +49,19 @@ def first_non_null(*values):
         if value is not None:
             return value
     return None
+
+
+def build_run_metadata(*, started_at: datetime, finished_at: datetime, duration_ms: int) -> dict:
+    duration_seconds = round(duration_ms / 1000, 3)
+    return {
+        'generated_at': finished_at.isoformat(),
+        'generated_at_text': finished_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'started_at': started_at.isoformat(),
+        'started_at_text': started_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'duration_ms': duration_ms,
+        'duration_seconds': duration_seconds,
+        'duration_text': f'{duration_seconds:.3f}s',
+    }
 
 
 CONSUMER_PRESETS = {
@@ -373,6 +388,8 @@ def evaluate(status: dict, *, require_qualified_runs: int = 0) -> tuple[bool, li
 
 
 def main() -> int:
+    started_at = datetime.now(timezone.utc)
+    started_monotonic = monotonic()
     parser = argparse.ArgumentParser(description='Controleer of de dagelijkse AI-briefing gezond en bewijsbaar is.')
     parser.add_argument('--json', action='store_true', help='print resultaat als JSON')
     parser.add_argument('--timeout', type=int, default=120, help='timeout in seconden voor ai-briefing-status.py')
@@ -642,6 +659,13 @@ def main() -> int:
         ),
         'consumer_requested_outputs_text': format_consumer_outputs(consumer_requested_outputs),
     })
+    result.update(
+        build_run_metadata(
+            started_at=started_at,
+            finished_at=datetime.now(timezone.utc),
+            duration_ms=int(round((monotonic() - started_monotonic) * 1000)),
+        )
+    )
     emit_output_with_bundle(
         text=text_output,
         payload=result,

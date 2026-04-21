@@ -445,6 +445,7 @@ def main():
             'reference_ms': args.reference_ms,
             'consumer_root': args.consumer_root,
             'overall': overall,
+            'item_count': len(producer_items),
             'items': producer_items,
         }
         output.update(build_top_level_overall_aliases(overall))
