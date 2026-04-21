@@ -2110,6 +2110,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
         ],
     },
     {
@@ -2122,6 +2123,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
         ],
     },
     {
@@ -2134,6 +2136,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
         ],
     },
     {
@@ -2146,6 +2149,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
         ],
     },
 ]
@@ -3951,6 +3955,8 @@ def evaluate_brief_consumer_case(case):
     assert_runtime_metadata(payload, f'{script.name} stdout-json', failures)
 
     ai_briefing_status = payload.get('ai_briefing_status') or {}
+    if ai_briefing_status:
+        assert_runtime_metadata(ai_briefing_status, f'{script.name} nested ai_briefing_status', failures)
     if ai_briefing_status.get('proof_recheck_schedule_kind') != 'ok':
         failures.append(
             'ai_briefing_status.proof_recheck_schedule_kind verwacht ok, kreeg '
