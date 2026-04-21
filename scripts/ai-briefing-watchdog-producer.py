@@ -124,6 +124,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['proof_recheck_schedule_kind_text']))
     if payload.get('proof_freshness_text'):
         bits.append(str(payload['proof_freshness_text']))
+    if payload.get('proof_plan_text'):
+        bits.append(str(payload['proof_plan_text']))
     proof_runs_remaining = payload.get('proof_runs_remaining')
     if proof_runs_remaining is not None and not payload.get('proof_target_met'):
         bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
@@ -237,6 +239,7 @@ def build_overall_summary(payload: dict, returncode: int) -> dict:
         'proof_target_run_slots_context_text': payload.get('proof_target_run_slots_context_text'),
         'proof_target_run_slots_text': payload.get('proof_target_run_slots_text'),
         'proof_freshness_text': payload.get('proof_freshness_text'),
+        'proof_plan_text': payload.get('proof_plan_text'),
         'last_run_timeout_text': payload.get('last_run_timeout_text'),
         'recent_run_duration_text': payload.get('recent_run_duration_text'),
         'summary_output_examples': payload.get('summary_output_examples') or [],

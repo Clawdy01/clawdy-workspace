@@ -2790,6 +2790,11 @@ def evaluate_status_stdout_case(case):
             'proof_freshness_text verwacht '
             f"{expected_status.get('proof_freshness_text')}, kreeg {payload.get('proof_freshness_text')}"
         )
+    if payload.get('proof_plan_text') != expected_status.get('proof_plan_text'):
+        failures.append(
+            'proof_plan_text verwacht '
+            f"{expected_status.get('proof_plan_text')}, kreeg {payload.get('proof_plan_text')}"
+        )
     if payload.get('proof_freshness_text') != ((payload.get('proof_freshness') or {}).get('text')):
         failures.append(
             'proof_freshness_text verwacht alias-pariteit met proof_freshness.text, kreeg '
@@ -2811,6 +2816,7 @@ def evaluate_status_stdout_case(case):
             payload.get('proof_recheck_schedule_text'),
             payload.get('proof_recheck_schedule_kind_text'),
             payload.get('proof_freshness_text'),
+            payload.get('proof_plan_text'),
             ('outputvoorbeelden: ' + '; '.join((payload.get('summary_output_examples') or [])[:2]))
             if payload.get('summary_output_examples') else None,
             payload.get('proof_next_action_window_text'),
@@ -4872,6 +4878,7 @@ def evaluate_watchdog_producer_case(case):
         'proof_runs_remaining',
         'proof_target_met',
         'proof_freshness_text',
+        'proof_plan_text',
         'last_run_timeout_text',
         'recent_run_duration_text',
         'summary_output_examples',
@@ -4947,6 +4954,7 @@ def evaluate_watchdog_producer_case(case):
         'proof_target_run_slots_context_text',
         'proof_target_run_slots_text',
         'proof_freshness_text',
+        'proof_plan_text',
         'last_run_timeout_text',
         'recent_run_duration_text',
         'summary_output_examples',
@@ -4981,8 +4989,10 @@ def evaluate_watchdog_producer_case(case):
         bit for bit in [
             payload.get('proof_recheck_schedule_text'),
             payload.get('proof_recheck_schedule_kind_text'),
+            payload.get('proof_plan_text'),
             overall.get('proof_recheck_schedule_text'),
             overall.get('proof_recheck_schedule_kind_text'),
+            overall.get('proof_plan_text'),
             overall.get('proof_next_action_window_text'),
             overall.get('proof_next_action_text'),
             quiet_output,
