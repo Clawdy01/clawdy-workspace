@@ -4335,6 +4335,16 @@ def evaluate_watchdog_alert_case(case):
         failures.append('last_run_timeout_text verwacht niet-leeg runtime-headroomveld')
     if not payload.get('recent_run_duration_text'):
         failures.append('recent_run_duration_text verwacht niet-lege duurtrend')
+    if payload.get('proof_freshness_text') != watchdog_payload.get('proof_freshness_text'):
+        failures.append(
+            'proof_freshness_text verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('proof_freshness_text')} versus {watchdog_payload.get('proof_freshness_text')}"
+        )
+    if payload.get('proof_plan_text') != watchdog_payload.get('proof_plan_text'):
+        failures.append(
+            'proof_plan_text verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('proof_plan_text')} versus {watchdog_payload.get('proof_plan_text')}"
+        )
     if payload.get('summary_output_examples') != watchdog_payload.get('summary_output_examples'):
         failures.append(
             'summary_output_examples verwacht passthrough uit watchdog-json, kreeg '
@@ -4370,6 +4380,29 @@ def evaluate_watchdog_alert_case(case):
             failures.append(f"verwachte watchdog-alert-tekst ontbreekt: {snippet}")
         if snippet not in (payload.get('alert_text') or ''):
             failures.append(f"verwachte watchdog-alert-jsontekst ontbreekt: {snippet}")
+    if not case.get('expect_no_reply', False):
+        if payload.get('proof_freshness_text'):
+            if payload['proof_freshness_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_freshness_text uit stdout-json: '
+                    f"{payload.get('proof_freshness_text')}"
+                )
+            if payload['proof_freshness_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_freshness_text uit stdout-json: '
+                    f"{payload.get('proof_freshness_text')}"
+                )
+        if payload.get('proof_plan_text'):
+            if payload['proof_plan_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_plan_text uit stdout-json: '
+                    f"{payload.get('proof_plan_text')}"
+                )
+            if payload['proof_plan_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_plan_text uit stdout-json: '
+                    f"{payload.get('proof_plan_text')}"
+                )
 
     if consumer_bundle and consumer_root is not None:
         board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
@@ -4408,6 +4441,16 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'consumer board-json recent_run_duration_text verwacht pariteit met stdout-json, kreeg '
                     f"{board_payload.get('recent_run_duration_text')} versus {payload.get('recent_run_duration_text')}"
+                )
+            if board_payload.get('proof_freshness_text') != payload.get('proof_freshness_text'):
+                failures.append(
+                    'consumer board-json proof_freshness_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('proof_freshness_text')} versus {payload.get('proof_freshness_text')}"
+                )
+            if board_payload.get('proof_plan_text') != payload.get('proof_plan_text'):
+                failures.append(
+                    'consumer board-json proof_plan_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('proof_plan_text')} versus {payload.get('proof_plan_text')}"
                 )
             if board_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
                 failures.append(
@@ -4526,6 +4569,16 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl recent_run_duration_text verwacht pariteit met stdout-json, kreeg '
                             f"{eventlog_payload.get('recent_run_duration_text')} versus {payload.get('recent_run_duration_text')}"
+                        )
+                    if eventlog_payload.get('proof_freshness_text') != payload.get('proof_freshness_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl proof_freshness_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('proof_freshness_text')} versus {payload.get('proof_freshness_text')}"
+                        )
+                    if eventlog_payload.get('proof_plan_text') != payload.get('proof_plan_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl proof_plan_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('proof_plan_text')} versus {payload.get('proof_plan_text')}"
                         )
                     if eventlog_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
                         failures.append(

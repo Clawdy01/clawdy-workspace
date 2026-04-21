@@ -153,6 +153,10 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
             bits.append(data['proof_recheck_schedule_text'])
         if data.get('proof_recheck_schedule_kind_text'):
             bits.append(data['proof_recheck_schedule_kind_text'])
+        if data.get('proof_freshness_text'):
+            bits.append(data['proof_freshness_text'])
+        if data.get('proof_plan_text'):
+            bits.append(data['proof_plan_text'])
         proof_runs_remaining = data.get('proof_runs_remaining')
         if proof_runs_remaining is not None and not data.get('proof_target_met'):
             bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')
@@ -384,6 +388,8 @@ def build_json_payload(
         'proof_target_check_gate_text': data.get('proof_target_check_gate_text'),
         'proof_target_run_slots_context_text': data.get('proof_target_run_slots_context_text'),
         'proof_target_run_slots_text': data.get('proof_target_run_slots_text'),
+        'proof_freshness_text': data.get('proof_freshness_text'),
+        'proof_plan_text': data.get('proof_plan_text'),
         'last_run_timeout_text': data.get('last_run_timeout_text'),
         'recent_run_duration_text': data.get('recent_run_duration_text'),
         'consumer_requested_outputs': consumer_requested_outputs,
