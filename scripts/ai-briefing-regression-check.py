@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import datetime, timezone
+from difflib import get_close_matches
 from pathlib import Path
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
@@ -48,6 +49,67 @@ STATUS_RECHECK_WINDOW_OPEN = run_status_json(REFERENCE_MS_RECHECK_WINDOW_OPEN)
 CURRENT_PROOF_NEXT_SLOT_TEXT = STATUS_BEFORE_SLOT_TOMORROW['proof_wait_until_text']
 CURRENT_PROOF_RECHECK_AFTER_TEXT = STATUS_BEFORE_SLOT_TOMORROW['proof_recheck_after_text']
 CURRENT_PROOF_CONFIG_HASH = LIVE_STATUS_BASELINE.get('proof_config_hash')
+
+
+def unique_case_names(case_names: list[str]) -> list[str]:
+    unique: list[str] = []
+    seen: set[str] = set()
+    for case_name in case_names:
+        if case_name in seen:
+            continue
+        seen.add(case_name)
+        unique.append(case_name)
+    return unique
+
+
+def emit_unknown_case_error(
+    *,
+    requested_case_names: list[str],
+    unknown_cases: list[str],
+    available_case_names: list[str],
+    available_case_count: int,
+    as_json: bool,
+) -> None:
+    unique_requested_case_names = unique_case_names(requested_case_names)
+    unique_unknown_cases = unique_case_names(unknown_cases)
+    selected_case_names = [
+        case_name for case_name in unique_requested_case_names
+        if case_name in available_case_names
+    ]
+    suggested_case_names_by_input = {
+        case_name: get_close_matches(case_name, available_case_names, n=3, cutoff=0.45)
+        for case_name in unique_unknown_cases
+    }
+    if as_json:
+        print(json.dumps({
+            'ok': False,
+            'error': 'unknown-cases',
+            'message': 'onbekende regressiecase opgegeven',
+            'requested_case_names': unique_requested_case_names,
+            'requested_case_count': len(unique_requested_case_names),
+            'selected_case_names': selected_case_names,
+            'selected_case_count': len(selected_case_names),
+            'unknown_case_names': unique_unknown_cases,
+            'unknown_case_count': len(unique_unknown_cases),
+            'available_case_count': available_case_count,
+            'suggested_case_names_by_input': suggested_case_names_by_input,
+        }, ensure_ascii=False, indent=2))
+        return
+    if selected_case_names:
+        print(
+            'geldige regressiecases in dezelfde aanvraag: ' + ', '.join(selected_case_names),
+            file=sys.stderr,
+        )
+    for case_name in unique_unknown_cases:
+        print(f'onbekende regressiecase: {case_name}', file=sys.stderr)
+        suggestions = suggested_case_names_by_input.get(case_name) or []
+        if suggestions:
+            print(
+                '  suggesties: ' + ', '.join(suggestions),
+                file=sys.stderr,
+            )
+
+
 DEFAULT_CASES = [
     {
         'name': 'real-run-2026-04-14-0902-failed-summary',
@@ -4919,6 +4981,14 @@ def evaluate_watchdog_alert_consumer_format_passthrough_case():
 def evaluate_list_cases_output_case():
     failures = []
     audit_bits: list[str] = []
+    filtered_case_names = [
+        'watchdog-alert-consumer-format-passthrough',
+        'watchdog-consumer-format-passthrough',
+    ]
+    unknown_case_name = 'definitely-not-a-real-regression-case'
+    suggested_unknown_case_name = 'regression-check-list-case-output'
+    expected_suggested_case_name = 'regression-check-list-cases-output'
+    sorted_filtered_case_names = sorted(filtered_case_names)
 
     plain_proc = subprocess.run(
         ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases'],
@@ -4938,10 +5008,7 @@ def evaluate_list_cases_output_case():
         failures.append('plain --list-cases hoort alfabetisch gesorteerd te zijn')
     if len(plain_lines) != len(set(plain_lines)):
         failures.append('plain --list-cases hoort geen dubbele casenamen te bevatten')
-    for expected_case_name in [
-        'watchdog-consumer-format-passthrough',
-        'watchdog-alert-consumer-format-passthrough',
-    ]:
+    for expected_case_name in filtered_case_names:
         if expected_case_name not in plain_lines:
             failures.append(f'plain --list-cases mist verwachte casenaam {expected_case_name}')
 
@@ -4982,6 +5049,410 @@ def evaluate_list_cases_output_case():
             failures.append(f"json --list-cases ok verwacht True, kreeg {json_payload.get('ok')}")
         if json_payload.get('selected_case_names') != plain_lines:
             failures.append('json --list-cases selected_case_names hoort de uitgegeven casenamen te weerspiegelen')
+
+    filtered_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
+            '--case', filtered_case_names[0], '--case', filtered_case_names[1],
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if filtered_plain_proc.returncode != 0:
+        failures.append(
+            'plain --list-cases met --case exitcode verwacht 0, kreeg '
+            f'{filtered_plain_proc.returncode}'
+        )
+    filtered_plain_lines = [line.strip() for line in filtered_plain_proc.stdout.splitlines() if line.strip()]
+    audit_bits.append('filtered-plain=' + ', '.join(filtered_plain_lines))
+    if filtered_plain_lines != sorted_filtered_case_names:
+        failures.append(
+            'plain --list-cases met --case hoort alleen de gevraagde casenamen alfabetisch terug te geven'
+        )
+
+    filtered_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
+            '--case', filtered_case_names[0], '--case', filtered_case_names[1],
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if filtered_json_proc.returncode != 0:
+        failures.append(
+            'json --list-cases met --case exitcode verwacht 0, kreeg '
+            f'{filtered_json_proc.returncode}'
+        )
+
+    filtered_json_payload = {}
+    filtered_json_stdout = filtered_json_proc.stdout.strip() or filtered_json_proc.stderr.strip()
+    if not filtered_json_stdout:
+        failures.append('json --list-cases met --case gaf geen output')
+    else:
+        try:
+            filtered_json_payload = json.loads(filtered_json_stdout)
+            audit_bits.append('filtered-json=' + json.dumps(filtered_json_payload, ensure_ascii=False))
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json --list-cases met --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if filtered_json_payload:
+        filtered_listed_cases = filtered_json_payload.get('cases')
+        if filtered_listed_cases != sorted_filtered_case_names:
+            failures.append(
+                'json --list-cases met --case cases hoort exact de gevraagde alfabetische subset te geven'
+            )
+        if filtered_json_payload.get('selected_case_names') != sorted_filtered_case_names:
+            failures.append(
+                'json --list-cases met --case selected_case_names hoort exact de gevraagde subset te spiegelen'
+            )
+        if filtered_json_payload.get('case_count') != len(sorted_filtered_case_names):
+            failures.append(
+                'json --list-cases met --case case_count verwacht '
+                f"{len(sorted_filtered_case_names)}, kreeg {filtered_json_payload.get('case_count')}"
+            )
+        if filtered_json_payload.get('ok') is not True:
+            failures.append(
+                f"json --list-cases met --case ok verwacht True, kreeg {filtered_json_payload.get('ok')}"
+            )
+
+    duplicate_filtered_case_names = [
+        filtered_case_names[0],
+        filtered_case_names[1],
+        filtered_case_names[0],
+    ]
+    duplicate_expected_case_names = sorted_filtered_case_names
+
+    duplicate_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
+            '--case', duplicate_filtered_case_names[0],
+            '--case', duplicate_filtered_case_names[1],
+            '--case', duplicate_filtered_case_names[2],
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if duplicate_plain_proc.returncode != 0:
+        failures.append(
+            'plain --list-cases met dubbele --case exitcode verwacht 0, kreeg '
+            f'{duplicate_plain_proc.returncode}'
+        )
+    duplicate_plain_lines = [line.strip() for line in duplicate_plain_proc.stdout.splitlines() if line.strip()]
+    audit_bits.append('duplicate-filtered-plain=' + ', '.join(duplicate_plain_lines))
+    if duplicate_plain_lines != duplicate_expected_case_names:
+        failures.append(
+            'plain --list-cases met dubbele --case hoort dubbele invoer te dedupliceren'
+        )
+
+    duplicate_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
+            '--case', duplicate_filtered_case_names[0],
+            '--case', duplicate_filtered_case_names[1],
+            '--case', duplicate_filtered_case_names[2],
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if duplicate_json_proc.returncode != 0:
+        failures.append(
+            'json --list-cases met dubbele --case exitcode verwacht 0, kreeg '
+            f'{duplicate_json_proc.returncode}'
+        )
+
+    duplicate_json_payload = {}
+    duplicate_json_stdout = duplicate_json_proc.stdout.strip() or duplicate_json_proc.stderr.strip()
+    if not duplicate_json_stdout:
+        failures.append('json --list-cases met dubbele --case gaf geen output')
+    else:
+        try:
+            duplicate_json_payload = json.loads(duplicate_json_stdout)
+            audit_bits.append('duplicate-filtered-json=' + json.dumps(duplicate_json_payload, ensure_ascii=False))
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json --list-cases met dubbele --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if duplicate_json_payload:
+        if duplicate_json_payload.get('cases') != duplicate_expected_case_names:
+            failures.append(
+                'json --list-cases met dubbele --case cases hoort dubbele invoer te dedupliceren'
+            )
+        if duplicate_json_payload.get('selected_case_names') != duplicate_expected_case_names:
+            failures.append(
+                'json --list-cases met dubbele --case selected_case_names hoort dubbele invoer te dedupliceren'
+            )
+        if duplicate_json_payload.get('case_count') != len(duplicate_expected_case_names):
+            failures.append(
+                'json --list-cases met dubbele --case case_count verwacht '
+                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_json_payload.get('case_count')}"
+            )
+        if duplicate_json_payload.get('ok') is not True:
+            failures.append(
+                f"json --list-cases met dubbele --case ok verwacht True, kreeg {duplicate_json_payload.get('ok')}"
+            )
+
+    duplicate_run_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
+            '--case', duplicate_filtered_case_names[0],
+            '--case', duplicate_filtered_case_names[1],
+            '--case', duplicate_filtered_case_names[2],
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if duplicate_run_proc.returncode != 0:
+        failures.append(
+            'json regressierun met dubbele --case exitcode verwacht 0, kreeg '
+            f'{duplicate_run_proc.returncode}'
+        )
+
+    duplicate_run_payload = {}
+    duplicate_run_stdout = duplicate_run_proc.stdout.strip() or duplicate_run_proc.stderr.strip()
+    if not duplicate_run_stdout:
+        failures.append('json regressierun met dubbele --case gaf geen output')
+    else:
+        try:
+            duplicate_run_payload = json.loads(duplicate_run_stdout)
+            audit_bits.append('duplicate-run-json=' + json.dumps(duplicate_run_payload, ensure_ascii=False))
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json regressierun met dubbele --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if duplicate_run_payload:
+        if duplicate_run_payload.get('case_count') != len(duplicate_expected_case_names):
+            failures.append(
+                'json regressierun met dubbele --case case_count verwacht '
+                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_run_payload.get('case_count')}"
+            )
+        result_names = [result.get('name') for result in duplicate_run_payload.get('cases') or []]
+        if len(result_names) != len(duplicate_expected_case_names) or len(result_names) != len(set(result_names)):
+            failures.append(
+                'json regressierun met dubbele --case hoort elke case hooguit één keer uit te voeren'
+            )
+        if duplicate_run_payload.get('selected_case_names') != duplicate_expected_case_names:
+            failures.append(
+                'json regressierun met dubbele --case selected_case_names hoort de unieke invoervolgorde te spiegelen'
+            )
+        if duplicate_run_payload.get('failed_count') != 0 or duplicate_run_payload.get('ok') is not True:
+            failures.append('json regressierun met dubbele --case hoort groen te blijven voor dezelfde unieke subset')
+
+    unknown_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            '--case', unknown_case_name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if unknown_plain_proc.returncode != 2:
+        failures.append(
+            f'plain onbekende --case exitcode verwacht 2, kreeg {unknown_plain_proc.returncode}'
+        )
+    if f'onbekende regressiecase: {unknown_case_name}' not in (unknown_plain_proc.stderr or ''):
+        failures.append('plain onbekende --case hoort een duidelijke stderr-melding te geven')
+
+    suggested_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            '--case', suggested_unknown_case_name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if suggested_plain_proc.returncode != 2:
+        failures.append(
+            f'plain onbekende typofout-case exitcode verwacht 2, kreeg {suggested_plain_proc.returncode}'
+        )
+    if expected_suggested_case_name not in (suggested_plain_proc.stderr or ''):
+        failures.append('plain onbekende typofout-case hoort een suggestie op stderr te geven')
+
+    unknown_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
+            '--case', unknown_case_name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if unknown_json_proc.returncode != 2:
+        failures.append(
+            f'json onbekende --case exitcode verwacht 2, kreeg {unknown_json_proc.returncode}'
+        )
+
+    unknown_json_payload = {}
+    unknown_json_stdout = unknown_json_proc.stdout.strip() or unknown_json_proc.stderr.strip()
+    if not unknown_json_stdout:
+        failures.append('json onbekende --case gaf geen output')
+    else:
+        try:
+            unknown_json_payload = json.loads(unknown_json_stdout)
+            audit_bits.append('unknown-json=' + json.dumps(unknown_json_payload, ensure_ascii=False))
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json onbekende --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if unknown_json_payload:
+        if unknown_json_payload.get('ok') is not False:
+            failures.append(f"json onbekende --case ok verwacht False, kreeg {unknown_json_payload.get('ok')}")
+        if unknown_json_payload.get('error') != 'unknown-cases':
+            failures.append(
+                'json onbekende --case error verwacht unknown-cases, kreeg '
+                f"{unknown_json_payload.get('error')}"
+            )
+        if unknown_json_payload.get('requested_case_names') != [unknown_case_name]:
+            failures.append('json onbekende --case requested_case_names hoort de opgegeven invoer te spiegelen')
+        if unknown_json_payload.get('requested_case_count') != 1:
+            failures.append(
+                'json onbekende --case requested_case_count verwacht 1, kreeg '
+                f"{unknown_json_payload.get('requested_case_count')}"
+            )
+        if unknown_json_payload.get('selected_case_names') != []:
+            failures.append('json onbekende --case selected_case_names hoort leeg te zijn zonder geldige matches')
+        if unknown_json_payload.get('selected_case_count') != 0:
+            failures.append(
+                'json onbekende --case selected_case_count verwacht 0, kreeg '
+                f"{unknown_json_payload.get('selected_case_count')}"
+            )
+        if unknown_json_payload.get('unknown_case_names') != [unknown_case_name]:
+            failures.append('json onbekende --case unknown_case_names hoort de onbekende invoer te spiegelen')
+        if unknown_json_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json onbekende --case unknown_case_count verwacht 1, kreeg '
+                f"{unknown_json_payload.get('unknown_case_count')}"
+            )
+        available_case_count = unknown_json_payload.get('available_case_count')
+        if not isinstance(available_case_count, int) or available_case_count < len(plain_lines):
+            failures.append(
+                'json onbekende --case available_case_count hoort een geldige teller van beschikbare cases te geven'
+            )
+        unknown_json_suggestions = unknown_json_payload.get('suggested_case_names_by_input')
+        if not isinstance(unknown_json_suggestions, dict):
+            failures.append('json onbekende --case suggested_case_names_by_input hoort een dict te zijn')
+        elif unknown_json_suggestions.get(unknown_case_name) != []:
+            failures.append(
+                'json onbekende --case zonder typofout hoort een lege suggestielijst te geven'
+            )
+
+    mixed_unknown_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
+            '--case', expected_case_name,
+            '--case', unknown_case_name,
+            '--case', expected_case_name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if mixed_unknown_proc.returncode != 2:
+        failures.append(
+            f'json gemengde geldige/onbekende --case exitcode verwacht 2, kreeg {mixed_unknown_proc.returncode}'
+        )
+
+    mixed_unknown_payload = {}
+    mixed_unknown_stdout = mixed_unknown_proc.stdout.strip() or mixed_unknown_proc.stderr.strip()
+    if not mixed_unknown_stdout:
+        failures.append('json gemengde geldige/onbekende --case gaf geen output')
+    else:
+        try:
+            mixed_unknown_payload = json.loads(mixed_unknown_stdout)
+            audit_bits.append('unknown-json-mixed=' + json.dumps(mixed_unknown_payload, ensure_ascii=False))
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json gemengde geldige/onbekende --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if mixed_unknown_payload:
+        if mixed_unknown_payload.get('requested_case_names') != [expected_case_name, unknown_case_name]:
+            failures.append(
+                'json gemengde geldige/onbekende --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
+            )
+        if mixed_unknown_payload.get('requested_case_count') != 2:
+            failures.append(
+                'json gemengde geldige/onbekende --case requested_case_count verwacht 2, kreeg '
+                f"{mixed_unknown_payload.get('requested_case_count')}"
+            )
+        if mixed_unknown_payload.get('selected_case_names') != [expected_case_name]:
+            failures.append(
+                'json gemengde geldige/onbekende --case selected_case_names hoort de geldige subset te bewaren'
+            )
+        if mixed_unknown_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json gemengde geldige/onbekende --case selected_case_count verwacht 1, kreeg '
+                f"{mixed_unknown_payload.get('selected_case_count')}"
+            )
+        if mixed_unknown_payload.get('unknown_case_names') != [unknown_case_name]:
+            failures.append(
+                'json gemengde geldige/onbekende --case unknown_case_names hoort alleen de onbekende subset te tonen'
+            )
+
+    suggested_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
+            '--case', suggested_unknown_case_name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if suggested_json_proc.returncode != 2:
+        failures.append(
+            f'json onbekende typofout-case exitcode verwacht 2, kreeg {suggested_json_proc.returncode}'
+        )
+
+    suggested_json_payload = {}
+    suggested_json_stdout = suggested_json_proc.stdout.strip() or suggested_json_proc.stderr.strip()
+    if not suggested_json_stdout:
+        failures.append('json onbekende typofout-case gaf geen output')
+    else:
+        try:
+            suggested_json_payload = json.loads(suggested_json_stdout)
+            audit_bits.append('unknown-json-suggested=' + json.dumps(suggested_json_payload, ensure_ascii=False))
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json onbekende typofout-case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if suggested_json_payload:
+        suggested_json_suggestions = suggested_json_payload.get('suggested_case_names_by_input')
+        if not isinstance(suggested_json_suggestions, dict):
+            failures.append('json onbekende typofout-case suggested_case_names_by_input hoort een dict te zijn')
+        else:
+            typo_suggestions = suggested_json_suggestions.get(suggested_unknown_case_name)
+            if not isinstance(typo_suggestions, list) or expected_suggested_case_name not in typo_suggestions:
+                failures.append(
+                    'json onbekende typofout-case hoort de dichtstbijzijnde casenaam voor te stellen'
+                )
 
     return {
         'name': 'regression-check-list-cases-output',
@@ -5049,12 +5520,17 @@ def main():
 
     unknown_cases = [case_name for case_name in args.case if case_name not in named_cases]
     if unknown_cases:
-        for case_name in unknown_cases:
-            print(f'onbekende regressiecase: {case_name}', file=sys.stderr)
+        emit_unknown_case_error(
+            requested_case_names=args.case,
+            unknown_cases=unknown_cases,
+            available_case_names=sorted(named_cases.keys()),
+            available_case_count=len(named_cases),
+            as_json=args.json,
+        )
         raise SystemExit(2)
 
     if args.list_cases:
-        selected_case_names = sorted(args.case or list(named_cases.keys()))
+        selected_case_names = sorted(unique_case_names(args.case or list(named_cases.keys())))
         if args.json:
             print(json.dumps({
                 'ok': True,
@@ -5067,7 +5543,7 @@ def main():
                 print(case_name)
         raise SystemExit(0)
 
-    selected_case_names = args.case or list(named_cases.keys())
+    selected_case_names = unique_case_names(args.case or list(named_cases.keys()))
     results = [named_cases[case_name]() for case_name in selected_case_names]
     overall_ok = all(result['ok'] for result in results)
     failing_results = [result for result in results if not result['ok']]
@@ -5086,6 +5562,7 @@ def main():
             'passed_count': summary['passed_count'],
             'failed_count': summary['failed_count'],
             'failing_case_names': summary['failing_case_names'],
+            'selected_case_names': selected_case_names,
             'cases': results,
             'results': results,
         }, ensure_ascii=False, indent=2))
