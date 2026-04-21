@@ -2099,6 +2099,60 @@ def is_expected_proof_freshness_wait(proof_freshness, updated_at, next_run_at, n
     return True
 
 
+def summarize_output_examples(summary_output_audit):
+    if not isinstance(summary_output_audit, dict) or not summary_output_audit.get('available'):
+        return []
+
+    examples = []
+
+    top3_invalid_source_line_examples = summary_output_audit.get('top3_invalid_source_line_examples') or []
+    if top3_invalid_source_line_examples:
+        rendered = ', '.join(
+            f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
+            for example in top3_invalid_source_line_examples[:2]
+        )
+        if rendered:
+            examples.append('top3 ongeldige Bron-regel: ' + rendered)
+
+    top3_missing_multi_domain_source_examples = summary_output_audit.get('top3_missing_multi_domain_source_examples') or []
+    if top3_missing_multi_domain_source_examples:
+        examples.append('top3 zonder multi-domein bronregel: ' + ', '.join(top3_missing_multi_domain_source_examples[:3]))
+
+    top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
+    if top3_missing_multi_source_examples:
+        examples.append('top3 zonder multi-source: ' + ', '.join(top3_missing_multi_source_examples[:3]))
+
+    top3_missing_primary_fresh_examples = summary_output_audit.get('top3_missing_primary_fresh_examples') or []
+    if top3_missing_primary_fresh_examples:
+        examples.append('top3 zonder primaire+verse combo: ' + ', '.join(top3_missing_primary_fresh_examples[:3]))
+
+    top3_missing_date_line_examples = summary_output_audit.get('top3_missing_date_line_examples') or []
+    if top3_missing_date_line_examples:
+        examples.append('top3 zonder Datum:-regel: ' + ', '.join(top3_missing_date_line_examples[:3]))
+
+    top3_missing_source_examples = summary_output_audit.get('top3_missing_source_examples') or []
+    if top3_missing_source_examples:
+        examples.append('top3 zonder bron: ' + ', '.join(top3_missing_source_examples[:3]))
+
+    items_invalid_source_line_examples = summary_output_audit.get('items_invalid_source_line_examples') or []
+    if items_invalid_source_line_examples and not top3_invalid_source_line_examples:
+        rendered = ', '.join(
+            f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
+            for example in items_invalid_source_line_examples[:2]
+        )
+        if rendered:
+            examples.append('ongeldige Bron-regel: ' + rendered)
+
+    exact_field_line_counts = summary_output_audit.get('exact_field_line_counts') or {}
+    item_count = int(summary_output_audit.get('item_count') or 0)
+    for prefix in REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES:
+        observed = int(exact_field_line_counts.get(prefix, 0) or 0)
+        if observed < item_count:
+            examples.append(f'{prefix} aanwezig op {observed}/{item_count} items')
+
+    return examples[:3]
+
+
 def audit_payload(job):
     payload = job.get('payload') or {}
     message = payload.get('message') or ''
@@ -2549,6 +2603,8 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         'runlog_audit': runlog_audit,
         'uniqueness_audit': uniqueness_audit,
         'proof_freshness': proof_freshness,
+        'proof_freshness_text': proof_freshness.get('text') or None,
+        'summary_output_examples': summarize_output_examples(last_run_output_audit),
         'expected_proof_freshness_wait': expected_proof_freshness_wait,
         'state': state,
         'created_at': created_at,

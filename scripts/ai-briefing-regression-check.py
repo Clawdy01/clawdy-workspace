@@ -2727,6 +2727,7 @@ def evaluate_status_phase_case(module, case):
 
 
 def evaluate_status_stdout_case(case):
+    expected_status = run_status_json(case['reference_ms'])
     json_proc = subprocess.run(
         ['python3', str(STATUS_SCRIPT), '--json', '--reference-ms', str(case['reference_ms'])],
         cwd=ROOT,
@@ -2784,11 +2785,34 @@ def evaluate_status_stdout_case(case):
             'proof_recheck_schedule_kind_text verwacht proof-recheck-cronstatus: ok, kreeg '
             f"{payload.get('proof_recheck_schedule_kind_text')}"
         )
+    if payload.get('proof_freshness_text') != expected_status.get('proof_freshness_text'):
+        failures.append(
+            'proof_freshness_text verwacht '
+            f"{expected_status.get('proof_freshness_text')}, kreeg {payload.get('proof_freshness_text')}"
+        )
+    if payload.get('proof_freshness_text') != ((payload.get('proof_freshness') or {}).get('text')):
+        failures.append(
+            'proof_freshness_text verwacht alias-pariteit met proof_freshness.text, kreeg '
+            f"{payload.get('proof_freshness_text')} versus {((payload.get('proof_freshness') or {}).get('text'))}"
+        )
+    if payload.get('summary_output_examples') != expected_status.get('summary_output_examples'):
+        failures.append(
+            'summary_output_examples verwacht '
+            f"{expected_status.get('summary_output_examples')}, kreeg {payload.get('summary_output_examples')}"
+        )
+    if not isinstance(payload.get('summary_output_examples'), list):
+        failures.append(
+            'summary_output_examples verwacht list, kreeg '
+            f"{type(payload.get('summary_output_examples')).__name__}"
+        )
 
     combined_text = ' || '.join(
         bit for bit in [
             payload.get('proof_recheck_schedule_text'),
             payload.get('proof_recheck_schedule_kind_text'),
+            payload.get('proof_freshness_text'),
+            ('outputvoorbeelden: ' + '; '.join((payload.get('summary_output_examples') or [])[:2]))
+            if payload.get('summary_output_examples') else None,
             payload.get('proof_next_action_window_text'),
             payload.get('proof_next_action_text'),
             text_output,
@@ -3939,6 +3963,7 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
 
 def evaluate_brief_consumer_case(case):
     script = Path(case['script'])
+    expected_status = run_status_json(case['reference_ms'])
     json_proc = subprocess.run(
         ['python3', str(script), '--json', '--reference-ms', str(case['reference_ms'])],
         cwd=ROOT,
@@ -4035,11 +4060,24 @@ def evaluate_brief_consumer_case(case):
             'ai_briefing_status.last_run_config_relation ontbreekt terwijl '
             'ai_briefing_status.last_run_config_relation_text wel gezet is'
         )
+    if ai_briefing_status.get('proof_freshness_text') != expected_status.get('proof_freshness_text'):
+        failures.append(
+            'ai_briefing_status.proof_freshness_text verwacht '
+            f"{expected_status.get('proof_freshness_text')}, kreeg {ai_briefing_status.get('proof_freshness_text')}"
+        )
+    if ai_briefing_status.get('summary_output_examples') != expected_status.get('summary_output_examples'):
+        failures.append(
+            'ai_briefing_status.summary_output_examples verwacht '
+            f"{expected_status.get('summary_output_examples')}, kreeg {ai_briefing_status.get('summary_output_examples')}"
+        )
 
     combined_text = ' || '.join(
         bit for bit in [
             ai_briefing_status.get('proof_recheck_schedule_text'),
             ai_briefing_status.get('proof_recheck_schedule_kind_text'),
+            ai_briefing_status.get('proof_freshness_text'),
+            ('outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:2]))
+            if ai_briefing_status.get('summary_output_examples') else None,
             ai_briefing_status.get('proof_plan_text'),
             ai_briefing_status.get('last_run_config_relation_text'),
             ai_briefing_status.get('proof_next_action_window_text'),
@@ -4136,6 +4174,15 @@ def evaluate_watchdog_alert_case(case):
     mode = case.get('mode', 'proof-progress')
     expect_require_qualified_runs = case.get('expect_require_qualified_runs', 3)
     expected_status = run_status_json(case['reference_ms'])
+    watchdog_json_cmd = [
+        'python3',
+        str(WATCHDOG_SCRIPT),
+        '--json',
+        '--require-qualified-runs',
+        str(expect_require_qualified_runs),
+        '--reference-ms',
+        str(case['reference_ms']),
+    ]
     json_cmd = [
         'python3',
         str(WATCHDOG_ALERT_SCRIPT),
@@ -4166,6 +4213,13 @@ def evaluate_watchdog_alert_case(case):
         text=True,
         check=False,
     )
+    watchdog_json_proc = subprocess.run(
+        watchdog_json_cmd,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     proc = subprocess.run(
         text_cmd,
         cwd=ROOT,
@@ -4176,6 +4230,7 @@ def evaluate_watchdog_alert_case(case):
 
     failures = []
     json_output = json_proc.stdout.strip() or json_proc.stderr.strip()
+    watchdog_json_output = watchdog_json_proc.stdout.strip() or watchdog_json_proc.stderr.strip()
     text_output = proc.stdout.strip() or proc.stderr.strip()
     if json_proc.returncode != 0:
         failures.append(f"json-exitcode verwacht 0, kreeg {json_proc.returncode}")
@@ -4189,6 +4244,19 @@ def evaluate_watchdog_alert_case(case):
         except json.JSONDecodeError as exc:
             failures.append(f'ongeldige JSON van ai-briefing-watchdog-alert.py: {exc}')
             payload = {}
+
+    if watchdog_json_proc.returncode not in (0, 2):
+        failures.append(f"watchdog-json-exitcode verwacht 0 of 2, kreeg {watchdog_json_proc.returncode}")
+        watchdog_payload = {}
+    elif not watchdog_json_output:
+        failures.append('geen JSON-output van ai-briefing-watchdog.py voor alert-pariteit')
+        watchdog_payload = {}
+    else:
+        try:
+            watchdog_payload = json.loads(watchdog_json_output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van ai-briefing-watchdog.py voor alert-pariteit: {exc}')
+            watchdog_payload = {}
 
     if proc.returncode != 0:
         failures.append(f"tekst-exitcode verwacht 0, kreeg {proc.returncode}")
@@ -4267,6 +4335,11 @@ def evaluate_watchdog_alert_case(case):
         failures.append('last_run_timeout_text verwacht niet-leeg runtime-headroomveld')
     if not payload.get('recent_run_duration_text'):
         failures.append('recent_run_duration_text verwacht niet-lege duurtrend')
+    if payload.get('summary_output_examples') != watchdog_payload.get('summary_output_examples'):
+        failures.append(
+            'summary_output_examples verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('summary_output_examples')} versus {watchdog_payload.get('summary_output_examples')}"
+        )
     if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=0, kanalen=0':
         failures.append(
             'consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=0, kanalen=0, kreeg '
@@ -4335,6 +4408,11 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'consumer board-json recent_run_duration_text verwacht pariteit met stdout-json, kreeg '
                     f"{board_payload.get('recent_run_duration_text')} versus {payload.get('recent_run_duration_text')}"
+                )
+            if board_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
+                failures.append(
+                    'consumer board-json summary_output_examples verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('summary_output_examples')} versus {payload.get('summary_output_examples')}"
                 )
             requested_outputs = board_payload.get('consumer_requested_outputs') or []
             requested_channels = [item.get('channel') for item in requested_outputs]
@@ -4448,6 +4526,11 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl recent_run_duration_text verwacht pariteit met stdout-json, kreeg '
                             f"{eventlog_payload.get('recent_run_duration_text')} versus {payload.get('recent_run_duration_text')}"
+                        )
+                    if eventlog_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
+                        failures.append(
+                            'consumer eventlog-jsonl summary_output_examples verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('summary_output_examples')} versus {payload.get('summary_output_examples')}"
                         )
                     if eventlog_payload.get('no_reply') is not case.get('expect_no_reply', False):
                         failures.append(
