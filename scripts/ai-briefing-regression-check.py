@@ -91,6 +91,7 @@ def emit_unknown_case_error(
             'selected_case_count': len(selected_case_names),
             'unknown_case_names': unique_unknown_cases,
             'unknown_case_count': len(unique_unknown_cases),
+            'available_case_names': available_case_names,
             'available_case_count': available_case_count,
             'suggested_case_names_by_input': suggested_case_names_by_input,
         }, ensure_ascii=False, indent=2))
@@ -5045,8 +5046,20 @@ def evaluate_list_cases_output_case():
                     'json --list-cases case_count verwacht '
                     f"{len(listed_cases)}, kreeg {json_payload.get('case_count')}"
                 )
+            if json_payload.get('selected_case_count') != len(listed_cases):
+                failures.append(
+                    'json --list-cases selected_case_count verwacht '
+                    f"{len(listed_cases)}, kreeg {json_payload.get('selected_case_count')}"
+                )
         if json_payload.get('ok') is not True:
             failures.append(f"json --list-cases ok verwacht True, kreeg {json_payload.get('ok')}")
+        if json_payload.get('requested_case_names') != []:
+            failures.append('json --list-cases requested_case_names hoort leeg te zijn zonder gerichte selectie')
+        if json_payload.get('requested_case_count') != 0:
+            failures.append(
+                'json --list-cases requested_case_count verwacht 0, kreeg '
+                f"{json_payload.get('requested_case_count')}"
+            )
         if json_payload.get('selected_case_names') != plain_lines:
             failures.append('json --list-cases selected_case_names hoort de uitgegeven casenamen te weerspiegelen')
 
@@ -5108,9 +5121,23 @@ def evaluate_list_cases_output_case():
             failures.append(
                 'json --list-cases met --case cases hoort exact de gevraagde alfabetische subset te geven'
             )
+        if filtered_json_payload.get('requested_case_names') != filtered_case_names:
+            failures.append(
+                'json --list-cases met --case requested_case_names hoort de opgegeven invoervolgorde te spiegelen'
+            )
+        if filtered_json_payload.get('requested_case_count') != len(filtered_case_names):
+            failures.append(
+                'json --list-cases met --case requested_case_count verwacht '
+                f"{len(filtered_case_names)}, kreeg {filtered_json_payload.get('requested_case_count')}"
+            )
         if filtered_json_payload.get('selected_case_names') != sorted_filtered_case_names:
             failures.append(
                 'json --list-cases met --case selected_case_names hoort exact de gevraagde subset te spiegelen'
+            )
+        if filtered_json_payload.get('selected_case_count') != len(sorted_filtered_case_names):
+            failures.append(
+                'json --list-cases met --case selected_case_count verwacht '
+                f"{len(sorted_filtered_case_names)}, kreeg {filtered_json_payload.get('selected_case_count')}"
             )
         if filtered_json_payload.get('case_count') != len(sorted_filtered_case_names):
             failures.append(
@@ -5190,9 +5217,23 @@ def evaluate_list_cases_output_case():
             failures.append(
                 'json --list-cases met dubbele --case cases hoort dubbele invoer te dedupliceren'
             )
+        if duplicate_json_payload.get('requested_case_names') != duplicate_expected_case_names:
+            failures.append(
+                'json --list-cases met dubbele --case requested_case_names hoort dubbele invoer te dedupliceren'
+            )
+        if duplicate_json_payload.get('requested_case_count') != len(duplicate_expected_case_names):
+            failures.append(
+                'json --list-cases met dubbele --case requested_case_count verwacht '
+                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_json_payload.get('requested_case_count')}"
+            )
         if duplicate_json_payload.get('selected_case_names') != duplicate_expected_case_names:
             failures.append(
                 'json --list-cases met dubbele --case selected_case_names hoort dubbele invoer te dedupliceren'
+            )
+        if duplicate_json_payload.get('selected_case_count') != len(duplicate_expected_case_names):
+            failures.append(
+                'json --list-cases met dubbele --case selected_case_count verwacht '
+                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_json_payload.get('selected_case_count')}"
             )
         if duplicate_json_payload.get('case_count') != len(duplicate_expected_case_names):
             failures.append(
@@ -5237,6 +5278,15 @@ def evaluate_list_cases_output_case():
             )
 
     if duplicate_run_payload:
+        if duplicate_run_payload.get('requested_case_names') != duplicate_expected_case_names:
+            failures.append(
+                'json regressierun met dubbele --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
+            )
+        if duplicate_run_payload.get('requested_case_count') != len(duplicate_expected_case_names):
+            failures.append(
+                'json regressierun met dubbele --case requested_case_count verwacht '
+                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_run_payload.get('requested_case_count')}"
+            )
         if duplicate_run_payload.get('case_count') != len(duplicate_expected_case_names):
             failures.append(
                 'json regressierun met dubbele --case case_count verwacht '
@@ -5250,6 +5300,11 @@ def evaluate_list_cases_output_case():
         if duplicate_run_payload.get('selected_case_names') != duplicate_expected_case_names:
             failures.append(
                 'json regressierun met dubbele --case selected_case_names hoort de unieke invoervolgorde te spiegelen'
+            )
+        if duplicate_run_payload.get('selected_case_count') != len(duplicate_expected_case_names):
+            failures.append(
+                'json regressierun met dubbele --case selected_case_count verwacht '
+                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_run_payload.get('selected_case_count')}"
             )
         if duplicate_run_payload.get('failed_count') != 0 or duplicate_run_payload.get('ok') is not True:
             failures.append('json regressierun met dubbele --case hoort groen te blijven voor dezelfde unieke subset')
@@ -5346,10 +5401,15 @@ def evaluate_list_cases_output_case():
                 'json onbekende --case unknown_case_count verwacht 1, kreeg '
                 f"{unknown_json_payload.get('unknown_case_count')}"
             )
-        available_case_count = unknown_json_payload.get('available_case_count')
-        if not isinstance(available_case_count, int) or available_case_count < len(plain_lines):
+        available_case_names = unknown_json_payload.get('available_case_names')
+        if available_case_names != plain_lines:
             failures.append(
-                'json onbekende --case available_case_count hoort een geldige teller van beschikbare cases te geven'
+                'json onbekende --case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        available_case_count = unknown_json_payload.get('available_case_count')
+        if available_case_count != len(plain_lines):
+            failures.append(
+                'json onbekende --case available_case_count hoort exact de volledige caseteller te geven'
             )
         unknown_json_suggestions = unknown_json_payload.get('suggested_case_names_by_input')
         if not isinstance(unknown_json_suggestions, dict):
@@ -5413,6 +5473,14 @@ def evaluate_list_cases_output_case():
             failures.append(
                 'json gemengde geldige/onbekende --case unknown_case_names hoort alleen de onbekende subset te tonen'
             )
+        if mixed_unknown_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json gemengde geldige/onbekende --case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if mixed_unknown_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json gemengde geldige/onbekende --case available_case_count hoort exact de volledige caseteller te geven'
+            )
 
     suggested_json_proc = subprocess.run(
         [
@@ -5444,6 +5512,14 @@ def evaluate_list_cases_output_case():
             )
 
     if suggested_json_payload:
+        if suggested_json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json onbekende typofout-case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if suggested_json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json onbekende typofout-case available_case_count hoort exact de volledige caseteller te geven'
+            )
         suggested_json_suggestions = suggested_json_payload.get('suggested_case_names_by_input')
         if not isinstance(suggested_json_suggestions, dict):
             failures.append('json onbekende typofout-case suggested_case_names_by_input hoort een dict te zijn')
@@ -5530,19 +5606,24 @@ def main():
         raise SystemExit(2)
 
     if args.list_cases:
+        requested_case_names = unique_case_names(args.case)
         selected_case_names = sorted(unique_case_names(args.case or list(named_cases.keys())))
         if args.json:
             print(json.dumps({
                 'ok': True,
+                'requested_case_names': requested_case_names,
+                'requested_case_count': len(requested_case_names),
                 'case_count': len(selected_case_names),
                 'cases': selected_case_names,
                 'selected_case_names': selected_case_names,
+                'selected_case_count': len(selected_case_names),
             }, ensure_ascii=False, indent=2))
         else:
             for case_name in selected_case_names:
                 print(case_name)
         raise SystemExit(0)
 
+    requested_case_names = unique_case_names(args.case)
     selected_case_names = unique_case_names(args.case or list(named_cases.keys()))
     results = [named_cases[case_name]() for case_name in selected_case_names]
     overall_ok = all(result['ok'] for result in results)
@@ -5558,11 +5639,14 @@ def main():
         print(json.dumps({
             'ok': overall_ok,
             'summary': summary,
+            'requested_case_names': requested_case_names,
+            'requested_case_count': len(requested_case_names),
             'case_count': summary['case_count'],
             'passed_count': summary['passed_count'],
             'failed_count': summary['failed_count'],
             'failing_case_names': summary['failing_case_names'],
             'selected_case_names': selected_case_names,
+            'selected_case_count': len(selected_case_names),
             'cases': results,
             'results': results,
         }, ensure_ascii=False, indent=2))
