@@ -1991,6 +1991,8 @@ PROOF_RECHECK_CASES = [
             'proof-recheck-cronstatus: ok',
             f'config {CURRENT_PROOF_CONFIG_HASH}',
             'laatste run hoorde nog bij de vorige config',
+            'timeout-speling',
+            'recente duurtrend',
         ],
         'expect_plain_not_substrings': [
             '| 2026-04-21 09:15 CEST |',
@@ -2031,6 +2033,8 @@ PROOF_RECHECK_CASES = [
             'proof-recheck-cronstatus: ok',
             f'config {CURRENT_PROOF_CONFIG_HASH}',
             'laatste run hoorde nog bij de vorige config',
+            'timeout-speling',
+            'recente duurtrend',
         ],
         'expect_plain_not_substrings': [
             '| 2026-04-21 09:15 CEST |',
@@ -2071,6 +2075,8 @@ PROOF_RECHECK_CASES = [
             'proof-recheck-cronstatus: ok',
             f'config {CURRENT_PROOF_CONFIG_HASH}',
             'laatste run hoorde nog bij de vorige config',
+            'timeout-speling',
+            'recente duurtrend',
         ],
         'expect_plain_not_substrings': [
             '| 2026-04-21 09:15 CEST |',
@@ -3123,6 +3129,16 @@ def evaluate_watchdog_stdout_case(case):
         failures.append('last_run_timeout_text verwacht niet-leeg runtime-headroomveld in watchdog-json')
     if not payload.get('recent_run_duration_text'):
         failures.append('recent_run_duration_text verwacht niet-lege duurtrend in watchdog-json')
+    if payload.get('summary_output_examples') != expected_status.get('summary_output_examples'):
+        failures.append(
+            'summary_output_examples verwacht '
+            f"{expected_status.get('summary_output_examples')}, kreeg {payload.get('summary_output_examples')}"
+        )
+    if not isinstance(payload.get('summary_output_examples'), list):
+        failures.append(
+            'summary_output_examples verwacht list, kreeg '
+            f"{type(payload.get('summary_output_examples')).__name__}"
+        )
 
     if payload.get('proof_freshness_text') and payload['proof_freshness_text'] not in text_output:
         failures.append(
@@ -3154,6 +3170,15 @@ def evaluate_watchdog_stdout_case(case):
             'watchdog-stdout-tekst mist recent_run_duration_text uit stdout-json: '
             f"{payload.get('recent_run_duration_text')}"
         )
+    watchdog_example_text = (
+        'proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2])
+        if payload.get('summary_output_examples') else None
+    )
+    if watchdog_example_text and watchdog_example_text not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist summary_output_examples uit stdout-json: '
+            f'{watchdog_example_text}'
+        )
 
     combined_text = ' || '.join(
         bit for bit in [
@@ -3165,6 +3190,8 @@ def evaluate_watchdog_stdout_case(case):
             payload.get('last_run_config_relation_text'),
             payload.get('last_run_timeout_text'),
             payload.get('recent_run_duration_text'),
+            ('proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2]))
+            if payload.get('summary_output_examples') else None,
             payload.get('proof_next_action_window_text'),
             payload.get('proof_next_action_text'),
             text_output,
@@ -3595,6 +3622,8 @@ def evaluate_proof_recheck_case(case):
             payload.get('proof_state_text'),
             payload.get('proof_config_identity_text'),
             payload.get('last_run_config_relation_text'),
+            payload.get('last_run_timeout_text'),
+            payload.get('recent_run_duration_text'),
             payload.get('proof_blocker_text'),
             payload.get('proof_next_action_text'),
             payload.get('proof_next_action_window_text'),
@@ -3606,6 +3635,8 @@ def evaluate_proof_recheck_case(case):
         if bit
     )
     for snippet in case.get('expect_substrings', []):
+        if not snippet:
+            continue
         if snippet not in combined_text:
             failures.append(f"verwachte proof-recheck-tekst ontbreekt: {snippet}")
         if text_output and snippet not in text_output:
@@ -4681,6 +4712,8 @@ def evaluate_brief_consumer_case(case):
             ai_briefing_status.get('proof_plan_text'),
             ai_briefing_status.get('proof_config_identity_text'),
             ai_briefing_status.get('last_run_config_relation_text'),
+            ai_briefing_status.get('last_run_timeout_text'),
+            ai_briefing_status.get('recent_run_duration_text'),
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
             text_output,
@@ -4716,6 +4749,16 @@ def evaluate_brief_consumer_case(case):
         failures.append(
             'brief-consumer-tekst mist summary_output_examples uit ai_briefing_status: '
             f'{brief_example_text}'
+        )
+    if ai_briefing_status.get('last_run_timeout_text') and ai_briefing_status['last_run_timeout_text'] not in text_output:
+        failures.append(
+            'brief-consumer-tekst mist last_run_timeout_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('last_run_timeout_text')}"
+        )
+    if ai_briefing_status.get('recent_run_duration_text') and ai_briefing_status['recent_run_duration_text'] not in text_output:
+        failures.append(
+            'brief-consumer-tekst mist recent_run_duration_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('recent_run_duration_text')}"
         )
 
     return {

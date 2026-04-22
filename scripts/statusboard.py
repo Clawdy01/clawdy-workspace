@@ -209,6 +209,10 @@ def render_text(data, show_preview=False):
             ai_bits.append(ai_briefing_status['proof_countdown_text'])
         elif ai_briefing_status.get('proof_target_run_slots_context_text'):
             ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_context_text']}")
+        if ai_briefing_status.get('last_run_timeout_text'):
+            ai_bits.append(ai_briefing_status['last_run_timeout_text'])
+        if ai_briefing_status.get('recent_run_duration_text'):
+            ai_bits.append(ai_briefing_status['recent_run_duration_text'])
         elif ai_briefing_status.get('proof_target_run_slots_text'):
             ai_bits.append(f"kwalificatie-slots {ai_briefing_status['proof_target_run_slots_text']}")
         if ai_briefing_status.get('proof_target_check_gate_text'):
