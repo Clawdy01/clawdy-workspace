@@ -1892,6 +1892,14 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'name': 'status-summary-audit-cli-keeps-runtime-metadata',
         'path': ROOT / 'tmp' / 'ai-briefing-format-compliant-sample.txt',
     },
+    {
+        'name': 'status-summary-audit-cli-keeps-invalid-source-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-invalid-bron-with-urls-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-field-order-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-label-order-mismatch-sample.txt',
+    },
 ]
 
 PROOF_RECHECK_CASES = [
