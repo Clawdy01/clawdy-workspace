@@ -3598,6 +3598,16 @@ def evaluate_proof_recheck_producer_case(case):
         for snippet in case.get('expect_quiet_absent_substrings', []):
             if snippet in quiet_text:
                 failures.append(f"producer-quiet-tekst had juist moeten ontbreken: {snippet}")
+        if overall.get('proof_config_identity_text') and overall['proof_config_identity_text'] not in quiet_text:
+            failures.append(
+                'producer-quiet-tekst mist proof_config_identity_text uit overall/stdout-json: '
+                f"{overall.get('proof_config_identity_text')}"
+            )
+        if overall.get('last_run_config_relation_text') and overall['last_run_config_relation_text'] not in quiet_text:
+            failures.append(
+                'producer-quiet-tekst mist last_run_config_relation_text uit overall/stdout-json: '
+                f"{overall.get('last_run_config_relation_text')}"
+            )
         if overall.get('proof_freshness_text') and overall['proof_freshness_text'] not in quiet_text:
             failures.append(
                 'producer-quiet-tekst mist proof_freshness_text uit overall/stdout-json: '
@@ -4039,6 +4049,16 @@ def evaluate_proof_recheck_producer_case(case):
                     failures.append(
                         f"{label} proof_state verwacht {case['expect_proof_state']}, kreeg {artifact_payload.get('proof_state')}"
                     )
+                if artifact_payload.get('proof_config_identity_text') != overall.get('proof_config_identity_text'):
+                    failures.append(
+                        f'{label} proof_config_identity_text verwacht pariteit met overall/stdout-json {overall.get("proof_config_identity_text")}, kreeg '
+                        f"{artifact_payload.get('proof_config_identity_text')}"
+                    )
+                if artifact_payload.get('last_run_config_relation_text') != overall.get('last_run_config_relation_text'):
+                    failures.append(
+                        f'{label} last_run_config_relation_text verwacht pariteit met overall/stdout-json {overall.get("last_run_config_relation_text")}, kreeg '
+                        f"{artifact_payload.get('last_run_config_relation_text')}"
+                    )
                 if artifact_payload.get('proof_freshness_text') != overall.get('proof_freshness_text'):
                     failures.append(
                         f'{label} proof_freshness_text verwacht pariteit met overall/stdout-json {overall.get("proof_freshness_text")}, kreeg '
@@ -4059,6 +4079,16 @@ def evaluate_proof_recheck_producer_case(case):
             'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2])
             if overall.get('summary_output_examples') else None
         )
+        if overall.get('proof_config_identity_text') and overall['proof_config_identity_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_config_identity_text uit overall/stdout-json: '
+                f"{overall.get('proof_config_identity_text')}"
+            )
+        if overall.get('last_run_config_relation_text') and overall['last_run_config_relation_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist last_run_config_relation_text uit overall/stdout-json: '
+                f"{overall.get('last_run_config_relation_text')}"
+            )
         if overall.get('proof_freshness_text') and overall['proof_freshness_text'] not in artifact_text:
             failures.append(
                 'board-text-artifact mist proof_freshness_text uit overall/stdout-json: '
@@ -4081,6 +4111,8 @@ def evaluate_proof_recheck_producer_case(case):
                 artifact_text,
                 json.dumps(artifact_json_payload, ensure_ascii=False) if artifact_json_payload else '',
                 json.dumps(artifact_jsonl_payload, ensure_ascii=False) if artifact_jsonl_payload else '',
+                overall.get('proof_config_identity_text') or '',
+                overall.get('last_run_config_relation_text') or '',
                 overall.get('proof_freshness_text') or '',
                 overall.get('proof_plan_text') or '',
                 text_artifact_examples_text or '',
@@ -4652,6 +4684,11 @@ def evaluate_watchdog_alert_case(case):
             'proof_plan_text verwacht passthrough uit watchdog-json, kreeg '
             f"{payload.get('proof_plan_text')} versus {watchdog_payload.get('proof_plan_text')}"
         )
+    if payload.get('proof_config_identity_text') != watchdog_payload.get('proof_config_identity_text'):
+        failures.append(
+            'proof_config_identity_text verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('proof_config_identity_text')} versus {watchdog_payload.get('proof_config_identity_text')}"
+        )
     if payload.get('summary_output_examples') != watchdog_payload.get('summary_output_examples'):
         failures.append(
             'summary_output_examples verwacht passthrough uit watchdog-json, kreeg '
@@ -4710,6 +4747,17 @@ def evaluate_watchdog_alert_case(case):
                     'watchdog-alert alert_text mist proof_plan_text uit stdout-json: '
                     f"{payload.get('proof_plan_text')}"
                 )
+        if payload.get('proof_config_identity_text'):
+            if payload['proof_config_identity_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_config_identity_text uit stdout-json: '
+                    f"{payload.get('proof_config_identity_text')}"
+                )
+            if payload['proof_config_identity_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_config_identity_text uit stdout-json: '
+                    f"{payload.get('proof_config_identity_text')}"
+                )
 
     if consumer_bundle and consumer_root is not None:
         board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
@@ -4758,6 +4806,11 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'consumer board-json proof_plan_text verwacht pariteit met stdout-json, kreeg '
                     f"{board_payload.get('proof_plan_text')} versus {payload.get('proof_plan_text')}"
+                )
+            if board_payload.get('proof_config_identity_text') != payload.get('proof_config_identity_text'):
+                failures.append(
+                    'consumer board-json proof_config_identity_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('proof_config_identity_text')} versus {payload.get('proof_config_identity_text')}"
                 )
             if board_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
                 failures.append(
@@ -4886,6 +4939,11 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl proof_plan_text verwacht pariteit met stdout-json, kreeg '
                             f"{eventlog_payload.get('proof_plan_text')} versus {payload.get('proof_plan_text')}"
+                        )
+                    if eventlog_payload.get('proof_config_identity_text') != payload.get('proof_config_identity_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl proof_config_identity_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('proof_config_identity_text')} versus {payload.get('proof_config_identity_text')}"
                         )
                     if eventlog_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
                         failures.append(
