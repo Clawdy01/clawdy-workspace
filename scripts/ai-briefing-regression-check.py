@@ -6109,6 +6109,10 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
             except json.JSONDecodeError:
                 pass
             for field_name in [
+                'proof_wait_until_text',
+                'proof_wait_until_reason_text',
+                'proof_blocker_text',
+                'proof_recheck_window_text',
                 'proof_config_identity_text',
                 'last_run_config_relation_text',
                 'last_run_timeout_text',
@@ -6172,6 +6176,10 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                         'json-artifact verwacht proof_waiting_for_next_scheduled_run=True voor deze wachtfase'
                     )
                 for field_name in [
+                    'proof_wait_until_text',
+                    'proof_wait_until_reason_text',
+                    'proof_blocker_text',
+                    'proof_recheck_window_text',
                     'proof_config_identity_text',
                     'last_run_config_relation_text',
                     'last_run_timeout_text',
@@ -6253,6 +6261,11 @@ def evaluate_watchdog_consumer_format_passthrough_case():
             except json.JSONDecodeError as exc:
                 failures.append(f'json-stdout watchdog hoort JSON te blijven, kreeg parsefout: {exc}')
 
+        if json_payload and (json_payload.get('consumer_requested_outputs') or [{}])[0].get('format') != 'text':
+            failures.append(
+                'json-stdout watchdog consumer_requested_outputs[0].format verwacht text, kreeg '
+                f"{(json_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
+            )
         if json_payload and json_payload.get('proof_waiting_for_next_scheduled_run') is not True:
             failures.append(
                 'json-stdout watchdog verwacht proof_waiting_for_next_scheduled_run=True voor deze wachtfase'
@@ -6269,6 +6282,19 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                 failures.append('tekstartifact hoort geen JSON te zijn wanneer --consumer-format text is gebruikt')
             except json.JSONDecodeError:
                 pass
+            for field_name in [
+                'proof_wait_until_text',
+                'proof_wait_until_reason_text',
+                'proof_blocker_text',
+                'proof_next_action_window_text',
+                'proof_recheck_schedule_kind_text',
+                'proof_recheck_schedule_text',
+            ]:
+                field_value = json_payload.get(field_name)
+                if field_value and field_value not in artifact_text:
+                    failures.append(
+                        f'tekstartifact mist {field_name} uit stdout-json: {field_value}'
+                    )
 
         json_artifact = Path(temp_dir) / 'watchdog-json.json'
         text_stdout_proc = subprocess.run(
@@ -6306,6 +6332,11 @@ def evaluate_watchdog_consumer_format_passthrough_case():
             try:
                 artifact_payload = json.loads(json_artifact.read_text(encoding='utf-8'))
                 audit_bits.append(json.dumps(artifact_payload, ensure_ascii=False))
+                if (artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format') != 'json':
+                    failures.append(
+                        'json-artifact consumer_requested_outputs[0].format verwacht json, kreeg '
+                        f"{(artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
+                    )
                 if artifact_payload.get('proof_waiting_for_next_scheduled_run') is not True:
                     failures.append(
                         'json-artifact verwacht proof_waiting_for_next_scheduled_run=True voor deze wachtfase'
@@ -6315,6 +6346,31 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                         'json-artifact proof_recheck_schedule_kind verwacht ok, kreeg '
                         f"{artifact_payload.get('proof_recheck_schedule_kind')}"
                     )
+                for field_name in [
+                    'proof_wait_until_text',
+                    'proof_wait_until_reason_text',
+                    'proof_blocker_text',
+                    'proof_recheck_window_text',
+                    'proof_recheck_schedule_kind_text',
+                    'proof_recheck_schedule_text',
+                ]:
+                    if artifact_payload.get(field_name) != json_payload.get(field_name):
+                        failures.append(
+                            f'json-artifact {field_name} verwacht {json_payload.get(field_name)}, kreeg {artifact_payload.get(field_name)}'
+                        )
+                for field_name in [
+                    'proof_wait_until_text',
+                    'proof_wait_until_reason_text',
+                    'proof_blocker_text',
+                    'proof_next_action_window_text',
+                    'proof_recheck_schedule_kind_text',
+                    'proof_recheck_schedule_text',
+                ]:
+                    field_value = artifact_payload.get(field_name)
+                    if field_value and field_value not in plain_stdout:
+                        failures.append(
+                            f'stdout mist {field_name} uit json-artifact: {field_value}'
+                        )
             except json.JSONDecodeError as exc:
                 failures.append(f'json-artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
 
