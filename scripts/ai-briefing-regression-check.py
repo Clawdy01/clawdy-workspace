@@ -4400,6 +4400,26 @@ def evaluate_proof_recheck_producer_case(case):
                         f'{label} proof_waiting_for_next_scheduled_run verwacht pariteit met overall/stdout-json {overall.get("proof_waiting_for_next_scheduled_run")}, kreeg '
                         f"{artifact_payload.get('proof_waiting_for_next_scheduled_run')}"
                     )
+                if artifact_payload.get('proof_wait_until_text') != overall.get('proof_wait_until_text'):
+                    failures.append(
+                        f'{label} proof_wait_until_text verwacht pariteit met overall/stdout-json {overall.get("proof_wait_until_text")}, kreeg '
+                        f"{artifact_payload.get('proof_wait_until_text')}"
+                    )
+                if artifact_payload.get('proof_wait_until_reason_text') != overall.get('proof_wait_until_reason_text'):
+                    failures.append(
+                        f'{label} proof_wait_until_reason_text verwacht pariteit met overall/stdout-json {overall.get("proof_wait_until_reason_text")}, kreeg '
+                        f"{artifact_payload.get('proof_wait_until_reason_text')}"
+                    )
+                if artifact_payload.get('proof_blocker_text') != overall.get('proof_blocker_text'):
+                    failures.append(
+                        f'{label} proof_blocker_text verwacht pariteit met overall/stdout-json {overall.get("proof_blocker_text")}, kreeg '
+                        f"{artifact_payload.get('proof_blocker_text')}"
+                    )
+                if artifact_payload.get('proof_recheck_window_text') != overall.get('proof_recheck_window_text'):
+                    failures.append(
+                        f'{label} proof_recheck_window_text verwacht pariteit met overall/stdout-json {overall.get("proof_recheck_window_text")}, kreeg '
+                        f"{artifact_payload.get('proof_recheck_window_text')}"
+                    )
                 if artifact_payload.get('proof_config_identity_text') != overall.get('proof_config_identity_text'):
                     failures.append(
                         f'{label} proof_config_identity_text verwacht pariteit met overall/stdout-json {overall.get("proof_config_identity_text")}, kreeg '
@@ -4450,6 +4470,26 @@ def evaluate_proof_recheck_producer_case(case):
             'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2])
             if overall.get('summary_output_examples') else None
         )
+        if overall.get('proof_wait_until_text') and overall['proof_wait_until_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_wait_until_text uit overall/stdout-json: '
+                f"{overall.get('proof_wait_until_text')}"
+            )
+        if overall.get('proof_wait_until_reason_text') and overall['proof_wait_until_reason_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_wait_until_reason_text uit overall/stdout-json: '
+                f"{overall.get('proof_wait_until_reason_text')}"
+            )
+        if overall.get('proof_blocker_text') and overall['proof_blocker_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_blocker_text uit overall/stdout-json: '
+                f"{overall.get('proof_blocker_text')}"
+            )
+        if overall.get('proof_recheck_window_text') and overall['proof_recheck_window_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_recheck_window_text uit overall/stdout-json: '
+                f"{overall.get('proof_recheck_window_text')}"
+            )
         if overall.get('proof_config_identity_text') and overall['proof_config_identity_text'] not in artifact_text:
             failures.append(
                 'board-text-artifact mist proof_config_identity_text uit overall/stdout-json: '
@@ -4502,6 +4542,10 @@ def evaluate_proof_recheck_producer_case(case):
                 artifact_text,
                 json.dumps(artifact_json_payload, ensure_ascii=False) if artifact_json_payload else '',
                 json.dumps(artifact_jsonl_payload, ensure_ascii=False) if artifact_jsonl_payload else '',
+                overall.get('proof_wait_until_text') or '',
+                overall.get('proof_wait_until_reason_text') or '',
+                overall.get('proof_blocker_text') or '',
+                overall.get('proof_recheck_window_text') or '',
                 overall.get('proof_config_identity_text') or '',
                 overall.get('last_run_config_relation_text') or '',
                 overall.get('proof_freshness_text') or '',
@@ -5880,6 +5924,83 @@ def evaluate_watchdog_producer_case(case):
                 f"{payload.get(alias_key)} versus {overall.get(alias_key)}"
             )
 
+    requested_outputs = child_payload.get('consumer_requested_outputs') or []
+    requested_outputs_by_channel = {
+        item.get('channel'): item
+        for item in requested_outputs
+        if isinstance(item, dict) and item.get('channel')
+    }
+    board_json_request = requested_outputs_by_channel.get('board-json')
+    if board_json_request and board_json_request.get('path'):
+        board_json_path = Path(str(board_json_request['path']))
+        if not board_json_path.exists():
+            failures.append(f'consumer board-json artifact ontbreekt: {board_json_path}')
+        else:
+            try:
+                board_payload = json.loads(board_json_path.read_text(encoding='utf-8'))
+                for field_name in [
+                    'proof_waiting_for_next_scheduled_run',
+                    'proof_recheck_schedule_kind_text',
+                    'proof_recheck_schedule_text',
+                ]:
+                    if board_payload.get(field_name) != overall.get(field_name):
+                        failures.append(
+                            f'consumer board-json {field_name} verwacht pariteit met overall/stdout-json {overall.get(field_name)}, kreeg '
+                            f"{board_payload.get(field_name)}"
+                        )
+            except json.JSONDecodeError as exc:
+                failures.append(f'consumer board-json artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
+
+    eventlog_request = requested_outputs_by_channel.get('eventlog-jsonl')
+    if eventlog_request and eventlog_request.get('path'):
+        eventlog_path = Path(str(eventlog_request['path']))
+        if not eventlog_path.exists():
+            failures.append(f'consumer eventlog-jsonl artifact ontbreekt: {eventlog_path}')
+        else:
+            try:
+                eventlog_lines = [line for line in eventlog_path.read_text(encoding='utf-8').splitlines() if line.strip()]
+                if not eventlog_lines:
+                    failures.append(f'consumer eventlog-jsonl artifact is leeg: {eventlog_path}')
+                else:
+                    eventlog_payload = json.loads(eventlog_lines[-1])
+                    for field_name in [
+                        'proof_waiting_for_next_scheduled_run',
+                        'proof_recheck_schedule_kind_text',
+                        'proof_recheck_schedule_text',
+                    ]:
+                        if eventlog_payload.get(field_name) != overall.get(field_name):
+                            failures.append(
+                                f'consumer eventlog-jsonl {field_name} verwacht pariteit met overall/stdout-json {overall.get(field_name)}, kreeg '
+                                f"{eventlog_payload.get(field_name)}"
+                            )
+            except json.JSONDecodeError as exc:
+                failures.append(f'consumer eventlog-jsonl artifact hoort parsebare JSONL te zijn, kreeg parsefout: {exc}')
+
+    board_text_request = requested_outputs_by_channel.get('board-text')
+    board_text_output = None
+    if board_text_request and board_text_request.get('path'):
+        board_text_path = Path(str(board_text_request['path']))
+        if not board_text_path.exists():
+            failures.append(f'consumer board-text artifact ontbreekt: {board_text_path}')
+        else:
+            board_text_output = board_text_path.read_text(encoding='utf-8')
+            for field_name in [
+                'proof_recheck_schedule_kind_text',
+                'proof_recheck_schedule_text',
+                'proof_wait_until_text',
+            ]:
+                field_value = overall.get(field_name)
+                if field_value and field_value not in board_text_output:
+                    failures.append(
+                        f'consumer board-text artifact mist {field_name} uit overall/stdout-json: {field_value}'
+                    )
+            if overall.get('proof_waiting_for_next_scheduled_run') is True:
+                waiting_text = overall.get('proof_state_text') or overall.get('proof_blocker_text')
+                if waiting_text and waiting_text not in board_text_output:
+                    failures.append(
+                        f'consumer board-text artifact mist wachtcontext uit overall/stdout-json: {waiting_text}'
+                    )
+
     combined_text = ' || '.join(
         bit for bit in [
             payload.get('proof_recheck_schedule_text'),
@@ -5892,6 +6013,7 @@ def evaluate_watchdog_producer_case(case):
             overall.get('proof_plan_text'),
             overall.get('proof_next_action_window_text'),
             overall.get('proof_next_action_text'),
+            board_text_output,
             quiet_output,
         ] if bit
     )

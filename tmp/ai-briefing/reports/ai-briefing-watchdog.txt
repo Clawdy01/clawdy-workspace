@@ -11,6 +11,7 @@ readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 
 reference: referentietijd 2026-04-23 09:15 CEST
 proof config: bewijsconfig 275034fd6a5c, gewijzigd 2026-04-22 12:16 CEST (20 uur geleden)
 last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-04-22 12:16 CEST nog op eerste run
+proof recheck schedule kind: proof-recheck-cronstatus: ok
 proof recheck schedule: proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)
 proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan
 proof requirement: 0/3 gekwalificeerde runs
