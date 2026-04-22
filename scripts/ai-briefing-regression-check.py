@@ -2145,6 +2145,7 @@ BRIEF_CONSUMER_CASES = [
         'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_plan_text': STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
         'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
@@ -2152,6 +2153,7 @@ BRIEF_CONSUMER_CASES = [
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             STATUS_BEFORE_SLOT_TOMORROW['proof_freshness_text'],
             STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
+            STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         ],
     },
@@ -2162,6 +2164,7 @@ BRIEF_CONSUMER_CASES = [
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
         'expect_proof_plan_text': STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
+        'expect_proof_config_identity_text': STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
         'expect_last_run_config_relation_text': STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
@@ -2169,6 +2172,7 @@ BRIEF_CONSUMER_CASES = [
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             STATUS_RECHECK_WINDOW_OPEN['proof_freshness_text'],
             STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
+            STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         ],
     },
@@ -2179,6 +2183,7 @@ BRIEF_CONSUMER_CASES = [
         'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
         'expect_proof_next_action_kind': 'wait-then-recheck',
         'expect_proof_plan_text': STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
         'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
@@ -2186,6 +2191,7 @@ BRIEF_CONSUMER_CASES = [
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             STATUS_BEFORE_SLOT_TOMORROW['proof_freshness_text'],
             STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
+            STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         ],
     },
@@ -2196,6 +2202,7 @@ BRIEF_CONSUMER_CASES = [
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
         'expect_proof_plan_text': STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
+        'expect_proof_config_identity_text': STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
         'expect_last_run_config_relation_text': STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
@@ -2203,6 +2210,7 @@ BRIEF_CONSUMER_CASES = [
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             STATUS_RECHECK_WINDOW_OPEN['proof_freshness_text'],
             STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
+            STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         ],
     },
@@ -4296,6 +4304,15 @@ def evaluate_brief_consumer_case(case):
             'ai_briefing_status.proof_plan_text verwacht '
             f"{expected_proof_plan_text}, kreeg {ai_briefing_status.get('proof_plan_text')}"
         )
+    expected_proof_config_identity_text = case.get('expect_proof_config_identity_text')
+    if (
+        expected_proof_config_identity_text is not None
+        and ai_briefing_status.get('proof_config_identity_text') != expected_proof_config_identity_text
+    ):
+        failures.append(
+            'ai_briefing_status.proof_config_identity_text verwacht '
+            f"{expected_proof_config_identity_text}, kreeg {ai_briefing_status.get('proof_config_identity_text')}"
+        )
     expected_last_run_config_relation_text = case.get('expect_last_run_config_relation_text')
     if (
         expected_last_run_config_relation_text is not None
@@ -4340,6 +4357,7 @@ def evaluate_brief_consumer_case(case):
             ('outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:2]))
             if ai_briefing_status.get('summary_output_examples') else None,
             ai_briefing_status.get('proof_plan_text'),
+            ai_briefing_status.get('proof_config_identity_text'),
             ai_briefing_status.get('last_run_config_relation_text'),
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
@@ -4359,6 +4377,14 @@ def evaluate_brief_consumer_case(case):
         failures.append(
             'brief-consumer-tekst mist proof_plan_text uit ai_briefing_status: '
             f"{ai_briefing_status.get('proof_plan_text')}"
+        )
+    if (
+        ai_briefing_status.get('proof_config_identity_text')
+        and ai_briefing_status['proof_config_identity_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_config_identity_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_config_identity_text')}"
         )
     brief_example_text = (
         'outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:2])
