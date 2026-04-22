@@ -1889,6 +1889,37 @@ STATUS_STDOUT_CASES = [
     },
 ]
 
+WATCHDOG_STDOUT_CASES = [
+    {
+        'name': 'watchdog-stdout-json-before-slot-keeps-proof-config-context',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_exit_code': 2,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_proof_waiting_for_next_scheduled_run': True,
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
+        'expect_text_substrings': [
+            'proof recheck schedule: proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+        ],
+    },
+    {
+        'name': 'watchdog-stdout-json-open-window-keeps-proof-config-context',
+        'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
+        'expect_exit_code': 2,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_proof_waiting_for_next_scheduled_run': False,
+        'expect_proof_config_identity_text': STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
+        'expect_last_run_config_relation_text': STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
+        'expect_text_substrings': [
+            'proof recheck schedule: proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+    },
+]
+
 STATUS_SUMMARY_AUDIT_CASES = [
     {
         'name': 'status-summary-audit-cli-keeps-runtime-metadata',
@@ -2953,6 +2984,199 @@ def evaluate_status_stdout_case(case):
     return {
         'name': case['name'],
         'path': str(STATUS_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': combined_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def evaluate_watchdog_stdout_case(case):
+    expected_status = run_status_json(case['reference_ms'])
+    json_proc = subprocess.run(
+        [
+            'python3', str(WATCHDOG_SCRIPT), '--json',
+            '--require-qualified-runs', '3',
+            '--reference-ms', str(case['reference_ms']),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    text_proc = subprocess.run(
+        [
+            'python3', str(WATCHDOG_SCRIPT),
+            '--require-qualified-runs', '3',
+            '--reference-ms', str(case['reference_ms']),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    failures = []
+    json_output = json_proc.stdout.strip() or json_proc.stderr.strip()
+    text_output = text_proc.stdout.strip() or text_proc.stderr.strip()
+    if json_proc.returncode != case['expect_exit_code']:
+        failures.append(f"watchdog json-exitcode verwacht {case['expect_exit_code']}, kreeg {json_proc.returncode}")
+        payload = {}
+    elif not json_output:
+        failures.append('geen JSON-output van ai-briefing-watchdog.py')
+        payload = {}
+    else:
+        try:
+            payload = json.loads(json_output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van ai-briefing-watchdog.py: {exc}')
+            payload = {}
+
+    if text_proc.returncode != case['expect_exit_code']:
+        failures.append(f"watchdog tekst-exitcode verwacht {case['expect_exit_code']}, kreeg {text_proc.returncode}")
+    if not text_output:
+        failures.append('geen tekstoutput van ai-briefing-watchdog.py')
+
+    if payload:
+        assert_runtime_metadata(payload, 'ai-briefing-watchdog stdout-json', failures)
+
+    if payload.get('proof_state') != case['expect_proof_state']:
+        failures.append(
+            f"proof_state verwacht {case['expect_proof_state']}, kreeg {payload.get('proof_state')}"
+        )
+    if payload.get('proof_next_action_kind') != case['expect_proof_next_action_kind']:
+        failures.append(
+            'proof_next_action_kind verwacht '
+            f"{case['expect_proof_next_action_kind']}, kreeg {payload.get('proof_next_action_kind')}"
+        )
+    if payload.get('proof_recheck_schedule_kind') != 'ok':
+        failures.append(
+            f"proof_recheck_schedule_kind verwacht ok, kreeg {payload.get('proof_recheck_schedule_kind')}"
+        )
+    if payload.get('proof_recheck_schedule_kind_text') != 'proof-recheck-cronstatus: ok':
+        failures.append(
+            'proof_recheck_schedule_kind_text verwacht proof-recheck-cronstatus: ok, kreeg '
+            f"{payload.get('proof_recheck_schedule_kind_text')}"
+        )
+    if payload.get('proof_freshness_text') != expected_status.get('proof_freshness_text'):
+        failures.append(
+            'proof_freshness_text verwacht '
+            f"{expected_status.get('proof_freshness_text')}, kreeg {payload.get('proof_freshness_text')}"
+        )
+    if payload.get('proof_plan_text') != expected_status.get('proof_plan_text'):
+        failures.append(
+            'proof_plan_text verwacht '
+            f"{expected_status.get('proof_plan_text')}, kreeg {payload.get('proof_plan_text')}"
+        )
+    expected_proof_config_identity_text = case.get('expect_proof_config_identity_text')
+    if (
+        expected_proof_config_identity_text is not None
+        and payload.get('proof_config_identity_text') != expected_proof_config_identity_text
+    ):
+        failures.append(
+            'proof_config_identity_text verwacht '
+            f"{expected_proof_config_identity_text}, kreeg {payload.get('proof_config_identity_text')}"
+        )
+    expected_last_run_config_relation_text = case.get('expect_last_run_config_relation_text')
+    if (
+        expected_last_run_config_relation_text is not None
+        and payload.get('last_run_config_relation_text') != expected_last_run_config_relation_text
+    ):
+        failures.append(
+            'last_run_config_relation_text verwacht '
+            f"{expected_last_run_config_relation_text}, kreeg {payload.get('last_run_config_relation_text')}"
+        )
+    if payload.get('last_run_config_relation_text') and not payload.get('last_run_config_relation'):
+        failures.append(
+            'last_run_config_relation ontbreekt in watchdog-stdout-json terwijl '
+            'last_run_config_relation_text wel gezet is'
+        )
+    expected_proof_waiting = case.get(
+        'expect_proof_waiting_for_next_scheduled_run',
+        expected_status.get('proof_waiting_for_next_scheduled_run'),
+    )
+    if payload.get('proof_waiting_for_next_scheduled_run') != expected_proof_waiting:
+        failures.append(
+            'proof_waiting_for_next_scheduled_run verwacht '
+            f"{expected_proof_waiting}, kreeg {payload.get('proof_waiting_for_next_scheduled_run')}"
+        )
+    if not payload.get('last_run_timeout_text'):
+        failures.append('last_run_timeout_text verwacht niet-leeg runtime-headroomveld in watchdog-json')
+    if not payload.get('recent_run_duration_text'):
+        failures.append('recent_run_duration_text verwacht niet-lege duurtrend in watchdog-json')
+
+    if payload.get('proof_freshness_text') and payload['proof_freshness_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_freshness_text uit stdout-json: '
+            f"{payload.get('proof_freshness_text')}"
+        )
+    if payload.get('proof_plan_text') and payload['proof_plan_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_plan_text uit stdout-json: '
+            f"{payload.get('proof_plan_text')}"
+        )
+    if payload.get('proof_config_identity_text') and payload['proof_config_identity_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_config_identity_text uit stdout-json: '
+            f"{payload.get('proof_config_identity_text')}"
+        )
+    if payload.get('last_run_config_relation_text') and payload['last_run_config_relation_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist last_run_config_relation_text uit stdout-json: '
+            f"{payload.get('last_run_config_relation_text')}"
+        )
+    if payload.get('last_run_timeout_text') and payload['last_run_timeout_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist last_run_timeout_text uit stdout-json: '
+            f"{payload.get('last_run_timeout_text')}"
+        )
+    if payload.get('recent_run_duration_text') and payload['recent_run_duration_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist recent_run_duration_text uit stdout-json: '
+            f"{payload.get('recent_run_duration_text')}"
+        )
+
+    combined_text = ' || '.join(
+        bit for bit in [
+            payload.get('proof_recheck_schedule_text'),
+            payload.get('proof_recheck_schedule_kind_text'),
+            payload.get('proof_freshness_text'),
+            payload.get('proof_plan_text'),
+            payload.get('proof_config_identity_text'),
+            payload.get('last_run_config_relation_text'),
+            payload.get('last_run_timeout_text'),
+            payload.get('recent_run_duration_text'),
+            payload.get('proof_next_action_window_text'),
+            payload.get('proof_next_action_text'),
+            text_output,
+        ] if bit
+    )
+    for snippet in case.get('expect_text_substrings', []):
+        if snippet not in combined_text:
+            failures.append(f"verwachte ai-briefing-watchdog-tekst ontbreekt: {snippet}")
+
+    return {
+        'name': case['name'],
+        'path': str(WATCHDOG_SCRIPT),
         'ok': not failures,
         'failures': failures,
         'audit_ok': not failures,
@@ -4416,6 +4640,25 @@ def evaluate_brief_consumer_case(case):
             'ai_briefing_status.proof_freshness_text verwacht alias-pariteit met '
             'ai_briefing_status.proof_freshness.text, kreeg '
             f"{ai_briefing_status.get('proof_freshness_text')} versus {((ai_briefing_status.get('proof_freshness') or {}).get('text'))}"
+        )
+    if (
+        ai_briefing_status.get('proof_waiting_for_next_scheduled_run')
+        != expected_status.get('proof_waiting_for_next_scheduled_run')
+    ):
+        failures.append(
+            'ai_briefing_status.proof_waiting_for_next_scheduled_run verwacht '
+            f"{expected_status.get('proof_waiting_for_next_scheduled_run')}, kreeg "
+            f"{ai_briefing_status.get('proof_waiting_for_next_scheduled_run')}"
+        )
+    if ai_briefing_status.get('last_run_timeout_text') != expected_status.get('last_run_timeout_text'):
+        failures.append(
+            'ai_briefing_status.last_run_timeout_text verwacht '
+            f"{expected_status.get('last_run_timeout_text')}, kreeg {ai_briefing_status.get('last_run_timeout_text')}"
+        )
+    if ai_briefing_status.get('recent_run_duration_text') != expected_status.get('recent_run_duration_text'):
+        failures.append(
+            'ai_briefing_status.recent_run_duration_text verwacht '
+            f"{expected_status.get('recent_run_duration_text')}, kreeg {ai_briefing_status.get('recent_run_duration_text')}"
         )
     if ai_briefing_status.get('summary_output_examples') != expected_status.get('summary_output_examples'):
         failures.append(
@@ -6576,6 +6819,7 @@ def build_named_case_runners(module, producer_module):
     named_cases.update({case['name']: (lambda case=case: evaluate_case(module, case)) for case in DEFAULT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_status_phase_case(module, case)) for case in STATUS_PHASE_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_status_stdout_case(case)) for case in STATUS_STDOUT_CASES})
+    named_cases.update({case['name']: (lambda case=case: evaluate_watchdog_stdout_case(case)) for case in WATCHDOG_STDOUT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_status_summary_audit_case(module, case)) for case in STATUS_SUMMARY_AUDIT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_proof_recheck_case(case)) for case in PROOF_RECHECK_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_proof_recheck_producer_case(case)) for case in PROOF_RECHECK_PRODUCER_CASES})
