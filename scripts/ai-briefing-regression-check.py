@@ -3642,6 +3642,27 @@ def evaluate_proof_recheck_case(case):
         if text_output and snippet not in text_output:
             failures.append(f"verwachte proof-recheck-plain-tekst ontbreekt: {snippet}")
 
+    if payload.get('proof_config_identity_text') and payload['proof_config_identity_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_config_identity_text uit stdout-json: '
+            f"{payload.get('proof_config_identity_text')}"
+        )
+    if payload.get('last_run_config_relation_text') and payload['last_run_config_relation_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist last_run_config_relation_text uit stdout-json: '
+            f"{payload.get('last_run_config_relation_text')}"
+        )
+    if payload.get('last_run_timeout_text') and payload['last_run_timeout_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist last_run_timeout_text uit stdout-json: '
+            f"{payload.get('last_run_timeout_text')}"
+        )
+    if payload.get('recent_run_duration_text') and payload['recent_run_duration_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist recent_run_duration_text uit stdout-json: '
+            f"{payload.get('recent_run_duration_text')}"
+        )
+
     for snippet in case.get('expect_plain_not_substrings', []):
         if snippet and snippet in text_output:
             failures.append(f"ongewenste proof-recheck-plain-tekst aanwezig: {snippet}")
@@ -5841,6 +5862,19 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                 failures.append('tekstartifact hoort geen JSON te zijn wanneer --consumer-format text is gebruikt')
             except json.JSONDecodeError:
                 pass
+            for field_name in [
+                'proof_config_identity_text',
+                'last_run_config_relation_text',
+                'last_run_timeout_text',
+                'recent_run_duration_text',
+                'proof_recheck_schedule_kind_text',
+                'proof_recheck_schedule_text',
+            ]:
+                field_value = json_payload.get(field_name)
+                if field_value and field_value not in artifact_text:
+                    failures.append(
+                        f'tekstartifact mist {field_name} uit stdout-json: {field_value}'
+                    )
 
         json_artifact = Path(temp_dir) / 'proof-recheck-json.json'
         text_stdout_proc = subprocess.run(
@@ -5887,6 +5921,23 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                         'json-artifact consumer_requested_outputs[0].format verwacht json, kreeg '
                         f"{(artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
                     )
+                for field_name in [
+                    'proof_config_identity_text',
+                    'last_run_config_relation_text',
+                    'last_run_timeout_text',
+                    'recent_run_duration_text',
+                    'proof_recheck_schedule_kind_text',
+                    'proof_recheck_schedule_text',
+                ]:
+                    if artifact_payload.get(field_name) != json_payload.get(field_name):
+                        failures.append(
+                            f'json-artifact {field_name} verwacht {json_payload.get(field_name)}, kreeg {artifact_payload.get(field_name)}'
+                        )
+                    field_value = artifact_payload.get(field_name)
+                    if field_value and field_value not in plain_stdout:
+                        failures.append(
+                            f'stdout mist {field_name} uit json-artifact: {field_value}'
+                        )
             except json.JSONDecodeError as exc:
                 failures.append(f'json-artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
 
