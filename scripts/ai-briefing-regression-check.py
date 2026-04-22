@@ -4430,6 +4430,16 @@ def evaluate_proof_recheck_producer_case(case):
                         f'{label} proof_plan_text verwacht pariteit met overall/stdout-json {overall.get("proof_plan_text")}, kreeg '
                         f"{artifact_payload.get('proof_plan_text')}"
                     )
+                if artifact_payload.get('proof_recheck_schedule_kind_text') != overall.get('proof_recheck_schedule_kind_text'):
+                    failures.append(
+                        f'{label} proof_recheck_schedule_kind_text verwacht pariteit met overall/stdout-json {overall.get("proof_recheck_schedule_kind_text")}, kreeg '
+                        f"{artifact_payload.get('proof_recheck_schedule_kind_text')}"
+                    )
+                if artifact_payload.get('proof_recheck_schedule_text') != overall.get('proof_recheck_schedule_text'):
+                    failures.append(
+                        f'{label} proof_recheck_schedule_text verwacht pariteit met overall/stdout-json {overall.get("proof_recheck_schedule_text")}, kreeg '
+                        f"{artifact_payload.get('proof_recheck_schedule_text')}"
+                    )
                 if artifact_payload.get('summary_output_examples') != overall.get('summary_output_examples'):
                     failures.append(
                         f'{label} summary_output_examples verwacht pariteit met overall/stdout-json {overall.get("summary_output_examples")}, kreeg '
@@ -4460,6 +4470,16 @@ def evaluate_proof_recheck_producer_case(case):
                 'board-text-artifact mist proof_plan_text uit overall/stdout-json: '
                 f"{overall.get('proof_plan_text')}"
             )
+        if overall.get('proof_recheck_schedule_kind_text') and overall['proof_recheck_schedule_kind_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_recheck_schedule_kind_text uit overall/stdout-json: '
+                f"{overall.get('proof_recheck_schedule_kind_text')}"
+            )
+        if overall.get('proof_recheck_schedule_text') and overall['proof_recheck_schedule_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_recheck_schedule_text uit overall/stdout-json: '
+                f"{overall.get('proof_recheck_schedule_text')}"
+            )
         if overall.get('last_run_timeout_text') and overall['last_run_timeout_text'] not in artifact_text:
             failures.append(
                 'board-text-artifact mist last_run_timeout_text uit overall/stdout-json: '
@@ -4486,6 +4506,8 @@ def evaluate_proof_recheck_producer_case(case):
                 overall.get('last_run_config_relation_text') or '',
                 overall.get('proof_freshness_text') or '',
                 overall.get('proof_plan_text') or '',
+                overall.get('proof_recheck_schedule_kind_text') or '',
+                overall.get('proof_recheck_schedule_text') or '',
                 text_artifact_examples_text or '',
                 quiet_text,
                 json_text,
@@ -5948,6 +5970,10 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                 'json-stdout proof-recheck consumer_requested_outputs[0].format verwacht text, kreeg '
                 f"{(json_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
             )
+        if json_payload and json_payload.get('proof_waiting_for_next_scheduled_run') is not True:
+            failures.append(
+                'json-stdout proof-recheck verwacht proof_waiting_for_next_scheduled_run=True voor deze wachtfase'
+            )
         if not text_artifact.exists():
             failures.append(f'tekstartifact ontbreekt: {text_artifact}')
         else:
@@ -6018,6 +6044,10 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                     failures.append(
                         'json-artifact consumer_requested_outputs[0].format verwacht json, kreeg '
                         f"{(artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
+                    )
+                if artifact_payload.get('proof_waiting_for_next_scheduled_run') is not True:
+                    failures.append(
+                        'json-artifact verwacht proof_waiting_for_next_scheduled_run=True voor deze wachtfase'
                     )
                 for field_name in [
                     'proof_config_identity_text',
