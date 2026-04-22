@@ -1866,6 +1866,7 @@ STATUS_STDOUT_CASES = [
         'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
         'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
         'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
@@ -1877,11 +1878,19 @@ STATUS_STDOUT_CASES = [
         'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
+        'expect_last_run_config_relation_text': STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
         ],
+    },
+]
+
+STATUS_SUMMARY_AUDIT_CASES = [
+    {
+        'name': 'status-summary-audit-cli-keeps-runtime-metadata',
+        'path': ROOT / 'tmp' / 'ai-briefing-format-compliant-sample.txt',
     },
 ]
 
@@ -2799,6 +2808,20 @@ def evaluate_status_stdout_case(case):
             'proof_plan_text verwacht '
             f"{expected_status.get('proof_plan_text')}, kreeg {payload.get('proof_plan_text')}"
         )
+    expected_last_run_config_relation_text = case.get('expect_last_run_config_relation_text')
+    if (
+        expected_last_run_config_relation_text is not None
+        and payload.get('last_run_config_relation_text') != expected_last_run_config_relation_text
+    ):
+        failures.append(
+            'last_run_config_relation_text verwacht '
+            f"{expected_last_run_config_relation_text}, kreeg {payload.get('last_run_config_relation_text')}"
+        )
+    if payload.get('last_run_config_relation_text') and not payload.get('last_run_config_relation'):
+        failures.append(
+            'last_run_config_relation ontbreekt in status-stdout-json terwijl '
+            'last_run_config_relation_text wel gezet is'
+        )
     if payload.get('proof_freshness_text') != ((payload.get('proof_freshness') or {}).get('text')):
         failures.append(
             'proof_freshness_text verwacht alias-pariteit met proof_freshness.text, kreeg '
@@ -2815,14 +2838,39 @@ def evaluate_status_stdout_case(case):
             f"{type(payload.get('summary_output_examples')).__name__}"
         )
 
+    if payload.get('proof_freshness_text') and payload['proof_freshness_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_freshness_text uit stdout-json: '
+            f"{payload.get('proof_freshness_text')}"
+        )
+    if payload.get('proof_plan_text') and payload['proof_plan_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_plan_text uit stdout-json: '
+            f"{payload.get('proof_plan_text')}"
+        )
+    if payload.get('last_run_config_relation_text') and payload['last_run_config_relation_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist last_run_config_relation_text uit stdout-json: '
+            f"{payload.get('last_run_config_relation_text')}"
+        )
+    summary_examples_text = (
+        'outputvoorbeelden: ' + '; '.join((payload.get('summary_output_examples') or [])[:2])
+        if payload.get('summary_output_examples') else None
+    )
+    if summary_examples_text and summary_examples_text not in text_output:
+        failures.append(
+            'status-stdout-tekst mist summary_output_examples uit stdout-json: '
+            f"{summary_examples_text}"
+        )
+
     combined_text = ' || '.join(
         bit for bit in [
             payload.get('proof_recheck_schedule_text'),
             payload.get('proof_recheck_schedule_kind_text'),
             payload.get('proof_freshness_text'),
             payload.get('proof_plan_text'),
-            ('outputvoorbeelden: ' + '; '.join((payload.get('summary_output_examples') or [])[:2]))
-            if payload.get('summary_output_examples') else None,
+            payload.get('last_run_config_relation_text'),
+            summary_examples_text,
             payload.get('proof_next_action_window_text'),
             payload.get('proof_next_action_text'),
             text_output,
@@ -2858,6 +2906,158 @@ def evaluate_status_stdout_case(case):
         'items_with_exact_field_order_count': None,
         'items_with_field_order_mismatch_count': None,
         'numbered_title_heading_count': None,
+    }
+
+
+def evaluate_status_summary_audit_case(module, case):
+    summary_path = Path(case['path'])
+    summary_text = summary_path.read_text(encoding='utf-8')
+    expected_payload = module.audit_summary_output(summary_text)
+    expected_text = module.render_summary_audit_text(expected_payload)
+    runtime_keys = {
+        'generated_at',
+        'generated_at_text',
+        'started_at',
+        'started_at_text',
+        'duration_ms',
+        'duration_seconds',
+        'duration_text',
+    }
+    failures = []
+
+    json_file_proc = subprocess.run(
+        ['python3', str(STATUS_SCRIPT), '--json', '--summary-file', str(summary_path)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    json_file_output = json_file_proc.stdout.strip() or json_file_proc.stderr.strip()
+    if json_file_proc.returncode != 0:
+        failures.append(f'status summary-file --json exitcode verwacht 0, kreeg {json_file_proc.returncode}')
+        json_file_payload = {}
+    elif not json_file_output:
+        failures.append('geen JSON-output van ai-briefing-status.py --json --summary-file')
+        json_file_payload = {}
+    else:
+        try:
+            json_file_payload = json.loads(json_file_output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van ai-briefing-status.py --json --summary-file: {exc}')
+            json_file_payload = {}
+
+    json_stdin_proc = subprocess.run(
+        ['python3', str(STATUS_SCRIPT), '--json', '--summary-stdin'],
+        cwd=ROOT,
+        input=summary_text,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    json_stdin_output = json_stdin_proc.stdout.strip() or json_stdin_proc.stderr.strip()
+    if json_stdin_proc.returncode != 0:
+        failures.append(f'status summary-stdin --json exitcode verwacht 0, kreeg {json_stdin_proc.returncode}')
+        json_stdin_payload = {}
+    elif not json_stdin_output:
+        failures.append('geen JSON-output van ai-briefing-status.py --json --summary-stdin')
+        json_stdin_payload = {}
+    else:
+        try:
+            json_stdin_payload = json.loads(json_stdin_output)
+        except json.JSONDecodeError as exc:
+            failures.append(f'ongeldige JSON van ai-briefing-status.py --json --summary-stdin: {exc}')
+            json_stdin_payload = {}
+
+    text_file_proc = subprocess.run(
+        ['python3', str(STATUS_SCRIPT), '--summary-file', str(summary_path)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    text_file_output = text_file_proc.stdout.strip() or text_file_proc.stderr.strip()
+    if text_file_proc.returncode != 0:
+        failures.append(f'status summary-file tekst-exitcode verwacht 0, kreeg {text_file_proc.returncode}')
+    elif text_file_output != expected_text:
+        failures.append(
+            'status summary-file tekstoutput verwacht exacte render_summary_audit_text-pariteit, kreeg '
+            f"{text_file_output!r} versus {expected_text!r}"
+        )
+
+    text_stdin_proc = subprocess.run(
+        ['python3', str(STATUS_SCRIPT), '--summary-stdin'],
+        cwd=ROOT,
+        input=summary_text,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    text_stdin_output = text_stdin_proc.stdout.strip() or text_stdin_proc.stderr.strip()
+    if text_stdin_proc.returncode != 0:
+        failures.append(f'status summary-stdin tekst-exitcode verwacht 0, kreeg {text_stdin_proc.returncode}')
+    elif text_stdin_output != expected_text:
+        failures.append(
+            'status summary-stdin tekstoutput verwacht exacte render_summary_audit_text-pariteit, kreeg '
+            f"{text_stdin_output!r} versus {expected_text!r}"
+        )
+
+    comparable_json_file_payload = None
+    if json_file_payload:
+        assert_runtime_metadata(json_file_payload, 'status summary-file --json', failures)
+        comparable_json_file_payload = {
+            key: value for key, value in json_file_payload.items() if key not in runtime_keys
+        }
+        if comparable_json_file_payload != expected_payload:
+            failures.append(
+                'status summary-file --json verwacht audit_summary_output-pariteit buiten runtime-metadata, kreeg '
+                f"{comparable_json_file_payload} versus {expected_payload}"
+            )
+
+    comparable_json_stdin_payload = None
+    if json_stdin_payload:
+        assert_runtime_metadata(json_stdin_payload, 'status summary-stdin --json', failures)
+        comparable_json_stdin_payload = {
+            key: value for key, value in json_stdin_payload.items() if key not in runtime_keys
+        }
+        if comparable_json_stdin_payload != expected_payload:
+            failures.append(
+                'status summary-stdin --json verwacht audit_summary_output-pariteit buiten runtime-metadata, kreeg '
+                f"{comparable_json_stdin_payload} versus {expected_payload}"
+            )
+
+    if comparable_json_file_payload is not None and comparable_json_stdin_payload is not None:
+        if comparable_json_file_payload != comparable_json_stdin_payload:
+            failures.append(
+                'status summary-file/stdin --json verwachten onderlinge pariteit buiten runtime-metadata, kregen '
+                f"{comparable_json_file_payload} versus {comparable_json_stdin_payload}"
+            )
+
+    return {
+        'name': case['name'],
+        'path': str(summary_path),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': ' || '.join(bit for bit in [expected_text, text_file_output, text_stdin_output] if bit),
+        'item_count': expected_payload.get('item_count'),
+        'items_with_source_count': expected_payload.get('items_with_source_count'),
+        'items_with_valid_source_line_count': expected_payload.get('items_with_valid_source_line_count'),
+        'items_with_invalid_source_line_count': expected_payload.get('items_with_invalid_source_line_count'),
+        'first3_items_with_source_count': expected_payload.get('first3_items_with_source_count'),
+        'first3_items_with_valid_source_line_count': expected_payload.get('first3_items_with_valid_source_line_count'),
+        'first3_items_with_multiple_sources_count': expected_payload.get('first3_items_with_multiple_sources_count'),
+        'first3_items_with_primary_source_count': expected_payload.get('first3_items_with_primary_source_count'),
+        'first3_primary_source_family_count': expected_payload.get('first3_primary_source_family_count'),
+        'first3_primary_fresh_item_count': expected_payload.get('first3_primary_fresh_item_count'),
+        'explicit_dated_item_count': expected_payload.get('explicit_dated_item_count'),
+        'explicit_recent_dated_first3_count': expected_payload.get('explicit_recent_dated_first3_count'),
+        'explicit_fresh_dated_first3_count': expected_payload.get('explicit_fresh_dated_first3_count'),
+        'future_dated_item_count': expected_payload.get('future_dated_item_count'),
+        'invalid_source_line_issue_counts': expected_payload.get('invalid_source_line_issue_counts'),
+        'exact_field_line_counts': expected_payload.get('exact_field_line_counts'),
+        'items_with_exact_field_order_count': expected_payload.get('items_with_exact_field_order_count'),
+        'items_with_field_order_mismatch_count': expected_payload.get('items_with_field_order_mismatch_count'),
+        'numbered_title_heading_count': expected_payload.get('numbered_title_heading_count'),
     }
 
 
@@ -6178,6 +6378,7 @@ def build_named_case_runners(module, producer_module):
     named_cases.update({case['name']: (lambda case=case: evaluate_case(module, case)) for case in DEFAULT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_status_phase_case(module, case)) for case in STATUS_PHASE_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_status_stdout_case(case)) for case in STATUS_STDOUT_CASES})
+    named_cases.update({case['name']: (lambda case=case: evaluate_status_summary_audit_case(module, case)) for case in STATUS_SUMMARY_AUDIT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_proof_recheck_case(case)) for case in PROOF_RECHECK_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_proof_recheck_producer_case(case)) for case in PROOF_RECHECK_PRODUCER_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_brief_consumer_case(case)) for case in BRIEF_CONSUMER_CASES})

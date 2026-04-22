@@ -3282,6 +3282,11 @@ def render_text(data):
         parts.append(f"bewijsdoel bij groene runs uiterlijk {data['proof_target_due_at_text']}")
     if data.get('proof_plan_text'):
         parts.append(data['proof_plan_text'])
+    if data.get('proof_freshness_text'):
+        parts.append(f"proof freshness: {data['proof_freshness_text']}")
+    summary_output_examples = [example for example in (data.get('summary_output_examples') or []) if example]
+    if summary_output_examples:
+        parts.append('outputvoorbeelden: ' + '; '.join(summary_output_examples[:2]))
     if data.get('proof_config_identity_text'):
         parts.append(data['proof_config_identity_text'])
     if data.get('last_run_config_relation_text'):
