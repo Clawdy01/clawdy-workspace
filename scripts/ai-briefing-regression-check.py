@@ -2112,6 +2112,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['proof_freshness_text'],
             STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         ],
@@ -2128,6 +2129,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['proof_freshness_text'],
             STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         ],
@@ -2144,6 +2146,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['proof_freshness_text'],
             STATUS_BEFORE_SLOT_TOMORROW['proof_plan_text'],
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         ],
@@ -2160,6 +2163,7 @@ BRIEF_CONSUMER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['proof_freshness_text'],
             STATUS_RECHECK_WINDOW_OPEN['proof_plan_text'],
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         ],
@@ -3788,6 +3792,21 @@ def evaluate_proof_recheck_producer_case(case):
                     failures.append(
                         f"{label} proof_state verwacht {case['expect_proof_state']}, kreeg {artifact_payload.get('proof_state')}"
                     )
+                if artifact_payload.get('proof_freshness_text') != overall.get('proof_freshness_text'):
+                    failures.append(
+                        f'{label} proof_freshness_text verwacht pariteit met overall/stdout-json {overall.get("proof_freshness_text")}, kreeg '
+                        f"{artifact_payload.get('proof_freshness_text')}"
+                    )
+                if artifact_payload.get('proof_plan_text') != overall.get('proof_plan_text'):
+                    failures.append(
+                        f'{label} proof_plan_text verwacht pariteit met overall/stdout-json {overall.get("proof_plan_text")}, kreeg '
+                        f"{artifact_payload.get('proof_plan_text')}"
+                    )
+                if artifact_payload.get('summary_output_examples') != overall.get('summary_output_examples'):
+                    failures.append(
+                        f'{label} summary_output_examples verwacht pariteit met overall/stdout-json {overall.get("summary_output_examples")}, kreeg '
+                        f"{artifact_payload.get('summary_output_examples')}"
+                    )
 
         text_artifact_examples_text = (
             'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2])
@@ -4057,10 +4076,21 @@ def evaluate_brief_consumer_case(case):
             'ai_briefing_status.proof_freshness_text verwacht '
             f"{expected_status.get('proof_freshness_text')}, kreeg {ai_briefing_status.get('proof_freshness_text')}"
         )
+    if ai_briefing_status.get('proof_freshness_text') != ((ai_briefing_status.get('proof_freshness') or {}).get('text')):
+        failures.append(
+            'ai_briefing_status.proof_freshness_text verwacht alias-pariteit met '
+            'ai_briefing_status.proof_freshness.text, kreeg '
+            f"{ai_briefing_status.get('proof_freshness_text')} versus {((ai_briefing_status.get('proof_freshness') or {}).get('text'))}"
+        )
     if ai_briefing_status.get('summary_output_examples') != expected_status.get('summary_output_examples'):
         failures.append(
             'ai_briefing_status.summary_output_examples verwacht '
             f"{expected_status.get('summary_output_examples')}, kreeg {ai_briefing_status.get('summary_output_examples')}"
+        )
+    if not isinstance(ai_briefing_status.get('summary_output_examples'), list):
+        failures.append(
+            'ai_briefing_status.summary_output_examples verwacht list, kreeg '
+            f"{type(ai_briefing_status.get('summary_output_examples')).__name__}"
         )
 
     combined_text = ' || '.join(
@@ -4080,6 +4110,26 @@ def evaluate_brief_consumer_case(case):
     for snippet in case.get('expect_text_substrings', []):
         if snippet not in combined_text:
             failures.append(f"verwachte brief-consumer-tekst ontbreekt: {snippet}")
+
+    if ai_briefing_status.get('proof_freshness_text') and ai_briefing_status['proof_freshness_text'] not in text_output:
+        failures.append(
+            'brief-consumer-tekst mist proof_freshness_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_freshness_text')}"
+        )
+    if ai_briefing_status.get('proof_plan_text') and ai_briefing_status['proof_plan_text'] not in text_output:
+        failures.append(
+            'brief-consumer-tekst mist proof_plan_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_plan_text')}"
+        )
+    brief_example_text = (
+        'outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:2])
+        if ai_briefing_status.get('summary_output_examples') else None
+    )
+    if brief_example_text and brief_example_text not in text_output:
+        failures.append(
+            'brief-consumer-tekst mist summary_output_examples uit ai_briefing_status: '
+            f'{brief_example_text}'
+        )
 
     return {
         'name': case['name'],
