@@ -3139,6 +3139,16 @@ def evaluate_watchdog_stdout_case(case):
             'summary_output_examples verwacht list, kreeg '
             f"{type(payload.get('summary_output_examples')).__name__}"
         )
+    if payload.get('proof_recheck_schedule_text') != expected_status.get('proof_recheck_schedule_text'):
+        failures.append(
+            'proof_recheck_schedule_text verwacht '
+            f"{expected_status.get('proof_recheck_schedule_text')}, kreeg {payload.get('proof_recheck_schedule_text')}"
+        )
+    if payload.get('proof_recheck_schedule_kind_text') != expected_status.get('proof_recheck_schedule_kind_text'):
+        failures.append(
+            'proof_recheck_schedule_kind_text verwacht '
+            f"{expected_status.get('proof_recheck_schedule_kind_text')}, kreeg {payload.get('proof_recheck_schedule_kind_text')}"
+        )
 
     if payload.get('proof_freshness_text') and payload['proof_freshness_text'] not in text_output:
         failures.append(
@@ -3169,6 +3179,16 @@ def evaluate_watchdog_stdout_case(case):
         failures.append(
             'watchdog-stdout-tekst mist recent_run_duration_text uit stdout-json: '
             f"{payload.get('recent_run_duration_text')}"
+        )
+    if payload.get('proof_recheck_schedule_kind_text') and payload['proof_recheck_schedule_kind_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_recheck_schedule_kind_text uit stdout-json: '
+            f"{payload.get('proof_recheck_schedule_kind_text')}"
+        )
+    if payload.get('proof_recheck_schedule_text') and payload['proof_recheck_schedule_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_recheck_schedule_text uit stdout-json: '
+            f"{payload.get('proof_recheck_schedule_text')}"
         )
     watchdog_example_text = (
         'proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2])
@@ -4750,6 +4770,16 @@ def evaluate_brief_consumer_case(case):
             'ai_briefing_status.summary_output_examples verwacht list, kreeg '
             f"{type(ai_briefing_status.get('summary_output_examples')).__name__}"
         )
+    if ai_briefing_status.get('proof_recheck_schedule_text') != expected_status.get('proof_recheck_schedule_text'):
+        failures.append(
+            'ai_briefing_status.proof_recheck_schedule_text verwacht '
+            f"{expected_status.get('proof_recheck_schedule_text')}, kreeg {ai_briefing_status.get('proof_recheck_schedule_text')}"
+        )
+    if ai_briefing_status.get('proof_recheck_schedule_kind_text') != expected_status.get('proof_recheck_schedule_kind_text'):
+        failures.append(
+            'ai_briefing_status.proof_recheck_schedule_kind_text verwacht '
+            f"{expected_status.get('proof_recheck_schedule_kind_text')}, kreeg {ai_briefing_status.get('proof_recheck_schedule_kind_text')}"
+        )
 
     combined_text = ' || '.join(
         bit for bit in [
@@ -4797,6 +4827,22 @@ def evaluate_brief_consumer_case(case):
         failures.append(
             'brief-consumer-tekst mist last_run_config_relation_text uit ai_briefing_status: '
             f"{ai_briefing_status.get('last_run_config_relation_text')}"
+        )
+    if (
+        ai_briefing_status.get('proof_recheck_schedule_kind_text')
+        and ai_briefing_status['proof_recheck_schedule_kind_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_recheck_schedule_kind_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_recheck_schedule_kind_text')}"
+        )
+    if (
+        ai_briefing_status.get('proof_recheck_schedule_text')
+        and ai_briefing_status['proof_recheck_schedule_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_recheck_schedule_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_recheck_schedule_text')}"
         )
     brief_example_text = (
         'outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:2])
@@ -5084,6 +5130,16 @@ def evaluate_watchdog_alert_case(case):
             'last_run_config_relation_text verwacht passthrough uit watchdog-json, kreeg '
             f"{payload.get('last_run_config_relation_text')} versus {watchdog_payload.get('last_run_config_relation_text')}"
         )
+    if payload.get('proof_recheck_schedule_kind_text') != watchdog_payload.get('proof_recheck_schedule_kind_text'):
+        failures.append(
+            'proof_recheck_schedule_kind_text verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('proof_recheck_schedule_kind_text')} versus {watchdog_payload.get('proof_recheck_schedule_kind_text')}"
+        )
+    if payload.get('proof_recheck_schedule_text') != watchdog_payload.get('proof_recheck_schedule_text'):
+        failures.append(
+            'proof_recheck_schedule_text verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('proof_recheck_schedule_text')} versus {watchdog_payload.get('proof_recheck_schedule_text')}"
+        )
     if payload.get('summary_output_examples') != watchdog_payload.get('summary_output_examples'):
         failures.append(
             'summary_output_examples verwacht passthrough uit watchdog-json, kreeg '
@@ -5164,6 +5220,28 @@ def evaluate_watchdog_alert_case(case):
                     'watchdog-alert alert_text mist last_run_config_relation_text uit stdout-json: '
                     f"{payload.get('last_run_config_relation_text')}"
                 )
+        if payload.get('proof_recheck_schedule_kind_text'):
+            if payload['proof_recheck_schedule_kind_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_recheck_schedule_kind_text uit stdout-json: '
+                    f"{payload.get('proof_recheck_schedule_kind_text')}"
+                )
+            if payload['proof_recheck_schedule_kind_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_recheck_schedule_kind_text uit stdout-json: '
+                    f"{payload.get('proof_recheck_schedule_kind_text')}"
+                )
+        if payload.get('proof_recheck_schedule_text'):
+            if payload['proof_recheck_schedule_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_recheck_schedule_text uit stdout-json: '
+                    f"{payload.get('proof_recheck_schedule_text')}"
+                )
+            if payload['proof_recheck_schedule_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_recheck_schedule_text uit stdout-json: '
+                    f"{payload.get('proof_recheck_schedule_text')}"
+                )
 
     if consumer_bundle and consumer_root is not None:
         board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
@@ -5222,6 +5300,16 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'consumer board-json last_run_config_relation_text verwacht pariteit met stdout-json, kreeg '
                     f"{board_payload.get('last_run_config_relation_text')} versus {payload.get('last_run_config_relation_text')}"
+                )
+            if board_payload.get('proof_recheck_schedule_kind_text') != payload.get('proof_recheck_schedule_kind_text'):
+                failures.append(
+                    'consumer board-json proof_recheck_schedule_kind_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('proof_recheck_schedule_kind_text')} versus {payload.get('proof_recheck_schedule_kind_text')}"
+                )
+            if board_payload.get('proof_recheck_schedule_text') != payload.get('proof_recheck_schedule_text'):
+                failures.append(
+                    'consumer board-json proof_recheck_schedule_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('proof_recheck_schedule_text')} versus {payload.get('proof_recheck_schedule_text')}"
                 )
             if board_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
                 failures.append(
@@ -5360,6 +5448,16 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl last_run_config_relation_text verwacht pariteit met stdout-json, kreeg '
                             f"{eventlog_payload.get('last_run_config_relation_text')} versus {payload.get('last_run_config_relation_text')}"
+                        )
+                    if eventlog_payload.get('proof_recheck_schedule_kind_text') != payload.get('proof_recheck_schedule_kind_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl proof_recheck_schedule_kind_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('proof_recheck_schedule_kind_text')} versus {payload.get('proof_recheck_schedule_kind_text')}"
+                        )
+                    if eventlog_payload.get('proof_recheck_schedule_text') != payload.get('proof_recheck_schedule_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl proof_recheck_schedule_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('proof_recheck_schedule_text')} versus {payload.get('proof_recheck_schedule_text')}"
                         )
                     if eventlog_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
                         failures.append(

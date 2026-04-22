@@ -548,6 +548,8 @@ def main() -> int:
         lines.append(f"proof config: {result['proof_config_identity_text']}")
     if result.get('last_run_config_relation_text'):
         lines.append(f"last run config relation: {result['last_run_config_relation_text']}")
+    if result.get('proof_recheck_schedule_kind_text'):
+        lines.append(f"proof recheck schedule kind: {result['proof_recheck_schedule_kind_text']}")
     if result.get('proof_recheck_schedule_text'):
         lines.append(f"proof recheck schedule: {result['proof_recheck_schedule_text']}")
     if result['proof_progress_text']:
