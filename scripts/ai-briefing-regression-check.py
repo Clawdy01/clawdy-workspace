@@ -3176,6 +3176,11 @@ def evaluate_proof_recheck_producer_case(case):
             'reference_context_text',
             'proof_state',
             'proof_blocker_kind',
+            'proof_freshness_text',
+            'proof_plan_text',
+            'last_run_timeout_text',
+            'recent_run_duration_text',
+            'summary_output_examples',
             'proof_wait_until_at',
             'proof_wait_until_text',
             'proof_wait_until_reason_text',
@@ -3281,6 +3286,12 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(f"overall.status_ok verwacht {case['expect_status_ok']}, kreeg {overall.get('status_ok')}")
         if overall.get('watchdog_ok') != case['expect_watchdog_ok']:
             failures.append(f"overall.watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {overall.get('watchdog_ok')}")
+        expected_proof_plan_text = case.get('expect_proof_plan_text')
+        if expected_proof_plan_text is not None and overall.get('proof_plan_text') != expected_proof_plan_text:
+            failures.append(
+                'overall.proof_plan_text verwacht '
+                f"{expected_proof_plan_text}, kreeg {overall.get('proof_plan_text')}"
+            )
         if case.get('expect_proof_config_hash_present') and not overall.get('proof_config_hash'):
             failures.append('overall.proof_config_hash ontbreekt in producer-json')
         if overall.get('last_run_config_relation_text') and not overall.get('last_run_config_relation'):
@@ -3341,6 +3352,18 @@ def evaluate_proof_recheck_producer_case(case):
                 'overall.proof_next_action_kind verwacht '
                 f"{case['expect_proof_next_action_kind']}, kreeg {overall.get('proof_next_action_kind')}"
             )
+        for child_payload_key in [
+            'proof_freshness_text',
+            'proof_plan_text',
+            'last_run_timeout_text',
+            'recent_run_duration_text',
+            'summary_output_examples',
+        ]:
+            if overall.get(child_payload_key) != child_payload.get(child_payload_key):
+                failures.append(
+                    f'overall.{child_payload_key} verwacht passthrough {child_payload.get(child_payload_key)}, kreeg '
+                    f"{overall.get(child_payload_key)}"
+                )
         if overall.get('proof_recheck_ready') != case['expect_proof_recheck_ready']:
             failures.append(
                 'overall.proof_recheck_ready verwacht '
@@ -3834,6 +3857,12 @@ def evaluate_proof_recheck_producer_case(case):
                 artifact_text,
                 json.dumps(artifact_json_payload, ensure_ascii=False) if artifact_json_payload else '',
                 json.dumps(artifact_jsonl_payload, ensure_ascii=False) if artifact_jsonl_payload else '',
+                overall.get('proof_freshness_text') or '',
+                overall.get('proof_plan_text') or '',
+                ('outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2]))
+                if overall.get('summary_output_examples') else '',
+                quiet_text,
+                json_text,
             ]
             if bit
         )

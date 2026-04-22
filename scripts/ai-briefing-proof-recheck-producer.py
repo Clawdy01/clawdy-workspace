@@ -122,6 +122,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_progress_text']))
     if payload.get('proof_freshness_text'):
         bits.append(str(payload['proof_freshness_text']))
+    if payload.get('proof_plan_text'):
+        bits.append(str(payload['proof_plan_text']))
     if payload.get('last_run_timeout_text'):
         bits.append(str(payload['last_run_timeout_text']))
     if payload.get('recent_run_duration_text'):
@@ -235,6 +237,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_blocker_text': payload.get('proof_blocker_text'),
         'proof_progress_text': payload.get('proof_progress_text'),
         'proof_freshness_text': payload.get('proof_freshness_text'),
+        'proof_plan_text': payload.get('proof_plan_text'),
         'last_run_timeout_text': payload.get('last_run_timeout_text'),
         'recent_run_duration_text': payload.get('recent_run_duration_text'),
         'summary_output_examples': payload.get('summary_output_examples') or [],
