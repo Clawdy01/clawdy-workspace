@@ -1866,6 +1866,7 @@ STATUS_STDOUT_CASES = [
         'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
         'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
         'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
         'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
@@ -1878,6 +1879,7 @@ STATUS_STDOUT_CASES = [
         'reference_ms': REFERENCE_MS_RECHECK_WINDOW_OPEN,
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
+        'expect_proof_config_identity_text': STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
         'expect_last_run_config_relation_text': STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof-recheck-cronstatus: ok',
@@ -1946,6 +1948,8 @@ PROOF_RECHECK_CASES = [
         'expect_proof_schedule_slip_ms': STATUS_BEFORE_SLOT_TOMORROW.get('proof_schedule_slip_ms'),
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW.get('proof_config_identity_text'),
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW.get('last_run_config_relation_text'),
         'expect_proof_config_hash_present': True,
         'expect_proof_recheck_schedule_audit_ok': True,
         'expect_proof_recheck_schedule_matches_grace': True,
@@ -1984,6 +1988,8 @@ PROOF_RECHECK_CASES = [
         'expect_proof_schedule_slip_ms': STATUS_CURRENT_SLOT_GRACE.get('proof_schedule_slip_ms'),
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
+        'expect_proof_config_identity_text': STATUS_CURRENT_SLOT_GRACE.get('proof_config_identity_text'),
+        'expect_last_run_config_relation_text': STATUS_CURRENT_SLOT_GRACE.get('last_run_config_relation_text'),
         'expect_proof_config_hash_present': True,
         'expect_proof_recheck_schedule_audit_ok': True,
         'expect_proof_recheck_schedule_matches_grace': True,
@@ -2022,6 +2028,8 @@ PROOF_RECHECK_CASES = [
         'expect_proof_schedule_slip_ms': STATUS_RECHECK_WINDOW_OPEN.get('proof_schedule_slip_ms'),
         'expect_status_ok': False,
         'expect_watchdog_ok': False,
+        'expect_proof_config_identity_text': STATUS_RECHECK_WINDOW_OPEN.get('proof_config_identity_text'),
+        'expect_last_run_config_relation_text': STATUS_RECHECK_WINDOW_OPEN.get('last_run_config_relation_text'),
         'expect_proof_config_hash_present': True,
         'expect_proof_recheck_schedule_audit_ok': True,
         'expect_proof_recheck_schedule_matches_grace': True,
@@ -2855,6 +2863,15 @@ def evaluate_status_stdout_case(case):
             'proof_plan_text verwacht '
             f"{expected_status.get('proof_plan_text')}, kreeg {payload.get('proof_plan_text')}"
         )
+    expected_proof_config_identity_text = case.get('expect_proof_config_identity_text')
+    if (
+        expected_proof_config_identity_text is not None
+        and payload.get('proof_config_identity_text') != expected_proof_config_identity_text
+    ):
+        failures.append(
+            'proof_config_identity_text verwacht '
+            f"{expected_proof_config_identity_text}, kreeg {payload.get('proof_config_identity_text')}"
+        )
     expected_last_run_config_relation_text = case.get('expect_last_run_config_relation_text')
     if (
         expected_last_run_config_relation_text is not None
@@ -2895,6 +2912,11 @@ def evaluate_status_stdout_case(case):
             'status-stdout-tekst mist proof_plan_text uit stdout-json: '
             f"{payload.get('proof_plan_text')}"
         )
+    if payload.get('proof_config_identity_text') and payload['proof_config_identity_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_config_identity_text uit stdout-json: '
+            f"{payload.get('proof_config_identity_text')}"
+        )
     if payload.get('last_run_config_relation_text') and payload['last_run_config_relation_text'] not in text_output:
         failures.append(
             'status-stdout-tekst mist last_run_config_relation_text uit stdout-json: '
@@ -2916,6 +2938,7 @@ def evaluate_status_stdout_case(case):
             payload.get('proof_recheck_schedule_kind_text'),
             payload.get('proof_freshness_text'),
             payload.get('proof_plan_text'),
+            payload.get('proof_config_identity_text'),
             payload.get('last_run_config_relation_text'),
             summary_examples_text,
             payload.get('proof_next_action_window_text'),
@@ -3223,6 +3246,24 @@ def evaluate_proof_recheck_case(case):
         failures.append(f"watchdog_ok verwacht {case['expect_watchdog_ok']}, kreeg {payload.get('watchdog_ok')}")
     if case.get('expect_proof_config_hash_present') and not payload.get('proof_config_hash'):
         failures.append('proof_config_hash ontbreekt in proof-recheck-payload')
+    expected_proof_config_identity_text = case.get('expect_proof_config_identity_text')
+    if (
+        expected_proof_config_identity_text is not None
+        and payload.get('proof_config_identity_text') != expected_proof_config_identity_text
+    ):
+        failures.append(
+            'proof_config_identity_text verwacht '
+            f"{expected_proof_config_identity_text}, kreeg {payload.get('proof_config_identity_text')}"
+        )
+    expected_last_run_config_relation_text = case.get('expect_last_run_config_relation_text')
+    if (
+        expected_last_run_config_relation_text is not None
+        and payload.get('last_run_config_relation_text') != expected_last_run_config_relation_text
+    ):
+        failures.append(
+            'last_run_config_relation_text verwacht '
+            f"{expected_last_run_config_relation_text}, kreeg {payload.get('last_run_config_relation_text')}"
+        )
     if payload.get('proof_progress_text') and not payload.get('last_run_timeout_text'):
         failures.append('last_run_timeout_text ontbreekt in proof-recheck-payload')
     if payload.get('proof_progress_text') and not payload.get('recent_run_duration_text'):
