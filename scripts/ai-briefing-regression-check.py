@@ -3347,6 +3347,25 @@ def evaluate_proof_recheck_producer_case(case):
         for snippet in case.get('expect_quiet_absent_substrings', []):
             if snippet in quiet_text:
                 failures.append(f"producer-quiet-tekst had juist moeten ontbreken: {snippet}")
+        if overall.get('proof_freshness_text') and overall['proof_freshness_text'] not in quiet_text:
+            failures.append(
+                'producer-quiet-tekst mist proof_freshness_text uit overall/stdout-json: '
+                f"{overall.get('proof_freshness_text')}"
+            )
+        if overall.get('proof_plan_text') and overall['proof_plan_text'] not in quiet_text:
+            failures.append(
+                'producer-quiet-tekst mist proof_plan_text uit overall/stdout-json: '
+                f"{overall.get('proof_plan_text')}"
+            )
+        quiet_examples_text = (
+            'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2])
+            if overall.get('summary_output_examples') else None
+        )
+        if quiet_examples_text and quiet_examples_text not in quiet_text:
+            failures.append(
+                'producer-quiet-tekst mist outputvoorbeelden uit overall/stdout-json: '
+                f'{quiet_examples_text}'
+            )
 
         json_text = ' || '.join(
             str(bit)
@@ -3770,6 +3789,26 @@ def evaluate_proof_recheck_producer_case(case):
                         f"{label} proof_state verwacht {case['expect_proof_state']}, kreeg {artifact_payload.get('proof_state')}"
                     )
 
+        text_artifact_examples_text = (
+            'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2])
+            if overall.get('summary_output_examples') else None
+        )
+        if overall.get('proof_freshness_text') and overall['proof_freshness_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_freshness_text uit overall/stdout-json: '
+                f"{overall.get('proof_freshness_text')}"
+            )
+        if overall.get('proof_plan_text') and overall['proof_plan_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_plan_text uit overall/stdout-json: '
+                f"{overall.get('proof_plan_text')}"
+            )
+        if text_artifact_examples_text and text_artifact_examples_text not in artifact_text:
+            failures.append(
+                'board-text-artifact mist outputvoorbeelden uit overall/stdout-json: '
+                f'{text_artifact_examples_text}'
+            )
+
         artifact_text_combined = ' || '.join(
             bit
             for bit in [
@@ -3778,8 +3817,7 @@ def evaluate_proof_recheck_producer_case(case):
                 json.dumps(artifact_jsonl_payload, ensure_ascii=False) if artifact_jsonl_payload else '',
                 overall.get('proof_freshness_text') or '',
                 overall.get('proof_plan_text') or '',
-                ('outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2]))
-                if overall.get('summary_output_examples') else '',
+                text_artifact_examples_text or '',
                 quiet_text,
                 json_text,
             ]
