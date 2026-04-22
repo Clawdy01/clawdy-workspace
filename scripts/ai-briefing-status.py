@@ -3473,7 +3473,7 @@ def main():
             summary_text = Path(args.summary_file).read_text(encoding='utf-8')
         else:
             summary_text = sys.stdin.read()
-        data = audit_summary_output(summary_text)
+        data = audit_summary_output(summary_text, reference_ms=args.reference_ms)
         if args.json:
             finished_at = datetime.now(timezone.utc)
             duration_ms = int(round((monotonic() - started_monotonic) * 1000))

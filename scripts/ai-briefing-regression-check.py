@@ -1900,6 +1900,27 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'name': 'status-summary-audit-cli-keeps-field-order-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-label-order-mismatch-sample.txt',
     },
+    {
+        'name': 'status-summary-audit-cli-keeps-empty-source-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-empty-bron-line-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-numbered-title-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-numbered-title-headings-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-bullet-label-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bullet-labels-sample.txt',
+    },
+]
+
+DEFAULT_CASES_BY_PATH = {str(Path(case['path'])): case for case in DEFAULT_CASES}
+STATUS_SUMMARY_AUDIT_CASES = [
+    {
+        **DEFAULT_CASES_BY_PATH[str(Path(case['path']))],
+        **case,
+    }
+    for case in STATUS_SUMMARY_AUDIT_CASES
 ]
 
 PROOF_RECHECK_CASES = [
@@ -2384,11 +2405,7 @@ def load_proof_recheck_producer_module():
     return module
 
 
-def evaluate_case(module, case):
-    path = Path(case['path'])
-    summary_text = path.read_text(encoding='utf-8')
-    audit = module.audit_summary_output(summary_text, reference_ms=case.get('reference_ms', DEFAULT_REFERENCE_MS))
-    failures = []
+def collect_audit_expectation_failures(case, audit, failures):
     if audit.get('ok') != case['expect_ok']:
         failures.append(f"ok verwacht {case['expect_ok']}, kreeg {audit.get('ok')}")
     if 'expect_item_count' in case and audit.get('item_count') != case['expect_item_count']:
@@ -2595,6 +2612,14 @@ def evaluate_case(module, case):
     for snippet in case.get('expect_reason_substrings', []):
         if snippet not in audit_text:
             failures.append(f"verwachte audittekst ontbreekt: {snippet}")
+
+
+def evaluate_case(module, case):
+    path = Path(case['path'])
+    summary_text = path.read_text(encoding='utf-8')
+    audit = module.audit_summary_output(summary_text, reference_ms=case.get('reference_ms', DEFAULT_REFERENCE_MS))
+    failures = []
+    collect_audit_expectation_failures(case, audit, failures)
     return {
         'name': case['name'],
         'path': str(path),
@@ -2920,7 +2945,11 @@ def evaluate_status_stdout_case(case):
 def evaluate_status_summary_audit_case(module, case):
     summary_path = Path(case['path'])
     summary_text = summary_path.read_text(encoding='utf-8')
-    expected_payload = module.audit_summary_output(summary_text)
+    reference_ms = case.get('reference_ms', DEFAULT_REFERENCE_MS)
+    expected_payload = module.audit_summary_output(
+        summary_text,
+        reference_ms=reference_ms,
+    )
     expected_text = module.render_summary_audit_text(expected_payload)
     runtime_keys = {
         'generated_at',
@@ -2932,9 +2961,11 @@ def evaluate_status_summary_audit_case(module, case):
         'duration_text',
     }
     failures = []
+    collect_audit_expectation_failures(case, expected_payload, failures)
+    reference_args = ['--reference-ms', str(reference_ms)]
 
     json_file_proc = subprocess.run(
-        ['python3', str(STATUS_SCRIPT), '--json', '--summary-file', str(summary_path)],
+        ['python3', str(STATUS_SCRIPT), '--json', '--summary-file', str(summary_path), *reference_args],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -2955,7 +2986,7 @@ def evaluate_status_summary_audit_case(module, case):
             json_file_payload = {}
 
     json_stdin_proc = subprocess.run(
-        ['python3', str(STATUS_SCRIPT), '--json', '--summary-stdin'],
+        ['python3', str(STATUS_SCRIPT), '--json', '--summary-stdin', *reference_args],
         cwd=ROOT,
         input=summary_text,
         capture_output=True,
@@ -2977,7 +3008,7 @@ def evaluate_status_summary_audit_case(module, case):
             json_stdin_payload = {}
 
     text_file_proc = subprocess.run(
-        ['python3', str(STATUS_SCRIPT), '--summary-file', str(summary_path)],
+        ['python3', str(STATUS_SCRIPT), '--summary-file', str(summary_path), *reference_args],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -2993,7 +3024,7 @@ def evaluate_status_summary_audit_case(module, case):
         )
 
     text_stdin_proc = subprocess.run(
-        ['python3', str(STATUS_SCRIPT), '--summary-stdin'],
+        ['python3', str(STATUS_SCRIPT), '--summary-stdin', *reference_args],
         cwd=ROOT,
         input=summary_text,
         capture_output=True,
