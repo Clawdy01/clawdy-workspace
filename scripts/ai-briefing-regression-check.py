@@ -2315,6 +2315,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
             ((STATUS_BEFORE_SLOT_TOMORROW.get('proof_freshness') or {}).get('text') or ''),
         ],
@@ -2330,6 +2331,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
             ((STATUS_BEFORE_SLOT_TOMORROW.get('proof_freshness') or {}).get('text') or ''),
         ],
@@ -2345,6 +2347,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
             STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
             ((STATUS_BEFORE_SLOT_TOMORROW.get('proof_freshness') or {}).get('text') or ''),
         ],
@@ -2360,6 +2363,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
             ((STATUS_RECHECK_WINDOW_OPEN.get('proof_freshness') or {}).get('text') or ''),
         ],
@@ -2375,6 +2379,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
             ((STATUS_RECHECK_WINDOW_OPEN.get('proof_freshness') or {}).get('text') or ''),
         ],
@@ -2390,6 +2395,7 @@ WATCHDOG_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
             STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
             ((STATUS_RECHECK_WINDOW_OPEN.get('proof_freshness') or {}).get('text') or ''),
         ],
@@ -4689,6 +4695,11 @@ def evaluate_watchdog_alert_case(case):
             'proof_config_identity_text verwacht passthrough uit watchdog-json, kreeg '
             f"{payload.get('proof_config_identity_text')} versus {watchdog_payload.get('proof_config_identity_text')}"
         )
+    if payload.get('last_run_config_relation_text') != watchdog_payload.get('last_run_config_relation_text'):
+        failures.append(
+            'last_run_config_relation_text verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('last_run_config_relation_text')} versus {watchdog_payload.get('last_run_config_relation_text')}"
+        )
     if payload.get('summary_output_examples') != watchdog_payload.get('summary_output_examples'):
         failures.append(
             'summary_output_examples verwacht passthrough uit watchdog-json, kreeg '
@@ -4758,6 +4769,17 @@ def evaluate_watchdog_alert_case(case):
                     'watchdog-alert alert_text mist proof_config_identity_text uit stdout-json: '
                     f"{payload.get('proof_config_identity_text')}"
                 )
+        if payload.get('last_run_config_relation_text'):
+            if payload['last_run_config_relation_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist last_run_config_relation_text uit stdout-json: '
+                    f"{payload.get('last_run_config_relation_text')}"
+                )
+            if payload['last_run_config_relation_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist last_run_config_relation_text uit stdout-json: '
+                    f"{payload.get('last_run_config_relation_text')}"
+                )
 
     if consumer_bundle and consumer_root is not None:
         board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
@@ -4811,6 +4833,11 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'consumer board-json proof_config_identity_text verwacht pariteit met stdout-json, kreeg '
                     f"{board_payload.get('proof_config_identity_text')} versus {payload.get('proof_config_identity_text')}"
+                )
+            if board_payload.get('last_run_config_relation_text') != payload.get('last_run_config_relation_text'):
+                failures.append(
+                    'consumer board-json last_run_config_relation_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('last_run_config_relation_text')} versus {payload.get('last_run_config_relation_text')}"
                 )
             if board_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
                 failures.append(
@@ -4944,6 +4971,11 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl proof_config_identity_text verwacht pariteit met stdout-json, kreeg '
                             f"{eventlog_payload.get('proof_config_identity_text')} versus {payload.get('proof_config_identity_text')}"
+                        )
+                    if eventlog_payload.get('last_run_config_relation_text') != payload.get('last_run_config_relation_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl last_run_config_relation_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('last_run_config_relation_text')} versus {payload.get('last_run_config_relation_text')}"
                         )
                     if eventlog_payload.get('summary_output_examples') != payload.get('summary_output_examples'):
                         failures.append(
@@ -5348,9 +5380,11 @@ def evaluate_watchdog_producer_case(case):
         bit for bit in [
             payload.get('proof_recheck_schedule_text'),
             payload.get('proof_recheck_schedule_kind_text'),
+            payload.get('proof_config_identity_text'),
             payload.get('proof_plan_text'),
             overall.get('proof_recheck_schedule_text'),
             overall.get('proof_recheck_schedule_kind_text'),
+            overall.get('proof_config_identity_text'),
             overall.get('proof_plan_text'),
             overall.get('proof_next_action_window_text'),
             overall.get('proof_next_action_text'),
