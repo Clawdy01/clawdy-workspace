@@ -3825,6 +3825,9 @@ def evaluate_proof_recheck_producer_case(case):
                 f"{case['expect_proof_next_action_kind']}, kreeg {overall.get('proof_next_action_kind')}"
             )
         for child_payload_key in [
+            'proof_waiting_for_next_scheduled_run',
+            'proof_config_identity_text',
+            'last_run_config_relation_text',
             'proof_freshness_text',
             'proof_plan_text',
             'last_run_timeout_text',
@@ -4351,6 +4354,11 @@ def evaluate_proof_recheck_producer_case(case):
                     failures.append(
                         f"{label} proof_state verwacht {case['expect_proof_state']}, kreeg {artifact_payload.get('proof_state')}"
                     )
+                if artifact_payload.get('proof_waiting_for_next_scheduled_run') != overall.get('proof_waiting_for_next_scheduled_run'):
+                    failures.append(
+                        f'{label} proof_waiting_for_next_scheduled_run verwacht pariteit met overall/stdout-json {overall.get("proof_waiting_for_next_scheduled_run")}, kreeg '
+                        f"{artifact_payload.get('proof_waiting_for_next_scheduled_run')}"
+                    )
                 if artifact_payload.get('proof_config_identity_text') != overall.get('proof_config_identity_text'):
                     failures.append(
                         f'{label} proof_config_identity_text verwacht pariteit met overall/stdout-json {overall.get("proof_config_identity_text")}, kreeg '
@@ -4360,6 +4368,16 @@ def evaluate_proof_recheck_producer_case(case):
                     failures.append(
                         f'{label} last_run_config_relation_text verwacht pariteit met overall/stdout-json {overall.get("last_run_config_relation_text")}, kreeg '
                         f"{artifact_payload.get('last_run_config_relation_text')}"
+                    )
+                if artifact_payload.get('last_run_timeout_text') != overall.get('last_run_timeout_text'):
+                    failures.append(
+                        f'{label} last_run_timeout_text verwacht pariteit met overall/stdout-json {overall.get("last_run_timeout_text")}, kreeg '
+                        f"{artifact_payload.get('last_run_timeout_text')}"
+                    )
+                if artifact_payload.get('recent_run_duration_text') != overall.get('recent_run_duration_text'):
+                    failures.append(
+                        f'{label} recent_run_duration_text verwacht pariteit met overall/stdout-json {overall.get("recent_run_duration_text")}, kreeg '
+                        f"{artifact_payload.get('recent_run_duration_text')}"
                     )
                 if artifact_payload.get('proof_freshness_text') != overall.get('proof_freshness_text'):
                     failures.append(
@@ -4400,6 +4418,16 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'board-text-artifact mist proof_plan_text uit overall/stdout-json: '
                 f"{overall.get('proof_plan_text')}"
+            )
+        if overall.get('last_run_timeout_text') and overall['last_run_timeout_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist last_run_timeout_text uit overall/stdout-json: '
+                f"{overall.get('last_run_timeout_text')}"
+            )
+        if overall.get('recent_run_duration_text') and overall['recent_run_duration_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist recent_run_duration_text uit overall/stdout-json: '
+                f"{overall.get('recent_run_duration_text')}"
             )
         if text_artifact_examples_text and text_artifact_examples_text not in artifact_text:
             failures.append(
@@ -4740,6 +4768,14 @@ def evaluate_brief_consumer_case(case):
         failures.append(
             'brief-consumer-tekst mist proof_config_identity_text uit ai_briefing_status: '
             f"{ai_briefing_status.get('proof_config_identity_text')}"
+        )
+    if (
+        ai_briefing_status.get('last_run_config_relation_text')
+        and ai_briefing_status['last_run_config_relation_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist last_run_config_relation_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('last_run_config_relation_text')}"
         )
     brief_example_text = (
         'outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:2])
