@@ -3180,6 +3180,21 @@ def evaluate_watchdog_stdout_case(case):
             'watchdog-stdout-tekst mist recent_run_duration_text uit stdout-json: '
             f"{payload.get('recent_run_duration_text')}"
         )
+    if payload.get('proof_wait_until_reason_text') and payload['proof_wait_until_reason_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_wait_until_reason_text uit stdout-json: '
+            f"{payload.get('proof_wait_until_reason_text')}"
+        )
+    if payload.get('proof_blocker_text') and payload['proof_blocker_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_blocker_text uit stdout-json: '
+            f"{payload.get('proof_blocker_text')}"
+        )
+    if payload.get('proof_next_action_window_text') and payload['proof_next_action_window_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_next_action_window_text uit stdout-json: '
+            f"{payload.get('proof_next_action_window_text')}"
+        )
     if payload.get('proof_recheck_schedule_kind_text') and payload['proof_recheck_schedule_kind_text'] not in text_output:
         failures.append(
             'watchdog-stdout-tekst mist proof_recheck_schedule_kind_text uit stdout-json: '
@@ -3210,6 +3225,8 @@ def evaluate_watchdog_stdout_case(case):
             payload.get('last_run_config_relation_text'),
             payload.get('last_run_timeout_text'),
             payload.get('recent_run_duration_text'),
+            payload.get('proof_wait_until_reason_text'),
+            payload.get('proof_blocker_text'),
             ('proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2]))
             if payload.get('summary_output_examples') else None,
             payload.get('proof_next_action_window_text'),
@@ -3681,6 +3698,16 @@ def evaluate_proof_recheck_case(case):
         failures.append(
             'proof-recheck-plain-tekst mist recent_run_duration_text uit stdout-json: '
             f"{payload.get('recent_run_duration_text')}"
+        )
+    if payload.get('proof_blocker_text') and payload['proof_blocker_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_blocker_text uit stdout-json: '
+            f"{payload.get('proof_blocker_text')}"
+        )
+    if payload.get('proof_wait_until_reason_text') and payload['proof_wait_until_reason_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_wait_until_reason_text uit stdout-json: '
+            f"{payload.get('proof_wait_until_reason_text')}"
         )
     if payload.get('proof_next_action_window_text') and payload['proof_next_action_window_text'] not in text_output:
         failures.append(
