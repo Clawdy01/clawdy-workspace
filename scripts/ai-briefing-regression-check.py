@@ -1816,12 +1816,17 @@ DEFAULT_CASES = [
         ],
         'expect_unique_item_title_count': 4,
         'expect_duplicate_item_title_count': 0,
+        'expect_duplicate_item_title_examples': [],
         'expect_items_with_source_count': 4,
         'expect_items_with_multiple_sources_count': 3,
         'expect_items_with_multi_domain_sources_count': 3,
         'expect_items_with_valid_source_line_count': 3,
         'expect_items_with_invalid_source_line_count': 1,
+        'expect_items_missing_source_line_count': 0,
+        'expect_items_without_source_count': 0,
+        'expect_items_missing_source_examples': [],
         'expect_first3_items_with_source_count': 3,
+        'expect_top3_missing_source_examples': [],
         'expect_first3_items_with_invalid_source_line_count': 1,
         'expect_first3_items_with_valid_source_line_count': 2,
         'expect_first3_items_with_multiple_sources_count': 2,
@@ -1864,6 +1869,12 @@ DEFAULT_CASES = [
             'anthropic',
             'openai',
         ],
+        'expect_dated_item_count': 4,
+        'expect_undated_item_count': 0,
+        'expect_explicit_undated_item_count': 0,
+        'expect_items_missing_date_line_examples': [],
+        'expect_top3_missing_date_line_examples': [],
+        'expect_top3_missing_recent_date_examples': [],
         'expect_first3_source_domain_count': 3,
         'expect_first3_source_domains': [
             'openai.com',
@@ -1878,6 +1889,17 @@ DEFAULT_CASES = [
         'expect_first3_primary_source_families': [
             'openai',
         ],
+        'expect_category_theme_count': 5,
+        'expect_category_theme_hits': [
+            'frontier-modelupdates',
+            'tools-productfeatures',
+            'agents-automation-coding',
+            'multimodal-voice-image-video-local',
+            'enterprise-security-regulatory',
+        ],
+        'expect_missing_alternative_groups': [],
+        'expect_fresh_dated_item_count': 4,
+        'expect_fresh_dated_first3_count': 3,
         'expect_first3_primary_fresh_item_count': 2,
         'expect_explicit_dated_item_count': 4,
         'expect_recent_dated_first3_count': 3,
@@ -1949,6 +1971,8 @@ DEFAULT_CASES = [
         'expect_missing_markers': [
             'Wat ik vandaag het belangrijkst vind',
         ],
+        'expect_numbered_title_heading_count': 0,
+        'expect_numbered_title_heading_examples': [],
         'expect_top3_missing_multi_source_examples': [
             'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
         ],
@@ -2807,6 +2831,22 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             f"source_url_count verwacht {case['expect_source_url_count']}, kreeg {audit.get('source_url_count')}"
         )
+    if (
+        'expect_items_missing_source_line_count' in case
+        and audit.get('items_missing_source_line_count') != case['expect_items_missing_source_line_count']
+    ):
+        failures.append(
+            'items_missing_source_line_count verwacht '
+            f"{case['expect_items_missing_source_line_count']}, kreeg {audit.get('items_missing_source_line_count')}"
+        )
+    if (
+        'expect_items_without_source_count' in case
+        and audit.get('items_without_source_count') != case['expect_items_without_source_count']
+    ):
+        failures.append(
+            'items_without_source_count verwacht '
+            f"{case['expect_items_without_source_count']}, kreeg {audit.get('items_without_source_count')}"
+        )
     if 'expect_unique_source_url_count' in case and audit.get('unique_source_url_count') != case['expect_unique_source_url_count']:
         failures.append(
             'unique_source_url_count verwacht '
@@ -2908,12 +2948,52 @@ def collect_audit_expectation_failures(case, audit, failures):
             f"{case['expect_first3_primary_source_families']}, kreeg {audit.get('first3_primary_source_families')}"
         )
     if (
+        'expect_dated_item_count' in case
+        and audit.get('dated_item_count') != case['expect_dated_item_count']
+    ):
+        failures.append(
+            'dated_item_count verwacht '
+            f"{case['expect_dated_item_count']}, kreeg {audit.get('dated_item_count')}"
+        )
+    if (
+        'expect_undated_item_count' in case
+        and audit.get('undated_item_count') != case['expect_undated_item_count']
+    ):
+        failures.append(
+            'undated_item_count verwacht '
+            f"{case['expect_undated_item_count']}, kreeg {audit.get('undated_item_count')}"
+        )
+    if (
+        'expect_explicit_undated_item_count' in case
+        and audit.get('explicit_undated_item_count') != case['expect_explicit_undated_item_count']
+    ):
+        failures.append(
+            'explicit_undated_item_count verwacht '
+            f"{case['expect_explicit_undated_item_count']}, kreeg {audit.get('explicit_undated_item_count')}"
+        )
+    if (
         'expect_explicit_dated_item_count' in case
         and audit.get('explicit_dated_item_count') != case['expect_explicit_dated_item_count']
     ):
         failures.append(
             'explicit_dated_item_count verwacht '
             f"{case['expect_explicit_dated_item_count']}, kreeg {audit.get('explicit_dated_item_count')}"
+        )
+    if (
+        'expect_fresh_dated_item_count' in case
+        and audit.get('fresh_dated_item_count') != case['expect_fresh_dated_item_count']
+    ):
+        failures.append(
+            'fresh_dated_item_count verwacht '
+            f"{case['expect_fresh_dated_item_count']}, kreeg {audit.get('fresh_dated_item_count')}"
+        )
+    if (
+        'expect_fresh_dated_first3_count' in case
+        and audit.get('fresh_dated_first3_count') != case['expect_fresh_dated_first3_count']
+    ):
+        failures.append(
+            'fresh_dated_first3_count verwacht '
+            f"{case['expect_fresh_dated_first3_count']}, kreeg {audit.get('fresh_dated_first3_count')}"
         )
     if (
         'expect_recent_dated_first3_count' in case
@@ -3014,6 +3094,27 @@ def collect_audit_expectation_failures(case, audit, failures):
             f"{case['expect_item_marker_min_count']}, kreeg {audit.get('item_marker_min_count')}"
         )
     if (
+        'expect_category_theme_count' in case
+        and audit.get('category_theme_count') != case['expect_category_theme_count']
+    ):
+        failures.append(
+            'category_theme_count verwacht '
+            f"{case['expect_category_theme_count']}, kreeg {audit.get('category_theme_count')}"
+        )
+    if 'expect_category_theme_hits' in case and audit.get('category_theme_hits') != case['expect_category_theme_hits']:
+        failures.append(
+            'category_theme_hits verwacht '
+            f"{case['expect_category_theme_hits']}, kreeg {audit.get('category_theme_hits')}"
+        )
+    if (
+        'expect_missing_alternative_groups' in case
+        and audit.get('missing_alternative_groups') != case['expect_missing_alternative_groups']
+    ):
+        failures.append(
+            'missing_alternative_groups verwacht '
+            f"{case['expect_missing_alternative_groups']}, kreeg {audit.get('missing_alternative_groups')}"
+        )
+    if (
         'expect_items_with_exact_field_order_count' in case
         and audit.get('items_with_exact_field_order_count') != case['expect_items_with_exact_field_order_count']
     ):
@@ -3048,6 +3149,62 @@ def collect_audit_expectation_failures(case, audit, failures):
     if 'expect_missing_markers' in case and audit.get('missing_markers') != case['expect_missing_markers']:
         failures.append(
             f"missing_markers verwacht {case['expect_missing_markers']}, kreeg {audit.get('missing_markers')}"
+        )
+    if (
+        'expect_numbered_title_heading_examples' in case
+        and audit.get('numbered_title_heading_examples') != case['expect_numbered_title_heading_examples']
+    ):
+        failures.append(
+            'numbered_title_heading_examples verwacht '
+            f"{case['expect_numbered_title_heading_examples']}, kreeg {audit.get('numbered_title_heading_examples')}"
+        )
+    if (
+        'expect_duplicate_item_title_examples' in case
+        and audit.get('duplicate_item_title_examples') != case['expect_duplicate_item_title_examples']
+    ):
+        failures.append(
+            'duplicate_item_title_examples verwacht '
+            f"{case['expect_duplicate_item_title_examples']}, kreeg {audit.get('duplicate_item_title_examples')}"
+        )
+    if (
+        'expect_items_missing_source_examples' in case
+        and audit.get('items_missing_source_examples') != case['expect_items_missing_source_examples']
+    ):
+        failures.append(
+            'items_missing_source_examples verwacht '
+            f"{case['expect_items_missing_source_examples']}, kreeg {audit.get('items_missing_source_examples')}"
+        )
+    if (
+        'expect_top3_missing_source_examples' in case
+        and audit.get('top3_missing_source_examples') != case['expect_top3_missing_source_examples']
+    ):
+        failures.append(
+            'top3_missing_source_examples verwacht '
+            f"{case['expect_top3_missing_source_examples']}, kreeg {audit.get('top3_missing_source_examples')}"
+        )
+    if (
+        'expect_items_missing_date_line_examples' in case
+        and audit.get('items_missing_date_line_examples') != case['expect_items_missing_date_line_examples']
+    ):
+        failures.append(
+            'items_missing_date_line_examples verwacht '
+            f"{case['expect_items_missing_date_line_examples']}, kreeg {audit.get('items_missing_date_line_examples')}"
+        )
+    if (
+        'expect_top3_missing_date_line_examples' in case
+        and audit.get('top3_missing_date_line_examples') != case['expect_top3_missing_date_line_examples']
+    ):
+        failures.append(
+            'top3_missing_date_line_examples verwacht '
+            f"{case['expect_top3_missing_date_line_examples']}, kreeg {audit.get('top3_missing_date_line_examples')}"
+        )
+    if (
+        'expect_top3_missing_recent_date_examples' in case
+        and audit.get('top3_missing_recent_date_examples') != case['expect_top3_missing_recent_date_examples']
+    ):
+        failures.append(
+            'top3_missing_recent_date_examples verwacht '
+            f"{case['expect_top3_missing_recent_date_examples']}, kreeg {audit.get('top3_missing_recent_date_examples')}"
         )
     if (
         'expect_top3_missing_multi_source_examples' in case
