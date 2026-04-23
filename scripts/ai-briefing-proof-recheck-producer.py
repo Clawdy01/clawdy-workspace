@@ -120,6 +120,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_wait_until_text']))
     if payload.get('proof_wait_until_reason_text'):
         bits.append(str(payload['proof_wait_until_reason_text']))
+    if payload.get('proof_today_block_text'):
+        bits.append(str(payload['proof_today_block_text']))
     if payload.get('proof_progress_text'):
         bits.append(str(payload['proof_progress_text']))
     if payload.get('proof_freshness_text'):
@@ -237,6 +239,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_state_text': payload.get('proof_state_text'),
         'proof_blocker_kind': payload.get('proof_blocker_kind'),
         'proof_blocker_text': payload.get('proof_blocker_text'),
+        'proof_today_block_text': payload.get('proof_today_block_text'),
         'proof_progress_text': payload.get('proof_progress_text'),
         'proof_freshness_text': payload.get('proof_freshness_text'),
         'proof_plan_text': payload.get('proof_plan_text'),

@@ -359,6 +359,8 @@ def render_text(summary):
             )
         if ai_briefing_status.get('proof_state_text'):
             ai_bits.append(ai_briefing_status['proof_state_text'])
+        if ai_briefing_status.get('proof_today_block_text'):
+            ai_bits.append(ai_briefing_status['proof_today_block_text'])
         if ai_briefing_status.get('proof_blocker_text'):
             ai_bits.append(ai_briefing_status['proof_blocker_text'])
         if ai_briefing_status.get('proof_wait_until_text'):

@@ -2969,6 +2969,14 @@ def evaluate_status_stdout_case(case):
             'status-stdout-tekst mist proof_wait_until_reason_text uit stdout-json: '
             f"{payload.get('proof_wait_until_reason_text')}"
         )
+    if (
+        payload.get('proof_recheck_after_text_compact')
+        and payload['proof_recheck_after_text_compact'] not in text_output
+    ):
+        failures.append(
+            'status-stdout-tekst mist proof_recheck_after_text_compact uit stdout-json: '
+            f"{payload.get('proof_recheck_after_text_compact')}"
+        )
     if payload.get('proof_blocker_text') and payload['proof_blocker_text'] not in text_output:
         failures.append(
             'status-stdout-tekst mist proof_blocker_text uit stdout-json: '
@@ -3002,6 +3010,11 @@ def evaluate_status_stdout_case(case):
             'status-stdout-tekst mist proof_target_due_at_if_next_slot_missed_text uit stdout-json: '
             f"{payload.get('proof_target_due_at_if_next_slot_missed_text')}"
         )
+    if payload.get('proof_countdown_text') and payload['proof_countdown_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_countdown_text uit stdout-json: '
+            f"{payload.get('proof_countdown_text')}"
+        )
     summary_examples_text = (
         'outputvoorbeelden: ' + '; '.join((payload.get('summary_output_examples') or [])[:2])
         if payload.get('summary_output_examples') else None
@@ -3022,8 +3035,10 @@ def evaluate_status_stdout_case(case):
             payload.get('last_run_config_relation_text'),
             payload.get('proof_wait_until_text'),
             payload.get('proof_wait_until_reason_text'),
+            payload.get('proof_recheck_after_text_compact'),
             payload.get('proof_blocker_text'),
             payload.get('proof_target_due_at_if_next_slot_missed_text'),
+            payload.get('proof_countdown_text'),
             summary_examples_text,
             payload.get('proof_next_action_window_text'),
             payload.get('proof_next_action_text'),
@@ -3237,6 +3252,14 @@ def evaluate_watchdog_stdout_case(case):
             'watchdog-stdout-tekst mist proof_wait_until_reason_text uit stdout-json: '
             f"{payload.get('proof_wait_until_reason_text')}"
         )
+    if (
+        payload.get('proof_recheck_after_text_compact')
+        and payload['proof_recheck_after_text_compact'] not in text_output
+    ):
+        failures.append(
+            'watchdog-stdout-tekst mist proof_recheck_after_text_compact uit stdout-json: '
+            f"{payload.get('proof_recheck_after_text_compact')}"
+        )
     if payload.get('proof_blocker_text') and payload['proof_blocker_text'] not in text_output:
         failures.append(
             'watchdog-stdout-tekst mist proof_blocker_text uit stdout-json: '
@@ -3270,6 +3293,11 @@ def evaluate_watchdog_stdout_case(case):
             'watchdog-stdout-tekst mist proof_target_due_at_if_next_slot_missed_text uit stdout-json: '
             f"{payload.get('proof_target_due_at_if_next_slot_missed_text')}"
         )
+    if payload.get('proof_countdown_text') and payload['proof_countdown_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_countdown_text uit stdout-json: '
+            f"{payload.get('proof_countdown_text')}"
+        )
     watchdog_example_text = (
         'proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2])
         if payload.get('summary_output_examples') else None
@@ -3292,8 +3320,10 @@ def evaluate_watchdog_stdout_case(case):
             payload.get('recent_run_duration_text'),
             payload.get('proof_wait_until_text'),
             payload.get('proof_wait_until_reason_text'),
+            payload.get('proof_recheck_after_text_compact'),
             payload.get('proof_blocker_text'),
             payload.get('proof_target_due_at_if_next_slot_missed_text'),
+            payload.get('proof_countdown_text'),
             ('proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2]))
             if payload.get('summary_output_examples') else None,
             payload.get('proof_next_action_window_text'),
@@ -3771,6 +3801,11 @@ def evaluate_proof_recheck_case(case):
             'proof-recheck-plain-tekst mist proof_blocker_text uit stdout-json: '
             f"{payload.get('proof_blocker_text')}"
         )
+    if payload.get('proof_today_block_text') and payload['proof_today_block_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_today_block_text uit stdout-json: '
+            f"{payload.get('proof_today_block_text')}"
+        )
     if payload.get('proof_wait_until_text') and payload['proof_wait_until_text'] not in text_output:
         failures.append(
             'proof-recheck-plain-tekst mist proof_wait_until_text uit stdout-json: '
@@ -3986,6 +4021,7 @@ def evaluate_proof_recheck_producer_case(case):
             'proof_waiting_for_next_scheduled_run',
             'proof_config_identity_text',
             'last_run_config_relation_text',
+            'proof_today_block_text',
             'proof_freshness_text',
             'proof_plan_text',
             'last_run_timeout_text',
@@ -4098,6 +4134,11 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'producer-quiet-tekst mist proof_plan_text uit overall/stdout-json: '
                 f"{overall.get('proof_plan_text')}"
+            )
+        if overall.get('proof_today_block_text') and overall['proof_today_block_text'] not in quiet_text:
+            failures.append(
+                'producer-quiet-tekst mist proof_today_block_text uit overall/stdout-json: '
+                f"{overall.get('proof_today_block_text')}"
             )
         quiet_examples_text = (
             'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2])
@@ -4980,6 +5021,11 @@ def evaluate_brief_consumer_case(case):
             f"{expected_status.get('proof_target_due_at_if_next_slot_missed_text')}, kreeg "
             f"{ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text')}"
         )
+    if ai_briefing_status.get('proof_today_block_text') != expected_status.get('proof_today_block_text'):
+        failures.append(
+            'ai_briefing_status.proof_today_block_text verwacht '
+            f"{expected_status.get('proof_today_block_text')}, kreeg {ai_briefing_status.get('proof_today_block_text')}"
+        )
     if ai_briefing_status.get('proof_blocker_text') != expected_status.get('proof_blocker_text'):
         failures.append(
             'ai_briefing_status.proof_blocker_text verwacht '
@@ -5030,7 +5076,10 @@ def evaluate_brief_consumer_case(case):
             ai_briefing_status.get('recent_run_duration_text'),
             ai_briefing_status.get('proof_wait_until_text'),
             ai_briefing_status.get('proof_wait_until_reason_text'),
+            ai_briefing_status.get('proof_recheck_after_text_compact'),
             ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text'),
+            ai_briefing_status.get('proof_countdown_text'),
+            ai_briefing_status.get('proof_today_block_text'),
             ai_briefing_status.get('proof_blocker_text'),
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
@@ -5119,12 +5168,36 @@ def evaluate_brief_consumer_case(case):
             f"{ai_briefing_status.get('proof_wait_until_reason_text')}"
         )
     if (
+        ai_briefing_status.get('proof_recheck_after_text_compact')
+        and ai_briefing_status['proof_recheck_after_text_compact'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_recheck_after_text_compact uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_recheck_after_text_compact')}"
+        )
+    if (
         ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text')
         and ai_briefing_status['proof_target_due_at_if_next_slot_missed_text'] not in text_output
     ):
         failures.append(
             'brief-consumer-tekst mist proof_target_due_at_if_next_slot_missed_text uit ai_briefing_status: '
             f"{ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text')}"
+        )
+    if (
+        ai_briefing_status.get('proof_countdown_text')
+        and ai_briefing_status['proof_countdown_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_countdown_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_countdown_text')}"
+        )
+    if (
+        ai_briefing_status.get('proof_today_block_text')
+        and ai_briefing_status['proof_today_block_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_today_block_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_today_block_text')}"
         )
     if (
         ai_briefing_status.get('proof_blocker_text')
@@ -6108,6 +6181,7 @@ def evaluate_watchdog_producer_case(case):
         'proof_wait_until_reason_text',
         'proof_next_action_text',
         'proof_next_action_window_text',
+        'proof_today_block_text',
         'proof_recheck_commands_text',
         'proof_recheck_window_open',
         'proof_recheck_window_text',
@@ -6128,6 +6202,7 @@ def evaluate_watchdog_producer_case(case):
         'proof_waiting_for_next_scheduled_run',
         'proof_runs_remaining',
         'proof_target_met',
+        'proof_today_block_text',
         'proof_freshness_text',
         'proof_plan_text',
         'last_run_timeout_text',
@@ -6181,6 +6256,7 @@ def evaluate_watchdog_producer_case(case):
         'proof_config_identity_text',
         'last_run_config_relation',
         'last_run_config_relation_text',
+        'proof_today_block_text',
         'proof_next_action_text',
         'proof_next_action_window_text',
         'proof_recheck_commands_text',
@@ -6444,6 +6520,7 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
             for field_name in [
                 'proof_wait_until_text',
                 'proof_wait_until_reason_text',
+                'proof_recheck_after_text_compact',
                 'proof_blocker_text',
                 'proof_next_action_window_text',
                 'proof_recheck_window_text',
@@ -6453,6 +6530,7 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                 'recent_run_duration_text',
                 'proof_recheck_schedule_kind_text',
                 'proof_recheck_schedule_text',
+                'proof_countdown_text',
             ]:
                 field_value = json_payload.get(field_name)
                 if field_value and field_value not in artifact_text:
@@ -6512,6 +6590,7 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                 for field_name in [
                     'proof_wait_until_text',
                     'proof_wait_until_reason_text',
+                    'proof_recheck_after_text_compact',
                     'proof_blocker_text',
                     'proof_next_action_window_text',
                     'proof_recheck_window_text',
@@ -6521,6 +6600,7 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                     'recent_run_duration_text',
                     'proof_recheck_schedule_kind_text',
                     'proof_recheck_schedule_text',
+                    'proof_countdown_text',
                 ]:
                     if artifact_payload.get(field_name) != json_payload.get(field_name):
                         failures.append(
@@ -6620,10 +6700,12 @@ def evaluate_watchdog_consumer_format_passthrough_case():
             for field_name in [
                 'proof_wait_until_text',
                 'proof_wait_until_reason_text',
+                'proof_recheck_after_text_compact',
                 'proof_blocker_text',
                 'proof_next_action_window_text',
                 'proof_recheck_schedule_kind_text',
                 'proof_recheck_schedule_text',
+                'proof_countdown_text',
             ]:
                 field_value = json_payload.get(field_name)
                 if field_value and field_value not in artifact_text:
@@ -6684,11 +6766,13 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                 for field_name in [
                     'proof_wait_until_text',
                     'proof_wait_until_reason_text',
+                    'proof_recheck_after_text_compact',
                     'proof_blocker_text',
                     'proof_next_action_window_text',
                     'proof_recheck_window_text',
                     'proof_recheck_schedule_kind_text',
                     'proof_recheck_schedule_text',
+                    'proof_countdown_text',
                 ]:
                     if artifact_payload.get(field_name) != json_payload.get(field_name):
                         failures.append(
@@ -6697,10 +6781,12 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                 for field_name in [
                     'proof_wait_until_text',
                     'proof_wait_until_reason_text',
+                    'proof_recheck_after_text_compact',
                     'proof_blocker_text',
                     'proof_next_action_window_text',
                     'proof_recheck_schedule_kind_text',
                     'proof_recheck_schedule_text',
+                    'proof_countdown_text',
                 ]:
                     field_value = artifact_payload.get(field_name)
                     if field_value and field_value not in plain_stdout:
