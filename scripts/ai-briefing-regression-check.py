@@ -3682,6 +3682,11 @@ def evaluate_proof_recheck_case(case):
             'proof-recheck-plain-tekst mist recent_run_duration_text uit stdout-json: '
             f"{payload.get('recent_run_duration_text')}"
         )
+    if payload.get('proof_next_action_window_text') and payload['proof_next_action_window_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_next_action_window_text uit stdout-json: '
+            f"{payload.get('proof_next_action_window_text')}"
+        )
 
     for snippet in case.get('expect_plain_not_substrings', []):
         if snippet and snippet in text_output:
@@ -4826,6 +4831,16 @@ def evaluate_brief_consumer_case(case):
             f"{expected_status.get('proof_waiting_for_next_scheduled_run')}, kreeg "
             f"{ai_briefing_status.get('proof_waiting_for_next_scheduled_run')}"
         )
+    if ai_briefing_status.get('proof_wait_until_reason_text') != expected_status.get('proof_wait_until_reason_text'):
+        failures.append(
+            'ai_briefing_status.proof_wait_until_reason_text verwacht '
+            f"{expected_status.get('proof_wait_until_reason_text')}, kreeg {ai_briefing_status.get('proof_wait_until_reason_text')}"
+        )
+    if ai_briefing_status.get('proof_blocker_text') != expected_status.get('proof_blocker_text'):
+        failures.append(
+            'ai_briefing_status.proof_blocker_text verwacht '
+            f"{expected_status.get('proof_blocker_text')}, kreeg {ai_briefing_status.get('proof_blocker_text')}"
+        )
     if ai_briefing_status.get('last_run_timeout_text') != expected_status.get('last_run_timeout_text'):
         failures.append(
             'ai_briefing_status.last_run_timeout_text verwacht '
@@ -4869,6 +4884,8 @@ def evaluate_brief_consumer_case(case):
             ai_briefing_status.get('last_run_config_relation_text'),
             ai_briefing_status.get('last_run_timeout_text'),
             ai_briefing_status.get('recent_run_duration_text'),
+            ai_briefing_status.get('proof_wait_until_reason_text'),
+            ai_briefing_status.get('proof_blocker_text'),
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
             text_output,
@@ -4938,6 +4955,22 @@ def evaluate_brief_consumer_case(case):
         failures.append(
             'brief-consumer-tekst mist recent_run_duration_text uit ai_briefing_status: '
             f"{ai_briefing_status.get('recent_run_duration_text')}"
+        )
+    if (
+        ai_briefing_status.get('proof_wait_until_reason_text')
+        and ai_briefing_status['proof_wait_until_reason_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_wait_until_reason_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_wait_until_reason_text')}"
+        )
+    if (
+        ai_briefing_status.get('proof_blocker_text')
+        and ai_briefing_status['proof_blocker_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_blocker_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_blocker_text')}"
         )
     if (
         ai_briefing_status.get('proof_next_action_window_text')
@@ -5204,6 +5237,16 @@ def evaluate_watchdog_alert_case(case):
             'proof_plan_text verwacht passthrough uit watchdog-json, kreeg '
             f"{payload.get('proof_plan_text')} versus {watchdog_payload.get('proof_plan_text')}"
         )
+    if payload.get('proof_wait_until_reason_text') != watchdog_payload.get('proof_wait_until_reason_text'):
+        failures.append(
+            'proof_wait_until_reason_text verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('proof_wait_until_reason_text')} versus {watchdog_payload.get('proof_wait_until_reason_text')}"
+        )
+    if payload.get('proof_blocker_text') != watchdog_payload.get('proof_blocker_text'):
+        failures.append(
+            'proof_blocker_text verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('proof_blocker_text')} versus {watchdog_payload.get('proof_blocker_text')}"
+        )
     if payload.get('proof_next_action_window_text') != watchdog_payload.get('proof_next_action_window_text'):
         failures.append(
             'proof_next_action_window_text verwacht passthrough uit watchdog-json, kreeg '
@@ -5286,6 +5329,28 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'watchdog-alert alert_text mist proof_plan_text uit stdout-json: '
                     f"{payload.get('proof_plan_text')}"
+                )
+        if payload.get('proof_wait_until_reason_text'):
+            if payload['proof_wait_until_reason_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_wait_until_reason_text uit stdout-json: '
+                    f"{payload.get('proof_wait_until_reason_text')}"
+                )
+            if payload['proof_wait_until_reason_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_wait_until_reason_text uit stdout-json: '
+                    f"{payload.get('proof_wait_until_reason_text')}"
+                )
+        if payload.get('proof_blocker_text'):
+            if payload['proof_blocker_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_blocker_text uit stdout-json: '
+                    f"{payload.get('proof_blocker_text')}"
+                )
+            if payload['proof_blocker_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_blocker_text uit stdout-json: '
+                    f"{payload.get('proof_blocker_text')}"
                 )
         if payload.get('proof_next_action_window_text'):
             if payload['proof_next_action_window_text'] not in text_output:
@@ -5390,6 +5455,16 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'consumer board-json proof_plan_text verwacht pariteit met stdout-json, kreeg '
                     f"{board_payload.get('proof_plan_text')} versus {payload.get('proof_plan_text')}"
+                )
+            if board_payload.get('proof_wait_until_reason_text') != payload.get('proof_wait_until_reason_text'):
+                failures.append(
+                    'consumer board-json proof_wait_until_reason_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('proof_wait_until_reason_text')} versus {payload.get('proof_wait_until_reason_text')}"
+                )
+            if board_payload.get('proof_blocker_text') != payload.get('proof_blocker_text'):
+                failures.append(
+                    'consumer board-json proof_blocker_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('proof_blocker_text')} versus {payload.get('proof_blocker_text')}"
                 )
             if board_payload.get('proof_next_action_window_text') != payload.get('proof_next_action_window_text'):
                 failures.append(
@@ -5543,6 +5618,16 @@ def evaluate_watchdog_alert_case(case):
                         failures.append(
                             'consumer eventlog-jsonl proof_plan_text verwacht pariteit met stdout-json, kreeg '
                             f"{eventlog_payload.get('proof_plan_text')} versus {payload.get('proof_plan_text')}"
+                        )
+                    if eventlog_payload.get('proof_wait_until_reason_text') != payload.get('proof_wait_until_reason_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl proof_wait_until_reason_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('proof_wait_until_reason_text')} versus {payload.get('proof_wait_until_reason_text')}"
+                        )
+                    if eventlog_payload.get('proof_blocker_text') != payload.get('proof_blocker_text'):
+                        failures.append(
+                            'consumer eventlog-jsonl proof_blocker_text verwacht pariteit met stdout-json, kreeg '
+                            f"{eventlog_payload.get('proof_blocker_text')} versus {payload.get('proof_blocker_text')}"
                         )
                     if eventlog_payload.get('proof_next_action_window_text') != payload.get('proof_next_action_window_text'):
                         failures.append(

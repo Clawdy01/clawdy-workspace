@@ -141,6 +141,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append('wacht op eerstvolgende geplande kwalificatierun')
     if data.get('proof_blocker_text'):
         bits.append(data['proof_blocker_text'])
+    if data.get('proof_wait_until_reason_text'):
+        bits.append(data['proof_wait_until_reason_text'])
     if require_qualified_runs > 0:
         proof_progress = data.get('proof_progress_text')
         if proof_progress and proof_progress not in (readiness_text or ''):
