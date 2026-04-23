@@ -1822,6 +1822,9 @@ DEFAULT_CASES = [
         'expect_invalid_source_issue_counts': {
             'datumtekst': 1,
         },
+        'expect_top3_invalid_source_line_issue_counts': {
+            'datumtekst': 1,
+        },
         'expect_exact_field_line_counts': {
             'Titel:': 4,
             'Bron:': 4,
@@ -1884,6 +1887,24 @@ DEFAULT_CASES = [
         ],
         'expect_invalid_source_line_example_titles': [
             'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+        ],
+        'expect_items_invalid_source_line_examples': [
+            {
+                'title': 'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+                'source_line': 'Bron: https://openai.com/index/introducing-workspace-agents-in-chatgpt/ | https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep | https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23',
+                'issues': [
+                    'datumtekst',
+                ],
+            },
+        ],
+        'expect_top3_invalid_source_line_examples': [
+            {
+                'title': 'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+                'source_line': 'Bron: https://openai.com/index/introducing-workspace-agents-in-chatgpt/ | https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep | https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23',
+                'issues': [
+                    'datumtekst',
+                ],
+            },
         ],
         'expect_reason_substrings': [
             '1 verplichte sectie(s) missen',
@@ -2854,6 +2875,30 @@ def collect_audit_expectation_failures(case, audit, failures):
                 'items_invalid_source_line_examples titles verwacht '
                 f"{case['expect_invalid_source_line_example_titles']}, kreeg {example_titles}"
             )
+    if (
+        'expect_top3_invalid_source_line_issue_counts' in case
+        and audit.get('top3_invalid_source_line_issue_counts') != case['expect_top3_invalid_source_line_issue_counts']
+    ):
+        failures.append(
+            'top3_invalid_source_line_issue_counts verwacht '
+            f"{case['expect_top3_invalid_source_line_issue_counts']}, kreeg {audit.get('top3_invalid_source_line_issue_counts')}"
+        )
+    if (
+        'expect_items_invalid_source_line_examples' in case
+        and audit.get('items_invalid_source_line_examples') != case['expect_items_invalid_source_line_examples']
+    ):
+        failures.append(
+            'items_invalid_source_line_examples verwacht '
+            f"{case['expect_items_invalid_source_line_examples']}, kreeg {audit.get('items_invalid_source_line_examples')}"
+        )
+    if (
+        'expect_top3_invalid_source_line_examples' in case
+        and audit.get('top3_invalid_source_line_examples') != case['expect_top3_invalid_source_line_examples']
+    ):
+        failures.append(
+            'top3_invalid_source_line_examples verwacht '
+            f"{case['expect_top3_invalid_source_line_examples']}, kreeg {audit.get('top3_invalid_source_line_examples')}"
+        )
     audit_text = audit.get('text') or ''
     for snippet in case.get('expect_reason_substrings', []):
         if snippet not in audit_text:
