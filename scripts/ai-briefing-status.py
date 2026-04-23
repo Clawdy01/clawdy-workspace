@@ -55,6 +55,7 @@ REQUIRED_PROMPT_MARKERS = [
     "Wat moeten wij hiermee?",
     "Wat ik vandaag het belangrijkst vind",
     'bronnenlijst met URLs',
+    'Sluit helemaal af met exact deze tussenkop: Bronnenlijst',
 ]
 REQUIRED_FORMAT_MARKERS = [
     'in het Nederlands',
@@ -1560,7 +1561,9 @@ def audit_summary_output(summary_text, reference_ms=None):
     category_theme_count = len(category_theme_hits)
     reasons = []
     if missing_markers:
-        reasons.append(f"{len(missing_markers)} verplichte sectie(s) missen")
+        reasons.append(
+            f"{len(missing_markers)} verplichte sectie(s) missen: {', '.join(missing_markers)}"
+        )
     if item_marker_min_count < 3:
         reasons.append(
             'te weinig briefingitems met titel/nieuw/belangrijk-structuur '
@@ -2207,6 +2210,8 @@ def audit_payload(job):
         reasons.append(f"payload.kind is {payload.get('kind') or 'onbekend'}")
     if 'bronnenlijst met URLs' not in message:
         reasons.append('bronnenlijst met URLs ontbreekt')
+    if 'Sluit helemaal af met exact deze tussenkop: Bronnenlijst' not in message:
+        reasons.append('exacte Bronnenlijst-afsluiter ontbreekt')
     if 'Als er weinig echt nieuws is, zeg dat eerlijk' not in message:
         reasons.append('eerlijke low-news instructie ontbreekt')
     if not light_context:

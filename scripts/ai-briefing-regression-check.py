@@ -2033,12 +2033,19 @@ DEFAULT_CASES = [
             },
         ],
         'expect_reason_substrings': [
-            '2 verplichte sectie(s) missen',
+            '2 verplichte sectie(s) missen: Wat ik vandaag het belangrijkst vind, Bronnenlijst',
             'niet elk item volgt de exacte labelvolgorde (0/4)',
             'niet elk item heeft een geldige Bron:-regel met alleen URLs (3/4)',
             'niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3)',
             'te weinig primaire bronfamilies in top 3 (1)',
             'verdachte toekomstige datums in briefing (4 item(s), tolerantie 1 dag)',
+        ],
+        'expect_text_substrings': [
+            '2 verplichte sectie(s) missen: Wat ik vandaag het belangrijkst vind, Bronnenlijst; niet elk item volgt de exacte labelvolgorde (0/4)',
+            'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows -> Titel: > Wat is er nieuw: > Waarom is dit belangrijk: > Relevant voor Christian: > Bron: > Datum:',
+        ],
+        'reject_text_substrings': [
+            'verplichte outputanker(s) missen',
         ],
     },
 ]
@@ -3350,6 +3357,12 @@ def collect_audit_expectation_failures(case, audit, failures):
     for snippet in case.get('expect_reason_substrings', []):
         if snippet not in audit_text:
             failures.append(f"verwachte audittekst ontbreekt: {snippet}")
+    for snippet in case.get('expect_text_substrings', []):
+        if snippet not in audit_text:
+            failures.append(f"verwachte audittekst ontbreekt: {snippet}")
+    for snippet in case.get('reject_text_substrings', []):
+        if snippet in audit_text:
+            failures.append(f"ongewenste audittekst aanwezig: {snippet}")
 
 
 def evaluate_case(module, case):
