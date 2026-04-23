@@ -1898,13 +1898,11 @@ DEFAULT_CASES = [
             'multimodal-voice-image-video-local',
             'enterprise-security-regulatory',
         ],
-        'expect_missing_alternative_groups': [],
-        'expect_matched_alternative_groups': [
-            {
-                'group': ['bronnenlijst', 'bronnen'],
-                'matched_markers': ['bronnenlijst'],
-            },
+        'expect_missing_alternative_groups': [
+            ['Bronnenlijst'],
         ],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_matched_alternative_groups': [],
         'expect_fresh_dated_item_count': 4,
         'expect_fresh_dated_first3_count': 3,
         'expect_fresh_item_max_age_hours': 48,
@@ -1989,6 +1987,7 @@ DEFAULT_CASES = [
         ],
         'expect_missing_markers': [
             'Wat ik vandaag het belangrijkst vind',
+            'Bronnenlijst',
         ],
         'expect_numbered_title_heading_count': 0,
         'expect_numbered_title_heading_examples': [],
@@ -2034,7 +2033,7 @@ DEFAULT_CASES = [
             },
         ],
         'expect_reason_substrings': [
-            '1 verplichte sectie(s) missen',
+            '2 verplichte sectie(s) missen',
             'niet elk item volgt de exacte labelvolgorde (0/4)',
             'niet elk item heeft een geldige Bron:-regel met alleen URLs (3/4)',
             'niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3)',
@@ -3178,6 +3177,15 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'matched_alternative_groups verwacht '
             f"{case['expect_matched_alternative_groups']}, kreeg {audit.get('matched_alternative_groups')}"
+        )
+    if (
+        'expect_missing_nonredundant_alternative_groups' in case
+        and audit.get('missing_nonredundant_alternative_groups')
+        != case['expect_missing_nonredundant_alternative_groups']
+    ):
+        failures.append(
+            'missing_nonredundant_alternative_groups verwacht '
+            f"{case['expect_missing_nonredundant_alternative_groups']}, kreeg {audit.get('missing_nonredundant_alternative_groups')}"
         )
     if (
         'expect_items_with_exact_field_order_count' in case

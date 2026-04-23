@@ -88,6 +88,7 @@ REQUIRED_TOOLS_ALLOW = {'web_search', 'web_fetch'}
 REQUIRED_OUTPUT_MARKERS = [
     'Wat moeten wij hiermee?',
     'Wat ik vandaag het belangrijkst vind',
+    'Bronnenlijst',
 ]
 REQUIRED_OUTPUT_ITEM_MARKERS = [
     'titel:',
@@ -103,7 +104,7 @@ REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES = [
     'Relevant voor Christian:',
 ]
 REQUIRED_OUTPUT_MARKER_ALTERNATIVES = [
-    ('bronnenlijst', 'bronnen'),
+    ('Bronnenlijst',),
 ]
 MIN_SOURCE_URLS = 3
 MIN_DATED_ITEMS_FOR_STRONG_SIGNAL = 2
@@ -1215,7 +1216,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         }
 
     normalized_text = summary_text.lower()
-    missing_markers = [marker for marker in REQUIRED_OUTPUT_MARKERS if marker.lower() not in normalized_text]
+    missing_markers = [
+        marker
+        for marker in REQUIRED_OUTPUT_MARKERS
+        if not re.search(rf'(?im)^\s*{re.escape(marker)}\s*$', summary_text)
+    ]
     item_marker_counts = {
         marker: normalized_text.count(marker.lower())
         for marker in REQUIRED_OUTPUT_ITEM_MARKERS
@@ -1234,7 +1239,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         matched_markers = [
             marker
             for marker in group
-            if re.search(rf'(?im)^\s*{re.escape(marker)}\b', summary_text)
+            if re.search(rf'(?im)^\s*{re.escape(marker)}\s*$', summary_text)
         ]
         if matched_markers:
             matched_alternative_groups.append({
@@ -1243,6 +1248,12 @@ def audit_summary_output(summary_text, reference_ms=None):
             })
         else:
             missing_alternative_groups.append(list(group))
+    missing_marker_set = {marker.casefold() for marker in missing_markers}
+    missing_nonredundant_alternative_groups = [
+        group
+        for group in missing_alternative_groups
+        if not all(marker.casefold() in missing_marker_set for marker in group)
+    ]
     item_blocks = split_summary_item_blocks(summary_text)
     item_count = len(item_blocks)
     effective_item_marker_counts = dict(item_marker_counts)
@@ -1583,8 +1594,8 @@ def audit_summary_output(summary_text, reference_ms=None):
         if numbered_title_heading_examples:
             reason += f": {', '.join(numbered_title_heading_examples)}"
         reasons.append(reason)
-    if missing_alternative_groups:
-        reasons.append(f"{len(missing_alternative_groups)} verplichte outputanker(s) missen")
+    if missing_nonredundant_alternative_groups:
+        reasons.append(f"{len(missing_nonredundant_alternative_groups)} verplichte outputanker(s) missen")
     if source_url_count < MIN_SOURCE_URLS:
         reasons.append(f'te weinig geldige bron-URLs op geldige Bron:-regels ({source_url_count})')
     if item_count and unique_source_url_count < item_count:
@@ -1754,6 +1765,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'item_count': item_count,
         'item_marker_min_count': item_marker_min_count,
         'missing_alternative_groups': missing_alternative_groups,
+        'missing_nonredundant_alternative_groups': missing_nonredundant_alternative_groups,
         'numbered_title_heading_count': numbered_title_heading_count,
         'numbered_title_heading_examples': numbered_title_heading_examples,
         'items_with_exact_field_order_count': items_with_exact_field_order_count,
