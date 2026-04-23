@@ -1811,6 +1811,7 @@ DEFAULT_CASES = [
         'expect_first3_items_with_primary_source_count': 2,
         'expect_first3_evidenced_item_count': 2,
         'expect_primary_source_domain_count': 3,
+        'expect_primary_source_family_count': 2,
         'expect_first3_source_domain_count': 3,
         'expect_first3_primary_source_domain_count': 1,
         'expect_first3_primary_source_family_count': 1,
@@ -1831,6 +1832,41 @@ DEFAULT_CASES = [
         },
         'expect_items_with_exact_field_order_count': 0,
         'expect_items_with_field_order_mismatch_count': 4,
+        'expect_items_field_order_mismatch_examples': [
+            {
+                'title': 'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+                'sequence': [
+                    'Titel:',
+                    'Wat is er nieuw:',
+                    'Waarom is dit belangrijk:',
+                    'Relevant voor Christian:',
+                    'Bron:',
+                    'Datum:',
+                ],
+            },
+            {
+                'title': 'OpenAI brengt Privacy Filter uit als open-weight PII-redactiemodel voor lokale en enterprise workflows',
+                'sequence': [
+                    'Titel:',
+                    'Wat is er nieuw:',
+                    'Waarom is dit belangrijk:',
+                    'Relevant voor Christian:',
+                    'Bron:',
+                    'Datum:',
+                ],
+            },
+            {
+                'title': 'ChatGPT Images 2.0 rolt uit met ‘thinking’, betere tekstweergave en multi-image generatie',
+                'sequence': [
+                    'Titel:',
+                    'Wat is er nieuw:',
+                    'Waarom is dit belangrijk:',
+                    'Relevant voor Christian:',
+                    'Bron:',
+                    'Datum:',
+                ],
+            },
+        ],
         'expect_missing_markers': [
             'Wat ik vandaag het belangrijkst vind',
         ],
@@ -2660,6 +2696,14 @@ def collect_audit_expectation_failures(case, audit, failures):
             f"{case['expect_primary_source_domain_count']}, kreeg {audit.get('primary_source_domain_count')}"
         )
     if (
+        'expect_primary_source_family_count' in case
+        and audit.get('primary_source_family_count') != case['expect_primary_source_family_count']
+    ):
+        failures.append(
+            'primary_source_family_count verwacht '
+            f"{case['expect_primary_source_family_count']}, kreeg {audit.get('primary_source_family_count')}"
+        )
+    if (
         'expect_first3_unique_source_url_count' in case
         and audit.get('first3_unique_source_url_count') != case['expect_first3_unique_source_url_count']
     ):
@@ -2748,6 +2792,14 @@ def collect_audit_expectation_failures(case, audit, failures):
             f"{case['expect_items_with_field_order_mismatch_count']}, kreeg {audit.get('items_with_field_order_mismatch_count')}"
         )
     if (
+        'expect_items_field_order_mismatch_examples' in case
+        and audit.get('items_field_order_mismatch_examples') != case['expect_items_field_order_mismatch_examples']
+    ):
+        failures.append(
+            'items_field_order_mismatch_examples verwacht '
+            f"{case['expect_items_field_order_mismatch_examples']}, kreeg {audit.get('items_field_order_mismatch_examples')}"
+        )
+    if (
         'expect_numbered_title_heading_count' in case
         and audit.get('numbered_title_heading_count') != case['expect_numbered_title_heading_count']
     ):
@@ -2829,6 +2881,7 @@ def evaluate_case(module, case):
         'first3_items_with_valid_source_line_count': audit.get('first3_items_with_valid_source_line_count'),
         'first3_items_with_multiple_sources_count': audit.get('first3_items_with_multiple_sources_count'),
         'first3_items_with_primary_source_count': audit.get('first3_items_with_primary_source_count'),
+        'primary_source_family_count': audit.get('primary_source_family_count'),
         'first3_primary_source_family_count': audit.get('first3_primary_source_family_count'),
         'first3_primary_fresh_item_count': audit.get('first3_primary_fresh_item_count'),
         'explicit_dated_item_count': audit.get('explicit_dated_item_count'),
