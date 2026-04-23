@@ -567,6 +567,10 @@ def main() -> int:
         lines.append(f"proof due: {result['proof_due_at_text']}")
     if result['proof_target_due_at_text']:
         lines.append(f"proof target due: {result['proof_target_due_at_text']}")
+    if result.get('proof_target_due_at_if_next_slot_missed_text'):
+        lines.append(
+            f"proof target due if next slot missed: {result['proof_target_due_at_if_next_slot_missed_text']}"
+        )
     if result['proof_plan_text']:
         lines.append(f"proof plan: {result['proof_plan_text']}")
     if result.get('proof_freshness_text'):

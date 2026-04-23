@@ -2979,6 +2979,24 @@ def evaluate_status_stdout_case(case):
             'status-stdout-tekst mist proof_next_action_window_text uit stdout-json: '
             f"{payload.get('proof_next_action_window_text')}"
         )
+    if payload.get('proof_recheck_schedule_kind_text') and payload['proof_recheck_schedule_kind_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_recheck_schedule_kind_text uit stdout-json: '
+            f"{payload.get('proof_recheck_schedule_kind_text')}"
+        )
+    if payload.get('proof_recheck_schedule_text') and payload['proof_recheck_schedule_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_recheck_schedule_text uit stdout-json: '
+            f"{payload.get('proof_recheck_schedule_text')}"
+        )
+    if (
+        payload.get('proof_target_due_at_if_next_slot_missed_text')
+        and payload['proof_target_due_at_if_next_slot_missed_text'] not in text_output
+    ):
+        failures.append(
+            'status-stdout-tekst mist proof_target_due_at_if_next_slot_missed_text uit stdout-json: '
+            f"{payload.get('proof_target_due_at_if_next_slot_missed_text')}"
+        )
     summary_examples_text = (
         'outputvoorbeelden: ' + '; '.join((payload.get('summary_output_examples') or [])[:2])
         if payload.get('summary_output_examples') else None
@@ -3000,6 +3018,7 @@ def evaluate_status_stdout_case(case):
             payload.get('proof_wait_until_text'),
             payload.get('proof_wait_until_reason_text'),
             payload.get('proof_blocker_text'),
+            payload.get('proof_target_due_at_if_next_slot_missed_text'),
             summary_examples_text,
             payload.get('proof_next_action_window_text'),
             payload.get('proof_next_action_text'),
@@ -3233,6 +3252,14 @@ def evaluate_watchdog_stdout_case(case):
             'watchdog-stdout-tekst mist proof_recheck_schedule_text uit stdout-json: '
             f"{payload.get('proof_recheck_schedule_text')}"
         )
+    if (
+        payload.get('proof_target_due_at_if_next_slot_missed_text')
+        and payload['proof_target_due_at_if_next_slot_missed_text'] not in text_output
+    ):
+        failures.append(
+            'watchdog-stdout-tekst mist proof_target_due_at_if_next_slot_missed_text uit stdout-json: '
+            f"{payload.get('proof_target_due_at_if_next_slot_missed_text')}"
+        )
     watchdog_example_text = (
         'proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2])
         if payload.get('summary_output_examples') else None
@@ -3256,6 +3283,7 @@ def evaluate_watchdog_stdout_case(case):
             payload.get('proof_wait_until_text'),
             payload.get('proof_wait_until_reason_text'),
             payload.get('proof_blocker_text'),
+            payload.get('proof_target_due_at_if_next_slot_missed_text'),
             ('proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2]))
             if payload.get('summary_output_examples') else None,
             payload.get('proof_next_action_window_text'),
@@ -3747,6 +3775,14 @@ def evaluate_proof_recheck_case(case):
         failures.append(
             'proof-recheck-plain-tekst mist proof_next_action_window_text uit stdout-json: '
             f"{payload.get('proof_next_action_window_text')}"
+        )
+    if (
+        payload.get('proof_target_due_at_if_next_slot_missed_text')
+        and payload['proof_target_due_at_if_next_slot_missed_text'] not in text_output
+    ):
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_target_due_at_if_next_slot_missed_text uit stdout-json: '
+            f"{payload.get('proof_target_due_at_if_next_slot_missed_text')}"
         )
 
     for snippet in case.get('expect_plain_not_substrings', []):

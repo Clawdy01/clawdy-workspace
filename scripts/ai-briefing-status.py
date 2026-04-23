@@ -3303,6 +3303,10 @@ def render_text(data):
         parts.append(data['proof_next_action_window_text'])
     elif data.get('proof_next_action_text'):
         parts.append(data['proof_next_action_text'])
+    if data.get('proof_recheck_schedule_kind_text'):
+        parts.append(data['proof_recheck_schedule_kind_text'])
+    if data.get('proof_recheck_schedule_text'):
+        parts.append(data['proof_recheck_schedule_text'])
     if data.get('proof_recheck_commands_text'):
         parts.append(data['proof_recheck_commands_text'])
     if not data.get('proof_next_action_window_text'):
@@ -3314,6 +3318,8 @@ def render_text(data):
         parts.append(data['proof_schedule_risk_text'])
     if data.get('proof_countdown_text'):
         parts.append(data['proof_countdown_text'])
+    if data.get('proof_target_due_at_if_next_slot_missed_text'):
+        parts.append(f"bewijsdoel bij gemist volgend slot {data['proof_target_due_at_if_next_slot_missed_text']}")
     if data.get('proof_target_run_slots_context_text'):
         parts.append(f"kwalificatie-slots {data['proof_target_run_slots_context_text']}")
     elif data.get('proof_target_run_slots_text'):

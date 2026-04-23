@@ -463,7 +463,11 @@ def build_text(payload: dict) -> str:
         payload.get('proof_recheck_window_text'),
         payload.get('proof_schedule_risk_text'),
         None if proof_target_due_text and proof_target_due_text in richer_due_context else proof_target_due_text,
-        None if proof_target_due_if_missed_text and proof_target_due_if_missed_text in richer_due_context else proof_target_due_if_missed_text,
+        (
+            f"proof target due if next slot missed: {proof_target_due_if_missed_text}"
+            if proof_target_due_if_missed_text and proof_target_due_if_missed_text not in richer_due_context
+            else None
+        ),
         payload.get('proof_target_check_gate_text'),
         payload.get('proof_countdown_text'),
         payload.get('proof_recheck_commands_text'),
