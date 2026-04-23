@@ -1849,6 +1849,8 @@ DEFAULT_CASES = [
             'techcrunch.com',
             'theverge.com',
         ],
+        'expect_source_url_count': 6,
+        'expect_unique_source_url_count': 6,
         'expect_source_domain_count': 5,
         'expect_first3_unique_source_url_count': 4,
         'expect_primary_source_domain_count': 3,
@@ -1901,6 +1903,12 @@ DEFAULT_CASES = [
             'Waarom is dit belangrijk:': 4,
             'Relevant voor Christian:': 4,
         },
+        'expect_item_marker_counts': {
+            'titel:': 4,
+            'wat is er nieuw': 4,
+            'waarom is dit belangrijk': 4,
+        },
+        'expect_item_marker_min_count': 4,
         'expect_items_with_exact_field_order_count': 0,
         'expect_items_with_field_order_mismatch_count': 4,
         'expect_items_field_order_mismatch_examples': [
@@ -2994,6 +3002,16 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'exact_field_line_counts verwacht '
             f"{case['expect_exact_field_line_counts']}, kreeg {audit.get('exact_field_line_counts')}"
+        )
+    if 'expect_item_marker_counts' in case and audit.get('item_marker_counts') != case['expect_item_marker_counts']:
+        failures.append(
+            'item_marker_counts verwacht '
+            f"{case['expect_item_marker_counts']}, kreeg {audit.get('item_marker_counts')}"
+        )
+    if 'expect_item_marker_min_count' in case and audit.get('item_marker_min_count') != case['expect_item_marker_min_count']:
+        failures.append(
+            'item_marker_min_count verwacht '
+            f"{case['expect_item_marker_min_count']}, kreeg {audit.get('item_marker_min_count')}"
         )
     if (
         'expect_items_with_exact_field_order_count' in case
