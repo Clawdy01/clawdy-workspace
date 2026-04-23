@@ -1801,6 +1801,7 @@ DEFAULT_CASES = [
         'path': ROOT / 'tmp' / 'ai-briefing-workspace-agents-regression-sample.txt',
         'reference_ms': DEFAULT_REFERENCE_MS,
         'expect_ok': False,
+        'expect_available': True,
         'expect_item_count': 4,
         'expect_item_titles': [
             'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
@@ -1900,13 +1901,17 @@ DEFAULT_CASES = [
         'expect_missing_alternative_groups': [],
         'expect_fresh_dated_item_count': 4,
         'expect_fresh_dated_first3_count': 3,
+        'expect_fresh_item_max_age_hours': 48,
         'expect_first3_primary_fresh_item_count': 2,
         'expect_explicit_dated_item_count': 4,
+        'expect_recent_dated_item_count': 4,
         'expect_recent_dated_first3_count': 3,
+        'expect_recent_item_max_age_days': 7,
         'expect_explicit_recent_dated_item_count': 4,
         'expect_explicit_fresh_dated_item_count': 4,
         'expect_future_dated_item_count': 4,
         'expect_future_dated_first3_count': 3,
+        'expect_future_date_tolerance_days': 1,
         'expect_explicit_future_dated_item_count': 4,
         'expect_explicit_future_dated_first3_count': 3,
         'expect_explicit_recent_dated_first3_count': 3,
@@ -2694,6 +2699,10 @@ def load_proof_recheck_producer_module():
 
 
 def collect_audit_expectation_failures(case, audit, failures):
+    if 'expect_available' in case and audit.get('available') != case['expect_available']:
+        failures.append(
+            f"available verwacht {case['expect_available']}, kreeg {audit.get('available')}"
+        )
     if audit.get('ok') != case['expect_ok']:
         failures.append(f"ok verwacht {case['expect_ok']}, kreeg {audit.get('ok')}")
     if 'expect_item_count' in case and audit.get('item_count') != case['expect_item_count']:
@@ -2996,12 +3005,36 @@ def collect_audit_expectation_failures(case, audit, failures):
             f"{case['expect_fresh_dated_first3_count']}, kreeg {audit.get('fresh_dated_first3_count')}"
         )
     if (
+        'expect_fresh_item_max_age_hours' in case
+        and audit.get('fresh_item_max_age_hours') != case['expect_fresh_item_max_age_hours']
+    ):
+        failures.append(
+            'fresh_item_max_age_hours verwacht '
+            f"{case['expect_fresh_item_max_age_hours']}, kreeg {audit.get('fresh_item_max_age_hours')}"
+        )
+    if (
+        'expect_recent_dated_item_count' in case
+        and audit.get('recent_dated_item_count') != case['expect_recent_dated_item_count']
+    ):
+        failures.append(
+            'recent_dated_item_count verwacht '
+            f"{case['expect_recent_dated_item_count']}, kreeg {audit.get('recent_dated_item_count')}"
+        )
+    if (
         'expect_recent_dated_first3_count' in case
         and audit.get('recent_dated_first3_count') != case['expect_recent_dated_first3_count']
     ):
         failures.append(
             'recent_dated_first3_count verwacht '
             f"{case['expect_recent_dated_first3_count']}, kreeg {audit.get('recent_dated_first3_count')}"
+        )
+    if (
+        'expect_recent_item_max_age_days' in case
+        and audit.get('recent_item_max_age_days') != case['expect_recent_item_max_age_days']
+    ):
+        failures.append(
+            'recent_item_max_age_days verwacht '
+            f"{case['expect_recent_item_max_age_days']}, kreeg {audit.get('recent_item_max_age_days')}"
         )
     if (
         'expect_explicit_recent_dated_item_count' in case
@@ -3066,6 +3099,14 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'explicit_future_dated_first3_count verwacht '
             f"{case['expect_explicit_future_dated_first3_count']}, kreeg {audit.get('explicit_future_dated_first3_count')}"
+        )
+    if (
+        'expect_future_date_tolerance_days' in case
+        and audit.get('future_date_tolerance_days') != case['expect_future_date_tolerance_days']
+    ):
+        failures.append(
+            'future_date_tolerance_days verwacht '
+            f"{case['expect_future_date_tolerance_days']}, kreeg {audit.get('future_date_tolerance_days')}"
         )
     if (
         'expect_invalid_source_issue_counts' in case
