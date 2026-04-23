@@ -1799,14 +1799,30 @@ DEFAULT_CASES = [
     {
         'name': 'workspace-agents-regression-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-workspace-agents-regression-sample.txt',
+        'reference_ms': DEFAULT_REFERENCE_MS,
         'expect_ok': False,
         'expect_item_count': 4,
+        'expect_item_titles': [
+            'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+            'OpenAI brengt Privacy Filter uit als open-weight PII-redactiemodel voor lokale en enterprise workflows',
+            'ChatGPT Images 2.0 rolt uit met ‘thinking’, betere tekstweergave en multi-image generatie',
+            'Anthropic scherpt Claude Code documentatie aan voor agentisch toolgebruik',
+        ],
+        'expect_unique_item_titles': [
+            'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+            'OpenAI brengt Privacy Filter uit als open-weight PII-redactiemodel voor lokale en enterprise workflows',
+            'ChatGPT Images 2.0 rolt uit met ‘thinking’, betere tekstweergave en multi-image generatie',
+            'Anthropic scherpt Claude Code documentatie aan voor agentisch toolgebruik',
+        ],
+        'expect_unique_item_title_count': 4,
+        'expect_duplicate_item_title_count': 0,
         'expect_items_with_source_count': 4,
         'expect_items_with_multiple_sources_count': 3,
         'expect_items_with_multi_domain_sources_count': 3,
         'expect_items_with_valid_source_line_count': 3,
         'expect_items_with_invalid_source_line_count': 1,
         'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_invalid_source_line_count': 1,
         'expect_first3_items_with_valid_source_line_count': 2,
         'expect_first3_items_with_multiple_sources_count': 2,
         'expect_first3_items_with_multi_domain_sources_count': 2,
@@ -2650,6 +2666,30 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(f"ok verwacht {case['expect_ok']}, kreeg {audit.get('ok')}")
     if 'expect_item_count' in case and audit.get('item_count') != case['expect_item_count']:
         failures.append(f"item_count verwacht {case['expect_item_count']}, kreeg {audit.get('item_count')}")
+    if 'expect_item_titles' in case and audit.get('item_titles') != case['expect_item_titles']:
+        failures.append(
+            f"item_titles verwacht {case['expect_item_titles']}, kreeg {audit.get('item_titles')}"
+        )
+    if 'expect_unique_item_titles' in case and audit.get('unique_item_titles') != case['expect_unique_item_titles']:
+        failures.append(
+            f"unique_item_titles verwacht {case['expect_unique_item_titles']}, kreeg {audit.get('unique_item_titles')}"
+        )
+    if (
+        'expect_unique_item_title_count' in case
+        and audit.get('unique_item_title_count') != case['expect_unique_item_title_count']
+    ):
+        failures.append(
+            'unique_item_title_count verwacht '
+            f"{case['expect_unique_item_title_count']}, kreeg {audit.get('unique_item_title_count')}"
+        )
+    if (
+        'expect_duplicate_item_title_count' in case
+        and audit.get('duplicate_item_title_count') != case['expect_duplicate_item_title_count']
+    ):
+        failures.append(
+            'duplicate_item_title_count verwacht '
+            f"{case['expect_duplicate_item_title_count']}, kreeg {audit.get('duplicate_item_title_count')}"
+        )
     if 'expect_items_with_source_count' in case and audit.get('items_with_source_count') != case['expect_items_with_source_count']:
         failures.append(
             f"items_with_source_count verwacht {case['expect_items_with_source_count']}, kreeg {audit.get('items_with_source_count')}"
@@ -2690,6 +2730,14 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'first3_items_with_source_count verwacht '
             f"{case['expect_first3_items_with_source_count']}, kreeg {audit.get('first3_items_with_source_count')}"
+        )
+    if (
+        'expect_first3_items_with_invalid_source_line_count' in case
+        and audit.get('first3_items_with_invalid_source_line_count') != case['expect_first3_items_with_invalid_source_line_count']
+    ):
+        failures.append(
+            'first3_items_with_invalid_source_line_count verwacht '
+            f"{case['expect_first3_items_with_invalid_source_line_count']}, kreeg {audit.get('first3_items_with_invalid_source_line_count')}"
         )
     if (
         'expect_first3_items_with_valid_source_line_count' in case
