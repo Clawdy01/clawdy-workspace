@@ -1810,6 +1810,9 @@ DEFAULT_CASES = [
         'expect_first3_items_with_multi_domain_sources_count': 2,
         'expect_first3_items_with_primary_source_count': 2,
         'expect_first3_evidenced_item_count': 2,
+        'expect_primary_source_domain_count': 3,
+        'expect_first3_source_domain_count': 3,
+        'expect_first3_primary_source_domain_count': 1,
         'expect_first3_primary_source_family_count': 1,
         'expect_first3_primary_fresh_item_count': 2,
         'expect_explicit_dated_item_count': 4,
@@ -1828,6 +1831,24 @@ DEFAULT_CASES = [
         },
         'expect_items_with_exact_field_order_count': 0,
         'expect_items_with_field_order_mismatch_count': 4,
+        'expect_missing_markers': [
+            'Wat ik vandaag het belangrijkst vind',
+        ],
+        'expect_top3_missing_multi_source_examples': [
+            'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+        ],
+        'expect_top3_missing_multi_domain_source_examples': [
+            'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+        ],
+        'expect_top3_missing_primary_source_examples': [
+            'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+        ],
+        'expect_top3_missing_primary_fresh_examples': [
+            'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+        ],
+        'expect_invalid_source_line_example_titles': [
+            'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+        ],
         'expect_reason_substrings': [
             '1 verplichte sectie(s) missen',
             'niet elk item volgt de exacte labelvolgorde (0/4)',
@@ -1838,6 +1859,7 @@ DEFAULT_CASES = [
             'te weinig top-3 items met meerdere bron-URLs (2/3, verwacht minstens 3): OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
             'te weinig top-3 items met bron-URLs uit meerdere domeinen (2/3, verwacht minstens 3): OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
             'niet elk top-3 item heeft een herkenbare primaire bron (2/3): OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+            'te weinig primaire bronfamilies in top 3 (1)',
             'te weinig top-3 items met zowel bron als recente datum (2/3)',
             'verdachte toekomstige datums in briefing (4 item(s), tolerantie 1 dag)',
         ],
@@ -2630,6 +2652,14 @@ def collect_audit_expectation_failures(case, audit, failures):
             f"source_domain_count verwacht {case['expect_source_domain_count']}, kreeg {audit.get('source_domain_count')}"
         )
     if (
+        'expect_primary_source_domain_count' in case
+        and audit.get('primary_source_domain_count') != case['expect_primary_source_domain_count']
+    ):
+        failures.append(
+            'primary_source_domain_count verwacht '
+            f"{case['expect_primary_source_domain_count']}, kreeg {audit.get('primary_source_domain_count')}"
+        )
+    if (
         'expect_first3_unique_source_url_count' in case
         and audit.get('first3_unique_source_url_count') != case['expect_first3_unique_source_url_count']
     ):
@@ -2644,6 +2674,14 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'first3_source_domain_count verwacht '
             f"{case['expect_first3_source_domain_count']}, kreeg {audit.get('first3_source_domain_count')}"
+        )
+    if (
+        'expect_first3_primary_source_domain_count' in case
+        and audit.get('first3_primary_source_domain_count') != case['expect_first3_primary_source_domain_count']
+    ):
+        failures.append(
+            'first3_primary_source_domain_count verwacht '
+            f"{case['expect_first3_primary_source_domain_count']}, kreeg {audit.get('first3_primary_source_domain_count')}"
         )
     if (
         'expect_explicit_dated_item_count' in case
@@ -2717,6 +2755,53 @@ def collect_audit_expectation_failures(case, audit, failures):
             'numbered_title_heading_count verwacht '
             f"{case['expect_numbered_title_heading_count']}, kreeg {audit.get('numbered_title_heading_count')}"
         )
+    if 'expect_missing_markers' in case and audit.get('missing_markers') != case['expect_missing_markers']:
+        failures.append(
+            f"missing_markers verwacht {case['expect_missing_markers']}, kreeg {audit.get('missing_markers')}"
+        )
+    if (
+        'expect_top3_missing_multi_source_examples' in case
+        and audit.get('top3_missing_multi_source_examples') != case['expect_top3_missing_multi_source_examples']
+    ):
+        failures.append(
+            'top3_missing_multi_source_examples verwacht '
+            f"{case['expect_top3_missing_multi_source_examples']}, kreeg {audit.get('top3_missing_multi_source_examples')}"
+        )
+    if (
+        'expect_top3_missing_multi_domain_source_examples' in case
+        and audit.get('top3_missing_multi_domain_source_examples') != case['expect_top3_missing_multi_domain_source_examples']
+    ):
+        failures.append(
+            'top3_missing_multi_domain_source_examples verwacht '
+            f"{case['expect_top3_missing_multi_domain_source_examples']}, kreeg {audit.get('top3_missing_multi_domain_source_examples')}"
+        )
+    if (
+        'expect_top3_missing_primary_source_examples' in case
+        and audit.get('top3_missing_primary_source_examples') != case['expect_top3_missing_primary_source_examples']
+    ):
+        failures.append(
+            'top3_missing_primary_source_examples verwacht '
+            f"{case['expect_top3_missing_primary_source_examples']}, kreeg {audit.get('top3_missing_primary_source_examples')}"
+        )
+    if (
+        'expect_top3_missing_primary_fresh_examples' in case
+        and audit.get('top3_missing_primary_fresh_examples') != case['expect_top3_missing_primary_fresh_examples']
+    ):
+        failures.append(
+            'top3_missing_primary_fresh_examples verwacht '
+            f"{case['expect_top3_missing_primary_fresh_examples']}, kreeg {audit.get('top3_missing_primary_fresh_examples')}"
+        )
+    if 'expect_invalid_source_line_example_titles' in case:
+        example_titles = [
+            example.get('title')
+            for example in audit.get('items_invalid_source_line_examples', [])
+            if isinstance(example, dict)
+        ]
+        if example_titles != case['expect_invalid_source_line_example_titles']:
+            failures.append(
+                'items_invalid_source_line_examples titles verwacht '
+                f"{case['expect_invalid_source_line_example_titles']}, kreeg {example_titles}"
+            )
     audit_text = audit.get('text') or ''
     for snippet in case.get('expect_reason_substrings', []):
         if snippet not in audit_text:
