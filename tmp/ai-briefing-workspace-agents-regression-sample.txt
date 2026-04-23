@@ -1,13 +1,13 @@
 Dagelijkse AI-update, donderdag 23 april 2026
 
-Korte intro: dit sample bewaakt het actuele faalpatroon rond workspace agents, met verkeerde labelvolgorde, een ontbrekend outputanker en te zwakke top-3 broncorroboratie.
+Korte intro: dit sample bewaakt het actuele faalpatroon rond workspace agents, met verkeerde labelvolgorde, een ontbrekend outputanker, een ongeldige `Bron:`-regel en te zwakke top-3 broncorroboratie.
 
 1) agents/automation/coding workflows
 Titel: OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows
 Wat is er nieuw: OpenAI positioneert workspace agents als langdurige samenwerkende workflows binnen ChatGPT.
 Waarom is dit belangrijk: Dit is precies het soort top-item dat de briefing alleen met strakke broncorroboratie en goede formatting mag doorlaten.
 Relevant voor Christian: Relevant voor OpenClaw-positionering rond agent-workflows, langdurige taken en workspace-achtige samenwerking.
-Bron: https://openai.com/index/introducing-workspace-agents-in-chatgpt/ | https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep | https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23
+Bron: https://openai.com/index/introducing-workspace-agents-in-chatgpt/ | https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep | https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23, update-datum 2026-04-22
 Datum: 2026-04-22
 
 2) enterprise/security/regulatory ontwikkelingen alleen als ze praktische impact hebben

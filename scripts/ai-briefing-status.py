@@ -942,7 +942,7 @@ def analyze_source_line_issues(line):
         issues.append('extra_context')
     if re.search(r'\bvia\b', lower):
         issues.append('via_context')
-    if DATE_PATTERN.search(body):
+    if DATE_PATTERN.search(body_without_urls_for_separator):
         issues.append('datumtekst')
 
     body_without_urls = body_without_urls_for_separator

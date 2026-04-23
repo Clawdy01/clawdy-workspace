@@ -1917,10 +1917,18 @@ DEFAULT_CASES = [
         'expect_explicit_recent_dated_first3_count': 3,
         'expect_explicit_fresh_dated_first3_count': 3,
         'expect_invalid_source_issue_counts': {
+            'komma': 1,
+            'url_leesteken': 1,
+            'update_datum': 1,
             'datumtekst': 1,
+            'vrije_tekst': 1,
         },
         'expect_top3_invalid_source_line_issue_counts': {
+            'komma': 1,
+            'url_leesteken': 1,
+            'update_datum': 1,
             'datumtekst': 1,
+            'vrije_tekst': 1,
         },
         'expect_exact_field_line_counts': {
             'Titel:': 4,
@@ -1996,18 +2004,26 @@ DEFAULT_CASES = [
         'expect_items_invalid_source_line_examples': [
             {
                 'title': 'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
-                'source_line': 'Bron: https://openai.com/index/introducing-workspace-agents-in-chatgpt/ | https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep | https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23',
+                'source_line': 'Bron: https://openai.com/index/introducing-workspace-agents-in-chatgpt/ | https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep | https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23, update-datum 2026-04-22',
                 'issues': [
+                    'komma',
+                    'url_leesteken',
+                    'update_datum',
                     'datumtekst',
+                    'vrije_tekst',
                 ],
             },
         ],
         'expect_top3_invalid_source_line_examples': [
             {
                 'title': 'OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
-                'source_line': 'Bron: https://openai.com/index/introducing-workspace-agents-in-chatgpt/ | https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep | https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23',
+                'source_line': 'Bron: https://openai.com/index/introducing-workspace-agents-in-chatgpt/ | https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep | https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23, update-datum 2026-04-22',
                 'issues': [
+                    'komma',
+                    'url_leesteken',
+                    'update_datum',
                     'datumtekst',
+                    'vrije_tekst',
                 ],
             },
         ],
@@ -2015,14 +2031,8 @@ DEFAULT_CASES = [
             '1 verplichte sectie(s) missen',
             'niet elk item volgt de exacte labelvolgorde (0/4)',
             'niet elk item heeft een geldige Bron:-regel met alleen URLs (3/4)',
-            'patronen: datumtekst 1x',
             'niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3)',
-            'top3 patronen: datumtekst 1x',
-            'te weinig top-3 items met meerdere bron-URLs (2/3, verwacht minstens 3): OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
-            'te weinig top-3 items met bron-URLs uit meerdere domeinen (2/3, verwacht minstens 3): OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
-            'niet elk top-3 item heeft een herkenbare primaire bron (2/3): OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
             'te weinig primaire bronfamilies in top 3 (1)',
-            'te weinig top-3 items met zowel bron als recente datum (2/3)',
             'verdachte toekomstige datums in briefing (4 item(s), tolerantie 1 dag)',
         ],
     },
