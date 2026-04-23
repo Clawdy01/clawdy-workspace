@@ -3295,6 +3295,10 @@ def render_text(data):
         parts.append(data['proof_state_text'])
     if data.get('proof_blocker_text'):
         parts.append(data['proof_blocker_text'])
+    if data.get('proof_wait_until_text'):
+        parts.append(data['proof_wait_until_text'])
+    if data.get('proof_wait_until_reason_text'):
+        parts.append(data['proof_wait_until_reason_text'])
     if data.get('proof_next_action_window_text'):
         parts.append(data['proof_next_action_window_text'])
     elif data.get('proof_next_action_text'):

@@ -2959,6 +2959,26 @@ def evaluate_status_stdout_case(case):
             'status-stdout-tekst mist last_run_config_relation_text uit stdout-json: '
             f"{payload.get('last_run_config_relation_text')}"
         )
+    if payload.get('proof_wait_until_text') and payload['proof_wait_until_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_wait_until_text uit stdout-json: '
+            f"{payload.get('proof_wait_until_text')}"
+        )
+    if payload.get('proof_wait_until_reason_text') and payload['proof_wait_until_reason_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_wait_until_reason_text uit stdout-json: '
+            f"{payload.get('proof_wait_until_reason_text')}"
+        )
+    if payload.get('proof_blocker_text') and payload['proof_blocker_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_blocker_text uit stdout-json: '
+            f"{payload.get('proof_blocker_text')}"
+        )
+    if payload.get('proof_next_action_window_text') and payload['proof_next_action_window_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_next_action_window_text uit stdout-json: '
+            f"{payload.get('proof_next_action_window_text')}"
+        )
     summary_examples_text = (
         'outputvoorbeelden: ' + '; '.join((payload.get('summary_output_examples') or [])[:2])
         if payload.get('summary_output_examples') else None
@@ -2977,6 +2997,9 @@ def evaluate_status_stdout_case(case):
             payload.get('proof_plan_text'),
             payload.get('proof_config_identity_text'),
             payload.get('last_run_config_relation_text'),
+            payload.get('proof_wait_until_text'),
+            payload.get('proof_wait_until_reason_text'),
+            payload.get('proof_blocker_text'),
             summary_examples_text,
             payload.get('proof_next_action_window_text'),
             payload.get('proof_next_action_text'),
@@ -3180,6 +3203,11 @@ def evaluate_watchdog_stdout_case(case):
             'watchdog-stdout-tekst mist recent_run_duration_text uit stdout-json: '
             f"{payload.get('recent_run_duration_text')}"
         )
+    if payload.get('proof_wait_until_text') and payload['proof_wait_until_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_wait_until_text uit stdout-json: '
+            f"{payload.get('proof_wait_until_text')}"
+        )
     if payload.get('proof_wait_until_reason_text') and payload['proof_wait_until_reason_text'] not in text_output:
         failures.append(
             'watchdog-stdout-tekst mist proof_wait_until_reason_text uit stdout-json: '
@@ -3225,6 +3253,7 @@ def evaluate_watchdog_stdout_case(case):
             payload.get('last_run_config_relation_text'),
             payload.get('last_run_timeout_text'),
             payload.get('recent_run_duration_text'),
+            payload.get('proof_wait_until_text'),
             payload.get('proof_wait_until_reason_text'),
             payload.get('proof_blocker_text'),
             ('proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2]))
