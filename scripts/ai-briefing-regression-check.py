@@ -1810,13 +1810,41 @@ DEFAULT_CASES = [
         'expect_first3_items_with_multi_domain_sources_count': 2,
         'expect_first3_items_with_primary_source_count': 2,
         'expect_first3_evidenced_item_count': 2,
+        'expect_source_domains': [
+            'anthropic.com',
+            'docs.anthropic.com',
+            'openai.com',
+            'techcrunch.com',
+            'theverge.com',
+        ],
         'expect_primary_source_domain_count': 3,
+        'expect_primary_source_domains': [
+            'anthropic.com',
+            'docs.anthropic.com',
+            'openai.com',
+        ],
         'expect_primary_source_family_count': 2,
+        'expect_primary_source_families': [
+            'anthropic',
+            'openai',
+        ],
         'expect_first3_source_domain_count': 3,
+        'expect_first3_source_domains': [
+            'openai.com',
+            'techcrunch.com',
+            'theverge.com',
+        ],
         'expect_first3_primary_source_domain_count': 1,
+        'expect_first3_primary_source_domains': [
+            'openai.com',
+        ],
         'expect_first3_primary_source_family_count': 1,
+        'expect_first3_primary_source_families': [
+            'openai',
+        ],
         'expect_first3_primary_fresh_item_count': 2,
         'expect_explicit_dated_item_count': 4,
+        'expect_future_dated_item_count': 4,
         'expect_explicit_recent_dated_first3_count': 3,
         'expect_explicit_fresh_dated_first3_count': 3,
         'expect_invalid_source_issue_counts': {
@@ -2708,6 +2736,10 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             f"source_domain_count verwacht {case['expect_source_domain_count']}, kreeg {audit.get('source_domain_count')}"
         )
+    if 'expect_source_domains' in case and audit.get('source_domains') != case['expect_source_domains']:
+        failures.append(
+            f"source_domains verwacht {case['expect_source_domains']}, kreeg {audit.get('source_domains')}"
+        )
     if (
         'expect_primary_source_domain_count' in case
         and audit.get('primary_source_domain_count') != case['expect_primary_source_domain_count']
@@ -2717,12 +2749,28 @@ def collect_audit_expectation_failures(case, audit, failures):
             f"{case['expect_primary_source_domain_count']}, kreeg {audit.get('primary_source_domain_count')}"
         )
     if (
+        'expect_primary_source_domains' in case
+        and audit.get('primary_source_domains') != case['expect_primary_source_domains']
+    ):
+        failures.append(
+            'primary_source_domains verwacht '
+            f"{case['expect_primary_source_domains']}, kreeg {audit.get('primary_source_domains')}"
+        )
+    if (
         'expect_primary_source_family_count' in case
         and audit.get('primary_source_family_count') != case['expect_primary_source_family_count']
     ):
         failures.append(
             'primary_source_family_count verwacht '
             f"{case['expect_primary_source_family_count']}, kreeg {audit.get('primary_source_family_count')}"
+        )
+    if (
+        'expect_primary_source_families' in case
+        and audit.get('primary_source_families') != case['expect_primary_source_families']
+    ):
+        failures.append(
+            'primary_source_families verwacht '
+            f"{case['expect_primary_source_families']}, kreeg {audit.get('primary_source_families')}"
         )
     if (
         'expect_first3_unique_source_url_count' in case
@@ -2740,6 +2788,11 @@ def collect_audit_expectation_failures(case, audit, failures):
             'first3_source_domain_count verwacht '
             f"{case['expect_first3_source_domain_count']}, kreeg {audit.get('first3_source_domain_count')}"
         )
+    if 'expect_first3_source_domains' in case and audit.get('first3_source_domains') != case['expect_first3_source_domains']:
+        failures.append(
+            'first3_source_domains verwacht '
+            f"{case['expect_first3_source_domains']}, kreeg {audit.get('first3_source_domains')}"
+        )
     if (
         'expect_first3_primary_source_domain_count' in case
         and audit.get('first3_primary_source_domain_count') != case['expect_first3_primary_source_domain_count']
@@ -2747,6 +2800,22 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'first3_primary_source_domain_count verwacht '
             f"{case['expect_first3_primary_source_domain_count']}, kreeg {audit.get('first3_primary_source_domain_count')}"
+        )
+    if (
+        'expect_first3_primary_source_domains' in case
+        and audit.get('first3_primary_source_domains') != case['expect_first3_primary_source_domains']
+    ):
+        failures.append(
+            'first3_primary_source_domains verwacht '
+            f"{case['expect_first3_primary_source_domains']}, kreeg {audit.get('first3_primary_source_domains')}"
+        )
+    if (
+        'expect_first3_primary_source_families' in case
+        and audit.get('first3_primary_source_families') != case['expect_first3_primary_source_families']
+    ):
+        failures.append(
+            'first3_primary_source_families verwacht '
+            f"{case['expect_first3_primary_source_families']}, kreeg {audit.get('first3_primary_source_families')}"
         )
     if (
         'expect_explicit_dated_item_count' in case
