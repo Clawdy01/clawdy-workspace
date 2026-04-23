@@ -1,0 +1,50 @@
+Dagelijkse AI-update, donderdag 23 april 2026
+
+Korte intro: dit sample bewaakt het actuele faalpatroon rond workspace agents, met verkeerde labelvolgorde, een ontbrekend outputanker en te zwakke top-3 broncorroboratie.
+
+1) agents/automation/coding workflows
+Titel: OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows
+Wat is er nieuw: OpenAI positioneert workspace agents als langdurige samenwerkende workflows binnen ChatGPT.
+Waarom is dit belangrijk: Dit is precies het soort top-item dat de briefing alleen met strakke broncorroboratie en goede formatting mag doorlaten.
+Relevant voor Christian: Relevant voor OpenClaw-positionering rond agent-workflows, langdurige taken en workspace-achtige samenwerking.
+Bron: https://openai.com/index/introducing-workspace-agents-in-chatgpt/ | https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep | https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23
+Datum: 2026-04-22
+
+2) enterprise/security/regulatory ontwikkelingen alleen als ze praktische impact hebben
+Titel: OpenAI brengt Privacy Filter uit als open-weight PII-redactiemodel voor lokale en enterprise workflows
+Wat is er nieuw: OpenAI beschrijft een concreet redactiemodel voor privacygevoelige tekststromen in lokale en enterprise-omgevingen.
+Waarom is dit belangrijk: Dit levert praktische bouwstenen voor veilige document- en mailboxworkflows.
+Relevant voor Christian: Bruikbaar voor privacyvriendelijke automatisering en lokale verwerkingsroutes.
+Bron: https://openai.com/index/introducing-privacy-filter/ | https://techcrunch.com/2026/04/23/openai-launches-privacy-filter-for-enterprise-workflows/
+Datum: 2026-04-22
+
+3) multimodal, voice, image, video en on-device/lokale AI
+Titel: ChatGPT Images 2.0 rolt uit met ‘thinking’, betere tekstweergave en multi-image generatie
+Wat is er nieuw: OpenAI beschrijft een nieuwe image-update met betere tekstweergave en meer controle over beeldgeneratie.
+Waarom is dit belangrijk: Dit raakt direct de kwaliteit van multimodale outputs en demo-waardige workflows.
+Relevant voor Christian: Relevant voor beeldroutes, demo's en generatieve content in OpenClaw-context.
+Bron: https://openai.com/index/chatgpt-images-2/ | https://www.theverge.com/ai-artificial-intelligence/2026/4/20/25000000/chatgpt-images-2-update
+Datum: 2026-04-20
+
+4) frontier modelreleases en modelupdates
+Titel: Anthropic scherpt Claude Code documentatie aan voor agentisch toolgebruik
+Wat is er nieuw: Anthropic werkt documentatie bij met concretere voorbeelden rond tool calling en agentisch itereren.
+Waarom is dit belangrijk: Dit helpt als vergelijkingsmateriaal voor hoe andere spelers agent-workflows uitleggen.
+Relevant voor Christian: Nuttig voor concurrentiebeeld en documentatiestrategie.
+Bron: https://www.anthropic.com/news | https://docs.anthropic.com/en/docs/claude-code
+Datum: 2026-04-22
+
+Wat moeten wij hiermee?
+- Behandel deze combinatie van fouten als één echt regressiepatroon in plaats van losse randgevallen.
+- Houd top-3 corroboratie streng, juist wanneer het item inhoudelijk aantrekkelijk klinkt.
+
+bronnenlijst met URLs
+https://openai.com/index/introducing-workspace-agents-in-chatgpt/
+https://developers.openai.com/cookbook/articles/chatgpt-agents-sales-meeting-prep
+https://www.indiatoday.in/technology/news/story/openai-launches-workspace-agents-that-can-do-your-work-across-third-party-apps-2900215-2026-04-23
+https://openai.com/index/introducing-privacy-filter/
+https://techcrunch.com/2026/04/23/openai-launches-privacy-filter-for-enterprise-workflows/
+https://openai.com/index/chatgpt-images-2/
+https://www.theverge.com/ai-artificial-intelligence/2026/4/20/25000000/chatgpt-images-2-update
+https://www.anthropic.com/news
+https://docs.anthropic.com/en/docs/claude-code

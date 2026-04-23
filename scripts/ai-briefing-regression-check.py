@@ -1796,6 +1796,52 @@ DEFAULT_CASES = [
             'top3 patronen: leeg 1x',
         ],
     },
+    {
+        'name': 'workspace-agents-regression-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-workspace-agents-regression-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 4,
+        'expect_items_with_source_count': 4,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 1,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 2,
+        'expect_first3_items_with_multiple_sources_count': 2,
+        'expect_first3_items_with_multi_domain_sources_count': 2,
+        'expect_first3_items_with_primary_source_count': 2,
+        'expect_first3_evidenced_item_count': 2,
+        'expect_first3_primary_source_family_count': 1,
+        'expect_first3_primary_fresh_item_count': 2,
+        'expect_explicit_dated_item_count': 4,
+        'expect_explicit_recent_dated_first3_count': 3,
+        'expect_explicit_fresh_dated_first3_count': 3,
+        'expect_invalid_source_issue_counts': {
+            'datumtekst': 1,
+        },
+        'expect_exact_field_line_counts': {
+            'Titel:': 4,
+            'Bron:': 4,
+            'Datum:': 4,
+            'Wat is er nieuw:': 4,
+            'Waarom is dit belangrijk:': 4,
+            'Relevant voor Christian:': 4,
+        },
+        'expect_items_with_exact_field_order_count': 0,
+        'expect_items_with_field_order_mismatch_count': 4,
+        'expect_reason_substrings': [
+            '1 verplichte sectie(s) missen',
+            'niet elk item volgt de exacte labelvolgorde (0/4)',
+            'niet elk item heeft een geldige Bron:-regel met alleen URLs (3/4)',
+            'patronen: datumtekst 1x',
+            'niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3)',
+            'top3 patronen: datumtekst 1x',
+            'te weinig top-3 items met meerdere bron-URLs (2/3, verwacht minstens 3): OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+            'te weinig top-3 items met bron-URLs uit meerdere domeinen (2/3, verwacht minstens 3): OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+            'niet elk top-3 item heeft een herkenbare primaire bron (2/3): OpenAI lanceert workspace agents in ChatGPT voor gedeelde, langdurige teamworkflows',
+            'te weinig top-3 items met zowel bron als recente datum (2/3)',
+            'verdachte toekomstige datums in briefing (4 item(s), tolerantie 1 dag)',
+        ],
+    },
 ]
 
 STATUS_PHASE_CASES = [
@@ -1944,6 +1990,10 @@ STATUS_SUMMARY_AUDIT_CASES = [
     {
         'name': 'status-summary-audit-cli-keeps-bullet-label-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-bullet-labels-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-workspace-agents-regression-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-workspace-agents-regression-sample.txt',
     },
 ]
 
