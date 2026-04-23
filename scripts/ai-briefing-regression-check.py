@@ -1802,6 +1802,8 @@ DEFAULT_CASES = [
         'expect_ok': False,
         'expect_item_count': 4,
         'expect_items_with_source_count': 4,
+        'expect_items_with_multiple_sources_count': 3,
+        'expect_items_with_multi_domain_sources_count': 3,
         'expect_items_with_valid_source_line_count': 3,
         'expect_items_with_invalid_source_line_count': 1,
         'expect_first3_items_with_source_count': 3,
@@ -1810,6 +1812,20 @@ DEFAULT_CASES = [
         'expect_first3_items_with_multi_domain_sources_count': 2,
         'expect_first3_items_with_primary_source_count': 2,
         'expect_first3_evidenced_item_count': 2,
+        'expect_first3_source_urls': [
+            'https://openai.com/index/introducing-privacy-filter/',
+            'https://techcrunch.com/2026/04/23/openai-launches-privacy-filter-for-enterprise-workflows/',
+            'https://openai.com/index/chatgpt-images-2/',
+            'https://www.theverge.com/ai-artificial-intelligence/2026/4/20/25000000/chatgpt-images-2-update',
+        ],
+        'expect_source_urls': [
+            'https://openai.com/index/introducing-privacy-filter/',
+            'https://techcrunch.com/2026/04/23/openai-launches-privacy-filter-for-enterprise-workflows/',
+            'https://openai.com/index/chatgpt-images-2/',
+            'https://www.theverge.com/ai-artificial-intelligence/2026/4/20/25000000/chatgpt-images-2-update',
+            'https://www.anthropic.com/news',
+            'https://docs.anthropic.com/en/docs/claude-code',
+        ],
         'expect_source_domains': [
             'anthropic.com',
             'docs.anthropic.com',
@@ -1817,6 +1833,8 @@ DEFAULT_CASES = [
             'techcrunch.com',
             'theverge.com',
         ],
+        'expect_source_domain_count': 5,
+        'expect_first3_unique_source_url_count': 4,
         'expect_primary_source_domain_count': 3,
         'expect_primary_source_domains': [
             'anthropic.com',
@@ -1844,7 +1862,13 @@ DEFAULT_CASES = [
         ],
         'expect_first3_primary_fresh_item_count': 2,
         'expect_explicit_dated_item_count': 4,
+        'expect_recent_dated_first3_count': 3,
+        'expect_explicit_recent_dated_item_count': 4,
+        'expect_explicit_fresh_dated_item_count': 4,
         'expect_future_dated_item_count': 4,
+        'expect_future_dated_first3_count': 3,
+        'expect_explicit_future_dated_item_count': 4,
+        'expect_explicit_future_dated_first3_count': 3,
         'expect_explicit_recent_dated_first3_count': 3,
         'expect_explicit_fresh_dated_first3_count': 3,
         'expect_invalid_source_issue_counts': {
@@ -2772,6 +2796,16 @@ def collect_audit_expectation_failures(case, audit, failures):
             'primary_source_families verwacht '
             f"{case['expect_primary_source_families']}, kreeg {audit.get('primary_source_families')}"
         )
+    if 'expect_first3_source_urls' in case and audit.get('first3_source_urls') != case['expect_first3_source_urls']:
+        failures.append(
+            'first3_source_urls verwacht '
+            f"{case['expect_first3_source_urls']}, kreeg {audit.get('first3_source_urls')}"
+        )
+    if 'expect_source_urls' in case and audit.get('source_urls') != case['expect_source_urls']:
+        failures.append(
+            'source_urls verwacht '
+            f"{case['expect_source_urls']}, kreeg {audit.get('source_urls')}"
+        )
     if (
         'expect_first3_unique_source_url_count' in case
         and audit.get('first3_unique_source_url_count') != case['expect_first3_unique_source_url_count']
@@ -2826,12 +2860,36 @@ def collect_audit_expectation_failures(case, audit, failures):
             f"{case['expect_explicit_dated_item_count']}, kreeg {audit.get('explicit_dated_item_count')}"
         )
     if (
+        'expect_recent_dated_first3_count' in case
+        and audit.get('recent_dated_first3_count') != case['expect_recent_dated_first3_count']
+    ):
+        failures.append(
+            'recent_dated_first3_count verwacht '
+            f"{case['expect_recent_dated_first3_count']}, kreeg {audit.get('recent_dated_first3_count')}"
+        )
+    if (
+        'expect_explicit_recent_dated_item_count' in case
+        and audit.get('explicit_recent_dated_item_count') != case['expect_explicit_recent_dated_item_count']
+    ):
+        failures.append(
+            'explicit_recent_dated_item_count verwacht '
+            f"{case['expect_explicit_recent_dated_item_count']}, kreeg {audit.get('explicit_recent_dated_item_count')}"
+        )
+    if (
         'expect_explicit_recent_dated_first3_count' in case
         and audit.get('explicit_recent_dated_first3_count') != case['expect_explicit_recent_dated_first3_count']
     ):
         failures.append(
             'explicit_recent_dated_first3_count verwacht '
             f"{case['expect_explicit_recent_dated_first3_count']}, kreeg {audit.get('explicit_recent_dated_first3_count')}"
+        )
+    if (
+        'expect_explicit_fresh_dated_item_count' in case
+        and audit.get('explicit_fresh_dated_item_count') != case['expect_explicit_fresh_dated_item_count']
+    ):
+        failures.append(
+            'explicit_fresh_dated_item_count verwacht '
+            f"{case['expect_explicit_fresh_dated_item_count']}, kreeg {audit.get('explicit_fresh_dated_item_count')}"
         )
     if (
         'expect_explicit_fresh_dated_first3_count' in case
@@ -2848,6 +2906,30 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'future_dated_item_count verwacht '
             f"{case['expect_future_dated_item_count']}, kreeg {audit.get('future_dated_item_count')}"
+        )
+    if (
+        'expect_future_dated_first3_count' in case
+        and audit.get('future_dated_first3_count') != case['expect_future_dated_first3_count']
+    ):
+        failures.append(
+            'future_dated_first3_count verwacht '
+            f"{case['expect_future_dated_first3_count']}, kreeg {audit.get('future_dated_first3_count')}"
+        )
+    if (
+        'expect_explicit_future_dated_item_count' in case
+        and audit.get('explicit_future_dated_item_count') != case['expect_explicit_future_dated_item_count']
+    ):
+        failures.append(
+            'explicit_future_dated_item_count verwacht '
+            f"{case['expect_explicit_future_dated_item_count']}, kreeg {audit.get('explicit_future_dated_item_count')}"
+        )
+    if (
+        'expect_explicit_future_dated_first3_count' in case
+        and audit.get('explicit_future_dated_first3_count') != case['expect_explicit_future_dated_first3_count']
+    ):
+        failures.append(
+            'explicit_future_dated_first3_count verwacht '
+            f"{case['expect_explicit_future_dated_first3_count']}, kreeg {audit.get('explicit_future_dated_first3_count')}"
         )
     if (
         'expect_invalid_source_issue_counts' in case
