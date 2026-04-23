@@ -3981,6 +3981,16 @@ def evaluate_proof_recheck_producer_case(case):
         for snippet in case.get('expect_quiet_absent_substrings', []):
             if snippet in quiet_text:
                 failures.append(f"producer-quiet-tekst had juist moeten ontbreken: {snippet}")
+        if overall.get('proof_wait_until_text') and overall['proof_wait_until_text'] not in quiet_text:
+            failures.append(
+                'producer-quiet-tekst mist proof_wait_until_text uit overall/stdout-json: '
+                f"{overall.get('proof_wait_until_text')}"
+            )
+        if overall.get('proof_wait_until_reason_text') and overall['proof_wait_until_reason_text'] not in quiet_text:
+            failures.append(
+                'producer-quiet-tekst mist proof_wait_until_reason_text uit overall/stdout-json: '
+                f"{overall.get('proof_wait_until_reason_text')}"
+            )
         if overall.get('proof_config_identity_text') and overall['proof_config_identity_text'] not in quiet_text:
             failures.append(
                 'producer-quiet-tekst mist proof_config_identity_text uit overall/stdout-json: '
@@ -6216,6 +6226,16 @@ def evaluate_watchdog_producer_case(case):
             quiet_output,
         ] if bit
     )
+    if overall.get('proof_wait_until_text') and overall['proof_wait_until_text'] not in quiet_output:
+        failures.append(
+            'watchdog-producer-quiet mist proof_wait_until_text uit overall/stdout-json: '
+            f"{overall.get('proof_wait_until_text')}"
+        )
+    if overall.get('proof_wait_until_reason_text') and overall['proof_wait_until_reason_text'] not in quiet_output:
+        failures.append(
+            'watchdog-producer-quiet mist proof_wait_until_reason_text uit overall/stdout-json: '
+            f"{overall.get('proof_wait_until_reason_text')}"
+        )
     for snippet in case.get('expect_text_substrings', []):
         if snippet not in combined_text:
             failures.append(f"verwachte watchdog-producer-tekst ontbreekt: {snippet}")

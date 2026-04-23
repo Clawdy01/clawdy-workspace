@@ -109,6 +109,10 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append('wacht op eerstvolgende geplande kwalificatierun')
     if payload.get('proof_blocker_text'):
         bits.append(str(payload['proof_blocker_text']))
+    if payload.get('proof_wait_until_text'):
+        bits.append(str(payload['proof_wait_until_text']))
+    if payload.get('proof_wait_until_reason_text'):
+        bits.append(str(payload['proof_wait_until_reason_text']))
     if payload.get('proof_progress_text'):
         readiness_text = str(payload.get('readiness_text') or '')
         proof_progress_text = str(payload['proof_progress_text'])
