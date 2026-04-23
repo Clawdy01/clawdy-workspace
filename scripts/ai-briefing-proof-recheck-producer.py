@@ -143,8 +143,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_schedule_risk_text']))
     if proof_target_due_text and proof_target_due_text not in richer_due_context:
         bits.append(str(proof_target_due_text))
-    if proof_target_due_if_missed_text and proof_target_due_if_missed_text not in richer_due_context:
-        bits.append(str(proof_target_due_if_missed_text))
+    if proof_target_due_if_missed_text:
+        bits.append(f"bewijsdoel bij gemist volgend slot {proof_target_due_if_missed_text}")
     if payload.get('proof_target_check_gate_text'):
         bits.append(str(payload['proof_target_check_gate_text']))
     if payload.get('proof_countdown_text'):

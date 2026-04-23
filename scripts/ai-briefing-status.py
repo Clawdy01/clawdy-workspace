@@ -3303,16 +3303,20 @@ def render_text(data):
         parts.append(data['proof_next_action_window_text'])
     elif data.get('proof_next_action_text'):
         parts.append(data['proof_next_action_text'])
+    if (
+        data.get('proof_recheck_window_text')
+        and data.get('proof_recheck_window_text') != data.get('proof_next_action_window_text')
+        and data.get('proof_recheck_window_text') != data.get('proof_next_action_text')
+    ):
+        parts.append(data['proof_recheck_window_text'])
     if data.get('proof_recheck_schedule_kind_text'):
         parts.append(data['proof_recheck_schedule_kind_text'])
     if data.get('proof_recheck_schedule_text'):
         parts.append(data['proof_recheck_schedule_text'])
     if data.get('proof_recheck_commands_text'):
         parts.append(data['proof_recheck_commands_text'])
-    if not data.get('proof_next_action_window_text'):
-        if data.get('proof_recheck_window_text') and data.get('proof_recheck_window_text') != data.get('proof_next_action_text'):
-            parts.append(data['proof_recheck_window_text'])
-        elif data.get('proof_recheck_after_text_compact'):
+    if not data.get('proof_recheck_window_text'):
+        if data.get('proof_recheck_after_text_compact'):
             parts.append(data['proof_recheck_after_text_compact'])
     if data.get('proof_schedule_risk_text'):
         parts.append(data['proof_schedule_risk_text'])

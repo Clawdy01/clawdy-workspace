@@ -148,6 +148,10 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['proof_schedule_risk_text']))
     if payload.get('proof_countdown_text'):
         bits.append(str(payload['proof_countdown_text']))
+    if payload.get('proof_target_due_at_if_next_slot_missed_text'):
+        bits.append(
+            f"bewijsdoel bij gemist volgend slot {payload['proof_target_due_at_if_next_slot_missed_text']}"
+        )
     if payload.get('proof_target_check_gate_text'):
         bits.append(str(payload['proof_target_check_gate_text']))
     proof_target_run_slots_text = payload.get('proof_target_run_slots_context_text') or payload.get('proof_target_run_slots_text')

@@ -141,21 +141,27 @@
       "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
       "format": "text",
       "append": false
+    },
+    {
+      "channel": "eventlog-jsonl",
+      "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
+      "format": "jsonl",
+      "append": true
     }
   ],
-  "consumer_requested_output_count": 2,
-  "consumer_requested_output_channel_count": 2,
-  "consumer_requested_output_count_text": "consumer-output-aanvraag gevraagd=2, kanalen=2",
-  "consumer_requested_output_channel_count_text": "consumer-output-aanvraag-kanalen gevraagd=2, kanalen=2",
-  "consumer_requested_output_channels_text": "consumer-output-aanvraag-kanalen: board-json, board-text",
+  "consumer_requested_output_count": 3,
+  "consumer_requested_output_channel_count": 3,
+  "consumer_requested_output_count_text": "consumer-output-aanvraag gevraagd=3, kanalen=3",
+  "consumer_requested_output_channel_count_text": "consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3",
+  "consumer_requested_output_channels_text": "consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl",
   "consumer_requested_outputs_status_kind": "requested",
-  "consumer_requested_outputs_status_text": "consumer-output-aanvraag vastgelegd voor 2 artifact(s)",
-  "consumer_requested_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
-  "generated_at": "2026-04-23T04:14:36.720776+00:00",
-  "generated_at_text": "2026-04-23 06:14:36 CEST",
-  "started_at": "2026-04-23T04:14:36.615615+00:00",
-  "started_at_text": "2026-04-23 06:14:36 CEST",
-  "duration_ms": 105,
-  "duration_seconds": 0.105,
-  "duration_text": "0.105s"
+  "consumer_requested_outputs_status_text": "consumer-output-aanvraag vastgelegd voor 3 artifact(s)",
+  "consumer_requested_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt; eventlog-jsonl: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
+  "generated_at": "2026-04-23T06:56:33.567189+00:00",
+  "generated_at_text": "2026-04-23 08:56:33 CEST",
+  "started_at": "2026-04-23T06:56:33.459834+00:00",
+  "started_at_text": "2026-04-23 08:56:33 CEST",
+  "duration_ms": 107,
+  "duration_seconds": 0.107,
+  "duration_text": "0.107s"
 }

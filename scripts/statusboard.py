@@ -186,6 +186,10 @@ def render_text(data, show_preview=False):
             if ai_briefing_status.get('proof_target_due_hint'):
                 proof_target_due_text += f" ({ai_briefing_status['proof_target_due_hint']})"
             ai_bits.append(proof_target_due_text)
+        if ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text'):
+            ai_bits.append(
+                f"bewijsdoel bij gemist volgend slot {ai_briefing_status['proof_target_due_at_if_next_slot_missed_text']}"
+            )
         if ai_briefing_status.get('proof_state_text'):
             ai_bits.append(ai_briefing_status['proof_state_text'])
         if ai_briefing_status.get('proof_blocker_text'):

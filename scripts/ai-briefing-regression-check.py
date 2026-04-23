@@ -2979,6 +2979,11 @@ def evaluate_status_stdout_case(case):
             'status-stdout-tekst mist proof_next_action_window_text uit stdout-json: '
             f"{payload.get('proof_next_action_window_text')}"
         )
+    if payload.get('proof_recheck_window_text') and payload['proof_recheck_window_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_recheck_window_text uit stdout-json: '
+            f"{payload.get('proof_recheck_window_text')}"
+        )
     if payload.get('proof_recheck_schedule_kind_text') and payload['proof_recheck_schedule_kind_text'] not in text_output:
         failures.append(
             'status-stdout-tekst mist proof_recheck_schedule_kind_text uit stdout-json: '
@@ -3241,6 +3246,11 @@ def evaluate_watchdog_stdout_case(case):
         failures.append(
             'watchdog-stdout-tekst mist proof_next_action_window_text uit stdout-json: '
             f"{payload.get('proof_next_action_window_text')}"
+        )
+    if payload.get('proof_recheck_window_text') and payload['proof_recheck_window_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_recheck_window_text uit stdout-json: '
+            f"{payload.get('proof_recheck_window_text')}"
         )
     if payload.get('proof_recheck_schedule_kind_text') and payload['proof_recheck_schedule_kind_text'] not in text_output:
         failures.append(
@@ -3776,6 +3786,11 @@ def evaluate_proof_recheck_case(case):
             'proof-recheck-plain-tekst mist proof_next_action_window_text uit stdout-json: '
             f"{payload.get('proof_next_action_window_text')}"
         )
+    if payload.get('proof_recheck_window_text') and payload['proof_recheck_window_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_recheck_window_text uit stdout-json: '
+            f"{payload.get('proof_recheck_window_text')}"
+        )
     if (
         payload.get('proof_target_due_at_if_next_slot_missed_text')
         and payload['proof_target_due_at_if_next_slot_missed_text'] not in text_output
@@ -4055,6 +4070,14 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'producer-quiet-tekst mist proof_wait_until_reason_text uit overall/stdout-json: '
                 f"{overall.get('proof_wait_until_reason_text')}"
+            )
+        if (
+            overall.get('proof_target_due_at_if_next_slot_missed_text')
+            and overall['proof_target_due_at_if_next_slot_missed_text'] not in quiet_text
+        ):
+            failures.append(
+                'producer-quiet-tekst mist proof_target_due_at_if_next_slot_missed_text uit overall/stdout-json: '
+                f"{overall.get('proof_target_due_at_if_next_slot_missed_text')}"
             )
         if overall.get('proof_config_identity_text') and overall['proof_config_identity_text'] not in quiet_text:
             failures.append(
@@ -4948,6 +4971,15 @@ def evaluate_brief_consumer_case(case):
             'ai_briefing_status.proof_wait_until_reason_text verwacht '
             f"{expected_status.get('proof_wait_until_reason_text')}, kreeg {ai_briefing_status.get('proof_wait_until_reason_text')}"
         )
+    if (
+        ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text')
+        != expected_status.get('proof_target_due_at_if_next_slot_missed_text')
+    ):
+        failures.append(
+            'ai_briefing_status.proof_target_due_at_if_next_slot_missed_text verwacht '
+            f"{expected_status.get('proof_target_due_at_if_next_slot_missed_text')}, kreeg "
+            f"{ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text')}"
+        )
     if ai_briefing_status.get('proof_blocker_text') != expected_status.get('proof_blocker_text'):
         failures.append(
             'ai_briefing_status.proof_blocker_text verwacht '
@@ -4998,6 +5030,7 @@ def evaluate_brief_consumer_case(case):
             ai_briefing_status.get('recent_run_duration_text'),
             ai_briefing_status.get('proof_wait_until_text'),
             ai_briefing_status.get('proof_wait_until_reason_text'),
+            ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text'),
             ai_briefing_status.get('proof_blocker_text'),
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
@@ -5084,6 +5117,14 @@ def evaluate_brief_consumer_case(case):
         failures.append(
             'brief-consumer-tekst mist proof_wait_until_reason_text uit ai_briefing_status: '
             f"{ai_briefing_status.get('proof_wait_until_reason_text')}"
+        )
+    if (
+        ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text')
+        and ai_briefing_status['proof_target_due_at_if_next_slot_missed_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_target_due_at_if_next_slot_missed_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text')}"
         )
     if (
         ai_briefing_status.get('proof_blocker_text')
@@ -6300,6 +6341,14 @@ def evaluate_watchdog_producer_case(case):
         failures.append(
             'watchdog-producer-quiet mist proof_wait_until_reason_text uit overall/stdout-json: '
             f"{overall.get('proof_wait_until_reason_text')}"
+        )
+    if (
+        overall.get('proof_target_due_at_if_next_slot_missed_text')
+        and overall['proof_target_due_at_if_next_slot_missed_text'] not in quiet_output
+    ):
+        failures.append(
+            'watchdog-producer-quiet mist proof_target_due_at_if_next_slot_missed_text uit overall/stdout-json: '
+            f"{overall.get('proof_target_due_at_if_next_slot_missed_text')}"
         )
     for snippet in case.get('expect_text_substrings', []):
         if snippet not in combined_text:

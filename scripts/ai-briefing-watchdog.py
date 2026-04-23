@@ -579,12 +579,16 @@ def main() -> int:
         lines.append(f"proof next action window: {result['proof_next_action_window_text']}")
     elif result['proof_next_action_text']:
         lines.append(f"proof next action: {result['proof_next_action_text']}")
+    if (
+        result.get('proof_recheck_window_text')
+        and result.get('proof_recheck_window_text') != result.get('proof_next_action_window_text')
+        and result.get('proof_recheck_window_text') != result.get('proof_next_action_text')
+    ):
+        lines.append(f"proof recheck window: {result['proof_recheck_window_text']}")
     if result.get('proof_recheck_commands_text'):
         lines.append(f"proof recheck commands: {result['proof_recheck_commands_text']}")
-    if not result.get('proof_next_action_window_text'):
-        if result.get('proof_recheck_window_text') and result.get('proof_recheck_window_text') != result.get('proof_next_action_text'):
-            lines.append(f"proof recheck window: {result['proof_recheck_window_text']}")
-        elif result['proof_recheck_after_text_compact']:
+    if not result.get('proof_recheck_window_text'):
+        if result['proof_recheck_after_text_compact']:
             lines.append(f"proof recheck: {result['proof_recheck_after_text_compact']}")
     if result['proof_today_block_text']:
         lines.append(f"proof today block: {result['proof_today_block_text']}")
@@ -622,9 +626,11 @@ def main() -> int:
         lines.append(f"last run timeout audit: {result['last_run_timeout_text']}")
     if result['recent_run_duration_text']:
         lines.append(f"recent run duration audit: {result['recent_run_duration_text']}")
-    for example in result.get('summary_output_examples') or []:
-        if example:
-            lines.append(f"proof example: {example}")
+    summary_output_examples = [
+        example for example in (result.get('summary_output_examples') or []) if example
+    ]
+    if summary_output_examples:
+        lines.append('proof example: ' + ' | '.join(summary_output_examples[:2]))
     if result['last_proof_qualified_run_at_text']:
         lines.append(f"last qualified run: {result['last_proof_qualified_run_at_text']}")
     text_output = '\n'.join(unique_bits(lines)) + '\n'
