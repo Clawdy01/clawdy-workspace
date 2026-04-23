@@ -1155,6 +1155,7 @@ def audit_summary_output(summary_text, reference_ms=None):
             'available': False,
             'ok': True,
             'missing_markers': [],
+            'matched_alternative_groups': [],
             'item_marker_counts': {},
             'item_count': 0,
             'item_marker_min_count': 0,
@@ -1227,11 +1228,21 @@ def audit_summary_output(summary_text, reference_ms=None):
     numbered_title_heading_matches = re.findall(r'(?im)^\s*\d+[\.)]\s+titel:\s*(.+)$', summary_text)
     numbered_title_heading_count = len(numbered_title_heading_matches)
     numbered_title_heading_examples = [title.strip() for title in numbered_title_heading_matches[:3] if title.strip()]
-    missing_alternative_groups = [
-        list(group)
-        for group in REQUIRED_OUTPUT_MARKER_ALTERNATIVES
-        if not any(marker.lower() in normalized_text for marker in group)
-    ]
+    matched_alternative_groups = []
+    missing_alternative_groups = []
+    for group in REQUIRED_OUTPUT_MARKER_ALTERNATIVES:
+        matched_markers = [
+            marker
+            for marker in group
+            if re.search(rf'(?im)^\s*{re.escape(marker)}\b', summary_text)
+        ]
+        if matched_markers:
+            matched_alternative_groups.append({
+                'group': list(group),
+                'matched_markers': matched_markers,
+            })
+        else:
+            missing_alternative_groups.append(list(group))
     item_blocks = split_summary_item_blocks(summary_text)
     item_count = len(item_blocks)
     effective_item_marker_counts = dict(item_marker_counts)
@@ -1737,6 +1748,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'available': True,
         'ok': not reasons,
         'missing_markers': missing_markers,
+        'matched_alternative_groups': matched_alternative_groups,
         'item_marker_counts': item_marker_counts,
         'exact_field_line_counts': exact_field_line_counts,
         'item_count': item_count,

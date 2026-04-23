@@ -1899,6 +1899,12 @@ DEFAULT_CASES = [
             'enterprise-security-regulatory',
         ],
         'expect_missing_alternative_groups': [],
+        'expect_matched_alternative_groups': [
+            {
+                'group': ['bronnenlijst', 'bronnen'],
+                'matched_markers': ['bronnenlijst'],
+            },
+        ],
         'expect_fresh_dated_item_count': 4,
         'expect_fresh_dated_first3_count': 3,
         'expect_fresh_item_max_age_hours': 48,
@@ -3164,6 +3170,14 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'missing_alternative_groups verwacht '
             f"{case['expect_missing_alternative_groups']}, kreeg {audit.get('missing_alternative_groups')}"
+        )
+    if (
+        'expect_matched_alternative_groups' in case
+        and audit.get('matched_alternative_groups') != case['expect_matched_alternative_groups']
+    ):
+        failures.append(
+            'matched_alternative_groups verwacht '
+            f"{case['expect_matched_alternative_groups']}, kreeg {audit.get('matched_alternative_groups')}"
         )
     if (
         'expect_items_with_exact_field_order_count' in case
