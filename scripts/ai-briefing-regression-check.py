@@ -325,6 +325,38 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'bronnenlijst-regression-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-regression-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 5,
+        'expect_bronnenlijst_unique_url_count': 5,
+        'expect_bronnenlijst_urls': [
+            'https://openai.com/index/new-agents-sdk-observability/',
+            'https://platform.openai.com/docs/guides/agents',
+            'https://huggingface.co/blog/inference-endpoints-cold-starts',
+            'https://elevenlabs.io/blog/live-voice-editing',
+            'https://www.extra.example.com/unused',
+        ],
+        'expect_bronnenlijst_invalid_lines': [
+            'not-a-bare-url.example.com/bad-line',
+        ],
+        'expect_bronnenlijst_missing_used_urls': [
+            'https://techcrunch.com/2026/04/24/hugging-face-inference-endpoints-update',
+            'https://theverge.com/2026/04/24/ai/elevenlabs-live-voice-editing',
+        ],
+        'expect_bronnenlijst_unused_urls': [
+            'https://extra.example.com/unused',
+        ],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat niet-URL regels (1): not-a-bare-url.example.com/bad-line',
+            'Bronnenlijst mist gebruikte item-URLs (2/6)',
+            'Bronnenlijst bevat ongebruikte URLs (1): https://extra.example.com/unused',
+        ],
+    },
+    {
         'name': 'top3-path-encoded-unreserved-duplicate-source-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-top3-path-encoded-unreserved-duplicate-source-sample.txt',
         'expect_ok': False,
@@ -2198,6 +2230,10 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'path': ROOT / 'tmp' / 'ai-briefing-bullet-labels-sample.txt',
     },
     {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-regression-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-regression-sample.txt',
+    },
+    {
         'name': 'status-summary-audit-cli-keeps-workspace-agents-regression-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-workspace-agents-regression-sample.txt',
     },
@@ -3193,6 +3229,54 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'missing_nonredundant_alternative_groups verwacht '
             f"{case['expect_missing_nonredundant_alternative_groups']}, kreeg {audit.get('missing_nonredundant_alternative_groups')}"
+        )
+    if (
+        'expect_bronnenlijst_url_count' in case
+        and audit.get('bronnenlijst_url_count') != case['expect_bronnenlijst_url_count']
+    ):
+        failures.append(
+            'bronnenlijst_url_count verwacht '
+            f"{case['expect_bronnenlijst_url_count']}, kreeg {audit.get('bronnenlijst_url_count')}"
+        )
+    if (
+        'expect_bronnenlijst_unique_url_count' in case
+        and audit.get('bronnenlijst_unique_url_count') != case['expect_bronnenlijst_unique_url_count']
+    ):
+        failures.append(
+            'bronnenlijst_unique_url_count verwacht '
+            f"{case['expect_bronnenlijst_unique_url_count']}, kreeg {audit.get('bronnenlijst_unique_url_count')}"
+        )
+    if (
+        'expect_bronnenlijst_urls' in case
+        and audit.get('bronnenlijst_urls') != case['expect_bronnenlijst_urls']
+    ):
+        failures.append(
+            'bronnenlijst_urls verwacht '
+            f"{case['expect_bronnenlijst_urls']}, kreeg {audit.get('bronnenlijst_urls')}"
+        )
+    if (
+        'expect_bronnenlijst_invalid_lines' in case
+        and audit.get('bronnenlijst_invalid_lines') != case['expect_bronnenlijst_invalid_lines']
+    ):
+        failures.append(
+            'bronnenlijst_invalid_lines verwacht '
+            f"{case['expect_bronnenlijst_invalid_lines']}, kreeg {audit.get('bronnenlijst_invalid_lines')}"
+        )
+    if (
+        'expect_bronnenlijst_missing_used_urls' in case
+        and audit.get('bronnenlijst_missing_used_urls') != case['expect_bronnenlijst_missing_used_urls']
+    ):
+        failures.append(
+            'bronnenlijst_missing_used_urls verwacht '
+            f"{case['expect_bronnenlijst_missing_used_urls']}, kreeg {audit.get('bronnenlijst_missing_used_urls')}"
+        )
+    if (
+        'expect_bronnenlijst_unused_urls' in case
+        and audit.get('bronnenlijst_unused_urls') != case['expect_bronnenlijst_unused_urls']
+    ):
+        failures.append(
+            'bronnenlijst_unused_urls verwacht '
+            f"{case['expect_bronnenlijst_unused_urls']}, kreeg {audit.get('bronnenlijst_unused_urls')}"
         )
     if (
         'expect_items_with_exact_field_order_count' in case

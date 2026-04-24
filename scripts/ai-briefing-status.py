@@ -709,11 +709,27 @@ def split_summary_item_blocks(summary_text):
     direct_title_re = re.compile(r'(?im)^(?:\s*\d+[\.)]\s+)?titel:\s*')
     title_starts = list(direct_title_re.finditer(summary_text))
     blocks = []
+    stop_section_markers = {
+        'wat moeten wij hiermee?',
+        'wat ik vandaag het belangrijkst vind',
+        'bronnenlijst',
+        'bronnen',
+    }
+
+    def trim_trailing_stop_sections(block_text):
+        lines = block_text.splitlines()
+        trimmed_lines = []
+        for raw_line in lines:
+            if raw_line.strip().lower() in stop_section_markers:
+                break
+            trimmed_lines.append(raw_line)
+        return '\n'.join(trimmed_lines).strip()
+
     if title_starts:
         for index, match in enumerate(title_starts):
             start = match.end()
             end = title_starts[index + 1].start() if index + 1 < len(title_starts) else len(summary_text)
-            block = summary_text[start:end].strip()
+            block = trim_trailing_stop_sections(summary_text[start:end])
             if block:
                 blocks.append('Titel: ' + block)
         if blocks:
@@ -723,12 +739,6 @@ def split_summary_item_blocks(summary_text):
     category_heading_re = re.compile(r'^\s*\d+\)\s+')
     title_re = re.compile(r'(?im)^titel:\s*(.+)$')
     category_start = None
-    stop_section_markers = {
-        'wat moeten wij hiermee?',
-        'wat ik vandaag het belangrijkst vind',
-        'bronnenlijst',
-        'bronnen',
-    }
     for index, raw_line in enumerate(lines):
         line = raw_line.strip()
         if category_heading_re.match(line):
@@ -827,6 +837,35 @@ def split_source_line_tokens(line):
 
 def extract_source_urls_from_line(line):
     return [token for token in split_source_line_tokens(line) if re.fullmatch(r'(?i)https?://\S+', token)]
+
+
+def extract_exact_heading_section_lines(text, heading):
+    if not isinstance(text, str) or not isinstance(heading, str) or not heading:
+        return []
+    lines = text.splitlines()
+    heading_indexes = [
+        index
+        for index, raw_line in enumerate(lines)
+        if raw_line.strip() == heading
+    ]
+    if not heading_indexes:
+        return []
+    heading_index = heading_indexes[-1]
+    return [line.rstrip() for line in lines[heading_index + 1:]]
+
+
+def extract_bare_url_lines(lines):
+    bare_urls = []
+    invalid_lines = []
+    for raw_line in lines or []:
+        stripped = raw_line.strip()
+        if not stripped:
+            continue
+        if re.fullmatch(r'(?i)https?://\S+', stripped):
+            bare_urls.append(stripped)
+        else:
+            invalid_lines.append(stripped)
+    return bare_urls, invalid_lines
 
 
 def source_url_has_trailing_punctuation(url):
@@ -1161,6 +1200,12 @@ def audit_summary_output(summary_text, reference_ms=None):
             'item_marker_counts': {},
             'item_count': 0,
             'item_marker_min_count': 0,
+            'bronnenlijst_url_count': 0,
+            'bronnenlijst_unique_url_count': 0,
+            'bronnenlijst_urls': [],
+            'bronnenlijst_invalid_lines': [],
+            'bronnenlijst_missing_used_urls': [],
+            'bronnenlijst_unused_urls': [],
             'source_url_count': 0,
             'unique_source_url_count': 0,
             'source_urls': [],
@@ -1380,6 +1425,14 @@ def audit_summary_output(summary_text, reference_ms=None):
     unique_source_urls = sorted(set(canonical_source_urls))
     source_url_count = len(source_urls)
     unique_source_url_count = len(unique_source_urls)
+    bronnenlijst_section_lines = extract_exact_heading_section_lines(summary_text, 'Bronnenlijst')
+    bronnenlijst_urls, bronnenlijst_invalid_lines = extract_bare_url_lines(bronnenlijst_section_lines)
+    canonical_bronnenlijst_urls = [canonicalize_source_url(url) or url for url in bronnenlijst_urls]
+    unieke_bronnenlijst_urls = sorted(set(canonical_bronnenlijst_urls))
+    bronnenlijst_url_count = len(bronnenlijst_urls)
+    bronnenlijst_unique_url_count = len(unieke_bronnenlijst_urls)
+    bronnenlijst_missing_used_urls = sorted(set(unique_source_urls) - set(unieke_bronnenlijst_urls))
+    bronnenlijst_unused_urls = sorted(set(unieke_bronnenlijst_urls) - set(unique_source_urls))
     first3_source_urls = [url for urls in block_valid_source_urls[:3] for url in urls]
     first3_canonical_source_urls = [url for urls in block_canonical_valid_source_urls[:3] for url in urls]
     first3_unique_source_url_count = len(set(first3_canonical_source_urls))
@@ -1599,6 +1652,24 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(reason)
     if missing_nonredundant_alternative_groups:
         reasons.append(f"{len(missing_nonredundant_alternative_groups)} verplichte outputanker(s) missen")
+    if 'Bronnenlijst' not in missing_markers:
+        if bronnenlijst_url_count == 0 and not bronnenlijst_invalid_lines:
+            reasons.append('Bronnenlijst is leeg of mist kale URL-regels')
+        if bronnenlijst_invalid_lines:
+            reason = f'Bronnenlijst bevat niet-URL regels ({len(bronnenlijst_invalid_lines)})'
+            reason += f": {', '.join(bronnenlijst_invalid_lines[:3])}"
+            reasons.append(reason)
+        if bronnenlijst_missing_used_urls:
+            reason = (
+                'Bronnenlijst mist gebruikte item-URLs '
+                f'({len(bronnenlijst_missing_used_urls)}/{unique_source_url_count})'
+            )
+            reason += f": {', '.join(bronnenlijst_missing_used_urls[:3])}"
+            reasons.append(reason)
+        if bronnenlijst_unused_urls:
+            reason = f'Bronnenlijst bevat ongebruikte URLs ({len(bronnenlijst_unused_urls)})'
+            reason += f": {', '.join(bronnenlijst_unused_urls[:3])}"
+            reasons.append(reason)
     if source_url_count < MIN_SOURCE_URLS:
         reasons.append(f'te weinig geldige bron-URLs op geldige Bron:-regels ({source_url_count})')
     if item_count and unique_source_url_count < item_count:
@@ -1736,6 +1807,7 @@ def audit_summary_output(summary_text, reference_ms=None):
 
     ok_text = (
         f'briefing-output ok ({item_count} items, {source_url_count} geldige bron-URLs, {unique_source_url_count} uniek, '
+        f'Bronnenlijst {bronnenlijst_unique_url_count}/{unique_source_url_count} unieke URLs, '
         f'titels {unique_item_title_count}/{item_count} uniek, items met juiste labelvolgorde {items_with_exact_field_order_count}/{item_count}, items met bron {items_with_source_count}/{item_count}, '
         f'geldige Bron:-regels {items_with_valid_source_line_count}/{item_count}, '
         f'items met meerdere bron-URLs {items_with_multiple_sources_count}/{item_count}, '
@@ -1769,6 +1841,12 @@ def audit_summary_output(summary_text, reference_ms=None):
         'item_marker_min_count': item_marker_min_count,
         'missing_alternative_groups': missing_alternative_groups,
         'missing_nonredundant_alternative_groups': missing_nonredundant_alternative_groups,
+        'bronnenlijst_url_count': bronnenlijst_url_count,
+        'bronnenlijst_unique_url_count': bronnenlijst_unique_url_count,
+        'bronnenlijst_urls': bronnenlijst_urls,
+        'bronnenlijst_invalid_lines': bronnenlijst_invalid_lines,
+        'bronnenlijst_missing_used_urls': bronnenlijst_missing_used_urls,
+        'bronnenlijst_unused_urls': bronnenlijst_unused_urls,
         'numbered_title_heading_count': numbered_title_heading_count,
         'numbered_title_heading_examples': numbered_title_heading_examples,
         'items_with_exact_field_order_count': items_with_exact_field_order_count,
