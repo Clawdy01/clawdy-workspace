@@ -1,0 +1,35 @@
+Titel: OpenAI scherpt Agents SDK observability aan
+Bron: https://openai.com/index/new-agents-sdk-observability/ | https://platform.openai.com/docs/guides/agents
+Datum: 2026-04-24
+Wat is er nieuw: OpenAI beschrijft extra observability-routes voor het Agents SDK-pad.
+Waarom is dit belangrijk: Dit raakt direct hoe agentruns traceerbaar blijven.
+Relevant voor Christian: Houdt het bewijspad scherp op echte primaire bronupdates.
+
+Titel: Hugging Face werkt inference endpoints bij
+Bron: https://huggingface.co/blog/inference-endpoints-cold-starts | https://techcrunch.com/2026/04/24/hugging-face-inference-endpoints-update
+Datum: 2026-04-24
+Wat is er nieuw: Hugging Face beschrijft verbeteringen rond cold starts voor inference endpoints.
+Waarom is dit belangrijk: Dit beïnvloedt latentie en betrouwbaarheid van productie-LLM-routes.
+Relevant voor Christian: Relevant voor operationele AI-stackkeuzes.
+
+Titel: ElevenLabs verbetert live voice editing
+Bron: https://elevenlabs.io/blog/live-voice-editing | https://www.theverge.com/2026/04/24/ai/elevenlabs-live-voice-editing
+Datum: 2026-04-24
+Wat is er nieuw: ElevenLabs toont live voice editing in een recente productupdate.
+Waarom is dit belangrijk: Het verbreedt multimodale en voice-workflows.
+Relevant voor Christian: Houdt het multimodale spoor praktisch en concreet.
+
+Wat moeten wij hiermee?
+Blijf de output-audit hard houden op exacte afsluiters en bronhygiëne.
+
+Wat ik vandaag het belangrijkst vind
+Fragmentvarianten in de afsluitende Bronnenlijst mogen niet stil slagen.
+
+Bronnenlijst
+https://openai.com/index/new-agents-sdk-observability
+https://openai.com/index/new-agents-sdk-observability#section-one
+https://platform.openai.com/docs/guides/agents
+https://huggingface.co/blog/inference-endpoints-cold-starts
+https://techcrunch.com/2026/04/24/hugging-face-inference-endpoints-update
+https://elevenlabs.io/blog/live-voice-editing
+https://www.theverge.com/2026/04/24/ai/elevenlabs-live-voice-editing
