@@ -1,0 +1,35 @@
+Titel: OpenAI verduidelijkt Responses API view-parameter met spaties
+Bron: https://openai.com/index/responses-api-update?view=full%20mode&lang=en | https://platform.openai.com/docs/guides/responses-vs-chat-completions
+Datum: 2026-04-24
+Wat is er nieuw: OpenAI combineert een productupdate met documentatie terwijl dezelfde querywaarde zowel als `%20` als `+` kan terugkomen.
+Waarom is dit belangrijk: Dit houdt de audit scherp op query-normalisatie in de afsluitende Bronnenlijst wanneer spaties anders worden gecodeerd.
+Relevant voor Christian: Dit voorkomt schijncorroboratie wanneer dezelfde URL alleen als `full mode` via `%20` versus `+` terugkomt.
+
+Titel: Anthropic actualiseert prompt caching documentatie
+Bron: https://www.anthropic.com/news/prompt-caching | https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+Datum: 2026-04-24
+Wat is er nieuw: Anthropic combineert een productpost met actuele documentatie.
+Waarom is dit belangrijk: Dit levert een normaal multi-source item op dat als controlepad dient.
+Relevant voor Christian: Dit laat zien dat de audit echte corroboratie intact houdt terwijl alleen de spatie-encodingdubbel zwak blijft.
+
+Titel: Google publiceert Gemini API changelog update
+Bron: https://developers.googleblog.com/en/gemini-api-update | https://ai.google.dev/gemini-api/docs/changelog
+Datum: 2026-04-24
+Wat is er nieuw: Google verwijst tegelijk naar blogcontext en docs-changelog.
+Waarom is dit belangrijk: Dit houdt het sample realistisch met nog een tweede geldig multi-domein item.
+Relevant voor Christian: Dit bevestigt dat alleen de spatie-encodingdubbel in de Bronnenlijst wordt afgekeurd.
+
+Wat moeten wij hiermee?
+Blijf de afsluitende Bronnenlijst auditen op canonieke unieke URLs, ook wanneer querywaarden alleen verschillen tussen `%20` en `+`.
+
+Wat ik vandaag het belangrijkst vind
+`full mode` mag niet als twee aparte bronnen in de Bronnenlijst terechtkomen wanneer één variant `%20` gebruikt en de andere `+`.
+
+Bronnenlijst
+https://openai.com/index/responses-api-update?view=full%20mode&lang=en
+https://openai.com/index/responses-api-update?lang=en&view=full+mode
+https://platform.openai.com/docs/guides/responses-vs-chat-completions
+https://www.anthropic.com/news/prompt-caching
+https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+https://developers.googleblog.com/en/gemini-api-update
+https://ai.google.dev/gemini-api/docs/changelog

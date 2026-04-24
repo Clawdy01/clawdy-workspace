@@ -1943,6 +1943,44 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'bronnenlijst-query-encoded-unreserved-duplicate-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-query-encoded-unreserved-duplicate-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 7,
+        'expect_bronnenlijst_unique_url_count': 6,
+        'expect_bronnenlijst_duplicate_urls': [
+            'https://openai.com/index/responses-api-update?lang=en&view=full-mode',
+        ],
+        'expect_bronnenlijst_invalid_lines': [],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat dubbele URLs (1): https://openai.com/index/responses-api-update?lang=en&view=full-mode',
+        ],
+    },
+    {
+        'name': 'bronnenlijst-query-space-encoding-duplicate-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-query-space-encoding-duplicate-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 7,
+        'expect_bronnenlijst_unique_url_count': 6,
+        'expect_bronnenlijst_duplicate_urls': [
+            'https://openai.com/index/responses-api-update?lang=en&view=full+mode',
+        ],
+        'expect_bronnenlijst_invalid_lines': [],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat dubbele URLs (1): https://openai.com/index/responses-api-update?lang=en&view=full+mode',
+        ],
+    },
+    {
         'name': 'bronnenlijst-dot-segment-duplicate-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-dot-segment-duplicate-sample.txt',
         'expect_ok': False,
@@ -2073,6 +2111,25 @@ DEFAULT_CASES = [
         'expect_bronnenlijst_unused_urls': [],
         'expect_reason_substrings': [
             'Bronnenlijst bevat dubbele URLs (1): https://openai.com/index/new-agents-sdk-observability',
+        ],
+    },
+    {
+        'name': 'bronnenlijst-invalid-port-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-invalid-port-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 7,
+        'expect_bronnenlijst_unique_url_count': 7,
+        'expect_bronnenlijst_duplicate_urls': [],
+        'expect_bronnenlijst_invalid_lines': [],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [
+            'https://openai.com:99999/index/new-agents-sdk-observability/',
+        ],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat ongebruikte URLs (1): https://openai.com:99999/index/new-agents-sdk-observability/',
         ],
     },
     {
@@ -2505,6 +2562,14 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-query-order-duplicate-sample.txt',
     },
     {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-query-encoded-unreserved-duplicate-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-query-encoded-unreserved-duplicate-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-query-space-encoding-duplicate-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-query-space-encoding-duplicate-sample.txt',
+    },
+    {
         'name': 'status-summary-audit-cli-keeps-bronnenlijst-dot-segment-duplicate-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-dot-segment-duplicate-sample.txt',
     },
@@ -2531,6 +2596,10 @@ STATUS_SUMMARY_AUDIT_CASES = [
     {
         'name': 'status-summary-audit-cli-keeps-bronnenlijst-default-file-duplicate-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-default-file-duplicate-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-invalid-port-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-invalid-port-sample.txt',
     },
     {
         'name': 'status-summary-audit-cli-keeps-workspace-agents-regression-audit',

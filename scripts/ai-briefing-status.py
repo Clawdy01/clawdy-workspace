@@ -1138,20 +1138,23 @@ def canonicalize_source_url(url):
         return raw
     if not parts.scheme or not parts.netloc:
         return raw
-    filtered_query = sorted(
-        (
-            (key, value)
-            for key, value in parse_qsl(parts.query, keep_blank_values=True)
-            if key.lower() not in TRACKING_QUERY_PARAMS and not key.lower().startswith(TRACKING_QUERY_PARAM_PREFIXES)
-        ),
-        key=lambda item: (item[0], item[1]),
-    )
-    hostname = (parts.hostname or '').lower().rstrip('.')
-    if hostname.startswith('www.'):
-        hostname = hostname[4:]
-    port = parts.port
-    username = parts.username
-    password = parts.password
+    try:
+        filtered_query = sorted(
+            (
+                (key, value)
+                for key, value in parse_qsl(parts.query, keep_blank_values=True)
+                if key.lower() not in TRACKING_QUERY_PARAMS and not key.lower().startswith(TRACKING_QUERY_PARAM_PREFIXES)
+            ),
+            key=lambda item: (item[0], item[1]),
+        )
+        hostname = (parts.hostname or '').lower().rstrip('.')
+        if hostname.startswith('www.'):
+            hostname = hostname[4:]
+        port = parts.port
+        username = parts.username
+        password = parts.password
+    except ValueError:
+        return raw
     default_port = (parts.scheme.lower() == 'https' and port == 443) or (parts.scheme.lower() == 'http' and port == 80)
     if not hostname:
         normalized_netloc = parts.netloc.lower()
