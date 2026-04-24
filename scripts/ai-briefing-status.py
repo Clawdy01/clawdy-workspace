@@ -1090,11 +1090,14 @@ TRACKING_QUERY_PARAM_PREFIXES = ('utm_',)
 TRACKING_QUERY_PARAMS = {
     'fbclid',
     'gclid',
+    'jsessionid',
     'mc_cid',
     'mc_eid',
     'mkt_tok',
+    'phpsessid',
     'ref_src',
     's_cid',
+    'sessionid',
 }
 
 
@@ -1127,9 +1130,14 @@ def normalize_url_path_dot_segments(path):
 
 
 def strip_known_session_path_params(path):
-    if not isinstance(path, str) or ';' not in path:
+    if not isinstance(path, str) or (';' not in path and '%3b' not in path.lower()):
         return path
-    return re.sub(r';(?:jsessionid|phpsessid|sessionid)=[^/?#;]*', '', path, flags=re.IGNORECASE)
+    return re.sub(
+        r'(?:;|%3b)(?:jsessionid|phpsessid|sessionid)=[^/?#;]*(?=(?:;|%3b|/|$))',
+        '',
+        path,
+        flags=re.IGNORECASE,
+    )
 
 
 def canonicalize_source_url(url):

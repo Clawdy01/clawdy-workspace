@@ -2152,6 +2152,44 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'bronnenlijst-session-param-encoded-duplicate-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-session-param-encoded-duplicate-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 7,
+        'expect_bronnenlijst_unique_url_count': 6,
+        'expect_bronnenlijst_duplicate_urls': [
+            'https://openai.com/index/new-agents-sdk-observability',
+        ],
+        'expect_bronnenlijst_invalid_lines': [],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat dubbele URLs (1): https://openai.com/index/new-agents-sdk-observability',
+        ],
+    },
+    {
+        'name': 'bronnenlijst-session-query-param-duplicate-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-session-query-param-duplicate-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 7,
+        'expect_bronnenlijst_unique_url_count': 6,
+        'expect_bronnenlijst_duplicate_urls': [
+            'https://openai.com/index/new-agents-sdk-observability',
+        ],
+        'expect_bronnenlijst_invalid_lines': [],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat dubbele URLs (1): https://openai.com/index/new-agents-sdk-observability',
+        ],
+    },
+    {
         'name': 'bronnenlijst-invalid-port-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-invalid-port-sample.txt',
         'expect_ok': False,
@@ -2642,6 +2680,14 @@ STATUS_SUMMARY_AUDIT_CASES = [
     {
         'name': 'status-summary-audit-cli-keeps-bronnenlijst-session-param-duplicate-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-session-param-duplicate-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-session-param-encoded-duplicate-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-session-param-encoded-duplicate-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-session-query-param-duplicate-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-session-query-param-duplicate-sample.txt',
     },
     {
         'name': 'status-summary-audit-cli-keeps-bronnenlijst-invalid-port-audit',
