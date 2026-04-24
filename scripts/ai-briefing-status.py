@@ -1165,22 +1165,14 @@ def canonicalize_source_url(url):
         if hostname.startswith('www.'):
             hostname = hostname[4:]
         port = parts.port
-        username = parts.username
-        password = parts.password
     except ValueError:
         return raw
     default_port = (parts.scheme.lower() == 'https' and port == 443) or (parts.scheme.lower() == 'http' and port == 80)
     if not hostname:
-        normalized_netloc = parts.netloc.lower()
+        normalized_netloc = parts.netloc.lower().rsplit('@', 1)[-1]
     else:
-        auth = ''
-        if username is not None:
-            auth = username
-            if password is not None:
-                auth += f':{password}'
-            auth += '@'
         port_suffix = '' if port is None or default_port else f':{port}'
-        normalized_netloc = f'{auth}{hostname}{port_suffix}'
+        normalized_netloc = f'{hostname}{port_suffix}'
     normalized_path = decode_unreserved_url_path(parts.path or '/')
     normalized_path = normalize_url_path_dot_segments(normalized_path)
     normalized_path = strip_known_session_path_params(normalized_path)
