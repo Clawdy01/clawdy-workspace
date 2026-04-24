@@ -1146,6 +1146,16 @@ def strip_empty_path_param_delimiters(path):
     return re.sub(r'(?:(?:;|%3b)+)(?=(?:/|$))', '', path, flags=re.IGNORECASE)
 
 
+def parse_query_pairs_with_legacy_separators(query):
+    if not isinstance(query, str) or not query:
+        return []
+    default_pairs = parse_qsl(query, keep_blank_values=True)
+    if ';' not in query:
+        return default_pairs
+    legacy_pairs = parse_qsl(query.replace(';', '&'), keep_blank_values=True)
+    return legacy_pairs if len(legacy_pairs) >= len(default_pairs) else default_pairs
+
+
 def canonicalize_source_url(url):
     if not isinstance(url, str):
         return None
@@ -1162,7 +1172,7 @@ def canonicalize_source_url(url):
         filtered_query = sorted(
             (
                 (key, value)
-                for key, value in parse_qsl(parts.query, keep_blank_values=True)
+                for key, value in parse_query_pairs_with_legacy_separators(parts.query)
                 if key.lower() not in TRACKING_QUERY_PARAMS and not key.lower().startswith(TRACKING_QUERY_PARAM_PREFIXES)
             ),
             key=lambda item: (item[0], item[1]),
