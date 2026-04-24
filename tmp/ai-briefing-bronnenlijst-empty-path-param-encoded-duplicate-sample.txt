@@ -1,0 +1,35 @@
+Titel: OpenAI houdt observability update op dezelfde route
+Bron: https://openai.com/index/new-agents-sdk-observability | https://platform.openai.com/docs/guides/agents
+Datum: 2026-04-24
+Wat is er nieuw: OpenAI scherpt dezelfde observability-pagina verder aan zonder nieuwe URL-structuur.
+Waarom is dit belangrijk: Dit houdt de afsluitende Bronnenlijst scherp op kale varianten die alleen een encoded lege path-param-delimiter toevoegen.
+Relevant voor Christian: Dit voorkomt dat exact dezelfde bron stil als extra corroboratie telt wanneer alleen een losse `%3B` wordt gepubliceerd.
+
+Titel: Anthropic actualiseert prompt caching context
+Bron: https://anthropic.com/news/prompt-caching | https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+Datum: 2026-04-24
+Wat is er nieuw: Anthropic combineert een productpost met actuele documentatie.
+Waarom is dit belangrijk: Dit levert een normaal multi-source item op dat als controlepad dient.
+Relevant voor Christian: Dit laat zien dat alleen de encoded lege-path-param-dubbel in de Bronnenlijst wordt afgekeurd.
+
+Titel: Google publiceert Gemini API changelog update
+Bron: https://developers.googleblog.com/en/gemini-api-update | https://ai.google.dev/gemini-api/docs/changelog
+Datum: 2026-04-24
+Wat is er nieuw: Google verwijst tegelijk naar blogcontext en docs-changelog.
+Waarom is dit belangrijk: Dit houdt het sample realistisch met nog een tweede geldig multi-domein item.
+Relevant voor Christian: Dit bevestigt dat alleen de encoded lege path-param-variant in de Bronnenlijst wordt afgekeurd.
+
+Wat moeten wij hiermee?
+Blijf de afsluitende Bronnenlijst auditen op canonieke unieke URLs, ook wanneer een tweede regel alleen een encoded lege path-param-delimiter `%3B` toevoegt.
+
+Wat ik vandaag het belangrijkst vind
+Dezelfde eind-URL mag niet als twee aparte bronnen in de Bronnenlijst terechtkomen wanneer één variant alleen een encoded lege path-param-delimiter toevoegt.
+
+Bronnenlijst
+https://openai.com/index/new-agents-sdk-observability
+https://openai.com/index/new-agents-sdk-observability%3B
+https://platform.openai.com/docs/guides/agents
+https://anthropic.com/news/prompt-caching
+https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+https://developers.googleblog.com/en/gemini-api-update
+https://ai.google.dev/gemini-api/docs/changelog

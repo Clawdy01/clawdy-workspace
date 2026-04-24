@@ -1140,6 +1140,12 @@ def strip_known_session_path_params(path):
     )
 
 
+def strip_empty_path_param_delimiters(path):
+    if not isinstance(path, str) or (';' not in path and '%3b' not in path.lower()):
+        return path
+    return re.sub(r'(?:(?:;|%3b)+)(?=(?:/|$))', '', path, flags=re.IGNORECASE)
+
+
 def canonicalize_source_url(url):
     if not isinstance(url, str):
         return None
@@ -1176,6 +1182,7 @@ def canonicalize_source_url(url):
     normalized_path = decode_unreserved_url_path(parts.path or '/')
     normalized_path = normalize_url_path_dot_segments(normalized_path)
     normalized_path = strip_known_session_path_params(normalized_path)
+    normalized_path = strip_empty_path_param_delimiters(normalized_path)
     if normalized_path != '/':
         normalized_path = re.sub(
             r'/(?:(?:index|default)\.(?:html?|aspx?))$',
