@@ -1,0 +1,35 @@
+Titel: OpenAI publiceert Responses API update
+Bron: https://openai.com/index/responses-api-update | https://platform.openai.com/docs/guides/responses-vs-chat-completions
+Datum: 2026-04-24
+Wat is er nieuw: OpenAI licht een Responses API update toe en koppelt die aan de actuele docs.
+Waarom is dit belangrijk: Dit houdt de audit scherp op canonieke bronhygiëne in afsluitende bronlijsten.
+Relevant voor Christian: Dit voorkomt schijncorroboratie wanneer dezelfde URL alleen triviaal anders gecodeerd terugkomt.
+
+Titel: GitHub deelt nieuwe Copilot agent workflow
+Bron: https://github.blog/changelog/copilot-agent-workflow | https://github.com/features/copilot
+Datum: 2026-04-24
+Wat is er nieuw: GitHub beschrijft een nieuwe agent-workflow en koppelt die aan Copilot productcontext.
+Waarom is dit belangrijk: Dit levert een gewoon multi-source item uit twee domeinen op voor contrast met de duplicate-case erboven.
+Relevant voor Christian: Dit laat zien dat de audit nog steeds echte corroboratie beloont wanneer de bronnen werkelijk verschillend zijn.
+
+Titel: Google zet Gemini API update live
+Bron: https://developers.googleblog.com/en/gemini-api-update | https://ai.google.dev/gemini-api/docs/changelog
+Datum: 2026-04-24
+Wat is er nieuw: Google noemt een Gemini API update met een changelogverwijzing naar de docs.
+Waarom is dit belangrijk: Dit houdt het sample realistisch met nog een tweede geldig multi-domein item.
+Relevant voor Christian: Dit bevestigt dat alleen de encoded duplicate in de Bronnenlijst zwak blijft.
+
+Wat moeten wij hiermee?
+Blijf de afsluitende Bronnenlijst auditen op canonieke unieke URLs.
+
+Wat ik vandaag het belangrijkst vind
+Triviale percent-encoding mag geen extra bron in de Bronnenlijst opleveren.
+
+Bronnenlijst
+https://openai.com/index/responses-api-update
+https://openai.com/index/responses%2Dapi%2Dupdate
+https://platform.openai.com/docs/guides/responses-vs-chat-completions
+https://github.blog/changelog/copilot-agent-workflow
+https://github.com/features/copilot
+https://developers.googleblog.com/en/gemini-api-update
+https://ai.google.dev/gemini-api/docs/changelog
