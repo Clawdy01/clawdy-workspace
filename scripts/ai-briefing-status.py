@@ -1150,9 +1150,14 @@ def parse_query_pairs_with_legacy_separators(query):
     if not isinstance(query, str) or not query:
         return []
     default_pairs = parse_qsl(query, keep_blank_values=True)
-    if ';' not in query:
+    normalized_query = re.sub(
+        r'(?i)%3b(?=(?:utm(?:_|%5f)|fbclid=|gclid=|jsessionid=|mc_cid=|mc_eid=|mkt_tok=|phpsessid=|ref_src=|s_cid=|sessionid=))',
+        '&',
+        query,
+    )
+    if ';' not in normalized_query and normalized_query == query:
         return default_pairs
-    legacy_pairs = parse_qsl(query.replace(';', '&'), keep_blank_values=True)
+    legacy_pairs = parse_qsl(normalized_query.replace(';', '&'), keep_blank_values=True)
     return legacy_pairs if len(legacy_pairs) >= len(default_pairs) else default_pairs
 
 
