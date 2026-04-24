@@ -1203,6 +1203,7 @@ def audit_summary_output(summary_text, reference_ms=None):
             'bronnenlijst_url_count': 0,
             'bronnenlijst_unique_url_count': 0,
             'bronnenlijst_urls': [],
+            'bronnenlijst_duplicate_urls': [],
             'bronnenlijst_invalid_lines': [],
             'bronnenlijst_missing_used_urls': [],
             'bronnenlijst_unused_urls': [],
@@ -1429,6 +1430,10 @@ def audit_summary_output(summary_text, reference_ms=None):
     bronnenlijst_urls, bronnenlijst_invalid_lines = extract_bare_url_lines(bronnenlijst_section_lines)
     canonical_bronnenlijst_urls = [canonicalize_source_url(url) or url for url in bronnenlijst_urls]
     unieke_bronnenlijst_urls = sorted(set(canonical_bronnenlijst_urls))
+    bronnenlijst_url_occurrences = Counter(canonical_bronnenlijst_urls)
+    bronnenlijst_duplicate_urls = sorted({
+        url for url, count in bronnenlijst_url_occurrences.items() if count > 1
+    })
     bronnenlijst_url_count = len(bronnenlijst_urls)
     bronnenlijst_unique_url_count = len(unieke_bronnenlijst_urls)
     bronnenlijst_missing_used_urls = sorted(set(unique_source_urls) - set(unieke_bronnenlijst_urls))
@@ -1670,6 +1675,10 @@ def audit_summary_output(summary_text, reference_ms=None):
             reason = f'Bronnenlijst bevat ongebruikte URLs ({len(bronnenlijst_unused_urls)})'
             reason += f": {', '.join(bronnenlijst_unused_urls[:3])}"
             reasons.append(reason)
+        if bronnenlijst_duplicate_urls:
+            reason = f'Bronnenlijst bevat dubbele URLs ({len(bronnenlijst_duplicate_urls)})'
+            reason += f": {', '.join(bronnenlijst_duplicate_urls[:3])}"
+            reasons.append(reason)
     if source_url_count < MIN_SOURCE_URLS:
         reasons.append(f'te weinig geldige bron-URLs op geldige Bron:-regels ({source_url_count})')
     if item_count and unique_source_url_count < item_count:
@@ -1844,6 +1853,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'bronnenlijst_url_count': bronnenlijst_url_count,
         'bronnenlijst_unique_url_count': bronnenlijst_unique_url_count,
         'bronnenlijst_urls': bronnenlijst_urls,
+        'bronnenlijst_duplicate_urls': bronnenlijst_duplicate_urls,
         'bronnenlijst_invalid_lines': bronnenlijst_invalid_lines,
         'bronnenlijst_missing_used_urls': bronnenlijst_missing_used_urls,
         'bronnenlijst_unused_urls': bronnenlijst_unused_urls,

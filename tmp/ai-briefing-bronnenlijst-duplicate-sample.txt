@@ -1,0 +1,40 @@
+Dagelijkse AI-update, vrijdag 24 april 2026
+
+1) agents/automation/coding workflows
+Titel: OpenAI verbetert Agents SDK observability voor production debugging
+Bron: https://openai.com/index/new-agents-sdk-observability/ | https://platform.openai.com/docs/guides/agents
+Datum: 2026-04-24
+Wat is er nieuw: OpenAI voegt concretere tracing- en observability-uitleg toe voor agent-runs.
+Waarom is dit belangrijk: Dit maakt productie-debugging en betrouwbaarder agentgedrag beter uitlegbaar.
+Relevant voor Christian: Handig voor OpenClaw-observability en supportflows.
+
+2) open-source modellen/frameworks/inference tooling
+Titel: Hugging Face breidt inference endpoints uit met snellere cold-starts
+Bron: https://huggingface.co/blog/inference-endpoints-cold-starts | https://techcrunch.com/2026/04/24/hugging-face-inference-endpoints-update/
+Datum: 2026-04-24
+Wat is er nieuw: Hugging Face claimt snellere opstarttijden voor beheerde inference-routes.
+Waarom is dit belangrijk: Dit raakt latency en kosten voor hosted modelroutes.
+Relevant voor Christian: Relevant voor keuzes tussen hosted en lokale inference.
+
+3) multimodal, voice, image, video en on-device/lokale AI
+Titel: ElevenLabs introduceert live voice editing voor teams
+Bron: https://elevenlabs.io/blog/live-voice-editing | https://www.theverge.com/2026/04/24/ai/elevenlabs-live-voice-editing
+Datum: 2026-04-24
+Wat is er nieuw: ElevenLabs laat teams stemcontent iteratief aanpassen zonder volledige rerender.
+Waarom is dit belangrijk: Dit versnelt voice-workflows en reviewrondes.
+Relevant voor Christian: Relevant voor demo's en audio-uitvoer in agentflows.
+
+Wat moeten wij hiermee?
+- Houd observability, hosted inference en voice tooling samen in beeld.
+
+Wat ik vandaag het belangrijkst vind
+- De observability-update is het meest direct bruikbaar voor OpenClaw.
+
+Bronnenlijst
+https://openai.com/index/new-agents-sdk-observability/
+https://platform.openai.com/docs/guides/agents
+https://huggingface.co/blog/inference-endpoints-cold-starts
+https://techcrunch.com/2026/04/24/hugging-face-inference-endpoints-update/
+https://elevenlabs.io/blog/live-voice-editing
+https://www.theverge.com/2026/04/24/ai/elevenlabs-live-voice-editing
+https://openai.com/index/new-agents-sdk-observability/
