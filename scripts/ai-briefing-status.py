@@ -1126,6 +1126,12 @@ def normalize_url_path_dot_segments(path):
     return normalized
 
 
+def strip_known_session_path_params(path):
+    if not isinstance(path, str) or ';' not in path:
+        return path
+    return re.sub(r';(?:jsessionid|phpsessid|sessionid)=[^/?#;]*', '', path, flags=re.IGNORECASE)
+
+
 def canonicalize_source_url(url):
     if not isinstance(url, str):
         return None
@@ -1169,6 +1175,7 @@ def canonicalize_source_url(url):
         normalized_netloc = f'{auth}{hostname}{port_suffix}'
     normalized_path = decode_unreserved_url_path(parts.path or '/')
     normalized_path = normalize_url_path_dot_segments(normalized_path)
+    normalized_path = strip_known_session_path_params(normalized_path)
     if normalized_path != '/':
         normalized_path = re.sub(
             r'/(?:(?:index|default)\.(?:html?|aspx?))$',

@@ -1,0 +1,35 @@
+Titel: OpenAI verdiept observability docs
+Bron: https://openai.com/index/new-agents-sdk-observability | https://platform.openai.com/docs/guides/agents
+Datum: 2026-04-24
+Wat is er nieuw: OpenAI scherpt documentatie en voorbeelden rond observability aan.
+Waarom is dit belangrijk: Dit bepaalt hoe robuust het bewijspad bronupdates kan volgen.
+Relevant voor Christian: Houdt regressiedekking strak op echte bronvarianten.
+
+Titel: Anthropic verfijnt prompt caching uitleg
+Bron: https://anthropic.com/news/prompt-caching | https://www.theinformation.com/2026/04/24/anthropic-prompt-caching
+Datum: 2026-04-24
+Wat is er nieuw: Anthropic licht prompt caching verder toe in recente uitleg.
+Waarom is dit belangrijk: Dit beïnvloedt latency- en kostengedrag in agentroutines.
+Relevant voor Christian: Nuttig voor het duiden van cachegedrag in dagelijkse briefings.
+
+Titel: GitHub werkt Copilot coding agent route bij
+Bron: https://github.blog/news-insights/product-news/github-copilot-coding-agent/ | https://www.theverge.com/2026/04/24/github-copilot-coding-agent-update
+Datum: 2026-04-24
+Wat is er nieuw: GitHub beschrijft een update voor de coding-agent route.
+Waarom is dit belangrijk: Dit raakt praktische agentworkflow-keuzes.
+Relevant voor Christian: Houdt de dagelijkse AI-briefing dicht op bruikbare toolvernieuwing.
+
+Wat moeten wij hiermee?
+Blijf de Bronnenlijst-audit harden op afsluitende default-bestandsvarianten, ook wanneer alleen de punt in de bestandsnaam percent-encoded is.
+
+Wat ik vandaag het belangrijkst vind
+Een afsluitende default%2Easpx-variant mag niet stil als unieke bron tellen.
+
+Bronnenlijst
+https://openai.com/index/new-agents-sdk-observability
+https://openai.com/index/new-agents-sdk-observability/default%2Easpx
+https://platform.openai.com/docs/guides/agents
+https://anthropic.com/news/prompt-caching
+https://www.theinformation.com/2026/04/24/anthropic-prompt-caching
+https://github.blog/news-insights/product-news/github-copilot-coding-agent/
+https://www.theverge.com/2026/04/24/github-copilot-coding-agent-update
