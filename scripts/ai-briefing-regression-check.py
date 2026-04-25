@@ -10362,6 +10362,100 @@ def evaluate_watchdog_consumer_format_passthrough_case():
             except json.JSONDecodeError as exc:
                 failures.append(f'json-artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
 
+        jsonl_artifact = Path(temp_dir) / 'watchdog-jsonl.jsonl'
+        text_stdout_jsonl_proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_SCRIPT),
+                '--require-qualified-runs', '3',
+                '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                '--consumer-out', str(jsonl_artifact),
+                '--consumer-format', 'jsonl',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if text_stdout_jsonl_proc.returncode != 2:
+            failures.append(
+                f'text-stdout watchdog met jsonl-artifact exitcode verwacht 2, kreeg {text_stdout_jsonl_proc.returncode}'
+            )
+
+        plain_stdout_jsonl = text_stdout_jsonl_proc.stdout.strip() or text_stdout_jsonl_proc.stderr.strip()
+        if not plain_stdout_jsonl:
+            failures.append('text-stdout watchdog met jsonl-artifact gaf geen output')
+        else:
+            audit_bits.append(plain_stdout_jsonl)
+            if not plain_stdout_jsonl.startswith('ai briefing watchdog: attention - '):
+                failures.append('stdout hoort plain-text te blijven wanneer alleen --consumer-format jsonl is gebruikt')
+            try:
+                json.loads(plain_stdout_jsonl)
+                failures.append('stdout hoort geen JSON te worden wanneer alleen --consumer-format jsonl is gebruikt')
+            except json.JSONDecodeError:
+                pass
+            assert_compact_recheck_line_present_once(
+                'stdout bij jsonl-artifact',
+                plain_stdout_jsonl,
+                json_payload.get('proof_recheck_after_text_compact'),
+            )
+
+        if not jsonl_artifact.exists():
+            failures.append(f'jsonl-artifact ontbreekt: {jsonl_artifact}')
+        else:
+            jsonl_lines = [line for line in jsonl_artifact.read_text(encoding='utf-8').splitlines() if line.strip()]
+            if not jsonl_lines:
+                failures.append(f'jsonl-artifact is leeg: {jsonl_artifact}')
+            else:
+                try:
+                    artifact_payload = json.loads(jsonl_lines[-1])
+                    audit_bits.append(json.dumps(artifact_payload, ensure_ascii=False))
+                    if (artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format') != 'jsonl':
+                        failures.append(
+                            'jsonl-artifact consumer_requested_outputs[0].format verwacht jsonl, kreeg '
+                            f"{(artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
+                        )
+                    if artifact_payload.get('proof_waiting_for_next_scheduled_run') is not True:
+                        failures.append(
+                            'jsonl-artifact verwacht proof_waiting_for_next_scheduled_run=True voor deze wachtfase'
+                        )
+                    if artifact_payload.get('proof_recheck_schedule_kind') != 'ok':
+                        failures.append(
+                            'jsonl-artifact proof_recheck_schedule_kind verwacht ok, kreeg '
+                            f"{artifact_payload.get('proof_recheck_schedule_kind')}"
+                        )
+                    for field_name in [
+                        'proof_wait_until_text',
+                        'proof_wait_until_reason_text',
+                        'proof_recheck_after_text_compact',
+                        'proof_blocker_text',
+                        'proof_next_action_window_text',
+                        'proof_recheck_window_text',
+                        'proof_recheck_schedule_kind_text',
+                        'proof_recheck_schedule_text',
+                        'proof_countdown_text',
+                    ]:
+                        if artifact_payload.get(field_name) != json_payload.get(field_name):
+                            failures.append(
+                                f'jsonl-artifact {field_name} verwacht {json_payload.get(field_name)}, kreeg {artifact_payload.get(field_name)}'
+                            )
+                    for field_name in [
+                        'proof_wait_until_text',
+                        'proof_wait_until_reason_text',
+                        'proof_recheck_after_text_compact',
+                        'proof_blocker_text',
+                        'proof_next_action_window_text',
+                        'proof_recheck_schedule_kind_text',
+                        'proof_recheck_schedule_text',
+                        'proof_countdown_text',
+                    ]:
+                        field_value = artifact_payload.get(field_name)
+                        if field_value and field_value not in plain_stdout_jsonl:
+                            failures.append(
+                                f'stdout bij jsonl-artifact mist {field_name} uit jsonl-artifact: {field_value}'
+                            )
+                except json.JSONDecodeError as exc:
+                    failures.append(f'jsonl-artifact hoort parsebare JSONL te zijn, kreeg parsefout: {exc}')
+
     return {
         'name': 'watchdog-consumer-format-keeps-stdout-format',
         'path': str(WATCHDOG_SCRIPT),
@@ -10492,6 +10586,64 @@ def evaluate_watchdog_alert_consumer_format_passthrough_case():
                     )
             except json.JSONDecodeError as exc:
                 failures.append(f'json-artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
+
+        jsonl_artifact = Path(temp_dir) / 'watchdog-alert-jsonl.jsonl'
+        text_stdout_jsonl_proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_ALERT_SCRIPT), '--mode', 'proof-target-check',
+                '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                '--consumer-out', str(jsonl_artifact),
+                '--consumer-format', 'jsonl',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if text_stdout_jsonl_proc.returncode != 0:
+            failures.append(
+                f'text-stdout watchdog-alert met jsonl-artifact exitcode verwacht 0, kreeg {text_stdout_jsonl_proc.returncode}'
+            )
+
+        plain_stdout_jsonl = text_stdout_jsonl_proc.stdout.strip() or text_stdout_jsonl_proc.stderr.strip()
+        if not plain_stdout_jsonl:
+            failures.append('text-stdout watchdog-alert met jsonl-artifact gaf geen output')
+        else:
+            audit_bits.append(plain_stdout_jsonl)
+            if plain_stdout_jsonl != 'NO_REPLY':
+                failures.append(f'stdout bij jsonl-artifact verwacht NO_REPLY, kreeg {plain_stdout_jsonl}')
+            try:
+                json.loads(plain_stdout_jsonl)
+                failures.append('stdout hoort geen JSON te worden wanneer alleen --consumer-format jsonl is gebruikt')
+            except json.JSONDecodeError:
+                pass
+
+        if not jsonl_artifact.exists():
+            failures.append(f'jsonl-artifact ontbreekt: {jsonl_artifact}')
+        else:
+            jsonl_lines = [line for line in jsonl_artifact.read_text(encoding='utf-8').splitlines() if line.strip()]
+            if not jsonl_lines:
+                failures.append(f'jsonl-artifact is leeg: {jsonl_artifact}')
+            else:
+                try:
+                    artifact_payload = json.loads(jsonl_lines[-1])
+                    audit_bits.append(json.dumps(artifact_payload, ensure_ascii=False))
+                    if (artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format') != 'jsonl':
+                        failures.append(
+                            'jsonl-artifact consumer_requested_outputs[0].format verwacht jsonl, kreeg '
+                            f"{(artifact_payload.get('consumer_requested_outputs') or [{}])[0].get('format')}"
+                        )
+                    if artifact_payload.get('alert_text') != 'NO_REPLY':
+                        failures.append(
+                            'jsonl-artifact alert_text verwacht NO_REPLY, kreeg '
+                            f"{artifact_payload.get('alert_text')}"
+                        )
+                    if artifact_payload.get('no_reply') is not True:
+                        failures.append(
+                            f"jsonl-artifact no_reply verwacht True, kreeg {artifact_payload.get('no_reply')}"
+                        )
+                except json.JSONDecodeError as exc:
+                    failures.append(f'jsonl-artifact hoort parsebare JSONL te zijn, kreeg parsefout: {exc}')
 
     return {
         'name': 'watchdog-alert-consumer-format-keeps-stdout-format',
