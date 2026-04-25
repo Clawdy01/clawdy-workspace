@@ -2646,8 +2646,46 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-empty-value-duplicate-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-empty-value-duplicate-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 7,
+        'expect_bronnenlijst_unique_url_count': 6,
+        'expect_bronnenlijst_duplicate_urls': [
+            'https://anthropic.com/news/prompt-caching?lang=en',
+        ],
+        'expect_bronnenlijst_invalid_lines': [],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat dubbele URLs (1): https://anthropic.com/news/prompt-caching?lang=en',
+        ],
+    },
+    {
         'name': 'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-duplicate-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-duplicate-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 7,
+        'expect_bronnenlijst_unique_url_count': 6,
+        'expect_bronnenlijst_duplicate_urls': [
+            'https://anthropic.com/news/prompt-caching?lang=en',
+        ],
+        'expect_bronnenlijst_invalid_lines': [],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat dubbele URLs (1): https://anthropic.com/news/prompt-caching?lang=en',
+        ],
+    },
+    {
+        'name': 'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-encoded-equals-duplicate-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-encoded-equals-duplicate-sample.txt',
         'expect_ok': False,
         'expect_item_count': 3,
         'expect_missing_markers': [],
@@ -2684,8 +2722,46 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-encoded-equals-fragment-duplicate-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-encoded-equals-fragment-duplicate-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 7,
+        'expect_bronnenlijst_unique_url_count': 6,
+        'expect_bronnenlijst_duplicate_urls': [
+            'https://anthropic.com/news/prompt-caching?lang=en',
+        ],
+        'expect_bronnenlijst_invalid_lines': [],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat dubbele URLs (1): https://anthropic.com/news/prompt-caching?lang=en',
+        ],
+    },
+    {
         'name': 'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-empty-value-fragment-duplicate-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-empty-value-fragment-duplicate-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_missing_markers': [],
+        'expect_missing_nonredundant_alternative_groups': [],
+        'expect_bronnenlijst_url_count': 7,
+        'expect_bronnenlijst_unique_url_count': 6,
+        'expect_bronnenlijst_duplicate_urls': [
+            'https://anthropic.com/news/prompt-caching?lang=en',
+        ],
+        'expect_bronnenlijst_invalid_lines': [],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat dubbele URLs (1): https://anthropic.com/news/prompt-caching?lang=en',
+        ],
+    },
+    {
+        'name': 'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-empty-value-fragment-duplicate-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-empty-value-fragment-duplicate-sample.txt',
         'expect_ok': False,
         'expect_item_count': 3,
         'expect_missing_markers': [],
@@ -3812,16 +3888,32 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-empty-value-duplicate-sample.txt',
     },
     {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-empty-value-duplicate-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-empty-value-duplicate-sample.txt',
+    },
+    {
         'name': 'status-summary-audit-cli-keeps-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-duplicate-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-duplicate-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-encoded-equals-duplicate-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-encoded-equals-duplicate-sample.txt',
     },
     {
         'name': 'status-summary-audit-cli-keeps-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-fragment-duplicate-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-fragment-duplicate-sample.txt',
     },
     {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-encoded-equals-fragment-duplicate-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-encoded-equals-fragment-duplicate-sample.txt',
+    },
+    {
         'name': 'status-summary-audit-cli-keeps-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-empty-value-fragment-duplicate-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-empty-value-fragment-duplicate-sample.txt',
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-empty-value-fragment-duplicate-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-empty-value-fragment-duplicate-sample.txt',
     },
     {
         'name': 'status-summary-audit-cli-keeps-bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-underscore-upper-equals-fragment-duplicate-audit',
