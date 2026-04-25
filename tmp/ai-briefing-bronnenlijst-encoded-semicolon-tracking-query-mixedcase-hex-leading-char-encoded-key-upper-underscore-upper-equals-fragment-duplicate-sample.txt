@@ -1,0 +1,35 @@
+Titel: Anthropic verfijnt prompt caching rollout
+Bron: https://www.anthropic.com/news/prompt-caching?lang=en | https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+Datum: 2026-04-25
+Wat is er nieuw: Anthropic licht prompt caching opnieuw toe en koppelt dat aan actuele productdocumentatie.
+Waarom is dit belangrijk: Dit houdt de audit scherp op query-normalisatie in afsluitende bronlijsten.
+Relevant voor Christian: Dit voorkomt schijncorroboratie wanneer dezelfde URL alleen via een percent-encoded legacy tracking-separator met mixed-case hex escapes, deels encoded tracking-key, uppercase leading-char plus underscore, uppercase encoded equals en fragment terugkomt.
+
+Titel: OpenAI werkt Responses API gids bij
+Bron: https://openai.com/index/responses-api-update | https://platform.openai.com/docs/guides/responses-vs-chat-completions
+Datum: 2026-04-25
+Wat is er nieuw: OpenAI koppelt een productupdate aan actuele API-documentatie.
+Waarom is dit belangrijk: Dit levert een normaal multi-source item op dat als controlepad dient.
+Relevant voor Christian: Dit laat zien dat de audit echte corroboratie intact houdt terwijl alleen de mixed-case encoded separator-duplicate met uppercase leading-char, uppercase underscore, uppercase equals en fragment zwak blijft.
+
+Titel: Google deelt Gemini API changelog update
+Bron: https://developers.googleblog.com/en/gemini-api-update | https://ai.google.dev/gemini-api/docs/changelog
+Datum: 2026-04-25
+Wat is er nieuw: Google verwijst tegelijk naar blogcontext en docs-changelog.
+Waarom is dit belangrijk: Dit houdt het sample realistisch met nog een tweede geldig multi-domein item.
+Relevant voor Christian: Dit bevestigt dat alleen de mixed-case encoded semicolon-tracking-duplicate met uppercase leading-char, uppercase underscore, uppercase equals en fragment in de Bronnenlijst wordt afgekeurd.
+
+Wat moeten wij hiermee?
+Blijf de afsluitende Bronnenlijst auditen op canonieke unieke URLs inclusief mixed-case percent-encoded legacy tracking-separators, gemengd encoded tracking-keys, uppercase leading-char/underscore-escapes, uppercase encoded equals en fragmenten.
+
+Wat ik vandaag het belangrijkst vind
+Een query met `%3b%55tm%5Fsource%3Dnewsletter#overview` mag geen extra bron in de Bronnenlijst opleveren.
+
+Bronnenlijst
+https://www.anthropic.com/news/prompt-caching?lang=en
+https://www.anthropic.com/news/prompt-caching?lang=en%3b%55tm%5Fsource%3Dnewsletter#overview
+https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+https://openai.com/index/responses-api-update
+https://platform.openai.com/docs/guides/responses-vs-chat-completions
+https://developers.googleblog.com/en/gemini-api-update
+https://ai.google.dev/gemini-api/docs/changelog
