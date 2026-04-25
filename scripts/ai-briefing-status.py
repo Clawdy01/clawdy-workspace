@@ -1104,9 +1104,9 @@ TRACKING_QUERY_PARAMS = {
 UNRESERVED_URL_CHARACTERS = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~')
 
 
-def decode_unreserved_url_path(path):
-    if not isinstance(path, str) or '%' not in path:
-        return path
+def decode_unreserved_url_component(value):
+    if not isinstance(value, str) or '%' not in value:
+        return value
 
     def replace(match):
         decoded = unquote(match.group(0))
@@ -1114,7 +1114,11 @@ def decode_unreserved_url_path(path):
             return decoded
         return match.group(0).upper()
 
-    return re.sub(r'%[0-9A-Fa-f]{2}', replace, path)
+    return re.sub(r'%[0-9A-Fa-f]{2}', replace, value)
+
+
+def decode_unreserved_url_path(path):
+    return decode_unreserved_url_component(path)
 
 
 def normalize_url_path_dot_segments(path):
@@ -1150,10 +1154,11 @@ def parse_query_pairs_with_legacy_separators(query):
     if not isinstance(query, str) or not query:
         return []
     default_pairs = parse_qsl(query, keep_blank_values=True)
+    normalized_query = decode_unreserved_url_component(query)
     normalized_query = re.sub(
         r'(?i)%3b(?=(?:utm(?:_|%5f)|fbclid=|gclid=|jsessionid=|mc_cid=|mc_eid=|mkt_tok=|phpsessid=|ref_src=|s_cid=|sessionid=))',
         '&',
-        query,
+        normalized_query,
     )
     if ';' not in normalized_query and normalized_query == query:
         return default_pairs
