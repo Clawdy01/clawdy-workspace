@@ -587,9 +587,11 @@ def main() -> int:
         lines.append(f"proof recheck window: {result['proof_recheck_window_text']}")
     if result.get('proof_recheck_commands_text'):
         lines.append(f"proof recheck commands: {result['proof_recheck_commands_text']}")
-    if not result.get('proof_recheck_window_text'):
-        if result['proof_recheck_after_text_compact']:
-            lines.append(f"proof recheck: {result['proof_recheck_after_text_compact']}")
+    if (
+        result.get('proof_recheck_after_text_compact')
+        and result.get('proof_recheck_after_text_compact') not in lines
+    ):
+        lines.append(f"proof recheck: {result['proof_recheck_after_text_compact']}")
     if result['proof_today_block_text']:
         lines.append(f"proof today block: {result['proof_today_block_text']}")
     if result['proof_schedule_risk_text']:

@@ -10193,6 +10193,16 @@ def evaluate_watchdog_consumer_format_passthrough_case():
     failures = []
     audit_bits: list[str] = []
 
+    def assert_compact_recheck_line_present_once(container_name: str, text_output: str, compact_text: str | None) -> None:
+        if not compact_text:
+            return
+        expected_line = f'proof recheck: {compact_text}'
+        line_count = text_output.count(expected_line)
+        if line_count != 1:
+            failures.append(
+                f'{container_name} hoort exact één compacte proof recheck-regel te bevatten, kreeg {line_count}: {expected_line}'
+            )
+
     with tempfile.TemporaryDirectory(prefix='ai-briefing-watchdog-format-') as temp_dir:
         text_artifact = Path(temp_dir) / 'watchdog-text.txt'
         json_stdout_proc = subprocess.run(
@@ -10258,6 +10268,11 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                     failures.append(
                         f'tekstartifact mist {field_name} uit stdout-json: {field_value}'
                     )
+            assert_compact_recheck_line_present_once(
+                'tekstartifact',
+                artifact_text,
+                json_payload.get('proof_recheck_after_text_compact'),
+            )
 
         json_artifact = Path(temp_dir) / 'watchdog-json.json'
         text_stdout_proc = subprocess.run(
@@ -10288,6 +10303,11 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                 failures.append('stdout hoort geen JSON te worden wanneer alleen --consumer-format json is gebruikt')
             except json.JSONDecodeError:
                 pass
+            assert_compact_recheck_line_present_once(
+                'stdout',
+                plain_stdout,
+                json_payload.get('proof_recheck_after_text_compact'),
+            )
 
         if not json_artifact.exists():
             failures.append(f'json-artifact ontbreekt: {json_artifact}')
@@ -10500,6 +10520,91 @@ def evaluate_watchdog_alert_consumer_format_passthrough_case():
         'items_with_field_order_mismatch_count': None,
         'numbered_title_heading_count': None,
     }
+
+
+def build_registry_case_result(*, name: str, failures: list[str], audit_bits: list[str]) -> dict:
+    return {
+        'name': name,
+        'path': str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': ' || '.join(bit for bit in audit_bits if bit),
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+LOWERCASE_ENCODED_EQUALS_CLUSTER_BASES = [
+    'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-hex-lowercase-encoded-equals',
+    'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-lowercase-encoded-equals',
+    'bronnenlijst-encoded-semicolon-tracking-query-upper-separator-leading-char-encoded-key-upper-underscore-lowercase-encoded-equals',
+    'bronnenlijst-encoded-semicolon-tracking-query-upper-separator-leading-char-encoded-key-lowercase-encoded-equals',
+]
+LOWERCASE_ENCODED_EQUALS_CLUSTER_SAMPLE_SUFFIXES = [
+    'duplicate-sample',
+    'fragment-duplicate-sample',
+    'empty-value-duplicate-sample',
+    'empty-value-fragment-duplicate-sample',
+]
+LOWERCASE_ENCODED_EQUALS_CLUSTER_AUDIT_SUFFIXES = [
+    'duplicate-audit',
+    'fragment-duplicate-audit',
+    'empty-value-duplicate-audit',
+    'empty-value-fragment-duplicate-audit',
+]
+
+
+def evaluate_lowercase_encoded_equals_cluster_registry_case():
+    failures = []
+    audit_bits: list[str] = []
+    default_case_names = {case['name'] for case in DEFAULT_CASES}
+    summary_case_names = {case['name'] for case in STATUS_SUMMARY_AUDIT_CASES}
+
+    for base_name in LOWERCASE_ENCODED_EQUALS_CLUSTER_BASES:
+        sample_names = [f'{base_name}-{suffix}' for suffix in LOWERCASE_ENCODED_EQUALS_CLUSTER_SAMPLE_SUFFIXES]
+        summary_names = [
+            f'status-summary-audit-cli-keeps-{base_name}-{suffix}'
+            for suffix in LOWERCASE_ENCODED_EQUALS_CLUSTER_AUDIT_SUFFIXES
+        ]
+        missing_default = [name for name in sample_names if name not in default_case_names]
+        missing_summary = [name for name in summary_names if name not in summary_case_names]
+        present_default = [name for name in sample_names if name in default_case_names]
+        present_summary = [name for name in summary_names if name in summary_case_names]
+        audit_bits.append(
+            f'{base_name}: samples {len(present_default)}/{len(sample_names)}, summary {len(present_summary)}/{len(summary_names)}'
+        )
+        if missing_default:
+            failures.append(
+                f'lowercase-encoded-equals-cluster mist samplecases voor {base_name}: ' + ', '.join(missing_default)
+            )
+        if missing_summary:
+            failures.append(
+                f'lowercase-encoded-equals-cluster mist summary-audit-cases voor {base_name}: ' + ', '.join(missing_summary)
+            )
+
+    return build_registry_case_result(
+        name='registry-keeps-lowercase-encoded-equals-cluster-complete',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
 
 
 def evaluate_list_cases_output_case():
@@ -11189,33 +11294,11 @@ def evaluate_list_cases_output_case():
                     'json onbekende typofout-case hoort de dichtstbijzijnde casenaam voor te stellen'
                 )
 
-    return {
-        'name': 'regression-check-list-cases-output',
-        'path': str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
-        'ok': not failures,
-        'failures': failures,
-        'audit_ok': not failures,
-        'audit_text': ' || '.join(bit for bit in audit_bits if bit),
-        'item_count': None,
-        'items_with_source_count': None,
-        'items_with_valid_source_line_count': None,
-        'items_with_invalid_source_line_count': None,
-        'first3_items_with_source_count': None,
-        'first3_items_with_valid_source_line_count': None,
-        'first3_items_with_multiple_sources_count': None,
-        'first3_items_with_primary_source_count': None,
-        'first3_primary_source_family_count': None,
-        'first3_primary_fresh_item_count': None,
-        'explicit_dated_item_count': None,
-        'explicit_recent_dated_first3_count': None,
-        'explicit_fresh_dated_first3_count': None,
-        'future_dated_item_count': None,
-        'invalid_source_line_issue_counts': None,
-        'exact_field_line_counts': None,
-        'items_with_exact_field_order_count': None,
-        'items_with_field_order_mismatch_count': None,
-        'numbered_title_heading_count': None,
-    }
+    return build_registry_case_result(
+        name='regression-check-list-cases-output',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
 
 
 def build_named_case_runners(module, producer_module):
@@ -11234,6 +11317,9 @@ def build_named_case_runners(module, producer_module):
         lambda: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)
     )
     named_cases['regression-check-list-cases-output'] = evaluate_list_cases_output_case
+    named_cases['registry-keeps-lowercase-encoded-equals-cluster-complete'] = (
+        evaluate_lowercase_encoded_equals_cluster_registry_case
+    )
     named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
     named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
     named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case
