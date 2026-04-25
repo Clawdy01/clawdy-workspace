@@ -10456,6 +10456,29 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                 except json.JSONDecodeError as exc:
                     failures.append(f'jsonl-artifact hoort parsebare JSONL te zijn, kreeg parsefout: {exc}')
 
+                append_stdout_proc = subprocess.run(
+                    [
+                        'python3', str(WATCHDOG_SCRIPT),
+                        '--require-qualified-runs', '3',
+                        '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                        '--consumer-out', str(jsonl_artifact),
+                        '--consumer-format', 'jsonl',
+                    ],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if append_stdout_proc.returncode != 2:
+                    failures.append(
+                        f'tweede watchdog jsonl-artifact run exitcode verwacht 2, kreeg {append_stdout_proc.returncode}'
+                    )
+                appended_jsonl_lines = [line for line in jsonl_artifact.read_text(encoding='utf-8').splitlines() if line.strip()]
+                if len(appended_jsonl_lines) != len(jsonl_lines) + 1:
+                    failures.append(
+                        'jsonl-artifact hoort bij directe --consumer-format jsonl-runs exact één regel per run te appenden'
+                    )
+
     return {
         'name': 'watchdog-consumer-format-keeps-stdout-format',
         'path': str(WATCHDOG_SCRIPT),
@@ -10645,6 +10668,28 @@ def evaluate_watchdog_alert_consumer_format_passthrough_case():
                 except json.JSONDecodeError as exc:
                     failures.append(f'jsonl-artifact hoort parsebare JSONL te zijn, kreeg parsefout: {exc}')
 
+                append_stdout_proc = subprocess.run(
+                    [
+                        'python3', str(WATCHDOG_ALERT_SCRIPT), '--mode', 'proof-target-check',
+                        '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                        '--consumer-out', str(jsonl_artifact),
+                        '--consumer-format', 'jsonl',
+                    ],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if append_stdout_proc.returncode != 0:
+                    failures.append(
+                        f'tweede watchdog-alert jsonl-artifact run exitcode verwacht 0, kreeg {append_stdout_proc.returncode}'
+                    )
+                appended_jsonl_lines = [line for line in jsonl_artifact.read_text(encoding='utf-8').splitlines() if line.strip()]
+                if len(appended_jsonl_lines) != len(jsonl_lines) + 1:
+                    failures.append(
+                        'watchdog-alert jsonl-artifact hoort bij directe --consumer-format jsonl-runs exact één regel per run te appenden'
+                    )
+
     return {
         'name': 'watchdog-alert-consumer-format-keeps-stdout-format',
         'path': str(WATCHDOG_ALERT_SCRIPT),
@@ -10672,6 +10717,98 @@ def evaluate_watchdog_alert_consumer_format_passthrough_case():
         'items_with_field_order_mismatch_count': None,
         'numbered_title_heading_count': None,
     }
+
+
+def evaluate_watchdog_alert_eventlog_preset_append_case():
+    failures = []
+    audit_bits: list[str] = []
+
+    with tempfile.TemporaryDirectory(prefix='ai-briefing-watchdog-alert-preset-') as temp_dir:
+        consumer_root = Path(temp_dir)
+        eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
+        stdout_values: list[str] = []
+
+        for run_index in range(2):
+            proc = subprocess.run(
+                [
+                    'python3', str(WATCHDOG_ALERT_SCRIPT), '--mode', 'proof-target-check',
+                    '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                    '--consumer-root', str(consumer_root),
+                    '--consumer-preset', 'eventlog-jsonl',
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if proc.returncode != 0:
+                failures.append(
+                    f'watchdog-alert eventlog-jsonl preset run {run_index + 1} exitcode verwacht 0, kreeg {proc.returncode}'
+                )
+            stdout_text = (proc.stdout.strip() or proc.stderr.strip())
+            stdout_values.append(stdout_text)
+            audit_bits.append(stdout_text)
+            if stdout_text != 'NO_REPLY':
+                failures.append(
+                    f'watchdog-alert eventlog-jsonl preset stdout run {run_index + 1} verwacht NO_REPLY, kreeg {stdout_text}'
+                )
+
+        if not eventlog_path.exists():
+            failures.append(f'watchdog-alert eventlog-jsonl preset artifact ontbreekt: {eventlog_path}')
+        else:
+            jsonl_lines = [line for line in eventlog_path.read_text(encoding='utf-8').splitlines() if line.strip()]
+            if len(jsonl_lines) != 2:
+                failures.append(
+                    'watchdog-alert eventlog-jsonl preset hoort exact één regel per run te appenden'
+                )
+            parsed_payloads = []
+            for index, line in enumerate(jsonl_lines, start=1):
+                try:
+                    payload = json.loads(line)
+                    parsed_payloads.append(payload)
+                    audit_bits.append(json.dumps(payload, ensure_ascii=False))
+                except json.JSONDecodeError as exc:
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset regel {index} hoort parsebare JSONL te zijn, kreeg parsefout: {exc}'
+                    )
+            for index, payload in enumerate(parsed_payloads, start=1):
+                if payload.get('alert_text') != 'NO_REPLY':
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset alert_text run {index} verwacht NO_REPLY, kreeg {payload.get("alert_text")}'
+                    )
+                if payload.get('no_reply') is not True:
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset no_reply run {index} verwacht True, kreeg {payload.get("no_reply")}'
+                    )
+                requested_outputs = payload.get('consumer_requested_outputs') or []
+                if len(requested_outputs) != 1:
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset consumer_requested_outputs run {index} verwacht 1 item, kreeg {len(requested_outputs)}'
+                    )
+                    continue
+                requested_output = requested_outputs[0]
+                if requested_output.get('channel') != 'consumer-out':
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset channel run {index} verwacht consumer-out, kreeg {requested_output.get("channel")}'
+                    )
+                if requested_output.get('format') != 'jsonl':
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset format run {index} verwacht jsonl, kreeg {requested_output.get("format")}'
+                    )
+                if requested_output.get('append') is not True:
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset append run {index} verwacht True, kreeg {requested_output.get("append")}'
+                    )
+                if requested_output.get('path') != str(eventlog_path):
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset path run {index} verwacht {eventlog_path}, kreeg {requested_output.get("path")}'
+                    )
+
+    return build_registry_case_result(
+        name='watchdog-alert-eventlog-preset-appends',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
 
 
 def build_registry_case_result(*, name: str, failures: list[str], audit_bits: list[str]) -> dict:
@@ -11475,6 +11612,7 @@ def build_named_case_runners(module, producer_module):
     named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
     named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
     named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case
+    named_cases['watchdog-alert-eventlog-preset-append'] = evaluate_watchdog_alert_eventlog_preset_append_case
     return named_cases
 
 

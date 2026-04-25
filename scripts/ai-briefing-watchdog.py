@@ -137,6 +137,9 @@ def resolve_consumer_settings(args, *, default_format: str):
         output_format = args.consumer_format or preset['format']
         append = args.consumer_append or preset['append']
 
+    if output_path and output_format == 'jsonl':
+        append = True
+
     return output_path, output_format, append
 
 
