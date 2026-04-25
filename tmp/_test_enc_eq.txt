@@ -1,0 +1,35 @@
+Titel: Anthropic verfijnt prompt caching rollout
+Bron: https://www.anthropic.com/news/prompt-caching?lang=en | https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+Datum: 2026-04-25
+Wat is er nieuw: Anthropic licht prompt caching opnieuw toe en koppelt dat aan actuele productdocumentatie.
+Waarom is dit belangrijk: Dit houdt de audit scherp op query-normalisatie in afsluitende bronlijsten.
+Relevant voor Christian: Dit voorkomt schijncorroboratie wanneer dezelfde URL alleen via een percent-encoded legacy tracking-separator met uppercase separator-hex, uppercase encoded leading-char en uppercase encoded underscore terugkomt.
+
+Titel: OpenAI werkt Responses API gids bij
+Bron: https://openai.com/index/responses-api-update | https://platform.openai.com/docs/guides/responses-vs-chat-completions
+Datum: 2026-04-25
+Wat is er nieuw: OpenAI koppelt een productupdate aan actuele API-documentatie.
+Waarom is dit belangrijk: Dit levert een normaal multi-source item op dat als controlepad dient.
+Relevant voor Christian: Dit laat zien dat de audit echte corroboratie intact houdt terwijl alleen de uppercase-separator-duplicate met uppercase leading-char en uppercase underscore zwak blijft.
+
+Titel: Google deelt Gemini API changelog update
+Bron: https://developers.googleblog.com/en/gemini-api-update | https://ai.google.dev/gemini-api/docs/changelog
+Datum: 2026-04-25
+Wat is er nieuw: Google verwijst tegelijk naar blogcontext en docs-changelog.
+Waarom is dit belangrijk: Dit houdt het sample realistisch met nog een tweede geldig multi-domein item.
+Relevant voor Christian: Dit bevestigt dat alleen de encoded semicolon-tracking-duplicate met uppercase separator-hex, uppercase leading-char en uppercase underscore in de Bronnenlijst wordt afgekeurd.
+
+Wat moeten wij hiermee?
+Blijf de afsluitende Bronnenlijst auditen op canonieke unieke URLs inclusief uppercase separator-hex en deels encoded tracking-keys met uppercase underscore-escapes.
+
+Wat ik vandaag het belangrijkst vind
+Een query met `%3B%55tm%5Fsource%3Dnewsletter` mag geen extra bron in de Bronnenlijst opleveren.
+
+Bronnenlijst
+https://www.anthropic.com/news/prompt-caching?lang=en
+https://www.anthropic.com/news/prompt-caching?lang=en%3B%55tm%5Fsource%3Dnewsletter
+https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+https://openai.com/index/responses-api-update
+https://platform.openai.com/docs/guides/responses-vs-chat-completions
+https://developers.googleblog.com/en/gemini-api-update
+https://ai.google.dev/gemini-api/docs/changelog
