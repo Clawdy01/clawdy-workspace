@@ -13,6 +13,27 @@ STATUS_SCRIPT = ROOT / 'scripts' / 'ai-briefing-status.py'
 DEFAULT_REPORT_DIR = ROOT / 'tmp' / 'ai-briefing' / 'reports'
 
 
+def build_consumer_presets(base_dir: Path | None = None) -> dict[str, dict]:
+    report_dir = base_dir or DEFAULT_REPORT_DIR
+    return {
+        'board-json': {
+            'path': report_dir / 'ai-briefing-watchdog.json',
+            'format': 'json',
+            'append': False,
+        },
+        'board-text': {
+            'path': report_dir / 'ai-briefing-watchdog.txt',
+            'format': 'text',
+            'append': False,
+        },
+        'eventlog-jsonl': {
+            'path': report_dir / 'ai-briefing-watchdog.jsonl',
+            'format': 'jsonl',
+            'append': True,
+        },
+    }
+
+
 def unique_reasons(reasons: list[str]) -> list[str]:
     seen: set[str] = set()
     normalized_seen: set[str] = set()
@@ -64,23 +85,7 @@ def build_run_metadata(*, started_at: datetime, finished_at: datetime, duration_
     }
 
 
-CONSUMER_PRESETS = {
-    'board-json': {
-        'path': DEFAULT_REPORT_DIR / 'ai-briefing-watchdog.json',
-        'format': 'json',
-        'append': False,
-    },
-    'board-text': {
-        'path': DEFAULT_REPORT_DIR / 'ai-briefing-watchdog.txt',
-        'format': 'text',
-        'append': False,
-    },
-    'eventlog-jsonl': {
-        'path': DEFAULT_REPORT_DIR / 'ai-briefing-watchdog.jsonl',
-        'format': 'jsonl',
-        'append': True,
-    },
-}
+CONSUMER_PRESETS = build_consumer_presets()
 CONSUMER_BUNDLES = {
     'board-pair': ['board-json', 'board-text'],
     'board-suite': ['board-json', 'board-text', 'eventlog-jsonl'],
@@ -126,13 +131,13 @@ def load_status(timeout_seconds: int, reference_ms: int | None = None) -> dict:
     return extract_json_document(proc.stdout)
 
 
-def resolve_consumer_settings(args, *, default_format: str):
+def resolve_consumer_settings(args, *, default_format: str, consumer_presets: dict[str, dict]):
     output_path = args.consumer_out
     output_format = args.consumer_format or default_format
     append = args.consumer_append
 
     if args.consumer_preset:
-        preset = CONSUMER_PRESETS[args.consumer_preset]
+        preset = consumer_presets[args.consumer_preset]
         output_path = str(preset['path'])
         output_format = args.consumer_format or preset['format']
         append = args.consumer_append or preset['append']
@@ -149,6 +154,7 @@ def describe_requested_outputs(
     output_format: str | None,
     append: bool,
     consumer_bundle: str | None,
+    consumer_presets: dict[str, dict],
 ) -> list[dict]:
     outputs: list[dict] = []
     if output_path:
@@ -160,7 +166,7 @@ def describe_requested_outputs(
         })
     if consumer_bundle:
         for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
-            preset = CONSUMER_PRESETS[preset_name]
+            preset = consumer_presets[preset_name]
             outputs.append({
                 'channel': preset_name,
                 'path': str(preset['path']),
@@ -215,7 +221,7 @@ def emit_output(*, text: str, payload: dict, output_format: str, output_path: st
     sys.stdout.write(rendered)
 
 
-def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_output_format: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None) -> None:
+def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, stdout_output_path: str | None = None, stdout_output_format: str | None = None, stdout_append: bool = False, consumer_bundle: str | None = None, consumer_presets: dict[str, dict] | None = None) -> None:
     rendered_stdout = render_output(text=text, payload=payload, output_format=stdout_format)
     sys.stdout.write(rendered_stdout)
     if stdout_output_path:
@@ -227,8 +233,9 @@ def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, std
         write_output(rendered, output_path=stdout_output_path, append=stdout_append)
     if not consumer_bundle:
         return
+    active_consumer_presets = consumer_presets or CONSUMER_PRESETS
     for preset_name in CONSUMER_BUNDLES[consumer_bundle]:
-        preset = CONSUMER_PRESETS[preset_name]
+        preset = active_consumer_presets[preset_name]
         rendered = render_output(text=text, payload=payload, output_format=preset['format'])
         write_output(rendered, output_path=str(preset['path']), append=preset['append'])
 
@@ -401,9 +408,11 @@ def main() -> int:
     parser.add_argument('--consumer-out', help='Schrijf de watchdog-uitvoer ook naar een bestand voor cron/board-consumers')
     parser.add_argument('--consumer-preset', choices=sorted(CONSUMER_PRESETS), help='Gebruik een vaste consumer-outputroute')
     parser.add_argument('--consumer-bundle', choices=sorted(CONSUMER_BUNDLES), help='Schrijf dezelfde watchdog-status naar meerdere standaard consumerbestanden')
+    parser.add_argument('--consumer-root', help='Alternatieve basismap voor vaste consumer-presets/bundles (handig voor tests of gescheiden artifacts)')
     parser.add_argument('--consumer-format', choices=['text', 'json', 'jsonl'], help='Outputformaat voor --consumer-out; default volgt stdout-formaat')
     parser.add_argument('--consumer-append', action='store_true', help='Append naar bestaand consumer-bestand in plaats van overschrijven')
     args = parser.parse_args()
+    consumer_presets = build_consumer_presets(Path(args.consumer_root) if args.consumer_root else None)
 
     status = load_status(args.timeout, reference_ms=args.reference_ms)
     ok, reasons, summary = evaluate(status, require_qualified_runs=max(0, args.require_qualified_runs))
@@ -644,12 +653,14 @@ def main() -> int:
     consumer_output_path, consumer_output_format, consumer_append = resolve_consumer_settings(
         args,
         default_format=stdout_format,
+        consumer_presets=consumer_presets,
     )
     consumer_requested_outputs = describe_requested_outputs(
         output_path=consumer_output_path,
         output_format=consumer_output_format,
         append=consumer_append,
         consumer_bundle=args.consumer_bundle,
+        consumer_presets=consumer_presets,
     )
     requested_channels: list[str] = []
     for item in consumer_requested_outputs:
@@ -697,6 +708,7 @@ def main() -> int:
         stdout_output_format=consumer_output_format,
         stdout_append=consumer_append,
         consumer_bundle=args.consumer_bundle,
+        consumer_presets=consumer_presets,
     )
 
     return 0 if ok else 2
