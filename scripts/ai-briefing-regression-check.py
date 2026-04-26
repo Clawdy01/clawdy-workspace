@@ -13942,6 +13942,7 @@ def evaluate_list_cases_output_case():
     suggested_unknown_case_name = 'regression-check-list-case-output'
     expected_suggested_case_name = 'regression-check-list-cases-output'
     expected_mixed_valid_case_name = 'watchdog-all-routes-full-sweep'
+    expected_unknown_cases_message = 'onbekende regressiecase opgegeven'
     sorted_filtered_case_names = sorted(filtered_case_names)
 
     def assert_runtime_metadata(payload: dict, label: str) -> None:
@@ -14041,6 +14042,12 @@ def evaluate_list_cases_output_case():
             failures.append(f'{label} hoort geen cases-lijst mee te geven op een foutende discoverability-route')
         if 'case_count' in payload:
             failures.append(f'{label} hoort geen case_count mee te geven op een foutende discoverability-route')
+
+    def assert_unknown_cases_error_message(payload: dict, label: str) -> None:
+        if payload.get('message') != expected_unknown_cases_message:
+            failures.append(
+                f"{label} message verwacht {expected_unknown_cases_message!r}, kreeg {payload.get('message')!r}"
+            )
 
     plain_proc = subprocess.run(
         ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases'],
@@ -14502,6 +14509,7 @@ def evaluate_list_cases_output_case():
 
     if unknown_json_payload:
         assert_runtime_metadata(unknown_json_payload, 'json onbekende --case')
+        assert_unknown_cases_error_message(unknown_json_payload, 'json onbekende --case')
         if unknown_json_payload.get('ok') is not False:
             failures.append(f"json onbekende --case ok verwacht False, kreeg {unknown_json_payload.get('ok')}")
         if unknown_json_payload.get('error') != 'unknown-cases':
@@ -14603,6 +14611,7 @@ def evaluate_list_cases_output_case():
 
     if unknown_list_cases_payload:
         assert_runtime_metadata(unknown_list_cases_payload, 'json --list-cases met onbekende --case')
+        assert_unknown_cases_error_message(unknown_list_cases_payload, 'json --list-cases met onbekende --case')
         assert_list_cases_payload_stays_discoverable(unknown_list_cases_payload, 'json --list-cases met onbekende --case')
         assert_list_cases_error_payload_avoids_success_fields(
             unknown_list_cases_payload,
@@ -14708,6 +14717,7 @@ def evaluate_list_cases_output_case():
 
     if mixed_unknown_list_cases_payload:
         assert_runtime_metadata(mixed_unknown_list_cases_payload, 'json --list-cases met gemengde geldige/onbekende --case')
+        assert_unknown_cases_error_message(mixed_unknown_list_cases_payload, 'json --list-cases met gemengde geldige/onbekende --case')
         assert_list_cases_payload_stays_discoverable(mixed_unknown_list_cases_payload, 'json --list-cases met gemengde geldige/onbekende --case')
         assert_list_cases_error_payload_avoids_success_fields(
             mixed_unknown_list_cases_payload,
@@ -14820,6 +14830,10 @@ def evaluate_list_cases_output_case():
             duplicate_mixed_list_cases_payload,
             'json --list-cases met dubbele gemengde geldige/onbekende --case',
         )
+        assert_unknown_cases_error_message(
+            duplicate_mixed_list_cases_payload,
+            'json --list-cases met dubbele gemengde geldige/onbekende --case',
+        )
         assert_list_cases_payload_stays_discoverable(
             duplicate_mixed_list_cases_payload,
             'json --list-cases met dubbele gemengde geldige/onbekende --case',
@@ -14927,6 +14941,10 @@ def evaluate_list_cases_output_case():
             suggested_list_cases_json_payload,
             'json --list-cases met onbekende typofout-case',
         )
+        assert_unknown_cases_error_message(
+            suggested_list_cases_json_payload,
+            'json --list-cases met onbekende typofout-case',
+        )
         assert_list_cases_payload_stays_discoverable(
             suggested_list_cases_json_payload,
             'json --list-cases met onbekende typofout-case',
@@ -14998,6 +15016,7 @@ def evaluate_list_cases_output_case():
 
     if mixed_unknown_payload:
         assert_runtime_metadata(mixed_unknown_payload, 'json gemengde geldige/onbekende --case')
+        assert_unknown_cases_error_message(mixed_unknown_payload, 'json gemengde geldige/onbekende --case')
         if mixed_unknown_payload.get('ok') is not False:
             failures.append(
                 'json gemengde geldige/onbekende --case ok verwacht False bij onbekende subset'
@@ -15108,6 +15127,7 @@ def evaluate_list_cases_output_case():
 
     if duplicate_mixed_payload:
         assert_runtime_metadata(duplicate_mixed_payload, 'json dubbele gemengde geldige/onbekende --case')
+        assert_unknown_cases_error_message(duplicate_mixed_payload, 'json dubbele gemengde geldige/onbekende --case')
         if duplicate_mixed_payload.get('requested_case_names') != [expected_mixed_valid_case_name, unknown_case_name]:
             failures.append(
                 'json dubbele gemengde geldige/onbekende --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
@@ -15207,6 +15227,7 @@ def evaluate_list_cases_output_case():
 
     if suggested_json_payload:
         assert_runtime_metadata(suggested_json_payload, 'json onbekende typofout-case')
+        assert_unknown_cases_error_message(suggested_json_payload, 'json onbekende typofout-case')
         if suggested_json_payload.get('ok') is not False:
             failures.append('json onbekende typofout-case ok verwacht False bij onbekende invoer')
         if suggested_json_payload.get('error') != 'unknown-cases':
