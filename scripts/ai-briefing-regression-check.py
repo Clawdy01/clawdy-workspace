@@ -9076,6 +9076,17 @@ def evaluate_watchdog_alert_case(case):
         failures.append(
             f"proof_state verwacht {case['expect_proof_state']}, kreeg {payload.get('proof_state')}"
         )
+    if mode == 'proof-target-check':
+        expected_proof_target_check_gate = (
+            'suppressed-until-deadline'
+            if case.get('expect_suppressed_before_proof_deadline', False)
+            else 'deadline-reached'
+        )
+        if payload.get('proof_target_check_gate') != expected_proof_target_check_gate:
+            failures.append(
+                'proof_target_check_gate verwacht '
+                f"{expected_proof_target_check_gate}, kreeg {payload.get('proof_target_check_gate')}"
+            )
     if payload.get('proof_next_action_kind') != case['expect_proof_next_action_kind']:
         failures.append(
             'proof_next_action_kind verwacht '
@@ -11733,10 +11744,30 @@ def evaluate_watchdog_board_suite_bundle_append_case():
                         f'{expected_requested_outputs_text}, kreeg {board_payload.get("consumer_requested_outputs_text")}'
                     )
                 requested_outputs = board_payload.get('consumer_requested_outputs') or []
-                if len(requested_outputs) != 3:
+                expected_requested_outputs = [
+                    {
+                        'channel': 'board-json',
+                        'path': str(board_json_path),
+                        'format': 'json',
+                        'append': False,
+                    },
+                    {
+                        'channel': 'board-text',
+                        'path': str(board_text_path),
+                        'format': 'text',
+                        'append': False,
+                    },
+                    {
+                        'channel': 'eventlog-jsonl',
+                        'path': str(eventlog_path),
+                        'format': 'jsonl',
+                        'append': True,
+                    },
+                ]
+                if requested_outputs != expected_requested_outputs:
                     failures.append(
-                        'watchdog board-suite board-json consumer_requested_outputs verwacht 3 items, kreeg '
-                        f'{len(requested_outputs)}'
+                        'watchdog board-suite board-json consumer_requested_outputs verwacht exacte board-suite metadata, kreeg '
+                        f'{requested_outputs} versus {expected_requested_outputs}'
                     )
             except json.JSONDecodeError as exc:
                 failures.append(f'watchdog board-suite board-json hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
@@ -11917,10 +11948,24 @@ def evaluate_watchdog_board_pair_bundle_case():
                         f'{expected_requested_outputs_text}, kreeg {board_payload.get("consumer_requested_outputs_text")}'
                     )
                 requested_outputs = board_payload.get('consumer_requested_outputs') or []
-                if len(requested_outputs) != 2:
+                expected_requested_outputs = [
+                    {
+                        'channel': 'board-json',
+                        'path': str(board_json_path),
+                        'format': 'json',
+                        'append': False,
+                    },
+                    {
+                        'channel': 'board-text',
+                        'path': str(board_text_path),
+                        'format': 'text',
+                        'append': False,
+                    },
+                ]
+                if requested_outputs != expected_requested_outputs:
                     failures.append(
-                        'watchdog board-pair board-json consumer_requested_outputs verwacht 2 items, kreeg '
-                        f'{len(requested_outputs)}'
+                        'watchdog board-pair board-json consumer_requested_outputs verwacht exacte board-pair metadata, kreeg '
+                        f'{requested_outputs} versus {expected_requested_outputs}'
                     )
             except json.JSONDecodeError as exc:
                 failures.append(f'watchdog board-pair board-json hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
@@ -13061,6 +13106,21 @@ def evaluate_watchdog_alert_board_text_preset_case():
                     failures.append(
                         f'watchdog-alert board-text preset json no_reply verwacht True, kreeg {payload.get("no_reply")}'
                     )
+                if payload.get('suppressed_before_proof_deadline') is not True:
+                    failures.append(
+                        'watchdog-alert board-text preset json suppressed_before_proof_deadline verwacht True, kreeg '
+                        f"{payload.get('suppressed_before_proof_deadline')}"
+                    )
+                if payload.get('proof_target_check_gate') != 'suppressed-until-deadline':
+                    failures.append(
+                        'watchdog-alert board-text preset json proof_target_check_gate verwacht suppressed-until-deadline, kreeg '
+                        f"{payload.get('proof_target_check_gate')}"
+                    )
+                if payload.get('proof_state') != 'waiting-next-scheduled-run-tomorrow':
+                    failures.append(
+                        'watchdog-alert board-text preset json proof_state verwacht waiting-next-scheduled-run-tomorrow, kreeg '
+                        f"{payload.get('proof_state')}"
+                    )
                 if payload.get('consumer_requested_outputs') != expected_requested_outputs:
                     failures.append(
                         'watchdog-alert board-text preset json consumer_requested_outputs verwacht exacte board-text metadata, kreeg '
@@ -13075,6 +13135,16 @@ def evaluate_watchdog_alert_board_text_preset_case():
                     failures.append(
                         'watchdog-alert board-text preset json consumer_requested_output_channel_count verwacht 1, kreeg '
                         f"{payload.get('consumer_requested_output_channel_count')}"
+                    )
+                if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+                    failures.append(
+                        'watchdog-alert board-text preset json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg '
+                        f"{payload.get('consumer_requested_output_count_text')}"
+                    )
+                if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+                    failures.append(
+                        'watchdog-alert board-text preset json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg '
+                        f"{payload.get('consumer_requested_output_channel_count_text')}"
                     )
                 if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
                     failures.append(
@@ -13204,6 +13274,21 @@ def evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_case()
                     failures.append(
                         f'watchdog-alert board-text preset na deadline json no_reply verwacht False, kreeg {payload.get("no_reply")}'
                     )
+                if payload.get('suppressed_before_proof_deadline') is not False:
+                    failures.append(
+                        'watchdog-alert board-text preset na deadline json suppressed_before_proof_deadline verwacht False, kreeg '
+                        f"{payload.get('suppressed_before_proof_deadline')}"
+                    )
+                if payload.get('proof_target_check_gate') != 'deadline-reached':
+                    failures.append(
+                        'watchdog-alert board-text preset na deadline json proof_target_check_gate verwacht deadline-reached, kreeg '
+                        f"{payload.get('proof_target_check_gate')}"
+                    )
+                if payload.get('proof_state') != 'recheck-window-open':
+                    failures.append(
+                        'watchdog-alert board-text preset na deadline json proof_state verwacht recheck-window-open, kreeg '
+                        f"{payload.get('proof_state')}"
+                    )
                 if payload.get('consumer_requested_outputs') != expected_requested_outputs:
                     failures.append(
                         'watchdog-alert board-text preset na deadline json consumer_requested_outputs verwacht exacte board-text metadata, kreeg '
@@ -13218,6 +13303,16 @@ def evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_case()
                     failures.append(
                         'watchdog-alert board-text preset na deadline json consumer_requested_output_channel_count verwacht 1, kreeg '
                         f"{payload.get('consumer_requested_output_channel_count')}"
+                    )
+                if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+                    failures.append(
+                        'watchdog-alert board-text preset na deadline json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg '
+                        f"{payload.get('consumer_requested_output_count_text')}"
+                    )
+                if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+                    failures.append(
+                        'watchdog-alert board-text preset na deadline json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg '
+                        f"{payload.get('consumer_requested_output_channel_count_text')}"
                     )
                 if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
                     failures.append(
