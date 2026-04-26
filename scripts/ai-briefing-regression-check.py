@@ -5369,6 +5369,42 @@ WATCHDOG_ALERT_CASES = [
         'consumer_bundle': 'board-suite',
     },
     {
+        'name': 'watchdog-alert-proof-target-check-board-pair-keeps-no-reply-before-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': True,
+        'expect_suppressed_before_proof_deadline': True,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_output': 'NO_REPLY',
+        'consumer_bundle': 'board-pair',
+    },
+    {
+        'name': 'watchdog-alert-proof-target-check-board-json-keeps-no-reply-before-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': True,
+        'expect_suppressed_before_proof_deadline': True,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_output': 'NO_REPLY',
+        'consumer_preset': 'board-json',
+    },
+    {
+        'name': 'watchdog-alert-proof-target-check-board-text-keeps-no-reply-before-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': True,
+        'expect_suppressed_before_proof_deadline': True,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_text_output': 'NO_REPLY',
+        'consumer_preset': 'board-text',
+    },
+    {
         'name': 'watchdog-alert-proof-target-check-unsuppresses-after-deadline',
         'mode': 'proof-target-check',
         'reference_ms': REFERENCE_MS_AFTER_PROOF_DEADLINE,
@@ -8874,10 +8910,15 @@ def evaluate_watchdog_alert_case(case):
         str(case['reference_ms']),
     ]
     consumer_bundle = case.get('consumer_bundle')
+    consumer_preset = case.get('consumer_preset')
     consumer_root = None
-    if consumer_bundle:
+    if consumer_bundle or consumer_preset:
         consumer_root = Path(tempfile.mkdtemp(prefix='watchdog-alert-consumer-', dir=str(ROOT / 'tmp')))
-        text_cmd.extend(['--consumer-root', str(consumer_root), '--consumer-bundle', consumer_bundle])
+        text_cmd.extend(['--consumer-root', str(consumer_root)])
+        if consumer_bundle:
+            text_cmd.extend(['--consumer-bundle', consumer_bundle])
+        if consumer_preset:
+            text_cmd.extend(['--consumer-preset', consumer_preset])
 
     json_proc = subprocess.run(
         json_cmd,
@@ -9200,7 +9241,116 @@ def evaluate_watchdog_alert_case(case):
                     f"{payload.get('proof_recheck_schedule_text')}"
                 )
 
-    if consumer_bundle and consumer_root is not None:
+    if consumer_bundle == 'board-pair' and consumer_root is not None:
+        board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
+        board_text_path = consumer_root / 'ai-briefing-watchdog-alert.txt'
+        eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
+        expected_requested_outputs = [
+            {
+                'channel': 'board-json',
+                'path': str(board_json_path),
+                'format': 'json',
+                'append': False,
+            },
+            {
+                'channel': 'board-text',
+                'path': str(board_text_path),
+                'format': 'text',
+                'append': False,
+            },
+        ]
+        if not board_json_path.exists():
+            failures.append(f'consumer board-json ontbreekt: {board_json_path}')
+        else:
+            try:
+                board_payload = json.loads(board_json_path.read_text(encoding='utf-8'))
+            except json.JSONDecodeError as exc:
+                failures.append(f'consumer board-json is geen geldige JSON: {exc}')
+                board_payload = {}
+            assert_runtime_metadata(board_payload, 'watchdog-alert consumer board-json', failures)
+            if board_payload.get('no_reply') is not case.get('expect_no_reply', False):
+                failures.append(
+                    'consumer board-json no_reply verwacht '
+                    f"{case.get('expect_no_reply', False)}, kreeg {board_payload.get('no_reply')}"
+                )
+            if board_payload.get('suppressed_before_proof_deadline') is not case.get('expect_suppressed_before_proof_deadline', False):
+                failures.append(
+                    'consumer board-json suppressed_before_proof_deadline verwacht '
+                    f"{case.get('expect_suppressed_before_proof_deadline', False)}, kreeg {board_payload.get('suppressed_before_proof_deadline')}"
+                )
+            if board_payload.get('alert_text') != payload.get('alert_text'):
+                failures.append(
+                    'consumer board-json alert_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('alert_text')} versus {payload.get('alert_text')}"
+                )
+            if (board_payload.get('consumer_requested_outputs') or []) != expected_requested_outputs:
+                failures.append(
+                    'consumer board-json consumer_requested_outputs verwacht exacte board-pair metadata, kreeg '
+                    f"{board_payload.get('consumer_requested_outputs')} versus {expected_requested_outputs}"
+                )
+        if not board_text_path.exists():
+            failures.append(f'consumer board-text ontbreekt: {board_text_path}')
+        else:
+            board_text_output = board_text_path.read_text(encoding='utf-8').strip()
+            if board_text_output != text_output:
+                failures.append(
+                    f'consumer board-text verwacht {text_output}, kreeg {board_text_output}'
+                )
+        if eventlog_path.exists():
+            failures.append(f'consumer board-pair hoort geen eventlog-jsonl te maken, maar vond {eventlog_path}')
+
+    if consumer_preset == 'board-json' and consumer_root is not None:
+        board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
+        board_text_path = consumer_root / 'ai-briefing-watchdog-alert.txt'
+        eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
+        expected_requested_outputs = [{
+            'channel': 'consumer-out',
+            'path': str(board_json_path),
+            'format': 'json',
+            'append': False,
+        }]
+        if not board_json_path.exists():
+            failures.append(f'consumer board-json ontbreekt: {board_json_path}')
+        else:
+            try:
+                board_payload = json.loads(board_json_path.read_text(encoding='utf-8'))
+            except json.JSONDecodeError as exc:
+                failures.append(f'consumer board-json is geen geldige JSON: {exc}')
+                board_payload = {}
+            assert_runtime_metadata(board_payload, 'watchdog-alert consumer board-json', failures)
+            if board_payload.get('alert_text') != payload.get('alert_text'):
+                failures.append(
+                    'consumer board-json alert_text verwacht pariteit met stdout-json, kreeg '
+                    f"{board_payload.get('alert_text')} versus {payload.get('alert_text')}"
+                )
+            if (board_payload.get('consumer_requested_outputs') or []) != expected_requested_outputs:
+                failures.append(
+                    'consumer board-json consumer_requested_outputs verwacht exacte board-json metadata, kreeg '
+                    f"{board_payload.get('consumer_requested_outputs')} versus {expected_requested_outputs}"
+                )
+        if board_text_path.exists():
+            failures.append(f'consumer board-json hoort geen board-text te maken, maar vond {board_text_path}')
+        if eventlog_path.exists():
+            failures.append(f'consumer board-json hoort geen eventlog-jsonl te maken, maar vond {eventlog_path}')
+
+    if consumer_preset == 'board-text' and consumer_root is not None:
+        board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
+        board_text_path = consumer_root / 'ai-briefing-watchdog-alert.txt'
+        eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
+        if not board_text_path.exists():
+            failures.append(f'consumer board-text ontbreekt: {board_text_path}')
+        else:
+            board_text_output = board_text_path.read_text(encoding='utf-8').strip()
+            if board_text_output != text_output:
+                failures.append(
+                    f'consumer board-text verwacht {text_output}, kreeg {board_text_output}'
+                )
+        if board_json_path.exists():
+            failures.append(f'consumer board-text hoort geen board-json te maken, maar vond {board_json_path}')
+        if eventlog_path.exists():
+            failures.append(f'consumer board-text hoort geen eventlog-jsonl te maken, maar vond {eventlog_path}')
+
+    if consumer_bundle == 'board-suite' and consumer_root is not None:
         board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
         board_text_path = consumer_root / 'ai-briefing-watchdog-alert.txt'
         eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
@@ -11475,6 +11625,147 @@ def evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case()
     )
 
 
+def evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case():
+    failures = []
+    audit_bits: list[str] = []
+
+    with tempfile.TemporaryDirectory(prefix='ai-briefing-watchdog-alert-board-suite-after-deadline-') as temp_dir:
+        consumer_root = Path(temp_dir)
+        board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
+        board_text_path = consumer_root / 'ai-briefing-watchdog-alert.txt'
+        eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
+
+        proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_ALERT_SCRIPT), '--mode', 'proof-target-check',
+                '--reference-ms', str(REFERENCE_MS_AFTER_PROOF_DEADLINE),
+                '--consumer-root', str(consumer_root),
+                '--consumer-bundle', 'board-suite',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            failures.append(
+                f'watchdog-alert board-suite na deadline exitcode verwacht 0, kreeg {proc.returncode}'
+            )
+        stdout_text = proc.stdout.strip() or proc.stderr.strip()
+        audit_bits.append(stdout_text)
+        if not stdout_text:
+            failures.append('watchdog-alert board-suite na deadline gaf geen stdout')
+        elif stdout_text == 'NO_REPLY':
+            failures.append('watchdog-alert board-suite na deadline hoort NO_REPLY niet te onderdrukken')
+        else:
+            for substring in (
+                'AI-briefing proof-target-check:',
+                'proof-recheck-cronstatus: ok',
+                'kwalificatie-slots',
+                'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            ):
+                if substring not in stdout_text:
+                    failures.append(
+                        f'watchdog-alert board-suite na deadline stdout mist {substring!r}'
+                    )
+
+        if not board_json_path.exists():
+            failures.append(f'watchdog-alert board-suite na deadline board-json ontbreekt: {board_json_path}')
+        else:
+            try:
+                board_payload = json.loads(board_json_path.read_text(encoding='utf-8'))
+                audit_bits.append(json.dumps(board_payload, ensure_ascii=False))
+                if board_payload.get('alert_text') != stdout_text:
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json alert_text verwacht exacte stdout-spiegeling'
+                    )
+                if board_payload.get('no_reply') is not False:
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json no_reply verwacht False, kreeg '
+                        f'{board_payload.get("no_reply")}'
+                    )
+                if board_payload.get('suppressed_before_proof_deadline') is not False:
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json suppressed_before_proof_deadline verwacht False, kreeg '
+                        f'{board_payload.get("suppressed_before_proof_deadline")}'
+                    )
+                if board_payload.get('proof_target_check_gate') != 'deadline-reached':
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json proof_target_check_gate verwacht deadline-reached, kreeg '
+                        f'{board_payload.get("proof_target_check_gate")}'
+                    )
+                if board_payload.get('proof_state') != 'recheck-window-open':
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json proof_state verwacht recheck-window-open, kreeg '
+                        f'{board_payload.get("proof_state")}'
+                    )
+                requested_outputs = board_payload.get('consumer_requested_outputs') or []
+                if len(requested_outputs) != 3:
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json consumer_requested_outputs verwacht 3 items, kreeg '
+                        f'{len(requested_outputs)}'
+                    )
+            except json.JSONDecodeError as exc:
+                failures.append(
+                    f'watchdog-alert board-suite na deadline board-json hoort parsebare JSON te zijn, kreeg parsefout: {exc}'
+                )
+
+        if not board_text_path.exists():
+            failures.append(f'watchdog-alert board-suite na deadline board-text ontbreekt: {board_text_path}')
+        else:
+            board_text = board_text_path.read_text(encoding='utf-8').strip()
+            audit_bits.append(board_text)
+            if board_text != stdout_text:
+                failures.append(
+                    'watchdog-alert board-suite na deadline board-text verwacht exacte stdout-spiegeling'
+                )
+
+        if not eventlog_path.exists():
+            failures.append(f'watchdog-alert board-suite na deadline eventlog-jsonl ontbreekt: {eventlog_path}')
+        else:
+            jsonl_lines = [line for line in eventlog_path.read_text(encoding='utf-8').splitlines() if line.strip()]
+            if len(jsonl_lines) != 1:
+                failures.append(
+                    'watchdog-alert board-suite na deadline eventlog-jsonl hoort exact één regel te appenden'
+                )
+            for index, line in enumerate(jsonl_lines, start=1):
+                try:
+                    payload = json.loads(line)
+                    audit_bits.append(json.dumps(payload, ensure_ascii=False))
+                    if payload.get('alert_text') != stdout_text:
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} alert_text verwacht exacte stdout-spiegeling'
+                        )
+                    if payload.get('no_reply') is not False:
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} no_reply verwacht False, kreeg {payload.get("no_reply")}'
+                        )
+                    if payload.get('suppressed_before_proof_deadline') is not False:
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} suppressed_before_proof_deadline verwacht False, kreeg {payload.get("suppressed_before_proof_deadline")}'
+                        )
+                    if payload.get('proof_target_check_gate') != 'deadline-reached':
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} proof_target_check_gate verwacht deadline-reached, kreeg {payload.get("proof_target_check_gate")}'
+                        )
+                    requested_outputs = payload.get('consumer_requested_outputs') or []
+                    if len(requested_outputs) != 3:
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_outputs verwacht 3 items, kreeg {len(requested_outputs)}'
+                        )
+                except json.JSONDecodeError as exc:
+                    failures.append(
+                        f'watchdog-alert board-suite na deadline eventlog-jsonl regel {index} hoort parsebare JSONL te zijn, kreeg parsefout: {exc}'
+                    )
+
+    return build_registry_case_result(
+        name='watchdog-alert-board-suite-bundle-unsuppressed-after-deadline',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+
 def evaluate_watchdog_alert_board_json_preset_case():
     failures = []
     audit_bits: list[str] = []
@@ -11556,6 +11847,94 @@ def evaluate_watchdog_alert_board_json_preset_case():
     )
 
 
+def evaluate_watchdog_alert_board_json_preset_unsuppressed_after_deadline_case():
+    failures = []
+    audit_bits: list[str] = []
+
+    with tempfile.TemporaryDirectory(prefix='ai-briefing-watchdog-alert-board-json-preset-after-deadline-') as temp_dir:
+        consumer_root = Path(temp_dir)
+        board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
+        board_text_path = consumer_root / 'ai-briefing-watchdog-alert.txt'
+        eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
+
+        proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_ALERT_SCRIPT), '--mode', 'proof-target-check',
+                '--reference-ms', str(REFERENCE_MS_AFTER_PROOF_DEADLINE),
+                '--consumer-root', str(consumer_root),
+                '--consumer-preset', 'board-json',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            failures.append(f'watchdog-alert board-json preset na deadline exitcode verwacht 0, kreeg {proc.returncode}')
+        stdout_text = proc.stdout.strip() or proc.stderr.strip()
+        audit_bits.append(stdout_text)
+        if not stdout_text:
+            failures.append('watchdog-alert board-json preset na deadline gaf geen stdout')
+        elif stdout_text == 'NO_REPLY':
+            failures.append('watchdog-alert board-json preset na deadline hoort NO_REPLY niet te onderdrukken')
+        else:
+            for substring in (
+                'AI-briefing proof-target-check:',
+                'proof-recheck-cronstatus: ok',
+                'kwalificatie-slots',
+                'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            ):
+                if substring not in stdout_text:
+                    failures.append(
+                        f'watchdog-alert board-json preset na deadline stdout mist {substring!r}'
+                    )
+
+        if not board_json_path.exists():
+            failures.append(f'watchdog-alert board-json preset na deadline artifact ontbreekt: {board_json_path}')
+        else:
+            try:
+                payload = json.loads(board_json_path.read_text(encoding='utf-8'))
+                audit_bits.append(json.dumps(payload, ensure_ascii=False))
+                if payload.get('alert_text') != stdout_text:
+                    failures.append(
+                        'watchdog-alert board-json preset na deadline alert_text verwacht exacte stdout-spiegeling'
+                    )
+                if payload.get('no_reply') is not False:
+                    failures.append(
+                        'watchdog-alert board-json preset na deadline no_reply verwacht False, kreeg '
+                        f'{payload.get("no_reply")}'
+                    )
+                if payload.get('suppressed_before_proof_deadline') is not False:
+                    failures.append(
+                        'watchdog-alert board-json preset na deadline suppressed_before_proof_deadline verwacht False, kreeg '
+                        f'{payload.get("suppressed_before_proof_deadline")}'
+                    )
+                if payload.get('proof_target_check_gate') != 'deadline-reached':
+                    failures.append(
+                        'watchdog-alert board-json preset na deadline proof_target_check_gate verwacht deadline-reached, kreeg '
+                        f'{payload.get("proof_target_check_gate")}'
+                    )
+                requested_outputs = payload.get('consumer_requested_outputs') or []
+                if len(requested_outputs) != 1:
+                    failures.append(
+                        'watchdog-alert board-json preset na deadline consumer_requested_outputs verwacht 1 item, kreeg '
+                        f'{len(requested_outputs)}'
+                    )
+            except json.JSONDecodeError as exc:
+                failures.append(f'watchdog-alert board-json preset na deadline artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
+
+        if board_text_path.exists():
+            failures.append(f'watchdog-alert board-json preset na deadline hoort geen board-text te maken, maar vond {board_text_path}')
+        if eventlog_path.exists():
+            failures.append(f'watchdog-alert board-json preset na deadline hoort geen eventlog-jsonl te maken, maar vond {eventlog_path}')
+
+    return build_registry_case_result(
+        name='watchdog-alert-board-json-preset-unsuppressed-after-deadline',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_watchdog_alert_board_text_preset_case():
     failures = []
     audit_bits: list[str] = []
@@ -11600,6 +11979,70 @@ def evaluate_watchdog_alert_board_text_preset_case():
 
     return build_registry_case_result(
         name='watchdog-alert-board-text-preset-keeps-board-only',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_case():
+    failures = []
+    audit_bits: list[str] = []
+
+    with tempfile.TemporaryDirectory(prefix='ai-briefing-watchdog-alert-board-text-preset-after-deadline-') as temp_dir:
+        consumer_root = Path(temp_dir)
+        board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
+        board_text_path = consumer_root / 'ai-briefing-watchdog-alert.txt'
+        eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
+
+        proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_ALERT_SCRIPT), '--mode', 'proof-target-check',
+                '--reference-ms', str(REFERENCE_MS_AFTER_PROOF_DEADLINE),
+                '--consumer-root', str(consumer_root),
+                '--consumer-preset', 'board-text',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            failures.append(f'watchdog-alert board-text preset na deadline exitcode verwacht 0, kreeg {proc.returncode}')
+        stdout_text = proc.stdout.strip() or proc.stderr.strip()
+        audit_bits.append(stdout_text)
+        if not stdout_text:
+            failures.append('watchdog-alert board-text preset na deadline gaf geen stdout')
+        elif stdout_text == 'NO_REPLY':
+            failures.append('watchdog-alert board-text preset na deadline hoort NO_REPLY niet te onderdrukken')
+        else:
+            for substring in (
+                'AI-briefing proof-target-check:',
+                'proof-recheck-cronstatus: ok',
+                'kwalificatie-slots',
+                'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            ):
+                if substring not in stdout_text:
+                    failures.append(
+                        f'watchdog-alert board-text preset na deadline stdout mist {substring!r}'
+                    )
+
+        if not board_text_path.exists():
+            failures.append(f'watchdog-alert board-text preset na deadline artifact ontbreekt: {board_text_path}')
+        else:
+            board_text = board_text_path.read_text(encoding='utf-8').strip()
+            audit_bits.append(board_text)
+            if board_text != stdout_text:
+                failures.append(
+                    'watchdog-alert board-text preset na deadline artifact verwacht exacte stdout-spiegeling'
+                )
+
+        if board_json_path.exists():
+            failures.append(f'watchdog-alert board-text preset na deadline hoort geen board-json te maken, maar vond {board_json_path}')
+        if eventlog_path.exists():
+            failures.append(f'watchdog-alert board-text preset na deadline hoort geen eventlog-jsonl te maken, maar vond {eventlog_path}')
+
+    return build_registry_case_result(
+        name='watchdog-alert-board-text-preset-unsuppressed-after-deadline',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -12413,9 +12856,16 @@ def build_named_case_runners(module, producer_module):
     named_cases['watchdog-board-pair-bundle-board-only'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-suite-bundle-append'] = evaluate_watchdog_board_suite_bundle_append_case
     named_cases['watchdog-alert-board-json-preset-board-only'] = evaluate_watchdog_alert_board_json_preset_case
+    named_cases['watchdog-alert-board-json-preset-unsuppressed-after-deadline'] = (
+        evaluate_watchdog_alert_board_json_preset_unsuppressed_after_deadline_case
+    )
     named_cases['watchdog-alert-board-text-preset-board-only'] = evaluate_watchdog_alert_board_text_preset_case
+    named_cases['watchdog-alert-board-text-preset-unsuppressed-after-deadline'] = (
+        evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_case
+    )
     named_cases['watchdog-alert-board-pair-bundle-board-only'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
+    named_cases['watchdog-alert-board-suite-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-append'] = evaluate_watchdog_alert_board_suite_bundle_append_case
     return named_cases
 
