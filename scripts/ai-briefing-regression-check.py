@@ -13911,12 +13911,60 @@ def evaluate_watchdog_full_sweep_registry_case():
         if batch_name not in named_case_names:
             failures.append(f'watchdog-batchcase ontbreekt in registry: {batch_name}')
             continue
-        missing_children = [name for name in child_case_names if name not in named_case_names]
-        audit_bits.append(f'{batch_name}: {len(child_case_names) - len(missing_children)}/{len(child_case_names)} children aanwezig')
+
+        unique_child_case_names = unique_case_names(child_case_names)
+        duplicate_children = [
+            case_name
+            for index, case_name in enumerate(unique_child_case_names)
+            if child_case_names.count(case_name) > 1
+        ]
+        if not child_case_names:
+            failures.append(f'watchdog-batchcase {batch_name} hoort minstens één childcase te hebben')
+        if batch_name in unique_child_case_names:
+            failures.append(f'watchdog-batchcase {batch_name} mag zichzelf niet als childcase opnemen')
+        if duplicate_children:
+            failures.append(
+                f'watchdog-batchcase {batch_name} bevat dubbele childcases: ' + ', '.join(duplicate_children)
+            )
+
+        missing_children = [name for name in unique_child_case_names if name not in named_case_names]
+        audit_bits.append(
+            f'{batch_name}: {len(unique_child_case_names) - len(missing_children)}/{len(unique_child_case_names)} unieke children aanwezig'
+        )
         if missing_children:
             failures.append(
                 f'watchdog-batchcase {batch_name} mist childcases in registry: ' + ', '.join(missing_children)
             )
+
+    def walk_batch_cycles(batch_name: str, path: list[str], visited: set[tuple[str, str]]) -> None:
+        for child_case_name in unique_case_names(WATCHDOG_BATCH_CASE_DEPENDENCIES.get(batch_name, [])):
+            if child_case_name not in WATCHDOG_BATCH_CASE_DEPENDENCIES:
+                continue
+            edge = (batch_name, child_case_name)
+            if edge in visited:
+                continue
+            visited.add(edge)
+            if child_case_name in path:
+                cycle_path = path[path.index(child_case_name):] + [child_case_name]
+                failures.append(
+                    'watchdog-batchcases mogen geen transitieve cyclus vormen: ' + ' -> '.join(cycle_path)
+                )
+                continue
+            walk_batch_cycles(child_case_name, path + [child_case_name], visited)
+
+    visited_edges: set[tuple[str, str]] = set()
+    for batch_name in WATCHDOG_BATCH_CASE_DEPENDENCIES:
+        walk_batch_cycles(batch_name, [batch_name], visited_edges)
+
+    nested_batch_count = sum(
+        1
+        for child_case_names in WATCHDOG_BATCH_CASE_DEPENDENCIES.values()
+        for child_case_name in unique_case_names(child_case_names)
+        if child_case_name in WATCHDOG_BATCH_CASE_DEPENDENCIES
+    )
+    audit_bits.append(
+        f'watchdog-batchcases transitieve sweep-grafiek gecontroleerd over {len(WATCHDOG_BATCH_CASE_DEPENDENCIES)} batchcases en {nested_batch_count} batch-op-batch-randen'
+    )
 
     return build_registry_case_result(
         name='registry-keeps-watchdog-full-sweep-complete',
