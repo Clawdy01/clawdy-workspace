@@ -9311,6 +9311,55 @@ def evaluate_watchdog_alert_case(case):
                 'append': False,
             },
         ]
+        if (payload.get('consumer_requested_outputs') or []) != expected_requested_outputs:
+            failures.append(
+                'stdout-json consumer_requested_outputs verwacht exacte board-pair metadata, kreeg '
+                f"{payload.get('consumer_requested_outputs')} versus {expected_requested_outputs}"
+            )
+        if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text':
+            failures.append(
+                'stdout-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, kreeg '
+                f"{payload.get('consumer_requested_output_channels_text')}"
+            )
+        if payload.get('consumer_requested_output_count') != 2:
+            failures.append(
+                'stdout-json consumer_requested_output_count verwacht 2, kreeg '
+                f"{payload.get('consumer_requested_output_count')}"
+            )
+        if payload.get('consumer_requested_output_channel_count') != 2:
+            failures.append(
+                'stdout-json consumer_requested_output_channel_count verwacht 2, kreeg '
+                f"{payload.get('consumer_requested_output_channel_count')}"
+            )
+        if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=2, kanalen=2':
+            failures.append(
+                'stdout-json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=2, kanalen=2, kreeg '
+                f"{payload.get('consumer_requested_output_count_text')}"
+            )
+        if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=2, kanalen=2':
+            failures.append(
+                'stdout-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=2, kanalen=2, kreeg '
+                f"{payload.get('consumer_requested_output_channel_count_text')}"
+            )
+        if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+            failures.append(
+                'stdout-json consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                f"{payload.get('consumer_requested_outputs_status_kind')}"
+            )
+        if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 2 artifact(s)':
+            failures.append(
+                'stdout-json consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 2 artifact(s), kreeg '
+                f"{payload.get('consumer_requested_outputs_status_text')}"
+            )
+        expected_requested_outputs_text = (
+            f'consumer-artifacts: board-json: {board_json_path}; '
+            f'board-text: {board_text_path}'
+        )
+        if payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+            failures.append(
+                'stdout-json consumer_requested_outputs_text verwacht '
+                f'{expected_requested_outputs_text}, kreeg {payload.get("consumer_requested_outputs_text")}'
+            )
         if not board_json_path.exists():
             failures.append(f'consumer board-json ontbreekt: {board_json_path}')
         else:
@@ -9340,6 +9389,46 @@ def evaluate_watchdog_alert_case(case):
                     'consumer board-json consumer_requested_outputs verwacht exacte board-pair metadata, kreeg '
                     f"{board_payload.get('consumer_requested_outputs')} versus {expected_requested_outputs}"
                 )
+            if board_payload.get('consumer_requested_output_count') != 2:
+                failures.append(
+                    'consumer board-json consumer_requested_output_count verwacht 2, kreeg '
+                    f"{board_payload.get('consumer_requested_output_count')}"
+                )
+            if board_payload.get('consumer_requested_output_channel_count') != 2:
+                failures.append(
+                    'consumer board-json consumer_requested_output_channel_count verwacht 2, kreeg '
+                    f"{board_payload.get('consumer_requested_output_channel_count')}"
+                )
+            if board_payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=2, kanalen=2':
+                failures.append(
+                    'consumer board-json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=2, kanalen=2, kreeg '
+                    f"{board_payload.get('consumer_requested_output_count_text')}"
+                )
+            if board_payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=2, kanalen=2':
+                failures.append(
+                    'consumer board-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=2, kanalen=2, kreeg '
+                    f"{board_payload.get('consumer_requested_output_channel_count_text')}"
+                )
+            if board_payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text':
+                failures.append(
+                    'consumer board-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, kreeg '
+                    f"{board_payload.get('consumer_requested_output_channels_text')}"
+                )
+            if board_payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                failures.append(
+                    'consumer board-json consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                    f"{board_payload.get('consumer_requested_outputs_status_kind')}"
+                )
+            if board_payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 2 artifact(s)':
+                failures.append(
+                    'consumer board-json consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 2 artifact(s), kreeg '
+                    f"{board_payload.get('consumer_requested_outputs_status_text')}"
+                )
+            if board_payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+                failures.append(
+                    'consumer board-json consumer_requested_outputs_text verwacht '
+                    f'{expected_requested_outputs_text}, kreeg {board_payload.get("consumer_requested_outputs_text")}'
+                )
         if not board_text_path.exists():
             failures.append(f'consumer board-text ontbreekt: {board_text_path}')
         else:
@@ -9361,6 +9450,51 @@ def evaluate_watchdog_alert_case(case):
             'format': 'json',
             'append': False,
         }]
+        if (payload.get('consumer_requested_outputs') or []) != expected_requested_outputs:
+            failures.append(
+                'stdout-json consumer_requested_outputs verwacht exacte board-json metadata, kreeg '
+                f"{payload.get('consumer_requested_outputs')} versus {expected_requested_outputs}"
+            )
+        if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
+            failures.append(
+                'stdout-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: consumer-out, kreeg '
+                f"{payload.get('consumer_requested_output_channels_text')}"
+            )
+        if payload.get('consumer_requested_output_count') != 1:
+            failures.append(
+                'stdout-json consumer_requested_output_count verwacht 1, kreeg '
+                f"{payload.get('consumer_requested_output_count')}"
+            )
+        if payload.get('consumer_requested_output_channel_count') != 1:
+            failures.append(
+                'stdout-json consumer_requested_output_channel_count verwacht 1, kreeg '
+                f"{payload.get('consumer_requested_output_channel_count')}"
+            )
+        if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+            failures.append(
+                'stdout-json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg '
+                f"{payload.get('consumer_requested_output_count_text')}"
+            )
+        if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+            failures.append(
+                'stdout-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg '
+                f"{payload.get('consumer_requested_output_channel_count_text')}"
+            )
+        if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+            failures.append(
+                'stdout-json consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                f"{payload.get('consumer_requested_outputs_status_kind')}"
+            )
+        if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 1 artifact(s)':
+            failures.append(
+                'stdout-json consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 1 artifact(s), kreeg '
+                f"{payload.get('consumer_requested_outputs_status_text')}"
+            )
+        if payload.get('consumer_requested_outputs_text') != f'consumer-artifacts: consumer-out: {board_json_path}':
+            failures.append(
+                'stdout-json consumer_requested_outputs_text verwacht consumer-artifacts: consumer-out: '
+                f'{board_json_path}, kreeg {payload.get("consumer_requested_outputs_text")}'
+            )
         if not board_json_path.exists():
             failures.append(f'consumer board-json ontbreekt: {board_json_path}')
         else:
@@ -9379,6 +9513,46 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'consumer board-json consumer_requested_outputs verwacht exacte board-json metadata, kreeg '
                     f"{board_payload.get('consumer_requested_outputs')} versus {expected_requested_outputs}"
+                )
+            if board_payload.get('consumer_requested_output_count') != 1:
+                failures.append(
+                    'consumer board-json consumer_requested_output_count verwacht 1, kreeg '
+                    f"{board_payload.get('consumer_requested_output_count')}"
+                )
+            if board_payload.get('consumer_requested_output_channel_count') != 1:
+                failures.append(
+                    'consumer board-json consumer_requested_output_channel_count verwacht 1, kreeg '
+                    f"{board_payload.get('consumer_requested_output_channel_count')}"
+                )
+            if board_payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+                failures.append(
+                    'consumer board-json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg '
+                    f"{board_payload.get('consumer_requested_output_count_text')}"
+                )
+            if board_payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+                failures.append(
+                    'consumer board-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg '
+                    f"{board_payload.get('consumer_requested_output_channel_count_text')}"
+                )
+            if board_payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
+                failures.append(
+                    'consumer board-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: consumer-out, kreeg '
+                    f"{board_payload.get('consumer_requested_output_channels_text')}"
+                )
+            if board_payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                failures.append(
+                    'consumer board-json consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                    f"{board_payload.get('consumer_requested_outputs_status_kind')}"
+                )
+            if board_payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 1 artifact(s)':
+                failures.append(
+                    'consumer board-json consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 1 artifact(s), kreeg '
+                    f"{board_payload.get('consumer_requested_outputs_status_text')}"
+                )
+            if board_payload.get('consumer_requested_outputs_text') != f'consumer-artifacts: consumer-out: {board_json_path}':
+                failures.append(
+                    'consumer board-json consumer_requested_outputs_text verwacht consumer-artifacts: consumer-out: '
+                    f'{board_json_path}, kreeg {board_payload.get("consumer_requested_outputs_text")}'
                 )
         if board_text_path.exists():
             failures.append(f'consumer board-json hoort geen board-text te maken, maar vond {board_text_path}')
@@ -11204,10 +11378,45 @@ def evaluate_watchdog_board_json_preset_case():
             try:
                 payload = json.loads(board_json_path.read_text(encoding='utf-8'))
                 audit_bits.append(json.dumps(payload, ensure_ascii=False))
+                if payload.get('consumer_requested_output_channel_count') != 1:
+                    failures.append(
+                        'watchdog board-json preset consumer_requested_output_channel_count verwacht 1, kreeg '
+                        f'{payload.get("consumer_requested_output_channel_count")}'
+                    )
                 if payload.get('consumer_requested_output_count') != 1:
                     failures.append(
                         'watchdog board-json preset consumer_requested_output_count verwacht 1, kreeg '
                         f'{payload.get("consumer_requested_output_count")}'
+                    )
+                if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+                    failures.append(
+                        'watchdog board-json preset consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg '
+                        f'{payload.get("consumer_requested_output_count_text")}'
+                    )
+                if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+                    failures.append(
+                        'watchdog board-json preset consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg '
+                        f'{payload.get("consumer_requested_output_channel_count_text")}'
+                    )
+                if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
+                    failures.append(
+                        'watchdog board-json preset consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: consumer-out, kreeg '
+                        f'{payload.get("consumer_requested_output_channels_text")}'
+                    )
+                if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                    failures.append(
+                        'watchdog board-json preset consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                        f'{payload.get("consumer_requested_outputs_status_kind")}'
+                    )
+                if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 1 artifact(s)':
+                    failures.append(
+                        'watchdog board-json preset consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 1 artifact(s), kreeg '
+                        f'{payload.get("consumer_requested_outputs_status_text")}'
+                    )
+                if payload.get('consumer_requested_outputs_text') != f'consumer-artifacts: consumer-out: {board_json_path}':
+                    failures.append(
+                        'watchdog board-json preset consumer_requested_outputs_text verwacht consumer-artifacts: consumer-out: '
+                        f'{board_json_path}, kreeg {payload.get("consumer_requested_outputs_text")}'
                     )
                 requested_outputs = payload.get('consumer_requested_outputs') or []
                 if len(requested_outputs) != 1:
@@ -11291,6 +11500,82 @@ def evaluate_watchdog_board_text_preset_case():
                     f'watchdog board-text preset artifact verwacht stdout te spiegelen, kreeg {board_text} versus {stdout_text}'
                 )
 
+        json_proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_SCRIPT), '--json',
+                '--require-qualified-runs', '3',
+                '--reference-ms', str(REFERENCE_MS_BEFORE_SLOT_TOMORROW),
+                '--consumer-root', str(consumer_root),
+                '--consumer-preset', 'board-text',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if json_proc.returncode != 2:
+            failures.append(f'watchdog board-text preset json-stdout exitcode verwacht 2, kreeg {json_proc.returncode}')
+        json_stdout = json_proc.stdout.strip() or json_proc.stderr.strip()
+        if not json_stdout:
+            failures.append('watchdog board-text preset json-stdout gaf geen output')
+        else:
+            try:
+                payload = json.loads(json_stdout)
+                audit_bits.append(json.dumps(payload, ensure_ascii=False))
+                expected_requested_outputs = [{
+                    'channel': 'consumer-out',
+                    'path': str(board_text_path),
+                    'format': 'text',
+                    'append': False,
+                }]
+                if (payload.get('consumer_requested_outputs') or []) != expected_requested_outputs:
+                    failures.append(
+                        'watchdog board-text preset json-stdout consumer_requested_outputs verwacht exacte board-text metadata, kreeg '
+                        f'{payload.get("consumer_requested_outputs")} versus {expected_requested_outputs}'
+                    )
+                if payload.get('consumer_requested_output_count') != 1:
+                    failures.append(
+                        'watchdog board-text preset json-stdout consumer_requested_output_count verwacht 1, kreeg '
+                        f'{payload.get("consumer_requested_output_count")}'
+                    )
+                if payload.get('consumer_requested_output_channel_count') != 1:
+                    failures.append(
+                        'watchdog board-text preset json-stdout consumer_requested_output_channel_count verwacht 1, kreeg '
+                        f'{payload.get("consumer_requested_output_channel_count")}'
+                    )
+                if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+                    failures.append(
+                        'watchdog board-text preset json-stdout consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg '
+                        f'{payload.get("consumer_requested_output_count_text")}'
+                    )
+                if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+                    failures.append(
+                        'watchdog board-text preset json-stdout consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg '
+                        f'{payload.get("consumer_requested_output_channel_count_text")}'
+                    )
+                if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
+                    failures.append(
+                        'watchdog board-text preset json-stdout consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: consumer-out, kreeg '
+                        f'{payload.get("consumer_requested_output_channels_text")}'
+                    )
+                if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                    failures.append(
+                        'watchdog board-text preset json-stdout consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                        f'{payload.get("consumer_requested_outputs_status_kind")}'
+                    )
+                if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 1 artifact(s)':
+                    failures.append(
+                        'watchdog board-text preset json-stdout consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 1 artifact(s), kreeg '
+                        f'{payload.get("consumer_requested_outputs_status_text")}'
+                    )
+                if payload.get('consumer_requested_outputs_text') != f'consumer-artifacts: consumer-out: {board_text_path}':
+                    failures.append(
+                        'watchdog board-text preset json-stdout consumer_requested_outputs_text verwacht consumer-artifacts: consumer-out: '
+                        f'{board_text_path}, kreeg {payload.get("consumer_requested_outputs_text")}'
+                    )
+            except json.JSONDecodeError as exc:
+                failures.append(f'watchdog board-text preset json-stdout hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
+
         if board_json_path.exists():
             failures.append(f'watchdog board-text preset hoort geen board-json te maken, maar vond {board_json_path}')
         if eventlog_path.exists():
@@ -11346,6 +11631,51 @@ def evaluate_watchdog_board_suite_bundle_append_case():
             try:
                 board_payload = json.loads(board_json_path.read_text(encoding='utf-8'))
                 audit_bits.append(json.dumps(board_payload, ensure_ascii=False))
+                if board_payload.get('consumer_requested_output_count') != 3:
+                    failures.append(
+                        'watchdog board-suite board-json consumer_requested_output_count verwacht 3, kreeg '
+                        f'{board_payload.get("consumer_requested_output_count")}'
+                    )
+                if board_payload.get('consumer_requested_output_channel_count') != 3:
+                    failures.append(
+                        'watchdog board-suite board-json consumer_requested_output_channel_count verwacht 3, kreeg '
+                        f'{board_payload.get("consumer_requested_output_channel_count")}'
+                    )
+                if board_payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=3, kanalen=3':
+                    failures.append(
+                        'watchdog board-suite board-json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg '
+                        f'{board_payload.get("consumer_requested_output_count_text")}'
+                    )
+                if board_payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3':
+                    failures.append(
+                        'watchdog board-suite board-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3, kreeg '
+                        f'{board_payload.get("consumer_requested_output_channel_count_text")}'
+                    )
+                if board_payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+                    failures.append(
+                        'watchdog board-suite board-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                        f'{board_payload.get("consumer_requested_output_channels_text")}'
+                    )
+                if board_payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                    failures.append(
+                        'watchdog board-suite board-json consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                        f'{board_payload.get("consumer_requested_outputs_status_kind")}'
+                    )
+                if board_payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
+                    failures.append(
+                        'watchdog board-suite board-json consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 3 artifact(s), kreeg '
+                        f'{board_payload.get("consumer_requested_outputs_status_text")}'
+                    )
+                expected_requested_outputs_text = (
+                    f'consumer-artifacts: board-json: {board_json_path}; '
+                    f'board-text: {board_text_path}; '
+                    f'eventlog-jsonl: {eventlog_path}'
+                )
+                if board_payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+                    failures.append(
+                        'watchdog board-suite board-json consumer_requested_outputs_text verwacht '
+                        f'{expected_requested_outputs_text}, kreeg {board_payload.get("consumer_requested_outputs_text")}'
+                    )
                 requested_outputs = board_payload.get('consumer_requested_outputs') or []
                 if len(requested_outputs) != 3:
                     failures.append(
@@ -11429,6 +11759,50 @@ def evaluate_watchdog_board_pair_bundle_case():
             try:
                 board_payload = json.loads(board_json_path.read_text(encoding='utf-8'))
                 audit_bits.append(json.dumps(board_payload, ensure_ascii=False))
+                if board_payload.get('consumer_requested_output_count') != 2:
+                    failures.append(
+                        'watchdog board-pair board-json consumer_requested_output_count verwacht 2, kreeg '
+                        f'{board_payload.get("consumer_requested_output_count")}'
+                    )
+                if board_payload.get('consumer_requested_output_channel_count') != 2:
+                    failures.append(
+                        'watchdog board-pair board-json consumer_requested_output_channel_count verwacht 2, kreeg '
+                        f'{board_payload.get("consumer_requested_output_channel_count")}'
+                    )
+                if board_payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=2, kanalen=2':
+                    failures.append(
+                        'watchdog board-pair board-json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=2, kanalen=2, kreeg '
+                        f'{board_payload.get("consumer_requested_output_count_text")}'
+                    )
+                if board_payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=2, kanalen=2':
+                    failures.append(
+                        'watchdog board-pair board-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=2, kanalen=2, kreeg '
+                        f'{board_payload.get("consumer_requested_output_channel_count_text")}'
+                    )
+                if board_payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text':
+                    failures.append(
+                        'watchdog board-pair board-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, kreeg '
+                        f'{board_payload.get("consumer_requested_output_channels_text")}'
+                    )
+                if board_payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                    failures.append(
+                        'watchdog board-pair board-json consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                        f'{board_payload.get("consumer_requested_outputs_status_kind")}'
+                    )
+                if board_payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 2 artifact(s)':
+                    failures.append(
+                        'watchdog board-pair board-json consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 2 artifact(s), kreeg '
+                        f'{board_payload.get("consumer_requested_outputs_status_text")}'
+                    )
+                expected_requested_outputs_text = (
+                    f'consumer-artifacts: board-json: {board_json_path}; '
+                    f'board-text: {board_text_path}'
+                )
+                if board_payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+                    failures.append(
+                        'watchdog board-pair board-json consumer_requested_outputs_text verwacht '
+                        f'{expected_requested_outputs_text}, kreeg {board_payload.get("consumer_requested_outputs_text")}'
+                    )
                 requested_outputs = board_payload.get('consumer_requested_outputs') or []
                 if len(requested_outputs) != 2:
                     failures.append(
@@ -11530,10 +11904,55 @@ def evaluate_watchdog_alert_board_suite_bundle_append_case():
                     {'channel': 'board-text', 'path': str(board_text_path), 'format': 'text', 'append': False},
                     {'channel': 'eventlog-jsonl', 'path': str(eventlog_path), 'format': 'jsonl', 'append': True},
                 ]
+                expected_requested_outputs_text = (
+                    f'consumer-artifacts: board-json: {board_json_path}; '
+                    f'board-text: {board_text_path}; '
+                    f'eventlog-jsonl: {eventlog_path}'
+                )
                 if requested_outputs != expected_requested_outputs:
                     failures.append(
                         'watchdog-alert board-suite board-json consumer_requested_outputs verwacht exacte board-suite metadata, kreeg '
                         f'{requested_outputs} versus {expected_requested_outputs}'
+                    )
+                if board_payload.get('consumer_requested_output_count') != 3:
+                    failures.append(
+                        'watchdog-alert board-suite board-json consumer_requested_output_count verwacht 3, kreeg '
+                        f"{board_payload.get('consumer_requested_output_count')}"
+                    )
+                if board_payload.get('consumer_requested_output_channel_count') != 3:
+                    failures.append(
+                        'watchdog-alert board-suite board-json consumer_requested_output_channel_count verwacht 3, kreeg '
+                        f"{board_payload.get('consumer_requested_output_channel_count')}"
+                    )
+                if board_payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=3, kanalen=3':
+                    failures.append(
+                        'watchdog-alert board-suite board-json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg '
+                        f"{board_payload.get('consumer_requested_output_count_text')}"
+                    )
+                if board_payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3':
+                    failures.append(
+                        'watchdog-alert board-suite board-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3, kreeg '
+                        f"{board_payload.get('consumer_requested_output_channel_count_text')}"
+                    )
+                if board_payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+                    failures.append(
+                        'watchdog-alert board-suite board-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                        f"{board_payload.get('consumer_requested_output_channels_text')}"
+                    )
+                if board_payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                    failures.append(
+                        'watchdog-alert board-suite board-json consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                        f"{board_payload.get('consumer_requested_outputs_status_kind')}"
+                    )
+                if board_payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
+                    failures.append(
+                        'watchdog-alert board-suite board-json consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 3 artifact(s), kreeg '
+                        f"{board_payload.get('consumer_requested_outputs_status_text')}"
+                    )
+                if board_payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+                    failures.append(
+                        'watchdog-alert board-suite board-json consumer_requested_outputs_text verwacht '
+                        f'{expected_requested_outputs_text}, kreeg {board_payload.get("consumer_requested_outputs_text")}'
                     )
             except json.JSONDecodeError as exc:
                 failures.append(f'watchdog-alert board-suite board-json hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
@@ -11584,9 +12003,46 @@ def evaluate_watchdog_alert_board_suite_bundle_append_case():
                         {'channel': 'board-text', 'path': str(board_text_path), 'format': 'text', 'append': False},
                         {'channel': 'eventlog-jsonl', 'path': str(eventlog_path), 'format': 'jsonl', 'append': True},
                     ]
+                    expected_requested_outputs_text = (
+                        f'consumer-artifacts: board-json: {board_json_path}; '
+                        f'board-text: {board_text_path}; '
+                        f'eventlog-jsonl: {eventlog_path}'
+                    )
                     if requested_outputs != expected_requested_outputs:
                         failures.append(
                             f'watchdog-alert board-suite eventlog-jsonl run {index} consumer_requested_outputs verwacht exacte board-suite metadata, kreeg {requested_outputs} versus {expected_requested_outputs}'
+                        )
+                    if payload.get('consumer_requested_output_count') != 3:
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} consumer_requested_output_count verwacht 3, kreeg {payload.get("consumer_requested_output_count")}'
+                        )
+                    if payload.get('consumer_requested_output_channel_count') != 3:
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} consumer_requested_output_channel_count verwacht 3, kreeg {payload.get("consumer_requested_output_channel_count")}'
+                        )
+                    if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=3, kanalen=3':
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg {payload.get("consumer_requested_output_count_text")}'
+                        )
+                    if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3':
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3, kreeg {payload.get("consumer_requested_output_channel_count_text")}'
+                        )
+                    if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg {payload.get("consumer_requested_output_channels_text")}'
+                        )
+                    if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} consumer_requested_outputs_status_kind verwacht requested, kreeg {payload.get("consumer_requested_outputs_status_kind")}'
+                        )
+                    if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 3 artifact(s), kreeg {payload.get("consumer_requested_outputs_status_text")}'
+                        )
+                    if payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} consumer_requested_outputs_text verwacht {expected_requested_outputs_text}, kreeg {payload.get("consumer_requested_outputs_text")}'
                         )
                 except json.JSONDecodeError as exc:
                     failures.append(
@@ -11882,10 +12338,55 @@ def evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case(
                     {'channel': 'board-text', 'path': str(board_text_path), 'format': 'text', 'append': False},
                     {'channel': 'eventlog-jsonl', 'path': str(eventlog_path), 'format': 'jsonl', 'append': True},
                 ]
+                expected_requested_outputs_text = (
+                    f'consumer-artifacts: board-json: {board_json_path}; '
+                    f'board-text: {board_text_path}; '
+                    f'eventlog-jsonl: {eventlog_path}'
+                )
                 if requested_outputs != expected_requested_outputs:
                     failures.append(
                         'watchdog-alert board-suite na deadline board-json consumer_requested_outputs verwacht exacte board-suite metadata, kreeg '
                         f'{requested_outputs} versus {expected_requested_outputs}'
+                    )
+                if board_payload.get('consumer_requested_output_count') != 3:
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json consumer_requested_output_count verwacht 3, kreeg '
+                        f"{board_payload.get('consumer_requested_output_count')}"
+                    )
+                if board_payload.get('consumer_requested_output_channel_count') != 3:
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json consumer_requested_output_channel_count verwacht 3, kreeg '
+                        f"{board_payload.get('consumer_requested_output_channel_count')}"
+                    )
+                if board_payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=3, kanalen=3':
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg '
+                        f"{board_payload.get('consumer_requested_output_count_text')}"
+                    )
+                if board_payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3':
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3, kreeg '
+                        f"{board_payload.get('consumer_requested_output_channel_count_text')}"
+                    )
+                if board_payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                        f"{board_payload.get('consumer_requested_output_channels_text')}"
+                    )
+                if board_payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                        f"{board_payload.get('consumer_requested_outputs_status_kind')}"
+                    )
+                if board_payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 3 artifact(s), kreeg '
+                        f"{board_payload.get('consumer_requested_outputs_status_text')}"
+                    )
+                if board_payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+                    failures.append(
+                        'watchdog-alert board-suite na deadline board-json consumer_requested_outputs_text verwacht '
+                        f'{expected_requested_outputs_text}, kreeg {board_payload.get("consumer_requested_outputs_text")}'
                     )
             except json.JSONDecodeError as exc:
                 failures.append(
@@ -11930,15 +12431,56 @@ def evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case(
                         failures.append(
                             f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} proof_target_check_gate verwacht deadline-reached, kreeg {payload.get("proof_target_check_gate")}'
                         )
+                    if payload.get('proof_state') != 'recheck-window-open':
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} proof_state verwacht recheck-window-open, kreeg {payload.get("proof_state")}'
+                        )
                     requested_outputs = payload.get('consumer_requested_outputs') or []
                     expected_requested_outputs = [
                         {'channel': 'board-json', 'path': str(board_json_path), 'format': 'json', 'append': False},
                         {'channel': 'board-text', 'path': str(board_text_path), 'format': 'text', 'append': False},
                         {'channel': 'eventlog-jsonl', 'path': str(eventlog_path), 'format': 'jsonl', 'append': True},
                     ]
+                    expected_requested_outputs_text = (
+                        f'consumer-artifacts: board-json: {board_json_path}; '
+                        f'board-text: {board_text_path}; '
+                        f'eventlog-jsonl: {eventlog_path}'
+                    )
                     if requested_outputs != expected_requested_outputs:
                         failures.append(
                             f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_outputs verwacht exacte board-suite metadata, kreeg {requested_outputs} versus {expected_requested_outputs}'
+                        )
+                    if payload.get('consumer_requested_output_count') != 3:
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_output_count verwacht 3, kreeg {payload.get("consumer_requested_output_count")}'
+                        )
+                    if payload.get('consumer_requested_output_channel_count') != 3:
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_output_channel_count verwacht 3, kreeg {payload.get("consumer_requested_output_channel_count")}'
+                        )
+                    if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=3, kanalen=3':
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg {payload.get("consumer_requested_output_count_text")}'
+                        )
+                    if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3':
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3, kreeg {payload.get("consumer_requested_output_channel_count_text")}'
+                        )
+                    if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg {payload.get("consumer_requested_output_channels_text")}'
+                        )
+                    if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_outputs_status_kind verwacht requested, kreeg {payload.get("consumer_requested_outputs_status_kind")}'
+                        )
+                    if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 3 artifact(s), kreeg {payload.get("consumer_requested_outputs_status_text")}'
+                        )
+                    if payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+                        failures.append(
+                            f'watchdog-alert board-suite na deadline eventlog-jsonl run {index} consumer_requested_outputs_text verwacht {expected_requested_outputs_text}, kreeg {payload.get("consumer_requested_outputs_text")}'
                         )
                 except json.JSONDecodeError as exc:
                     failures.append(
