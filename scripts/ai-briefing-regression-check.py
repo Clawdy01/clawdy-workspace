@@ -14019,6 +14019,8 @@ def evaluate_list_cases_output_case():
     )
     if plain_proc.returncode != 0:
         failures.append(f'plain --list-cases exitcode verwacht 0, kreeg {plain_proc.returncode}')
+    if plain_proc.stderr.strip():
+        failures.append('plain --list-cases hoort geen stderr-ruis te geven bij geldige invoer')
 
     plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
     audit_bits.append('plain=' + ', '.join(plain_lines[:8]))
@@ -14041,6 +14043,8 @@ def evaluate_list_cases_output_case():
     )
     if json_proc.returncode != 0:
         failures.append(f'json --list-cases exitcode verwacht 0, kreeg {json_proc.returncode}')
+    if json_proc.stderr.strip():
+        failures.append('json --list-cases hoort geen stderr-ruis te geven bij geldige invoer')
 
     json_payload = {}
     json_stdout = json_proc.stdout.strip() or json_proc.stderr.strip()
@@ -14117,6 +14121,8 @@ def evaluate_list_cases_output_case():
         failures.append(
             'plain --list-cases met --case hoort alleen de gevraagde casenamen alfabetisch terug te geven'
         )
+    if filtered_plain_proc.stderr.strip():
+        failures.append('plain --list-cases met --case hoort geen stderr-ruis te geven bij geldige invoer')
 
     filtered_json_proc = subprocess.run(
         [
@@ -14133,6 +14139,8 @@ def evaluate_list_cases_output_case():
             'json --list-cases met --case exitcode verwacht 0, kreeg '
             f'{filtered_json_proc.returncode}'
         )
+    if filtered_json_proc.stderr.strip():
+        failures.append('json --list-cases met --case hoort geen stderr-ruis te geven bij geldige invoer')
 
     filtered_json_payload = {}
     filtered_json_stdout = filtered_json_proc.stdout.strip() or filtered_json_proc.stderr.strip()
@@ -14215,6 +14223,8 @@ def evaluate_list_cases_output_case():
             'plain --list-cases met dubbele --case exitcode verwacht 0, kreeg '
             f'{duplicate_plain_proc.returncode}'
         )
+    if duplicate_plain_proc.stderr.strip():
+        failures.append('plain --list-cases met dubbele --case hoort geen stderr-ruis te geven bij geldige invoer')
     duplicate_plain_lines = [line.strip() for line in duplicate_plain_proc.stdout.splitlines() if line.strip()]
     audit_bits.append('duplicate-filtered-plain=' + ', '.join(duplicate_plain_lines))
     if duplicate_plain_lines != duplicate_expected_case_names:
@@ -14237,6 +14247,8 @@ def evaluate_list_cases_output_case():
             'json --list-cases met dubbele --case exitcode verwacht 0, kreeg '
             f'{duplicate_json_proc.returncode}'
         )
+    if duplicate_json_proc.stderr.strip():
+        failures.append('json --list-cases met dubbele --case hoort geen stderr-ruis te geven bij geldige invoer')
 
     duplicate_json_payload = {}
     duplicate_json_stdout = duplicate_json_proc.stdout.strip() or duplicate_json_proc.stderr.strip()
