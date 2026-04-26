@@ -13794,6 +13794,78 @@ LOWERCASE_ENCODED_EQUALS_CLUSTER_AUDIT_SUFFIXES = [
     'empty-value-fragment-duplicate-audit',
 ]
 
+WATCHDOG_CONSUMER_FORMAT_PASSTHROUGH_ALL_ROUTE_CASE_NAMES = [
+    'watchdog-consumer-format-passthrough',
+    'watchdog-alert-consumer-format-passthrough',
+]
+
+WATCHDOG_CONSUMER_SWEEP_ALL_ROUTE_CASE_NAMES = [
+    'watchdog-eventlog-preset-append',
+    'watchdog-board-json-preset-board-only',
+    'watchdog-board-text-preset-board-only',
+    'watchdog-board-pair-bundle-board-only',
+    'watchdog-board-suite-bundle-append',
+]
+
+WATCHDOG_ALERT_CONSUMER_SWEEP_ALL_ROUTE_CASE_NAMES = [
+    'watchdog-alert-eventlog-preset-append',
+    'watchdog-alert-board-json-preset-board-only',
+    'watchdog-alert-board-text-preset-board-only',
+    'watchdog-alert-board-pair-bundle-board-only',
+    'watchdog-alert-board-suite-bundle-append',
+]
+
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_BEFORE_DEADLINE_CASE_NAMES = [
+    'watchdog-alert-proof-target-check-board-json-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-board-text-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-board-pair-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-board-suite-keeps-no-reply-before-deadline',
+]
+
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_AFTER_DEADLINE_CASE_NAMES = [
+    'watchdog-alert-proof-target-check-board-json-unsuppresses-after-deadline',
+    'watchdog-alert-proof-target-check-board-text-unsuppresses-after-deadline',
+    'watchdog-alert-proof-target-check-board-pair-unsuppresses-after-deadline',
+    'watchdog-alert-proof-target-check-board-suite-unsuppresses-after-deadline',
+]
+
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_BEFORE_DEADLINE_CASE_NAMES = [
+    'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
+    'watchdog-alert-eventlog-preset-proof-target-check-suppresses-before-deadline',
+]
+
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES = [
+    'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
+    'watchdog-alert-eventlog-preset-proof-target-check-unsuppressed-after-deadline',
+]
+
+WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
+    'watchdog-consumer-format-passthrough-all-routes',
+    'watchdog-consumer-sweep-all-routes',
+    'watchdog-alert-consumer-sweep-all-routes',
+    'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
+]
+
+WATCHDOG_BATCH_CASE_DEPENDENCIES = {
+    'watchdog-consumer-format-passthrough-all-routes': WATCHDOG_CONSUMER_FORMAT_PASSTHROUGH_ALL_ROUTE_CASE_NAMES,
+    'watchdog-consumer-sweep-all-routes': WATCHDOG_CONSUMER_SWEEP_ALL_ROUTE_CASE_NAMES,
+    'watchdog-alert-consumer-sweep-all-routes': WATCHDOG_ALERT_CONSUMER_SWEEP_ALL_ROUTE_CASE_NAMES,
+    'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline': (
+        WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_BEFORE_DEADLINE_CASE_NAMES
+    ),
+    'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline': (
+        WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_AFTER_DEADLINE_CASE_NAMES
+    ),
+    'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline': (
+        WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_BEFORE_DEADLINE_CASE_NAMES
+    ),
+    'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline': (
+        WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES
+    ),
+    'watchdog-all-routes-full-sweep': WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
+}
+
 
 def evaluate_lowercase_encoded_equals_cluster_registry_case():
     failures = []
@@ -13825,6 +13897,29 @@ def evaluate_lowercase_encoded_equals_cluster_registry_case():
 
     return build_registry_case_result(
         name='registry-keeps-lowercase-encoded-equals-cluster-complete',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_watchdog_full_sweep_registry_case():
+    failures = []
+    audit_bits: list[str] = []
+    named_case_names = set(build_named_case_runners(load_status_module(), load_proof_recheck_producer_module()).keys())
+
+    for batch_name, child_case_names in WATCHDOG_BATCH_CASE_DEPENDENCIES.items():
+        if batch_name not in named_case_names:
+            failures.append(f'watchdog-batchcase ontbreekt in registry: {batch_name}')
+            continue
+        missing_children = [name for name in child_case_names if name not in named_case_names]
+        audit_bits.append(f'{batch_name}: {len(child_case_names) - len(missing_children)}/{len(child_case_names)} children aanwezig')
+        if missing_children:
+            failures.append(
+                f'watchdog-batchcase {batch_name} mist childcases in registry: ' + ', '.join(missing_children)
+            )
+
+    return build_registry_case_result(
+        name='registry-keeps-watchdog-full-sweep-complete',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -14543,16 +14638,16 @@ def build_named_case_runners(module, producer_module):
     named_cases['registry-keeps-lowercase-encoded-equals-cluster-complete'] = (
         evaluate_lowercase_encoded_equals_cluster_registry_case
     )
+    named_cases['registry-keeps-watchdog-full-sweep-complete'] = (
+        evaluate_watchdog_full_sweep_registry_case
+    )
     named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
     named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
     named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case
     named_cases['watchdog-consumer-format-passthrough-all-routes'] = (
         lambda: evaluate_case_batch(
             name='watchdog-consumer-format-passthrough-all-routes',
-            case_names=[
-                'watchdog-consumer-format-passthrough',
-                'watchdog-alert-consumer-format-passthrough',
-            ],
+            case_names=WATCHDOG_CONSUMER_FORMAT_PASSTHROUGH_ALL_ROUTE_CASE_NAMES,
             named_cases=named_cases,
         )
     )
@@ -14560,13 +14655,7 @@ def build_named_case_runners(module, producer_module):
     named_cases['watchdog-consumer-sweep-all-routes'] = (
         lambda: evaluate_case_batch(
             name='watchdog-consumer-sweep-all-routes',
-            case_names=[
-                'watchdog-eventlog-preset-append',
-                'watchdog-board-json-preset-board-only',
-                'watchdog-board-text-preset-board-only',
-                'watchdog-board-pair-bundle-board-only',
-                'watchdog-board-suite-bundle-append',
-            ],
+            case_names=WATCHDOG_CONSUMER_SWEEP_ALL_ROUTE_CASE_NAMES,
             named_cases=named_cases,
         )
     )
@@ -14596,70 +14685,42 @@ def build_named_case_runners(module, producer_module):
     named_cases['watchdog-alert-consumer-sweep-all-routes'] = (
         lambda: evaluate_case_batch(
             name='watchdog-alert-consumer-sweep-all-routes',
-            case_names=[
-                'watchdog-alert-eventlog-preset-append',
-                'watchdog-alert-board-json-preset-board-only',
-                'watchdog-alert-board-text-preset-board-only',
-                'watchdog-alert-board-pair-bundle-board-only',
-                'watchdog-alert-board-suite-bundle-append',
-            ],
+            case_names=WATCHDOG_ALERT_CONSUMER_SWEEP_ALL_ROUTE_CASE_NAMES,
             named_cases=named_cases,
         )
     )
     named_cases['watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline'] = (
         lambda: evaluate_case_batch(
             name='watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
-            case_names=[
-                'watchdog-alert-proof-target-check-board-json-keeps-no-reply-before-deadline',
-                'watchdog-alert-proof-target-check-board-text-keeps-no-reply-before-deadline',
-                'watchdog-alert-proof-target-check-board-pair-keeps-no-reply-before-deadline',
-                'watchdog-alert-proof-target-check-board-suite-keeps-no-reply-before-deadline',
-            ],
+            case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_BEFORE_DEADLINE_CASE_NAMES,
             named_cases=named_cases,
         )
     )
     named_cases['watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline'] = (
         lambda: evaluate_case_batch(
             name='watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
-            case_names=[
-                'watchdog-alert-proof-target-check-board-json-unsuppresses-after-deadline',
-                'watchdog-alert-proof-target-check-board-text-unsuppresses-after-deadline',
-                'watchdog-alert-proof-target-check-board-pair-unsuppresses-after-deadline',
-                'watchdog-alert-proof-target-check-board-suite-unsuppresses-after-deadline',
-            ],
+            case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_AFTER_DEADLINE_CASE_NAMES,
             named_cases=named_cases,
         )
     )
     named_cases['watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline'] = (
         lambda: evaluate_case_batch(
             name='watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
-            case_names=[
-                'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
-                'watchdog-alert-eventlog-preset-proof-target-check-suppresses-before-deadline',
-            ],
+            case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_BEFORE_DEADLINE_CASE_NAMES,
             named_cases=named_cases,
         )
     )
     named_cases['watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline'] = (
         lambda: evaluate_case_batch(
             name='watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
-            case_names=[
-                'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
-                'watchdog-alert-eventlog-preset-proof-target-check-unsuppressed-after-deadline',
-            ],
+            case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES,
             named_cases=named_cases,
         )
     )
     named_cases['watchdog-all-routes-full-sweep'] = (
         lambda: evaluate_case_batch(
             name='watchdog-all-routes-full-sweep',
-            case_names=[
-                'watchdog-consumer-format-passthrough-all-routes',
-                'watchdog-consumer-sweep-all-routes',
-                'watchdog-alert-consumer-sweep-all-routes',
-                'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
-                'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
-            ],
+            case_names=WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
             named_cases=named_cases,
         )
     )
