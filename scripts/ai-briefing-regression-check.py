@@ -14546,6 +14546,16 @@ def build_named_case_runners(module, producer_module):
     named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
     named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
     named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case
+    named_cases['watchdog-consumer-format-passthrough-all-routes'] = (
+        lambda: evaluate_case_batch(
+            name='watchdog-consumer-format-passthrough-all-routes',
+            case_names=[
+                'watchdog-consumer-format-passthrough',
+                'watchdog-alert-consumer-format-passthrough',
+            ],
+            named_cases=named_cases,
+        )
+    )
     named_cases['watchdog-eventlog-preset-append'] = evaluate_watchdog_eventlog_preset_append_case
     named_cases['watchdog-consumer-sweep-all-routes'] = (
         lambda: evaluate_case_batch(
@@ -14644,6 +14654,7 @@ def build_named_case_runners(module, producer_module):
         lambda: evaluate_case_batch(
             name='watchdog-all-routes-full-sweep',
             case_names=[
+                'watchdog-consumer-format-passthrough-all-routes',
                 'watchdog-consumer-sweep-all-routes',
                 'watchdog-alert-consumer-sweep-all-routes',
                 'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
