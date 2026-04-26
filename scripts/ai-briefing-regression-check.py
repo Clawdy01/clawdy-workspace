@@ -14010,6 +14010,38 @@ def evaluate_list_cases_output_case():
             }
         }
 
+    def assert_list_cases_payload_stays_discoverable(payload: dict, label: str) -> None:
+        if 'summary' in payload:
+            failures.append(f'{label} hoort geen samenvattingsblok mee te geven op de discoverability-route')
+        if 'results' in payload:
+            failures.append(f'{label} hoort geen results-lijst mee te geven op de discoverability-route')
+        if 'failing_case_names' in payload:
+            failures.append(f'{label} hoort geen failing_case_names mee te geven op de discoverability-route')
+        if 'passed_count' in payload:
+            failures.append(f'{label} hoort geen passed_count mee te geven op de discoverability-route')
+        if 'failed_count' in payload:
+            failures.append(f'{label} hoort geen failed_count mee te geven op de discoverability-route')
+
+    def assert_list_cases_success_payload_avoids_error_fields(payload: dict, label: str) -> None:
+        if 'error' in payload:
+            failures.append(f'{label} hoort geen error-veld mee te geven bij een geslaagde discoverability-route')
+        if 'message' in payload:
+            failures.append(f'{label} hoort geen foutmessage mee te geven bij een geslaagde discoverability-route')
+        if 'unknown_case_names' in payload:
+            failures.append(f'{label} hoort geen unknown_case_names mee te geven bij een geslaagde discoverability-route')
+        if 'unknown_case_count' in payload:
+            failures.append(f'{label} hoort geen unknown_case_count mee te geven bij een geslaagde discoverability-route')
+        if 'suggested_case_names_by_input' in payload:
+            failures.append(
+                f'{label} hoort geen suggested_case_names_by_input mee te geven bij een geslaagde discoverability-route'
+            )
+
+    def assert_list_cases_error_payload_avoids_success_fields(payload: dict, label: str) -> None:
+        if 'cases' in payload:
+            failures.append(f'{label} hoort geen cases-lijst mee te geven op een foutende discoverability-route')
+        if 'case_count' in payload:
+            failures.append(f'{label} hoort geen case_count mee te geven op een foutende discoverability-route')
+
     plain_proc = subprocess.run(
         ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases'],
         cwd=ROOT,
@@ -14059,6 +14091,8 @@ def evaluate_list_cases_output_case():
 
     if json_payload:
         assert_runtime_metadata(json_payload, 'json --list-cases')
+        assert_list_cases_payload_stays_discoverable(json_payload, 'json --list-cases')
+        assert_list_cases_success_payload_avoids_error_fields(json_payload, 'json --list-cases')
         listed_cases = json_payload.get('cases')
         if not isinstance(listed_cases, list):
             failures.append(f'json --list-cases cases verwacht lijst, kreeg {type(listed_cases).__name__}')
@@ -14158,6 +14192,8 @@ def evaluate_list_cases_output_case():
 
     if filtered_json_payload:
         assert_runtime_metadata(filtered_json_payload, 'json --list-cases met --case')
+        assert_list_cases_payload_stays_discoverable(filtered_json_payload, 'json --list-cases met --case')
+        assert_list_cases_success_payload_avoids_error_fields(filtered_json_payload, 'json --list-cases met --case')
         filtered_listed_cases = filtered_json_payload.get('cases')
         if filtered_listed_cases != sorted_filtered_case_names:
             failures.append(
@@ -14266,6 +14302,11 @@ def evaluate_list_cases_output_case():
 
     if duplicate_json_payload:
         assert_runtime_metadata(duplicate_json_payload, 'json --list-cases met dubbele --case')
+        assert_list_cases_payload_stays_discoverable(duplicate_json_payload, 'json --list-cases met dubbele --case')
+        assert_list_cases_success_payload_avoids_error_fields(
+            duplicate_json_payload,
+            'json --list-cases met dubbele --case',
+        )
         if duplicate_json_payload.get('cases') != duplicate_expected_case_names:
             failures.append(
                 'json --list-cases met dubbele --case cases hoort dubbele invoer te dedupliceren'
@@ -14562,6 +14603,11 @@ def evaluate_list_cases_output_case():
 
     if unknown_list_cases_payload:
         assert_runtime_metadata(unknown_list_cases_payload, 'json --list-cases met onbekende --case')
+        assert_list_cases_payload_stays_discoverable(unknown_list_cases_payload, 'json --list-cases met onbekende --case')
+        assert_list_cases_error_payload_avoids_success_fields(
+            unknown_list_cases_payload,
+            'json --list-cases met onbekende --case',
+        )
         if unknown_list_cases_payload.get('ok') is not False:
             failures.append('json --list-cases met onbekende --case ok verwacht False')
         if unknown_list_cases_payload.get('error') != 'unknown-cases':
@@ -14662,6 +14708,11 @@ def evaluate_list_cases_output_case():
 
     if mixed_unknown_list_cases_payload:
         assert_runtime_metadata(mixed_unknown_list_cases_payload, 'json --list-cases met gemengde geldige/onbekende --case')
+        assert_list_cases_payload_stays_discoverable(mixed_unknown_list_cases_payload, 'json --list-cases met gemengde geldige/onbekende --case')
+        assert_list_cases_error_payload_avoids_success_fields(
+            mixed_unknown_list_cases_payload,
+            'json --list-cases met gemengde geldige/onbekende --case',
+        )
         if mixed_unknown_list_cases_payload.get('requested_case_names') != [expected_mixed_valid_case_name, unknown_case_name]:
             failures.append(
                 'json --list-cases met gemengde geldige/onbekende --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
@@ -14769,6 +14820,14 @@ def evaluate_list_cases_output_case():
             duplicate_mixed_list_cases_payload,
             'json --list-cases met dubbele gemengde geldige/onbekende --case',
         )
+        assert_list_cases_payload_stays_discoverable(
+            duplicate_mixed_list_cases_payload,
+            'json --list-cases met dubbele gemengde geldige/onbekende --case',
+        )
+        assert_list_cases_error_payload_avoids_success_fields(
+            duplicate_mixed_list_cases_payload,
+            'json --list-cases met dubbele gemengde geldige/onbekende --case',
+        )
         if duplicate_mixed_list_cases_payload.get('requested_case_names') != [expected_mixed_valid_case_name, unknown_case_name]:
             failures.append(
                 'json --list-cases met dubbele gemengde geldige/onbekende --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
@@ -14865,6 +14924,14 @@ def evaluate_list_cases_output_case():
 
     if suggested_list_cases_json_payload:
         assert_runtime_metadata(
+            suggested_list_cases_json_payload,
+            'json --list-cases met onbekende typofout-case',
+        )
+        assert_list_cases_payload_stays_discoverable(
+            suggested_list_cases_json_payload,
+            'json --list-cases met onbekende typofout-case',
+        )
+        assert_list_cases_error_payload_avoids_success_fields(
             suggested_list_cases_json_payload,
             'json --list-cases met onbekende typofout-case',
         )
