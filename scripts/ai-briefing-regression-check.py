@@ -11207,6 +11207,38 @@ def evaluate_watchdog_alert_eventlog_preset_append_case():
                     failures.append(
                         f'watchdog-alert eventlog-jsonl preset no_reply run {index} verwacht True, kreeg {payload.get("no_reply")}'
                     )
+                if payload.get('consumer_requested_output_count') != 1:
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset consumer_requested_output_count run {index} verwacht 1, kreeg {payload.get("consumer_requested_output_count")}'
+                    )
+                if payload.get('consumer_requested_output_channel_count') != 1:
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset consumer_requested_output_channel_count run {index} verwacht 1, kreeg {payload.get("consumer_requested_output_channel_count")}'
+                    )
+                if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset consumer_requested_output_count_text run {index} verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg {payload.get("consumer_requested_output_count_text")}'
+                    )
+                if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset consumer_requested_output_channel_count_text run {index} verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg {payload.get("consumer_requested_output_channel_count_text")}'
+                    )
+                if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset consumer_requested_output_channels_text run {index} verwacht consumer-output-aanvraag-kanalen: consumer-out, kreeg {payload.get("consumer_requested_output_channels_text")}'
+                    )
+                if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset consumer_requested_outputs_status_kind run {index} verwacht requested, kreeg {payload.get("consumer_requested_outputs_status_kind")}'
+                    )
+                if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 1 artifact(s)':
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset consumer_requested_outputs_status_text run {index} verwacht consumer-output-aanvraag vastgelegd voor 1 artifact(s), kreeg {payload.get("consumer_requested_outputs_status_text")}'
+                    )
+                if payload.get('consumer_requested_outputs_text') != f'consumer-artifacts: consumer-out: {eventlog_path}':
+                    failures.append(
+                        f'watchdog-alert eventlog-jsonl preset consumer_requested_outputs_text run {index} verwacht consumer-artifacts: consumer-out: {eventlog_path}, kreeg {payload.get("consumer_requested_outputs_text")}'
+                    )
                 requested_outputs = payload.get('consumer_requested_outputs') or []
                 if len(requested_outputs) != 1:
                     failures.append(
@@ -11306,6 +11338,30 @@ def evaluate_watchdog_eventlog_preset_append_case():
                 if payload.get('consumer_requested_output_channel_count') != 1:
                     failures.append(
                         f'watchdog eventlog-jsonl preset consumer_requested_output_channel_count run {index} verwacht 1, kreeg {payload.get("consumer_requested_output_channel_count")}'
+                    )
+                if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+                    failures.append(
+                        f'watchdog eventlog-jsonl preset consumer_requested_output_count_text run {index} verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg {payload.get("consumer_requested_output_count_text")}'
+                    )
+                if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+                    failures.append(
+                        f'watchdog eventlog-jsonl preset consumer_requested_output_channel_count_text run {index} verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg {payload.get("consumer_requested_output_channel_count_text")}'
+                    )
+                if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
+                    failures.append(
+                        f'watchdog eventlog-jsonl preset consumer_requested_output_channels_text run {index} verwacht consumer-output-aanvraag-kanalen: consumer-out, kreeg {payload.get("consumer_requested_output_channels_text")}'
+                    )
+                if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                    failures.append(
+                        f'watchdog eventlog-jsonl preset consumer_requested_outputs_status_kind run {index} verwacht requested, kreeg {payload.get("consumer_requested_outputs_status_kind")}'
+                    )
+                if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 1 artifact(s)':
+                    failures.append(
+                        f'watchdog eventlog-jsonl preset consumer_requested_outputs_status_text run {index} verwacht consumer-output-aanvraag vastgelegd voor 1 artifact(s), kreeg {payload.get("consumer_requested_outputs_status_text")}'
+                    )
+                if payload.get('consumer_requested_outputs_text') != f'consumer-artifacts: consumer-out: {eventlog_path}':
+                    failures.append(
+                        f'watchdog eventlog-jsonl preset consumer_requested_outputs_text run {index} verwacht consumer-artifacts: consumer-out: {eventlog_path}, kreeg {payload.get("consumer_requested_outputs_text")}'
                     )
                 requested_outputs = payload.get('consumer_requested_outputs') or []
                 if len(requested_outputs) != 1:
