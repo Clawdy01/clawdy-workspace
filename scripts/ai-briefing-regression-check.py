@@ -14583,6 +14583,19 @@ def build_named_case_runners(module, producer_module):
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-append'] = evaluate_watchdog_alert_board_suite_bundle_append_case
+    named_cases['watchdog-alert-consumer-sweep-all-routes'] = (
+        lambda: evaluate_case_batch(
+            name='watchdog-alert-consumer-sweep-all-routes',
+            case_names=[
+                'watchdog-alert-eventlog-preset-append',
+                'watchdog-alert-board-json-preset-board-only',
+                'watchdog-alert-board-text-preset-board-only',
+                'watchdog-alert-board-pair-bundle-board-only',
+                'watchdog-alert-board-suite-bundle-append',
+            ],
+            named_cases=named_cases,
+        )
+    )
     named_cases['watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline'] = (
         lambda: evaluate_case_batch(
             name='watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
@@ -14623,6 +14636,18 @@ def build_named_case_runners(module, producer_module):
             case_names=[
                 'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
                 'watchdog-alert-eventlog-preset-proof-target-check-unsuppressed-after-deadline',
+            ],
+            named_cases=named_cases,
+        )
+    )
+    named_cases['watchdog-all-routes-full-sweep'] = (
+        lambda: evaluate_case_batch(
+            name='watchdog-all-routes-full-sweep',
+            case_names=[
+                'watchdog-consumer-sweep-all-routes',
+                'watchdog-alert-consumer-sweep-all-routes',
+                'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
+                'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
             ],
             named_cases=named_cases,
         )
