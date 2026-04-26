@@ -79,7 +79,7 @@ def emit_unknown_case_error(
         if case_name in available_case_names
     ]
     suggested_case_names_by_input = {
-        case_name: get_close_matches(case_name, available_case_names, n=3, cutoff=0.45)
+        case_name: get_close_matches(case_name, available_case_names, n=3, cutoff=0.55)
         for case_name in unique_unknown_cases
     }
     if as_json:
@@ -13931,6 +13931,12 @@ def evaluate_list_cases_output_case():
     filtered_case_names = [
         'watchdog-alert-consumer-format-passthrough',
         'watchdog-consumer-format-passthrough',
+        'watchdog-consumer-format-passthrough-all-routes',
+        'watchdog-consumer-sweep-all-routes',
+        'watchdog-alert-consumer-sweep-all-routes',
+        'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
+        'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
+        'watchdog-all-routes-full-sweep',
     ]
     unknown_case_name = 'definitely-not-a-real-regression-case'
     suggested_unknown_case_name = 'regression-check-list-case-output'
@@ -14069,10 +14075,15 @@ def evaluate_list_cases_output_case():
                 'json --list-cases available_case_count hoort ook bij succes exact de volledige caseteller te geven'
             )
 
+    filtered_case_args = [
+        arg
+        for case_name in filtered_case_names
+        for arg in ('--case', case_name)
+    ]
     filtered_plain_proc = subprocess.run(
         [
             'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
-            '--case', filtered_case_names[0], '--case', filtered_case_names[1],
+            *filtered_case_args,
         ],
         cwd=ROOT,
         capture_output=True,
@@ -14094,7 +14105,7 @@ def evaluate_list_cases_output_case():
     filtered_json_proc = subprocess.run(
         [
             'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
-            '--case', filtered_case_names[0], '--case', filtered_case_names[1],
+            *filtered_case_args,
         ],
         cwd=ROOT,
         capture_output=True,
@@ -14164,19 +14175,19 @@ def evaluate_list_cases_output_case():
                 'json --list-cases met --case available_case_count hoort ook bij succes exact de volledige caseteller te geven'
             )
 
-    duplicate_filtered_case_names = [
-        filtered_case_names[0],
-        filtered_case_names[1],
-        filtered_case_names[0],
+    duplicate_filtered_case_names = filtered_case_names + [filtered_case_names[0]]
+    duplicate_filtered_case_args = [
+        arg
+        for case_name in duplicate_filtered_case_names
+        for arg in ('--case', case_name)
     ]
+    duplicate_unique_case_names = filtered_case_names
     duplicate_expected_case_names = sorted_filtered_case_names
 
     duplicate_plain_proc = subprocess.run(
         [
             'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
-            '--case', duplicate_filtered_case_names[0],
-            '--case', duplicate_filtered_case_names[1],
-            '--case', duplicate_filtered_case_names[2],
+            *duplicate_filtered_case_args,
         ],
         cwd=ROOT,
         capture_output=True,
@@ -14198,9 +14209,7 @@ def evaluate_list_cases_output_case():
     duplicate_json_proc = subprocess.run(
         [
             'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
-            '--case', duplicate_filtered_case_names[0],
-            '--case', duplicate_filtered_case_names[1],
-            '--case', duplicate_filtered_case_names[2],
+            *duplicate_filtered_case_args,
         ],
         cwd=ROOT,
         capture_output=True,
@@ -14233,14 +14242,14 @@ def evaluate_list_cases_output_case():
             failures.append(
                 'json --list-cases met dubbele --case cases hoort dubbele invoer te dedupliceren'
             )
-        if duplicate_json_payload.get('requested_case_names') != duplicate_expected_case_names:
+        if duplicate_json_payload.get('requested_case_names') != duplicate_unique_case_names:
             failures.append(
-                'json --list-cases met dubbele --case requested_case_names hoort dubbele invoer te dedupliceren'
+                'json --list-cases met dubbele --case requested_case_names hoort dubbele invoer naar unieke invoervolgorde te dedupliceren'
             )
-        if duplicate_json_payload.get('requested_case_count') != len(duplicate_expected_case_names):
+        if duplicate_json_payload.get('requested_case_count') != len(duplicate_unique_case_names):
             failures.append(
                 'json --list-cases met dubbele --case requested_case_count verwacht '
-                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_json_payload.get('requested_case_count')}"
+                f"{len(duplicate_unique_case_names)}, kreeg {duplicate_json_payload.get('requested_case_count')}"
             )
         if duplicate_json_payload.get('selected_case_names') != duplicate_expected_case_names:
             failures.append(
@@ -14272,9 +14281,7 @@ def evaluate_list_cases_output_case():
     duplicate_run_proc = subprocess.run(
         [
             'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
-            '--case', duplicate_filtered_case_names[0],
-            '--case', duplicate_filtered_case_names[1],
-            '--case', duplicate_filtered_case_names[2],
+            *duplicate_filtered_case_args,
         ],
         cwd=ROOT,
         capture_output=True,
@@ -14303,33 +14310,33 @@ def evaluate_list_cases_output_case():
 
     if duplicate_run_payload:
         assert_runtime_metadata(duplicate_run_payload, 'json regressierun met dubbele --case')
-        if duplicate_run_payload.get('requested_case_names') != duplicate_expected_case_names:
+        if duplicate_run_payload.get('requested_case_names') != duplicate_unique_case_names:
             failures.append(
                 'json regressierun met dubbele --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
             )
-        if duplicate_run_payload.get('requested_case_count') != len(duplicate_expected_case_names):
+        if duplicate_run_payload.get('requested_case_count') != len(duplicate_unique_case_names):
             failures.append(
                 'json regressierun met dubbele --case requested_case_count verwacht '
-                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_run_payload.get('requested_case_count')}"
+                f"{len(duplicate_unique_case_names)}, kreeg {duplicate_run_payload.get('requested_case_count')}"
             )
-        if duplicate_run_payload.get('case_count') != len(duplicate_expected_case_names):
+        if duplicate_run_payload.get('case_count') != len(duplicate_unique_case_names):
             failures.append(
                 'json regressierun met dubbele --case case_count verwacht '
-                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_run_payload.get('case_count')}"
+                f"{len(duplicate_unique_case_names)}, kreeg {duplicate_run_payload.get('case_count')}"
             )
         result_names = [result.get('name') for result in duplicate_run_payload.get('cases') or []]
-        if len(result_names) != len(duplicate_expected_case_names) or len(result_names) != len(set(result_names)):
+        if len(result_names) != len(duplicate_unique_case_names) or len(result_names) != len(set(result_names)):
             failures.append(
                 'json regressierun met dubbele --case hoort elke case hooguit één keer uit te voeren'
             )
-        if duplicate_run_payload.get('selected_case_names') != duplicate_expected_case_names:
+        if duplicate_run_payload.get('selected_case_names') != duplicate_unique_case_names:
             failures.append(
                 'json regressierun met dubbele --case selected_case_names hoort de unieke invoervolgorde te spiegelen'
             )
-        if duplicate_run_payload.get('selected_case_count') != len(duplicate_expected_case_names):
+        if duplicate_run_payload.get('selected_case_count') != len(duplicate_unique_case_names):
             failures.append(
                 'json regressierun met dubbele --case selected_case_count verwacht '
-                f"{len(duplicate_expected_case_names)}, kreeg {duplicate_run_payload.get('selected_case_count')}"
+                f"{len(duplicate_unique_case_names)}, kreeg {duplicate_run_payload.get('selected_case_count')}"
             )
         if duplicate_run_payload.get('failed_count') != 0 or duplicate_run_payload.get('ok') is not True:
             failures.append('json regressierun met dubbele --case hoort groen te blijven voor dezelfde unieke subset')
