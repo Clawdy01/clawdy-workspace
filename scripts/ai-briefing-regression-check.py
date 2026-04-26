@@ -9642,6 +9642,76 @@ def evaluate_watchdog_alert_case(case):
         board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
         board_text_path = consumer_root / 'ai-briefing-watchdog-alert.txt'
         eventlog_path = consumer_root / 'ai-briefing-watchdog-alert.jsonl'
+        expected_requested_outputs = [
+            {
+                'channel': 'board-json',
+                'path': str(board_json_path),
+                'format': 'json',
+                'append': False,
+            },
+            {
+                'channel': 'board-text',
+                'path': str(board_text_path),
+                'format': 'text',
+                'append': False,
+            },
+            {
+                'channel': 'eventlog-jsonl',
+                'path': str(eventlog_path),
+                'format': 'jsonl',
+                'append': True,
+            },
+        ]
+        if (payload.get('consumer_requested_outputs') or []) != expected_requested_outputs:
+            failures.append(
+                'stdout-json consumer_requested_outputs verwacht exacte board-suite metadata, kreeg '
+                f"{payload.get('consumer_requested_outputs')} versus {expected_requested_outputs}"
+            )
+        if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl':
+            failures.append(
+                'stdout-json consumer_requested_output_channels_text verwacht consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl, kreeg '
+                f"{payload.get('consumer_requested_output_channels_text')}"
+            )
+        if payload.get('consumer_requested_output_count') != 3:
+            failures.append(
+                'stdout-json consumer_requested_output_count verwacht 3, kreeg '
+                f"{payload.get('consumer_requested_output_count')}"
+            )
+        if payload.get('consumer_requested_output_channel_count') != 3:
+            failures.append(
+                'stdout-json consumer_requested_output_channel_count verwacht 3, kreeg '
+                f"{payload.get('consumer_requested_output_channel_count')}"
+            )
+        if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=3, kanalen=3':
+            failures.append(
+                'stdout-json consumer_requested_output_count_text verwacht consumer-output-aanvraag gevraagd=3, kanalen=3, kreeg '
+                f"{payload.get('consumer_requested_output_count_text')}"
+            )
+        if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3':
+            failures.append(
+                'stdout-json consumer_requested_output_channel_count_text verwacht consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3, kreeg '
+                f"{payload.get('consumer_requested_output_channel_count_text')}"
+            )
+        if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+            failures.append(
+                'stdout-json consumer_requested_outputs_status_kind verwacht requested, kreeg '
+                f"{payload.get('consumer_requested_outputs_status_kind')}"
+            )
+        if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 3 artifact(s)':
+            failures.append(
+                'stdout-json consumer_requested_outputs_status_text verwacht consumer-output-aanvraag vastgelegd voor 3 artifact(s), kreeg '
+                f"{payload.get('consumer_requested_outputs_status_text')}"
+            )
+        expected_requested_outputs_text = (
+            f'consumer-artifacts: board-json: {board_json_path}; '
+            f'board-text: {board_text_path}; '
+            f'eventlog-jsonl: {eventlog_path}'
+        )
+        if payload.get('consumer_requested_outputs_text') != expected_requested_outputs_text:
+            failures.append(
+                'stdout-json consumer_requested_outputs_text verwacht '
+                f'{expected_requested_outputs_text}, kreeg {payload.get("consumer_requested_outputs_text")}'
+            )
         if not board_json_path.exists():
             failures.append(f'consumer board-json ontbreekt: {board_json_path}')
         else:
@@ -13685,6 +13755,26 @@ def build_registry_case_result(*, name: str, failures: list[str], audit_bits: li
     }
 
 
+def evaluate_case_batch(*, name: str, case_names: list[str], named_cases: dict[str, callable]) -> dict:
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    for case_name in case_names:
+        result = named_cases[case_name]()
+        if result.get('ok'):
+            audit_bits.append(f'{case_name}: ok')
+            continue
+        case_failures = result.get('failures') or ['onbekende fout zonder failure-tekst']
+        failures.extend([f'{case_name}: {failure}' for failure in case_failures])
+        audit_bits.append(f'{case_name}: FAIL ({len(case_failures)})')
+
+    return build_registry_case_result(
+        name=name,
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 LOWERCASE_ENCODED_EQUALS_CLUSTER_BASES = [
     'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-upper-hex-lowercase-encoded-equals',
     'bronnenlijst-encoded-semicolon-tracking-query-mixedcase-hex-leading-char-encoded-key-lowercase-encoded-equals',
@@ -14480,6 +14570,30 @@ def build_named_case_runners(module, producer_module):
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-append'] = evaluate_watchdog_alert_board_suite_bundle_append_case
+    named_cases['watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline'] = (
+        lambda: evaluate_case_batch(
+            name='watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
+            case_names=[
+                'watchdog-alert-proof-target-check-board-json-keeps-no-reply-before-deadline',
+                'watchdog-alert-proof-target-check-board-text-keeps-no-reply-before-deadline',
+                'watchdog-alert-proof-target-check-board-pair-keeps-no-reply-before-deadline',
+                'watchdog-alert-proof-target-check-board-suite-keeps-no-reply-before-deadline',
+            ],
+            named_cases=named_cases,
+        )
+    )
+    named_cases['watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline'] = (
+        lambda: evaluate_case_batch(
+            name='watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
+            case_names=[
+                'watchdog-alert-proof-target-check-board-json-unsuppresses-after-deadline',
+                'watchdog-alert-proof-target-check-board-text-unsuppresses-after-deadline',
+                'watchdog-alert-proof-target-check-board-pair-unsuppresses-after-deadline',
+                'watchdog-alert-proof-target-check-board-suite-unsuppresses-after-deadline',
+            ],
+            named_cases=named_cases,
+        )
+    )
     return named_cases
 
 
