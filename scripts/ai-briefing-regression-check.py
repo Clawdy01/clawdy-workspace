@@ -5435,6 +5435,54 @@ WATCHDOG_ALERT_CASES = [
         ],
         'consumer_bundle': 'board-suite',
     },
+    {
+        'name': 'watchdog-alert-proof-target-check-board-pair-unsuppresses-after-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_AFTER_PROOF_DEADLINE,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': False,
+        'expect_suppressed_before_proof_deadline': False,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'kwalificatie-slots',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+        'consumer_bundle': 'board-pair',
+    },
+    {
+        'name': 'watchdog-alert-proof-target-check-board-json-unsuppresses-after-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_AFTER_PROOF_DEADLINE,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': False,
+        'expect_suppressed_before_proof_deadline': False,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'kwalificatie-slots',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+        'consumer_preset': 'board-json',
+    },
+    {
+        'name': 'watchdog-alert-proof-target-check-board-text-unsuppresses-after-deadline',
+        'mode': 'proof-target-check',
+        'reference_ms': REFERENCE_MS_AFTER_PROOF_DEADLINE,
+        'expect_require_qualified_runs': 3,
+        'expect_no_reply': False,
+        'expect_suppressed_before_proof_deadline': False,
+        'expect_proof_state': 'recheck-window-open',
+        'expect_proof_next_action_kind': 'recheck-now',
+        'expect_text_substrings': [
+            'proof-recheck-cronstatus: ok',
+            'kwalificatie-slots',
+            'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+        ],
+        'consumer_preset': 'board-text',
+    },
 ]
 
 WATCHDOG_PRODUCER_CASES = [
@@ -12310,6 +12358,38 @@ def evaluate_watchdog_alert_eventlog_preset_proof_target_check_before_deadline_c
                             f'watchdog-alert eventlog-jsonl preset vóór deadline proof_state run {index} verwacht waiting-next-scheduled-run-tomorrow, kreeg {payload.get("proof_state")}'
                         )
                     requested_outputs = payload.get('consumer_requested_outputs') or []
+                    if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset vóór deadline kanalen run {index} verwacht consumer-output-aanvraag-kanalen: consumer-out, kreeg {payload.get("consumer_requested_output_channels_text")}'
+                        )
+                    if payload.get('consumer_requested_output_count') != 1:
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset vóór deadline output_count run {index} verwacht 1, kreeg {payload.get("consumer_requested_output_count")}'
+                        )
+                    if payload.get('consumer_requested_output_channel_count') != 1:
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset vóór deadline output_channel_count run {index} verwacht 1, kreeg {payload.get("consumer_requested_output_channel_count")}'
+                        )
+                    if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset vóór deadline output_count_text run {index} verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg {payload.get("consumer_requested_output_count_text")}'
+                        )
+                    if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset vóór deadline output_channel_count_text run {index} verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg {payload.get("consumer_requested_output_channel_count_text")}'
+                        )
+                    if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset vóór deadline status_kind run {index} verwacht requested, kreeg {payload.get("consumer_requested_outputs_status_kind")}'
+                        )
+                    if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 1 artifact(s)':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset vóór deadline status_text run {index} verwacht consumer-output-aanvraag vastgelegd voor 1 artifact(s), kreeg {payload.get("consumer_requested_outputs_status_text")}'
+                        )
+                    if payload.get('consumer_requested_outputs_text') != f'consumer-artifacts: consumer-out: {eventlog_path}':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset vóór deadline outputs_text run {index} verwacht consumer-artifacts: consumer-out: {eventlog_path}, kreeg {payload.get("consumer_requested_outputs_text")}'
+                        )
                     if len(requested_outputs) != 1:
                         failures.append(
                             f'watchdog-alert eventlog-jsonl preset vóór deadline consumer_requested_outputs run {index} verwacht 1 item, kreeg {len(requested_outputs)}'
@@ -12432,6 +12512,38 @@ def evaluate_watchdog_alert_eventlog_preset_proof_target_check_unsuppressed_afte
                             f'watchdog-alert eventlog-jsonl preset na deadline proof_state run {index} verwacht recheck-window-open, kreeg {payload.get("proof_state")}'
                         )
                     requested_outputs = payload.get('consumer_requested_outputs') or []
+                    if payload.get('consumer_requested_output_channels_text') != 'consumer-output-aanvraag-kanalen: consumer-out':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset na deadline kanalen run {index} verwacht consumer-output-aanvraag-kanalen: consumer-out, kreeg {payload.get("consumer_requested_output_channels_text")}'
+                        )
+                    if payload.get('consumer_requested_output_count') != 1:
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset na deadline output_count run {index} verwacht 1, kreeg {payload.get("consumer_requested_output_count")}'
+                        )
+                    if payload.get('consumer_requested_output_channel_count') != 1:
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset na deadline output_channel_count run {index} verwacht 1, kreeg {payload.get("consumer_requested_output_channel_count")}'
+                        )
+                    if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=1, kanalen=1':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset na deadline output_count_text run {index} verwacht consumer-output-aanvraag gevraagd=1, kanalen=1, kreeg {payload.get("consumer_requested_output_count_text")}'
+                        )
+                    if payload.get('consumer_requested_output_channel_count_text') != 'consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset na deadline output_channel_count_text run {index} verwacht consumer-output-aanvraag-kanalen gevraagd=1, kanalen=1, kreeg {payload.get("consumer_requested_output_channel_count_text")}'
+                        )
+                    if payload.get('consumer_requested_outputs_status_kind') != 'requested':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset na deadline status_kind run {index} verwacht requested, kreeg {payload.get("consumer_requested_outputs_status_kind")}'
+                        )
+                    if payload.get('consumer_requested_outputs_status_text') != 'consumer-output-aanvraag vastgelegd voor 1 artifact(s)':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset na deadline status_text run {index} verwacht consumer-output-aanvraag vastgelegd voor 1 artifact(s), kreeg {payload.get("consumer_requested_outputs_status_text")}'
+                        )
+                    if payload.get('consumer_requested_outputs_text') != f'consumer-artifacts: consumer-out: {eventlog_path}':
+                        failures.append(
+                            f'watchdog-alert eventlog-jsonl preset na deadline outputs_text run {index} verwacht consumer-artifacts: consumer-out: {eventlog_path}, kreeg {payload.get("consumer_requested_outputs_text")}'
+                        )
                     if len(requested_outputs) != 1:
                         failures.append(
                             f'watchdog-alert eventlog-jsonl preset na deadline consumer_requested_outputs run {index} verwacht 1 item, kreeg {len(requested_outputs)}'
