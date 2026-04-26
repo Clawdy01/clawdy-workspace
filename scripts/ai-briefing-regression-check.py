@@ -11401,6 +11401,26 @@ def evaluate_watchdog_alert_board_suite_bundle_append_case():
                     failures.append(
                         f'watchdog-alert board-suite board-json alert_text verwacht NO_REPLY, kreeg {board_payload.get("alert_text")}'
                     )
+                if board_payload.get('no_reply') is not True:
+                    failures.append(
+                        'watchdog-alert board-suite board-json no_reply verwacht True, kreeg '
+                        f'{board_payload.get("no_reply")}'
+                    )
+                if board_payload.get('suppressed_before_proof_deadline') is not True:
+                    failures.append(
+                        'watchdog-alert board-suite board-json suppressed_before_proof_deadline verwacht True, kreeg '
+                        f'{board_payload.get("suppressed_before_proof_deadline")}'
+                    )
+                if board_payload.get('proof_target_check_gate') != 'suppressed-until-deadline':
+                    failures.append(
+                        'watchdog-alert board-suite board-json proof_target_check_gate verwacht suppressed-until-deadline, kreeg '
+                        f'{board_payload.get("proof_target_check_gate")}'
+                    )
+                if board_payload.get('proof_state') != 'waiting-next-scheduled-run-tomorrow':
+                    failures.append(
+                        'watchdog-alert board-suite board-json proof_state verwacht waiting-next-scheduled-run-tomorrow, kreeg '
+                        f'{board_payload.get("proof_state")}'
+                    )
                 requested_outputs = board_payload.get('consumer_requested_outputs') or []
                 if len(requested_outputs) != 3:
                     failures.append(
@@ -11433,6 +11453,22 @@ def evaluate_watchdog_alert_board_suite_bundle_append_case():
                     if payload.get('alert_text') != 'NO_REPLY':
                         failures.append(
                             f'watchdog-alert board-suite eventlog-jsonl run {index} alert_text verwacht NO_REPLY, kreeg {payload.get("alert_text")}'
+                        )
+                    if payload.get('no_reply') is not True:
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} no_reply verwacht True, kreeg {payload.get("no_reply")}'
+                        )
+                    if payload.get('suppressed_before_proof_deadline') is not True:
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} suppressed_before_proof_deadline verwacht True, kreeg {payload.get("suppressed_before_proof_deadline")}'
+                        )
+                    if payload.get('proof_target_check_gate') != 'suppressed-until-deadline':
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} proof_target_check_gate verwacht suppressed-until-deadline, kreeg {payload.get("proof_target_check_gate")}'
+                        )
+                    if payload.get('proof_state') != 'waiting-next-scheduled-run-tomorrow':
+                        failures.append(
+                            f'watchdog-alert board-suite eventlog-jsonl run {index} proof_state verwacht waiting-next-scheduled-run-tomorrow, kreeg {payload.get("proof_state")}'
                         )
                     requested_outputs = payload.get('consumer_requested_outputs') or []
                     if len(requested_outputs) != 3:
@@ -11489,6 +11525,26 @@ def evaluate_watchdog_alert_board_pair_bundle_case():
                 if board_payload.get('alert_text') != 'NO_REPLY':
                     failures.append(
                         f'watchdog-alert board-pair board-json alert_text verwacht NO_REPLY, kreeg {board_payload.get("alert_text")}'
+                    )
+                if board_payload.get('no_reply') is not True:
+                    failures.append(
+                        'watchdog-alert board-pair board-json no_reply verwacht True, kreeg '
+                        f'{board_payload.get("no_reply")}'
+                    )
+                if board_payload.get('suppressed_before_proof_deadline') is not True:
+                    failures.append(
+                        'watchdog-alert board-pair board-json suppressed_before_proof_deadline verwacht True, kreeg '
+                        f'{board_payload.get("suppressed_before_proof_deadline")}'
+                    )
+                if board_payload.get('proof_target_check_gate') != 'suppressed-until-deadline':
+                    failures.append(
+                        'watchdog-alert board-pair board-json proof_target_check_gate verwacht suppressed-until-deadline, kreeg '
+                        f'{board_payload.get("proof_target_check_gate")}'
+                    )
+                if board_payload.get('proof_state') != 'waiting-next-scheduled-run-tomorrow':
+                    failures.append(
+                        'watchdog-alert board-pair board-json proof_state verwacht waiting-next-scheduled-run-tomorrow, kreeg '
+                        f'{board_payload.get("proof_state")}'
                     )
                 requested_outputs = board_payload.get('consumer_requested_outputs') or []
                 if len(requested_outputs) != 2:
@@ -11805,6 +11861,26 @@ def evaluate_watchdog_alert_board_json_preset_case():
                     failures.append(
                         f'watchdog-alert board-json preset alert_text verwacht NO_REPLY, kreeg {payload.get("alert_text")}'
                     )
+                if payload.get('no_reply') is not True:
+                    failures.append(
+                        'watchdog-alert board-json preset no_reply verwacht True, kreeg '
+                        f'{payload.get("no_reply")}'
+                    )
+                if payload.get('suppressed_before_proof_deadline') is not True:
+                    failures.append(
+                        'watchdog-alert board-json preset suppressed_before_proof_deadline verwacht True, kreeg '
+                        f'{payload.get("suppressed_before_proof_deadline")}'
+                    )
+                if payload.get('proof_target_check_gate') != 'suppressed-until-deadline':
+                    failures.append(
+                        'watchdog-alert board-json preset proof_target_check_gate verwacht suppressed-until-deadline, kreeg '
+                        f'{payload.get("proof_target_check_gate")}'
+                    )
+                if payload.get('proof_state') != 'waiting-next-scheduled-run-tomorrow':
+                    failures.append(
+                        'watchdog-alert board-json preset proof_state verwacht waiting-next-scheduled-run-tomorrow, kreeg '
+                        f'{payload.get("proof_state")}'
+                    )
                 requested_outputs = payload.get('consumer_requested_outputs') or []
                 if len(requested_outputs) != 1:
                     failures.append(
@@ -11913,6 +11989,11 @@ def evaluate_watchdog_alert_board_json_preset_unsuppressed_after_deadline_case()
                     failures.append(
                         'watchdog-alert board-json preset na deadline proof_target_check_gate verwacht deadline-reached, kreeg '
                         f'{payload.get("proof_target_check_gate")}'
+                    )
+                if payload.get('proof_state') != 'recheck-window-open':
+                    failures.append(
+                        'watchdog-alert board-json preset na deadline proof_state verwacht recheck-window-open, kreeg '
+                        f'{payload.get("proof_state")}'
                     )
                 requested_outputs = payload.get('consumer_requested_outputs') or []
                 if len(requested_outputs) != 1:
