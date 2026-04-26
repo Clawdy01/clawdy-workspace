@@ -13995,6 +13995,21 @@ def evaluate_list_cases_output_case():
                     f'{label} duration_text hoort exact {expected_duration_text} te spiegelen, kreeg {duration_text}'
                 )
 
+    def strip_runtime_metadata(payload: dict) -> dict:
+        return {
+            key: value
+            for key, value in payload.items()
+            if key not in {
+                'generated_at',
+                'generated_at_text',
+                'started_at',
+                'started_at_text',
+                'duration_ms',
+                'duration_seconds',
+                'duration_text',
+            }
+        }
+
     plain_proc = subprocess.run(
         ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases'],
         cwd=ROOT,
@@ -14541,6 +14556,12 @@ def evaluate_list_cases_output_case():
                 'json --list-cases met onbekende --case zonder typofout hoort geen suggesties te geven'
             )
 
+    if unknown_list_cases_payload and unknown_json_payload:
+        if strip_runtime_metadata(unknown_list_cases_payload) != strip_runtime_metadata(unknown_json_payload):
+            failures.append(
+                'json --list-cases met onbekende --case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
+            )
+
     mixed_unknown_list_cases_plain_proc = subprocess.run(
         [
             'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
@@ -14646,6 +14667,47 @@ def evaluate_list_cases_output_case():
     if expected_suggested_case_name not in suggested_list_cases_stderr:
         failures.append('plain --list-cases met onbekende typofout-case hoort een suggestie op stderr te geven')
 
+    suggested_list_cases_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
+            '--case', suggested_unknown_case_name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if suggested_list_cases_json_proc.returncode != 2:
+        failures.append(
+            'json --list-cases met onbekende typofout-case exitcode verwacht 2, kreeg '
+            f'{suggested_list_cases_json_proc.returncode}'
+        )
+
+    suggested_list_cases_json_payload = {}
+    suggested_list_cases_json_stdout = (
+        suggested_list_cases_json_proc.stdout.strip() or suggested_list_cases_json_proc.stderr.strip()
+    )
+    if not suggested_list_cases_json_stdout:
+        failures.append('json --list-cases met onbekende typofout-case gaf geen output')
+    else:
+        try:
+            suggested_list_cases_json_payload = json.loads(suggested_list_cases_json_stdout)
+            audit_bits.append(
+                'unknown-list-cases-json-suggested='
+                + json.dumps(suggested_list_cases_json_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json --list-cases met onbekende typofout-case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if suggested_list_cases_json_payload:
+        assert_runtime_metadata(
+            suggested_list_cases_json_payload,
+            'json --list-cases met onbekende typofout-case',
+        )
+
     mixed_unknown_proc = subprocess.run(
         [
             'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
@@ -14722,6 +14784,12 @@ def evaluate_list_cases_output_case():
         if mixed_unknown_payload.get('available_case_count') != len(plain_lines):
             failures.append(
                 'json gemengde geldige/onbekende --case available_case_count hoort exact de volledige caseteller te geven'
+            )
+
+    if mixed_unknown_list_cases_payload and mixed_unknown_payload:
+        if strip_runtime_metadata(mixed_unknown_list_cases_payload) != strip_runtime_metadata(mixed_unknown_payload):
+            failures.append(
+                'json --list-cases met gemengde geldige/onbekende --case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
             )
 
     suggested_json_proc = subprocess.run(
@@ -14804,6 +14872,12 @@ def evaluate_list_cases_output_case():
                 failures.append(
                     'json onbekende typofout-case hoort de dichtstbijzijnde casenaam voor te stellen'
                 )
+
+    if suggested_list_cases_json_payload and suggested_json_payload:
+        if strip_runtime_metadata(suggested_list_cases_json_payload) != strip_runtime_metadata(suggested_json_payload):
+            failures.append(
+                'json --list-cases met onbekende typofout-case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
+            )
 
     return build_registry_case_result(
         name='regression-check-list-cases-output',
