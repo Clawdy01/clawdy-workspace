@@ -14411,6 +14411,25 @@ def evaluate_list_cases_output_case():
     if expected_suggested_case_name not in (suggested_plain_proc.stderr or ''):
         failures.append('plain onbekende typofout-case hoort een suggestie op stderr te geven')
 
+    unknown_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            '--case', unknown_case_name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if unknown_plain_proc.returncode != 2:
+        failures.append(
+            f'plain onbekende --case exitcode verwacht 2, kreeg {unknown_plain_proc.returncode}'
+        )
+    if unknown_plain_proc.stdout.strip():
+        failures.append('plain onbekende --case hoort geen stdout-output te geven')
+    if f'onbekende regressiecase: {unknown_case_name}' not in (unknown_plain_proc.stderr or ''):
+        failures.append('plain onbekende --case hoort een duidelijke stderr-melding te geven')
+
     unknown_json_proc = subprocess.run(
         [
             'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
@@ -14507,6 +14526,10 @@ def evaluate_list_cases_output_case():
         failures.append('plain --list-cases met onbekende --case hoort geen stdout-caselijst te geven')
     if f'onbekende regressiecase: {unknown_case_name}' not in (unknown_list_cases_plain_proc.stderr or ''):
         failures.append('plain --list-cases met onbekende --case hoort een duidelijke stderr-melding te geven')
+    if (unknown_list_cases_plain_proc.stderr or '') != (unknown_plain_proc.stderr or ''):
+        failures.append(
+            'plain --list-cases met onbekende --case hoort exact dezelfde stderr-melding te geven als een gewone run'
+        )
 
     unknown_list_cases_proc = subprocess.run(
         [
@@ -14643,17 +14666,143 @@ def evaluate_list_cases_output_case():
             failures.append(
                 'json --list-cases met gemengde geldige/onbekende --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
             )
+        if mixed_unknown_list_cases_payload.get('requested_case_count') != 2:
+            failures.append(
+                'json --list-cases met gemengde geldige/onbekende --case requested_case_count verwacht 2, kreeg '
+                f"{mixed_unknown_list_cases_payload.get('requested_case_count')}"
+            )
         if mixed_unknown_list_cases_payload.get('selected_case_names') != [expected_mixed_valid_case_name]:
             failures.append(
                 'json --list-cases met gemengde geldige/onbekende --case selected_case_names hoort de geldige subset te bewaren'
+            )
+        if mixed_unknown_list_cases_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json --list-cases met gemengde geldige/onbekende --case selected_case_count verwacht 1, kreeg '
+                f"{mixed_unknown_list_cases_payload.get('selected_case_count')}"
             )
         if mixed_unknown_list_cases_payload.get('unknown_case_names') != [unknown_case_name]:
             failures.append(
                 'json --list-cases met gemengde geldige/onbekende --case unknown_case_names hoort alleen de onbekende subset te tonen'
             )
+        if mixed_unknown_list_cases_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json --list-cases met gemengde geldige/onbekende --case unknown_case_count verwacht 1, kreeg '
+                f"{mixed_unknown_list_cases_payload.get('unknown_case_count')}"
+            )
         if mixed_unknown_list_cases_payload.get('available_case_names') != plain_lines:
             failures.append(
                 'json --list-cases met gemengde geldige/onbekende --case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if mixed_unknown_list_cases_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json --list-cases met gemengde geldige/onbekende --case available_case_count hoort exact de volledige caseteller te geven'
+            )
+
+    duplicate_mixed_case_args = [
+        '--case', expected_mixed_valid_case_name,
+        '--case', unknown_case_name,
+        '--case', expected_mixed_valid_case_name,
+        '--case', unknown_case_name,
+    ]
+    duplicate_mixed_list_cases_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
+            *duplicate_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if duplicate_mixed_list_cases_plain_proc.returncode != 2:
+        failures.append(
+            'plain --list-cases met dubbele gemengde geldige/onbekende --case exitcode verwacht 2, kreeg '
+            f'{duplicate_mixed_list_cases_plain_proc.returncode}'
+        )
+    if duplicate_mixed_list_cases_plain_proc.stdout.strip():
+        failures.append(
+            'plain --list-cases met dubbele gemengde geldige/onbekende --case hoort geen stdout-caselijst te geven'
+        )
+    duplicate_mixed_list_cases_stderr = duplicate_mixed_list_cases_plain_proc.stderr or ''
+    if duplicate_mixed_list_cases_stderr != mixed_plain_stderr:
+        failures.append(
+            'plain --list-cases met dubbele gemengde geldige/onbekende --case hoort exact dezelfde gededupliceerde stderr-melding te geven'
+        )
+
+    duplicate_mixed_list_cases_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
+            *duplicate_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if duplicate_mixed_list_cases_proc.returncode != 2:
+        failures.append(
+            'json --list-cases met dubbele gemengde geldige/onbekende --case exitcode verwacht 2, kreeg '
+            f'{duplicate_mixed_list_cases_proc.returncode}'
+        )
+
+    duplicate_mixed_list_cases_payload = {}
+    duplicate_mixed_list_cases_stdout = (
+        duplicate_mixed_list_cases_proc.stdout.strip() or duplicate_mixed_list_cases_proc.stderr.strip()
+    )
+    if not duplicate_mixed_list_cases_stdout:
+        failures.append('json --list-cases met dubbele gemengde geldige/onbekende --case gaf geen output')
+    else:
+        try:
+            duplicate_mixed_list_cases_payload = json.loads(duplicate_mixed_list_cases_stdout)
+            audit_bits.append(
+                'unknown-list-cases-mixed-duplicate-json='
+                + json.dumps(duplicate_mixed_list_cases_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if duplicate_mixed_list_cases_payload:
+        assert_runtime_metadata(
+            duplicate_mixed_list_cases_payload,
+            'json --list-cases met dubbele gemengde geldige/onbekende --case',
+        )
+        if duplicate_mixed_list_cases_payload.get('requested_case_names') != [expected_mixed_valid_case_name, unknown_case_name]:
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
+            )
+        if duplicate_mixed_list_cases_payload.get('requested_case_count') != 2:
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case requested_case_count verwacht 2, kreeg '
+                f"{duplicate_mixed_list_cases_payload.get('requested_case_count')}"
+            )
+        if duplicate_mixed_list_cases_payload.get('selected_case_names') != [expected_mixed_valid_case_name]:
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case selected_case_names hoort de geldige subset te bewaren'
+            )
+        if duplicate_mixed_list_cases_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case selected_case_count verwacht 1, kreeg '
+                f"{duplicate_mixed_list_cases_payload.get('selected_case_count')}"
+            )
+        if duplicate_mixed_list_cases_payload.get('unknown_case_names') != [unknown_case_name]:
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case unknown_case_names hoort alleen de onbekende subset te tonen'
+            )
+        if duplicate_mixed_list_cases_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case unknown_case_count verwacht 1, kreeg '
+                f"{duplicate_mixed_list_cases_payload.get('unknown_case_count')}"
+            )
+        if duplicate_mixed_list_cases_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if duplicate_mixed_list_cases_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case available_case_count hoort exact de volledige caseteller te geven'
             )
 
     suggested_list_cases_plain_proc = subprocess.run(
@@ -14718,6 +14867,35 @@ def evaluate_list_cases_output_case():
         assert_runtime_metadata(
             suggested_list_cases_json_payload,
             'json --list-cases met onbekende typofout-case',
+        )
+
+    mixed_unknown_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            '--case', expected_mixed_valid_case_name,
+            '--case', unknown_case_name,
+            '--case', expected_mixed_valid_case_name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if mixed_unknown_plain_proc.returncode != 2:
+        failures.append(
+            'plain gemengde geldige/onbekende --case exitcode verwacht 2, kreeg '
+            f'{mixed_unknown_plain_proc.returncode}'
+        )
+    if mixed_unknown_plain_proc.stdout.strip():
+        failures.append('plain gemengde geldige/onbekende --case hoort geen stdout-output te geven')
+    mixed_unknown_plain_stderr = mixed_unknown_plain_proc.stderr or ''
+    if f'geldige regressiecases in dezelfde aanvraag: {expected_mixed_valid_case_name}' not in mixed_unknown_plain_stderr:
+        failures.append('plain gemengde geldige/onbekende --case hoort de geldige subset op stderr te noemen')
+    if f'onbekende regressiecase: {unknown_case_name}' not in mixed_unknown_plain_stderr:
+        failures.append('plain gemengde geldige/onbekende --case hoort de onbekende subset op stderr te noemen')
+    if mixed_plain_stderr != mixed_unknown_plain_stderr:
+        failures.append(
+            'plain --list-cases met gemengde geldige/onbekende --case hoort exact dezelfde stderr-melding te geven als een gewone run'
         )
 
     mixed_unknown_proc = subprocess.run(
@@ -14803,6 +14981,133 @@ def evaluate_list_cases_output_case():
             failures.append(
                 'json --list-cases met gemengde geldige/onbekende --case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
             )
+
+    duplicate_mixed_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            *duplicate_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if duplicate_mixed_plain_proc.returncode != 2:
+        failures.append(
+            'plain dubbele gemengde geldige/onbekende --case exitcode verwacht 2, kreeg '
+            f'{duplicate_mixed_plain_proc.returncode}'
+        )
+    if duplicate_mixed_plain_proc.stdout.strip():
+        failures.append('plain dubbele gemengde geldige/onbekende --case hoort geen stdout-output te geven')
+    duplicate_mixed_plain_stderr = duplicate_mixed_plain_proc.stderr or ''
+    if duplicate_mixed_plain_stderr != mixed_unknown_plain_stderr:
+        failures.append(
+            'plain dubbele gemengde geldige/onbekende --case hoort exact dezelfde gededupliceerde stderr-melding te geven als de gewone gemengde run'
+        )
+    if duplicate_mixed_list_cases_stderr and duplicate_mixed_plain_stderr != duplicate_mixed_list_cases_stderr:
+        failures.append(
+            'plain --list-cases met dubbele gemengde geldige/onbekende --case hoort exact dezelfde stderr-melding te geven als een gewone run'
+        )
+
+    duplicate_mixed_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
+            *duplicate_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if duplicate_mixed_proc.returncode != 2:
+        failures.append(
+            'json dubbele gemengde geldige/onbekende --case exitcode verwacht 2, kreeg '
+            f'{duplicate_mixed_proc.returncode}'
+        )
+
+    duplicate_mixed_payload = {}
+    duplicate_mixed_stdout = duplicate_mixed_proc.stdout.strip() or duplicate_mixed_proc.stderr.strip()
+    if not duplicate_mixed_stdout:
+        failures.append('json dubbele gemengde geldige/onbekende --case gaf geen output')
+    else:
+        try:
+            duplicate_mixed_payload = json.loads(duplicate_mixed_stdout)
+            audit_bits.append('unknown-json-mixed-duplicate=' + json.dumps(duplicate_mixed_payload, ensure_ascii=False))
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json dubbele gemengde geldige/onbekende --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if duplicate_mixed_payload:
+        assert_runtime_metadata(duplicate_mixed_payload, 'json dubbele gemengde geldige/onbekende --case')
+        if duplicate_mixed_payload.get('requested_case_names') != [expected_mixed_valid_case_name, unknown_case_name]:
+            failures.append(
+                'json dubbele gemengde geldige/onbekende --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
+            )
+        if duplicate_mixed_payload.get('requested_case_count') != 2:
+            failures.append(
+                'json dubbele gemengde geldige/onbekende --case requested_case_count verwacht 2, kreeg '
+                f"{duplicate_mixed_payload.get('requested_case_count')}"
+            )
+        if duplicate_mixed_payload.get('selected_case_names') != [expected_mixed_valid_case_name]:
+            failures.append(
+                'json dubbele gemengde geldige/onbekende --case selected_case_names hoort de geldige subset te bewaren'
+            )
+        if duplicate_mixed_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json dubbele gemengde geldige/onbekende --case selected_case_count verwacht 1, kreeg '
+                f"{duplicate_mixed_payload.get('selected_case_count')}"
+            )
+        if duplicate_mixed_payload.get('unknown_case_names') != [unknown_case_name]:
+            failures.append(
+                'json dubbele gemengde geldige/onbekende --case unknown_case_names hoort alleen de onbekende subset te tonen'
+            )
+        if duplicate_mixed_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json dubbele gemengde geldige/onbekende --case unknown_case_count verwacht 1, kreeg '
+                f"{duplicate_mixed_payload.get('unknown_case_count')}"
+            )
+        if duplicate_mixed_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json dubbele gemengde geldige/onbekende --case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if duplicate_mixed_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json dubbele gemengde geldige/onbekende --case available_case_count hoort exact de volledige caseteller te geven'
+            )
+
+    if duplicate_mixed_list_cases_payload and duplicate_mixed_payload:
+        if strip_runtime_metadata(duplicate_mixed_list_cases_payload) != strip_runtime_metadata(duplicate_mixed_payload):
+            failures.append(
+                'json --list-cases met dubbele gemengde geldige/onbekende --case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
+            )
+
+    suggested_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            '--case', suggested_unknown_case_name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if suggested_plain_proc.returncode != 2:
+        failures.append(
+            f'plain onbekende typofout-case exitcode verwacht 2, kreeg {suggested_plain_proc.returncode}'
+        )
+    if suggested_plain_proc.stdout.strip():
+        failures.append('plain onbekende typofout-case hoort geen stdout-output te geven')
+    suggested_plain_stderr = suggested_plain_proc.stderr or ''
+    if f'onbekende regressiecase: {suggested_unknown_case_name}' not in suggested_plain_stderr:
+        failures.append('plain onbekende typofout-case hoort de typo op stderr te noemen')
+    if expected_suggested_case_name not in suggested_plain_stderr:
+        failures.append('plain onbekende typofout-case hoort een suggestie op stderr te geven')
+    if suggested_list_cases_stderr != suggested_plain_stderr:
+        failures.append(
+            'plain --list-cases met onbekende typofout-case hoort exact dezelfde stderr-melding te geven als een gewone run'
+        )
 
     suggested_json_proc = subprocess.run(
         [
