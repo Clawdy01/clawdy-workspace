@@ -14547,6 +14547,19 @@ def build_named_case_runners(module, producer_module):
     named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
     named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case
     named_cases['watchdog-eventlog-preset-append'] = evaluate_watchdog_eventlog_preset_append_case
+    named_cases['watchdog-consumer-sweep-all-routes'] = (
+        lambda: evaluate_case_batch(
+            name='watchdog-consumer-sweep-all-routes',
+            case_names=[
+                'watchdog-eventlog-preset-append',
+                'watchdog-board-json-preset-board-only',
+                'watchdog-board-text-preset-board-only',
+                'watchdog-board-pair-bundle-board-only',
+                'watchdog-board-suite-bundle-append',
+            ],
+            named_cases=named_cases,
+        )
+    )
     named_cases['watchdog-alert-eventlog-preset-append'] = evaluate_watchdog_alert_eventlog_preset_append_case
     named_cases['watchdog-alert-eventlog-preset-proof-target-check-suppresses-before-deadline'] = (
         evaluate_watchdog_alert_eventlog_preset_proof_target_check_before_deadline_case
@@ -14590,6 +14603,26 @@ def build_named_case_runners(module, producer_module):
                 'watchdog-alert-proof-target-check-board-text-unsuppresses-after-deadline',
                 'watchdog-alert-proof-target-check-board-pair-unsuppresses-after-deadline',
                 'watchdog-alert-proof-target-check-board-suite-unsuppresses-after-deadline',
+            ],
+            named_cases=named_cases,
+        )
+    )
+    named_cases['watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline'] = (
+        lambda: evaluate_case_batch(
+            name='watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
+            case_names=[
+                'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
+                'watchdog-alert-eventlog-preset-proof-target-check-suppresses-before-deadline',
+            ],
+            named_cases=named_cases,
+        )
+    )
+    named_cases['watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline'] = (
+        lambda: evaluate_case_batch(
+            name='watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
+            case_names=[
+                'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
+                'watchdog-alert-eventlog-preset-proof-target-check-unsuppressed-after-deadline',
             ],
             named_cases=named_cases,
         )
