@@ -14065,6 +14065,7 @@ def evaluate_list_cases_output_case():
     filtered_case_names = [
         'watchdog-alert-consumer-format-passthrough',
         'watchdog-consumer-format-passthrough',
+        *WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
         *list(WATCHDOG_BATCH_CASE_DEPENDENCIES.keys()),
     ]
     unknown_case_name = 'definitely-not-a-real-regression-case'
