@@ -1,34 +1,34 @@
-ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 11/13 runs ok, 11 afgeleverd, streak 8, laatste duur 5m 49s, laatste 24 uur geleden
+ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 12/14 runs ok, 12 afgeleverd, streak 9, laatste duur 3m 4s, laatste 24 uur geleden
 proof state: hercheckvenster is open voor het huidige kwalificatieslot (recheck-window-open)
 proof blocker: hercheckvenster is open, dus dit spoor wacht alleen nog op directe hercheck (recheck-window-open)
 reasons:
 - status not ok
-- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-26 09:05 CEST > 2026-04-26 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
-- proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-26 09:05 CEST > 2026-04-26 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: niet elk top-3 item heeft een herkenbare primaire bron (2/3): DeepSeek brengt V4 Preview uit, open weights met 1M context en sterke agentic/coding-focus; te weinig verse items in top 3 (0/3 binnen 48 uur); te weinig top-3 items met primaire bron én verse datum (0/3 binnen 48 uur): DeepSeek brengt V4 Preview uit, open weights met 1M context en sterke agentic/coding-focus, Microsoft zet Agent Mode in Word, Excel en PowerPoint nu breed live, Tencent lanceert Hy3 Preview, nieuw groot MoE-model met nadruk op reasoning, coding en agents
+- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-27 09:03 CEST > 2026-04-27 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
+- proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-27 09:03 CEST > 2026-04-27 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: te weinig top-3 items met bron-URLs uit meerdere domeinen (0/3, verwacht minstens 3): vLLM pakt tegelijk DeepSeek V4-ondersteuning en nieuwe multimodale inference-optimalisaties op, Ollama verbetert lokale MLX-inference op Apple Silicon met batching in de sampler en stabielere token-history, llama.cpp laat opnieuw zien waar lokale inference harder en robuuster wordt, met nieuwe tuning en state-fixes; te weinig unieke brondomeinen in top 3 (1); te weinig primaire bronfamilies in top 3 (1)
 - onvoldoende gekwalificeerde runs voor huidige config (0/3)
-- geen gekwalificeerde run sinds verwacht dagslot 2026-04-26 09:00 CEST
+- geen gekwalificeerde run sinds verwacht dagslot 2026-04-27 09:00 CEST
 readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan; runbewijs met aandachtspunt
-reference: referentietijd 2026-04-27 09:15 CEST
-proof config: bewijsconfig 6fb35ef24ceb, gewijzigd 2026-04-26 09:05 CEST (24 uur geleden)
-last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-04-26 09:05 CEST nog op eerste run
+reference: referentietijd 2026-04-28 09:15 CEST
+proof config: bewijsconfig 6fb35ef24ceb, gewijzigd 2026-04-27 09:03 CEST (24 uur geleden)
+last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-04-27 09:03 CEST nog op eerste run
 proof recheck schedule kind: proof-recheck-cronstatus: ok
 proof recheck schedule: proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)
 proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan
 proof requirement: 0/3 gekwalificeerde runs
 proof remaining: nog 3 te gaan
-next run: 2026-04-27 09:00 CEST
-proof target due: 2026-04-29 09:15 CEST
-proof target due if next slot missed: 2026-04-30 09:15 CEST
-proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-04-27 09:00 CEST (nu), doel 2026-04-29 09:15 CEST
-proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-26 09:05 CEST > 2026-04-26 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
+next run: 2026-04-28 09:00 CEST
+proof target due: 2026-04-30 09:15 CEST
+proof target due if next slot missed: 2026-05-01 09:15 CEST
+proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-04-28 09:00 CEST (nu), doel 2026-04-30 09:15 CEST
+proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-27 09:03 CEST > 2026-04-27 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
 proof next action window: hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw
 proof recheck commands: daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3
-proof recheck: hercheck niet vóór 2026-04-27 09:15 CEST (nu)
-proof schedule risk: als slot 2026-04-27 09:00 CEST mist, schuift bewijsdoel naar 2026-04-30 09:15 CEST
-next qualifying run: 2026-04-27 09:00 CEST (nu) [T-0.2u] [vandaag]
-proof countdown: bewijsdoel 2026-04-29 09:15 CEST (over 2 d); mist volgend slot => 2026-04-30 09:15 CEST (slip +24u)
-proof target check gate: proof-target-check blijft stil tot 2026-04-29 09:15 CEST (over 2 d) (suppressed-until-deadline)
-qualifying run slots: 2026-04-27 09:00 CEST (nu | vandaag), 2026-04-28 09:00 CEST (over 23u 45m | morgen), 2026-04-29 09:00 CEST (over 1 d 23 u | over 2 d)
-last run timeout audit: laatste run had 6m 10s timeout-speling (5m 49s op limiet 12m 0s)
-recent run duration audit: recente duurtrend 3m 4s tot 5m 49s, gemiddeld 4m 27s, onder huidige limiet 12m 0s
-proof example: top3 zonder primaire+verse combo: DeepSeek brengt V4 Preview uit, open weights met 1M context en sterke agentic/coding-focus, Microsoft zet Agent Mode in Word, Excel en PowerPoint nu breed live, Tencent lanceert Hy3 Preview, nieuw groot MoE-model met nadruk op reasoning, coding en agents
+proof recheck: hercheck niet vóór 2026-04-28 09:15 CEST (nu)
+proof schedule risk: als slot 2026-04-28 09:00 CEST mist, schuift bewijsdoel naar 2026-05-01 09:15 CEST
+next qualifying run: 2026-04-28 09:00 CEST (nu) [T-0.2u] [vandaag]
+proof countdown: bewijsdoel 2026-04-30 09:15 CEST (over 2 d); mist volgend slot => 2026-05-01 09:15 CEST (slip +24u)
+proof target check gate: proof-target-check blijft stil tot 2026-04-30 09:15 CEST (over 2 d) (suppressed-until-deadline)
+qualifying run slots: 2026-04-28 09:00 CEST (nu | vandaag), 2026-04-29 09:00 CEST (over 23u 45m | morgen), 2026-04-30 09:00 CEST (over 1 d 23 u | over 2 d)
+last run timeout audit: laatste run had 8m 55s timeout-speling (3m 4s op limiet 12m 0s)
+recent run duration audit: recente duurtrend 3m 4s tot 5m 49s, gemiddeld 3m 59s, onder huidige limiet 12m 0s
+proof example: top3 zonder multi-domein bronregel: vLLM pakt tegelijk DeepSeek V4-ondersteuning en nieuwe multimodale inference-optimalisaties op, Ollama verbetert lokale MLX-inference op Apple Silicon met batching in de sampler en stabielere token-history, llama.cpp laat opnieuw zien waar lokale inference harder en robuuster wordt, met nieuwe tuning en state-fixes | top3 zonder primaire+verse combo: Ollama verbetert lokale MLX-inference op Apple Silicon met batching in de sampler en stabielere token-history
