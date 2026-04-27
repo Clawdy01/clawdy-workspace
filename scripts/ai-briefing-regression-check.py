@@ -13926,9 +13926,19 @@ def evaluate_lowercase_encoded_equals_cluster_registry_case():
 def evaluate_watchdog_full_sweep_registry_case():
     failures = []
     audit_bits: list[str] = []
-    named_case_names = set(build_named_case_runners(load_status_module(), load_proof_recheck_producer_module()).keys())
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    base_named_case_names = set(build_named_case_runners_without_watchdog_batches(module, producer_module).keys())
+    named_case_names = set(build_named_case_runners(module, producer_module).keys())
 
     for batch_name, child_case_names in WATCHDOG_BATCH_CASE_DEPENDENCIES.items():
+        if batch_name in base_named_case_names:
+            failures.append(
+                f'watchdog-batchcase {batch_name} botst met bestaande niet-batchcase en zou die stil overschrijven'
+            )
+        audit_bits.append(
+            f'{batch_name}: {0 if batch_name in base_named_case_names else 1}/1 batchnaam zonder niet-batch-collision'
+        )
         if batch_name not in named_case_names:
             failures.append(f'watchdog-batchcase ontbreekt in registry: {batch_name}')
             continue
@@ -13949,12 +13959,21 @@ def evaluate_watchdog_full_sweep_registry_case():
             )
 
         missing_children = [name for name in unique_child_case_names if name not in named_case_names]
+        non_watchdog_children = [name for name in unique_child_case_names if not name.startswith('watchdog-')]
         audit_bits.append(
             f'{batch_name}: {len(unique_child_case_names) - len(missing_children)}/{len(unique_child_case_names)} unieke children aanwezig'
+        )
+        audit_bits.append(
+            f'{batch_name}: {len(unique_child_case_names) - len(non_watchdog_children)}/{len(unique_child_case_names)} children blijven binnen watchdog-namespace'
         )
         if missing_children:
             failures.append(
                 f'watchdog-batchcase {batch_name} mist childcases in registry: ' + ', '.join(missing_children)
+            )
+        if non_watchdog_children:
+            failures.append(
+                f'watchdog-batchcase {batch_name} mag alleen watchdog-childcases bevatten: '
+                + ', '.join(non_watchdog_children)
             )
 
     def walk_batch_cycles(batch_name: str, path: list[str], visited: set[tuple[str, str]]) -> None:
@@ -15401,7 +15420,7 @@ def evaluate_list_cases_output_case():
     )
 
 
-def build_named_case_runners(module, producer_module):
+def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases = {}
     named_cases.update({case['name']: (lambda case=case: evaluate_case(module, case)) for case in DEFAULT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_status_phase_case(module, case)) for case in STATUS_PHASE_CASES})
@@ -15450,6 +15469,12 @@ def build_named_case_runners(module, producer_module):
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-append'] = evaluate_watchdog_alert_board_suite_bundle_append_case
+    return named_cases
+
+
+def build_named_case_runners(module, producer_module):
+    named_cases = build_named_case_runners_without_watchdog_batches(module, producer_module)
+
     def build_watchdog_batch_runner(batch_name: str):
         return lambda: evaluate_case_batch(
             name=batch_name,
