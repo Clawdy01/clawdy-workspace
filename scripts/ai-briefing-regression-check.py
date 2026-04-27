@@ -14046,13 +14046,7 @@ def evaluate_list_cases_output_case():
     filtered_case_names = [
         'watchdog-alert-consumer-format-passthrough',
         'watchdog-consumer-format-passthrough',
-        'watchdog-consumer-format-passthrough-all-routes',
-        'watchdog-consumer-sweep-all-routes',
-        'watchdog-alert-consumer-sweep-all-routes',
-        'watchdog-proof-context-all-routes',
-        'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
-        'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
-        'watchdog-all-routes-full-sweep',
+        *list(WATCHDOG_BATCH_CASE_DEPENDENCIES.keys()),
     ]
     unknown_case_name = 'definitely-not-a-real-regression-case'
     suggested_unknown_case_name = 'regression-check-list-case-output'
@@ -15432,21 +15426,7 @@ def build_named_case_runners(module, producer_module):
     named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
     named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
     named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case
-    named_cases['watchdog-consumer-format-passthrough-all-routes'] = (
-        lambda: evaluate_case_batch(
-            name='watchdog-consumer-format-passthrough-all-routes',
-            case_names=WATCHDOG_CONSUMER_FORMAT_PASSTHROUGH_ALL_ROUTE_CASE_NAMES,
-            named_cases=named_cases,
-        )
-    )
     named_cases['watchdog-eventlog-preset-append'] = evaluate_watchdog_eventlog_preset_append_case
-    named_cases['watchdog-consumer-sweep-all-routes'] = (
-        lambda: evaluate_case_batch(
-            name='watchdog-consumer-sweep-all-routes',
-            case_names=WATCHDOG_CONSUMER_SWEEP_ALL_ROUTE_CASE_NAMES,
-            named_cases=named_cases,
-        )
-    )
     named_cases['watchdog-alert-eventlog-preset-append'] = evaluate_watchdog_alert_eventlog_preset_append_case
     named_cases['watchdog-alert-eventlog-preset-proof-target-check-suppresses-before-deadline'] = (
         evaluate_watchdog_alert_eventlog_preset_proof_target_check_before_deadline_case
@@ -15470,55 +15450,16 @@ def build_named_case_runners(module, producer_module):
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-append'] = evaluate_watchdog_alert_board_suite_bundle_append_case
-    named_cases['watchdog-alert-consumer-sweep-all-routes'] = (
-        lambda: evaluate_case_batch(
-            name='watchdog-alert-consumer-sweep-all-routes',
-            case_names=WATCHDOG_ALERT_CONSUMER_SWEEP_ALL_ROUTE_CASE_NAMES,
+    def build_watchdog_batch_runner(batch_name: str):
+        return lambda: evaluate_case_batch(
+            name=batch_name,
+            case_names=WATCHDOG_BATCH_CASE_DEPENDENCIES[batch_name],
             named_cases=named_cases,
         )
-    )
-    named_cases['watchdog-proof-context-all-routes'] = (
-        lambda: evaluate_case_batch(
-            name='watchdog-proof-context-all-routes',
-            case_names=WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
-            named_cases=named_cases,
-        )
-    )
-    named_cases['watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline'] = (
-        lambda: evaluate_case_batch(
-            name='watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
-            case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_BEFORE_DEADLINE_CASE_NAMES,
-            named_cases=named_cases,
-        )
-    )
-    named_cases['watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline'] = (
-        lambda: evaluate_case_batch(
-            name='watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
-            case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_AFTER_DEADLINE_CASE_NAMES,
-            named_cases=named_cases,
-        )
-    )
-    named_cases['watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline'] = (
-        lambda: evaluate_case_batch(
-            name='watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
-            case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_BEFORE_DEADLINE_CASE_NAMES,
-            named_cases=named_cases,
-        )
-    )
-    named_cases['watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline'] = (
-        lambda: evaluate_case_batch(
-            name='watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
-            case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES,
-            named_cases=named_cases,
-        )
-    )
-    named_cases['watchdog-all-routes-full-sweep'] = (
-        lambda: evaluate_case_batch(
-            name='watchdog-all-routes-full-sweep',
-            case_names=WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
-            named_cases=named_cases,
-        )
-    )
+
+    for watchdog_batch_name in WATCHDOG_BATCH_CASE_DEPENDENCIES:
+        named_cases[watchdog_batch_name] = build_watchdog_batch_runner(watchdog_batch_name)
+
     return named_cases
 
 
