@@ -1086,6 +1086,17 @@ def latest_block_date_ms(block, reference_ms=None):
     return max(parsed) if parsed else None
 
 
+def strip_source_lines_from_block(block):
+    if not isinstance(block, str) or not block:
+        return block
+    kept_lines = []
+    for raw_line in block.splitlines():
+        if raw_line.strip().lower().startswith('bron:'):
+            continue
+        kept_lines.append(raw_line)
+    return '\n'.join(kept_lines)
+
+
 TRACKING_QUERY_PARAM_PREFIXES = ('utm_',)
 TRACKING_QUERY_PARAMS = {
     'fbclid',
@@ -1518,7 +1529,10 @@ def audit_summary_output(summary_text, reference_ms=None):
     recent_cutoff_ms = now_ms - RECENT_ITEM_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
     fresh_cutoff_ms = now_ms - FRESH_ITEM_MAX_AGE_HOURS * 60 * 60 * 1000
     future_cutoff_ms = now_ms + FUTURE_DATE_TOLERANCE_DAYS * 24 * 60 * 60 * 1000
-    block_date_values = [latest_block_date_ms(block, reference_ms=now_ms) for block in item_blocks]
+    block_date_values = [
+        latest_block_date_ms(strip_source_lines_from_block(block), reference_ms=now_ms)
+        for block in item_blocks
+    ]
     recent_dated_item_count = sum(1 for value in block_date_values if value is not None and value >= recent_cutoff_ms)
     recent_dated_first3_count = sum(
         1 for value in block_date_values[:3] if value is not None and value >= recent_cutoff_ms
