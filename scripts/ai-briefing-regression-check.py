@@ -14229,9 +14229,83 @@ def evaluate_watchdog_full_sweep_registry_case():
     )
 
 
+def append_route_family_expectation_matrix_failures(
+    *,
+    failures: list[str],
+    audit_bits: list[str],
+    label: str,
+    expected_family_case_names_by_name: dict[str, list[str]],
+) -> None:
+    flattened_expected_case_names = [
+        case_name
+        for case_names in expected_family_case_names_by_name.values()
+        for case_name in case_names
+    ]
+    duplicate_expected_case_names = [
+        case_name
+        for case_name in unique_case_names(flattened_expected_case_names)
+        if flattened_expected_case_names.count(case_name) > 1
+    ]
+    non_watchdog_expected_case_names = [
+        case_name for case_name in unique_case_names(flattened_expected_case_names)
+        if not case_name.startswith('watchdog-')
+    ]
+
+    audit_bits.append(
+        f'{label} expectation-matrix unieke cases '
+        f'{len(unique_case_names(flattened_expected_case_names))}/{len(flattened_expected_case_names)}'
+    )
+    audit_bits.append(
+        f'{label} expectation-matrix watchdog-namespace '
+        f'{len(unique_case_names(flattened_expected_case_names)) - len(non_watchdog_expected_case_names)}/{len(unique_case_names(flattened_expected_case_names))}'
+    )
+
+    if duplicate_expected_case_names:
+        failures.append(
+            f'{label} expectation-matrix bevat dubbele routecases: '
+            + ', '.join(duplicate_expected_case_names)
+        )
+    if non_watchdog_expected_case_names:
+        failures.append(
+            f'{label} expectation-matrix mag alleen watchdog-cases bevatten: '
+            + ', '.join(non_watchdog_expected_case_names)
+        )
+
+    for family_name, family_case_names in expected_family_case_names_by_name.items():
+        duplicate_family_case_names = [
+            case_name
+            for case_name in unique_case_names(family_case_names)
+            if family_case_names.count(case_name) > 1
+        ]
+        non_watchdog_family_case_names = [
+            case_name for case_name in unique_case_names(family_case_names)
+            if not case_name.startswith('watchdog-')
+        ]
+        audit_bits.append(
+            f'{family_name}: expectation-matrix unieke cases '
+            f'{len(unique_case_names(family_case_names))}/{len(family_case_names)}'
+        )
+        if duplicate_family_case_names:
+            failures.append(
+                f'{family_name} expectation-matrix bevat dubbele routecases: '
+                + ', '.join(duplicate_family_case_names)
+            )
+        if non_watchdog_family_case_names:
+            failures.append(
+                f'{family_name} expectation-matrix mag alleen watchdog-cases bevatten: '
+                + ', '.join(non_watchdog_family_case_names)
+            )
+
+
 def evaluate_watchdog_proof_context_route_families_registry_case():
     failures = []
     audit_bits: list[str] = []
+    append_route_family_expectation_matrix_failures(
+        failures=failures,
+        audit_bits=audit_bits,
+        label='watchdog-proof-context-all-routes',
+        expected_family_case_names_by_name=WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS,
+    )
     actual_case_names = unique_case_names(WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES)
     expected_case_names = unique_case_names([
         case_name
@@ -14338,6 +14412,12 @@ def evaluate_watchdog_proof_context_route_families_registry_case():
 def evaluate_watchdog_full_sweep_route_families_registry_case():
     failures = []
     audit_bits: list[str] = []
+    append_route_family_expectation_matrix_failures(
+        failures=failures,
+        audit_bits=audit_bits,
+        label='watchdog-all-routes-full-sweep',
+        expected_family_case_names_by_name=WATCHDOG_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS,
+    )
     actual_case_names = unique_case_names(WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES)
     expected_case_names = unique_case_names([
         case_name
@@ -14433,6 +14513,12 @@ def evaluate_watchdog_alert_proof_target_check_route_families_registry_case(
 ) -> dict:
     failures = []
     audit_bits: list[str] = []
+    append_route_family_expectation_matrix_failures(
+        failures=failures,
+        audit_bits=audit_bits,
+        label=batch_name,
+        expected_family_case_names_by_name=expected_family_case_names_by_name,
+    )
     actual_case_names = unique_case_names(actual_batch_case_names)
     expected_case_names = unique_case_names([
         case_name
@@ -14539,6 +14625,11 @@ def evaluate_list_cases_output_case():
     expected_suggested_case_name = 'regression-check-list-cases-output'
     expected_mixed_valid_case_name = 'watchdog-all-routes-full-sweep'
     expected_unknown_cases_message = 'onbekende regressiecase opgegeven'
+    duplicate_filtered_case_names = [
+        case_name
+        for case_name in unique_case_names(filtered_case_names)
+        if filtered_case_names.count(case_name) > 1
+    ]
     sorted_filtered_case_names = sorted(filtered_case_names)
 
     missing_watchdog_route_family_registry_case_names = [
@@ -14555,6 +14646,15 @@ def evaluate_list_cases_output_case():
         'watchdog route-family discoverability-cases '
         f'{len(actual_watchdog_route_family_registry_case_names)}/{len(expected_watchdog_route_family_registry_case_names)}'
     )
+    audit_bits.append(
+        'watchdog discoverability-subset unieke cases '
+        f'{len(unique_case_names(filtered_case_names))}/{len(filtered_case_names)}'
+    )
+    if duplicate_filtered_case_names:
+        failures.append(
+            'regression-check-list-cases-output bevat dubbele discoverability-cases: '
+            + ', '.join(duplicate_filtered_case_names)
+        )
     if missing_watchdog_route_family_registry_case_names:
         failures.append(
             'regression-check-list-cases-output mist watchdog route-family discoverability-cases: '
