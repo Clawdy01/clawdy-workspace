@@ -14042,6 +14042,21 @@ WATCHDOG_BATCH_CASE_DEPENDENCIES = {
     'watchdog-all-routes-full-sweep': WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
 }
 
+WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH = {
+    'watchdog-proof-context-all-routes': 'registry-keeps-watchdog-proof-context-route-families-complete',
+    'watchdog-all-routes-full-sweep': 'registry-keeps-watchdog-full-sweep-route-families-complete',
+}
+
+
+def build_watchdog_route_family_registry_case_names() -> list[str]:
+    return [
+        WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.get(
+            batch_name,
+            f'registry-keeps-{batch_name}-route-families-complete',
+        )
+        for batch_name in WATCHDOG_BATCH_CASE_DEPENDENCIES
+    ]
+
 
 def evaluate_lowercase_encoded_equals_cluster_registry_case():
     failures = []
@@ -14502,28 +14517,54 @@ def evaluate_watchdog_alert_proof_target_check_route_families_registry_case(
 def evaluate_list_cases_output_case():
     failures = []
     audit_bits: list[str] = []
+    expected_watchdog_route_family_registry_case_names = sorted(
+        build_watchdog_route_family_registry_case_names()
+    )
     filtered_case_names = [
-        'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
-        'registry-keeps-watchdog-consumer-sweep-all-routes-route-families-complete',
-        'registry-keeps-watchdog-alert-consumer-sweep-all-routes-route-families-complete',
-        'registry-keeps-watchdog-full-sweep-route-families-complete',
-        'registry-keeps-watchdog-proof-context-route-families-complete',
-        'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline-route-families-complete',
-        'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline-route-families-complete',
-        'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
-        'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
+        *build_watchdog_route_family_registry_case_names(),
         'registry-keeps-watchdog-full-sweep-complete',
         'watchdog-alert-consumer-format-passthrough',
         'watchdog-consumer-format-passthrough',
         *WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
         *list(WATCHDOG_BATCH_CASE_DEPENDENCIES.keys()),
     ]
+    actual_watchdog_route_family_registry_case_names = sorted([
+        case_name
+        for case_name in filtered_case_names
+        if case_name.startswith('registry-keeps-watchdog-')
+        and case_name.endswith('-route-families-complete')
+    ])
     unknown_case_name = 'definitely-not-a-real-regression-case'
     suggested_unknown_case_name = 'regression-check-list-case-output'
     expected_suggested_case_name = 'regression-check-list-cases-output'
     expected_mixed_valid_case_name = 'watchdog-all-routes-full-sweep'
     expected_unknown_cases_message = 'onbekende regressiecase opgegeven'
     sorted_filtered_case_names = sorted(filtered_case_names)
+
+    missing_watchdog_route_family_registry_case_names = [
+        case_name
+        for case_name in expected_watchdog_route_family_registry_case_names
+        if case_name not in actual_watchdog_route_family_registry_case_names
+    ]
+    unexpected_watchdog_route_family_registry_case_names = [
+        case_name
+        for case_name in actual_watchdog_route_family_registry_case_names
+        if case_name not in expected_watchdog_route_family_registry_case_names
+    ]
+    audit_bits.append(
+        'watchdog route-family discoverability-cases '
+        f'{len(actual_watchdog_route_family_registry_case_names)}/{len(expected_watchdog_route_family_registry_case_names)}'
+    )
+    if missing_watchdog_route_family_registry_case_names:
+        failures.append(
+            'regression-check-list-cases-output mist watchdog route-family discoverability-cases: '
+            + ', '.join(missing_watchdog_route_family_registry_case_names)
+        )
+    if unexpected_watchdog_route_family_registry_case_names:
+        failures.append(
+            'regression-check-list-cases-output bevat onverwachte watchdog route-family discoverability-cases: '
+            + ', '.join(unexpected_watchdog_route_family_registry_case_names)
+        )
 
     def assert_runtime_metadata(payload: dict, label: str) -> None:
         generated_at = payload.get('generated_at')
