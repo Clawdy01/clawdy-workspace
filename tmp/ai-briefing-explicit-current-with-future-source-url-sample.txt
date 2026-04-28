@@ -1,0 +1,34 @@
+Titel: GitHub verschuift review-kosten naar Actions
+Bron: https://github.blog/changelog/2026-06-01-example/ | https://docs.github.com/en/example
+Datum: 27 april 2026
+Wat is er nieuw: GitHub meldt een kleine pricingwijziging voor private repositories.
+Waarom is dit belangrijk: Dit test dat een expliciete huidige Datum:-regel niet alsnog door een toekomstige datum in alleen de bron-URL wordt overschreven.
+Relevant voor Christian: Budgetimpact en repo-beleid.
+
+Titel: OpenAI publiceert nieuwe orchestration-notitie
+Bron: https://openai.com/index/example-orchestration/ | https://github.com/openai/example-orchestration
+Datum: 27 april 2026
+Wat is er nieuw: OpenAI beschrijft een nieuwe aanpak voor agent-orchestratie.
+Waarom is dit belangrijk: Dit houdt de sample op drie items met geldige bronnen.
+Relevant voor Christian: Relevant voor automation-keuzes.
+
+Titel: Microsoft past AI-partnerdeal aan
+Bron: https://blogs.microsoft.com/blog/2026/04/27/example/ | https://www.cnbc.com/2026/04/27/example.html
+Datum: 27 april 2026
+Wat is er nieuw: Microsoft en OpenAI passen hun commerciële afspraken aan.
+Waarom is dit belangrijk: Dit geeft een derde geldig item met expliciete datumregel.
+Relevant voor Christian: Relevant voor vendorstrategie.
+
+Wat moeten wij hiermee?
+Test.
+
+Wat ik vandaag het belangrijkst vind
+Test.
+
+Bronnenlijst
+https://github.blog/changelog/2026-06-01-example/
+https://docs.github.com/en/example
+https://openai.com/index/example-orchestration/
+https://github.com/openai/example-orchestration
+https://blogs.microsoft.com/blog/2026/04/27/example/
+https://www.cnbc.com/2026/04/27/example.html
