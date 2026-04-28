@@ -3347,6 +3347,8 @@ def render_summary_audit_text(data):
         )
     if data.get('future_dated_item_count') is not None:
         parts.append(f"toekomstige datums {data['future_dated_item_count']}")
+    if data.get('explicit_future_dated_item_count') is not None:
+        parts.append(f"expliciet toekomstige datums {data['explicit_future_dated_item_count']}")
     if data.get('first3_evidenced_item_count') is not None:
         parts.append(f"top3 met bron+recente datum {data['first3_evidenced_item_count']}/3")
     if data.get('first3_primary_fresh_item_count') is not None:

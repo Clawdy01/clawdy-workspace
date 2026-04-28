@@ -1180,6 +1180,43 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'future-inline-with-invalid-explicit-date-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-future-inline-with-invalid-explicit-date-sample.txt',
+        'reference_ms': int(datetime(2026, 4, 28, 8, 38, tzinfo=timezone.utc).timestamp() * 1000),
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
+        'expect_first3_evidenced_item_count': 2,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 2,
+        'expect_source_url_count': 6,
+        'expect_unique_source_url_count': 6,
+        'expect_source_domain_count': 6,
+        'expect_first3_unique_source_url_count': 6,
+        'expect_first3_source_domain_count': 6,
+        'expect_future_dated_item_count': 1,
+        'expect_explicit_future_dated_item_count': 0,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [
+            'te weinig top-3 items met zowel bron als recente datum (2/3)',
+            'verdachte toekomstige datums in briefing (1 item(s), tolerantie 1 dag)',
+        ],
+    },
+    {
         'name': 'multi-source-weak-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-multi-source-weak-sample.txt',
         'expect_ok': False,
@@ -4582,10 +4619,26 @@ STATUS_SUMMARY_AUDIT_CASES = [
     {
         'name': 'status-summary-audit-cli-keeps-future-inline-but-explicit-current-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-future-inline-but-explicit-current-sample.txt',
+        'expect_rendered_text_substrings': [
+            'toekomstige datums 0',
+            'expliciet toekomstige datums 0',
+        ],
     },
     {
         'name': 'status-summary-audit-cli-keeps-current-inline-but-explicit-future-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-current-inline-but-explicit-future-sample.txt',
+        'expect_rendered_text_substrings': [
+            'toekomstige datums 1',
+            'expliciet toekomstige datums 1',
+        ],
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-future-inline-with-invalid-explicit-date-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-future-inline-with-invalid-explicit-date-sample.txt',
+        'expect_rendered_text_substrings': [
+            'toekomstige datums 1',
+            'expliciet toekomstige datums 0',
+        ],
     },
     {
         'name': 'status-summary-audit-cli-keeps-bronnenlijst-regression-audit',
@@ -7169,6 +7222,10 @@ def evaluate_status_summary_audit_case(module, case):
             'status summary-stdin tekstoutput verwacht exacte render_summary_audit_text-pariteit, kreeg '
             f"{text_stdin_output!r} versus {expected_text!r}"
         )
+
+    for snippet in case.get('expect_rendered_text_substrings', []):
+        if snippet not in expected_text:
+            failures.append(f"verwachte render_summary_audit_text-tekst ontbreekt: {snippet}")
 
     comparable_json_file_payload = None
     if json_file_payload:
