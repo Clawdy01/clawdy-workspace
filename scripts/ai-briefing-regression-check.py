@@ -14101,6 +14101,105 @@ def evaluate_watchdog_full_sweep_registry_case():
     base_named_case_names = set(build_named_case_runners_without_watchdog_batches(module, producer_module).keys())
     named_case_names = set(build_named_case_runners(module, producer_module).keys())
 
+    unknown_special_registry_batches = sorted(
+        batch_name
+        for batch_name in WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH
+        if batch_name not in WATCHDOG_BATCH_CASE_DEPENDENCIES
+    )
+    duplicate_special_registry_case_names = [
+        case_name
+        for case_name in unique_case_names(list(WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values()))
+        if list(WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values()).count(case_name) > 1
+    ]
+    invalid_special_registry_case_names = sorted(
+        case_name
+        for case_name in WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values()
+        if not case_name.startswith('registry-keeps-watchdog-')
+        or not case_name.endswith('-route-families-complete')
+    )
+    redundant_special_registry_batches = sorted(
+        batch_name
+        for batch_name, case_name in WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.items()
+        if case_name == f'registry-keeps-{batch_name}-route-families-complete'
+    )
+    resolved_route_family_registry_case_names = build_watchdog_route_family_registry_case_names()
+    duplicate_resolved_route_family_registry_case_names = [
+        case_name
+        for case_name in unique_case_names(resolved_route_family_registry_case_names)
+        if resolved_route_family_registry_case_names.count(case_name) > 1
+    ]
+    actual_watchdog_route_family_registry_case_names = sorted(
+        case_name
+        for case_name in named_case_names
+        if case_name.startswith('registry-keeps-watchdog-')
+        and case_name.endswith('-route-families-complete')
+    )
+    missing_resolved_route_family_registry_case_names = [
+        case_name
+        for case_name in unique_case_names(resolved_route_family_registry_case_names)
+        if case_name not in named_case_names
+    ]
+    unexpected_watchdog_route_family_registry_case_names = [
+        case_name
+        for case_name in actual_watchdog_route_family_registry_case_names
+        if case_name not in unique_case_names(resolved_route_family_registry_case_names)
+    ]
+    audit_bits.append(
+        'watchdog special route-family registry overrides '
+        f'{len(WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH) - len(unknown_special_registry_batches)}/{len(WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH)} gekoppeld aan bekende batchcases'
+    )
+    audit_bits.append(
+        'watchdog special route-family registry overrides unieke casenamen '
+        f'{len(unique_case_names(list(WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values())))}/{len(WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH)}'
+    )
+    audit_bits.append(
+        'watchdog route-family registry resolved unieke casenamen '
+        f'{len(unique_case_names(resolved_route_family_registry_case_names))}/{len(resolved_route_family_registry_case_names)}'
+    )
+    audit_bits.append(
+        'watchdog route-family registry resolved aanwezig in named cases '
+        f'{len(unique_case_names(resolved_route_family_registry_case_names)) - len(missing_resolved_route_family_registry_case_names)}/{len(unique_case_names(resolved_route_family_registry_case_names))}'
+    )
+    audit_bits.append(
+        'watchdog route-family registry named cases volgen resolved set '
+        f'{len(actual_watchdog_route_family_registry_case_names) - len(unexpected_watchdog_route_family_registry_case_names)}/{len(actual_watchdog_route_family_registry_case_names)}'
+    )
+    if unknown_special_registry_batches:
+        failures.append(
+            'watchdog special route-family registry overrides verwijzen naar onbekende batchcases: '
+            + ', '.join(unknown_special_registry_batches)
+        )
+    if duplicate_special_registry_case_names:
+        failures.append(
+            'watchdog special route-family registry overrides bevatten dubbele casenamen: '
+            + ', '.join(duplicate_special_registry_case_names)
+        )
+    if invalid_special_registry_case_names:
+        failures.append(
+            'watchdog special route-family registry overrides bevatten ongeldige casenamen: '
+            + ', '.join(invalid_special_registry_case_names)
+        )
+    if redundant_special_registry_batches:
+        failures.append(
+            'watchdog special route-family registry overrides bevatten overbodige default-mappings: '
+            + ', '.join(redundant_special_registry_batches)
+        )
+    if duplicate_resolved_route_family_registry_case_names:
+        failures.append(
+            'watchdog route-family registry resolved set bevat dubbele casenamen: '
+            + ', '.join(duplicate_resolved_route_family_registry_case_names)
+        )
+    if missing_resolved_route_family_registry_case_names:
+        failures.append(
+            'watchdog route-family registry resolved set mist named cases: '
+            + ', '.join(missing_resolved_route_family_registry_case_names)
+        )
+    if unexpected_watchdog_route_family_registry_case_names:
+        failures.append(
+            'watchdog route-family registry named cases bevatten onverwachte casenamen buiten de resolved set: '
+            + ', '.join(unexpected_watchdog_route_family_registry_case_names)
+        )
+
     for batch_name, child_case_names in WATCHDOG_BATCH_CASE_DEPENDENCIES.items():
         if batch_name in base_named_case_names:
             failures.append(
