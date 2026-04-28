@@ -1110,6 +1110,40 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'future-inline-but-explicit-current-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-future-inline-but-explicit-current-sample.txt',
+        'reference_ms': int(datetime(2026, 4, 28, 8, 38, tzinfo=timezone.utc).timestamp() * 1000),
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 3,
+        'expect_source_url_count': 6,
+        'expect_unique_source_url_count': 6,
+        'expect_source_domain_count': 6,
+        'expect_first3_unique_source_url_count': 6,
+        'expect_first3_source_domain_count': 6,
+        'expect_future_dated_item_count': 0,
+        'expect_explicit_future_dated_item_count': 0,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [],
+    },
+    {
         'name': 'multi-source-weak-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-multi-source-weak-sample.txt',
         'expect_ok': False,
@@ -14349,6 +14383,16 @@ def append_route_family_expectation_matrix_failures(
         case_name for case_name in unique_case_names(flattened_expected_case_names)
         if not case_name.startswith('watchdog-')
     ]
+    empty_family_names = [
+        family_name
+        for family_name, family_case_names in expected_family_case_names_by_name.items()
+        if not family_case_names
+    ]
+    blank_family_names = [
+        family_name
+        for family_name in expected_family_case_names_by_name
+        if not family_name.strip()
+    ]
 
     audit_bits.append(
         f'{label} expectation-matrix unieke cases '
@@ -14357,6 +14401,14 @@ def append_route_family_expectation_matrix_failures(
     audit_bits.append(
         f'{label} expectation-matrix watchdog-namespace '
         f'{len(unique_case_names(flattened_expected_case_names)) - len(non_watchdog_expected_case_names)}/{len(unique_case_names(flattened_expected_case_names))}'
+    )
+    audit_bits.append(
+        f'{label} expectation-matrix niet-lege families '
+        f'{len(expected_family_case_names_by_name) - len(empty_family_names)}/{len(expected_family_case_names_by_name)}'
+    )
+    audit_bits.append(
+        f'{label} expectation-matrix benoemde familienamen '
+        f'{len(expected_family_case_names_by_name) - len(blank_family_names)}/{len(expected_family_case_names_by_name)}'
     )
 
     if duplicate_expected_case_names:
@@ -14368,6 +14420,16 @@ def append_route_family_expectation_matrix_failures(
         failures.append(
             f'{label} expectation-matrix mag alleen watchdog-cases bevatten: '
             + ', '.join(non_watchdog_expected_case_names)
+        )
+    if empty_family_names:
+        failures.append(
+            f'{label} expectation-matrix bevat lege routefamilies: '
+            + ', '.join(empty_family_names)
+        )
+    if blank_family_names:
+        failures.append(
+            f'{label} expectation-matrix bevat lege familienamen: '
+            + ', '.join(repr(family_name) for family_name in blank_family_names)
         )
 
     for family_name, family_case_names in expected_family_case_names_by_name.items():

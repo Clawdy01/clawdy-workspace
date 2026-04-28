@@ -1539,9 +1539,15 @@ def audit_summary_output(summary_text, reference_ms=None):
     explicit_fresh_dated_first3_count = sum(
         1 for value in block_date_line_values[:3] if value is not None and value >= fresh_cutoff_ms
     )
-    future_dated_item_count = sum(1 for value in block_date_values if value is not None and value > future_cutoff_ms)
+    future_signal_date_values = [
+        explicit_value if explicit_value is not None else block_value
+        for explicit_value, block_value in zip(block_date_line_values, block_date_values)
+    ]
+    future_dated_item_count = sum(
+        1 for value in future_signal_date_values if value is not None and value > future_cutoff_ms
+    )
     future_dated_first3_count = sum(
-        1 for value in block_date_values[:3] if value is not None and value > future_cutoff_ms
+        1 for value in future_signal_date_values[:3] if value is not None and value > future_cutoff_ms
     )
     explicit_future_dated_item_count = sum(
         1 for value in block_date_line_values if value is not None and value > future_cutoff_ms
