@@ -13871,6 +13871,18 @@ WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_BEFORE_DEADLINE_CASE_NAMES = [
     'watchdog-alert-eventlog-preset-proof-target-check-suppresses-before-deadline',
 ]
 
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_ROUTE_FAMILY_EXPECTATIONS = {
+    'watchdog-alert-proof-target-check-generic-before-deadline': [
+        'watchdog-alert-proof-target-check-suppresses-before-deadline',
+    ],
+    'watchdog-alert-proof-target-check-consumer-sweep-before-deadline': [
+        'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
+    ],
+    'watchdog-alert-proof-target-check-eventlog-preset-before-deadline': [
+        'watchdog-alert-eventlog-preset-proof-target-check-suppresses-before-deadline',
+    ],
+}
+
 WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES = [
     'watchdog-alert-proof-target-check-unsuppresses-after-deadline',
     'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
@@ -13880,6 +13892,30 @@ WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES = [
     'watchdog-alert-board-pair-bundle-unsuppressed-after-deadline',
     'watchdog-alert-board-suite-bundle-unsuppressed-after-deadline',
 ]
+
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_ROUTE_FAMILY_EXPECTATIONS = {
+    'watchdog-alert-proof-target-check-generic-after-deadline': [
+        'watchdog-alert-proof-target-check-unsuppresses-after-deadline',
+    ],
+    'watchdog-alert-proof-target-check-consumer-sweep-after-deadline': [
+        'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
+    ],
+    'watchdog-alert-proof-target-check-eventlog-preset-after-deadline': [
+        'watchdog-alert-eventlog-preset-proof-target-check-unsuppressed-after-deadline',
+    ],
+    'watchdog-alert-proof-target-check-board-json-after-deadline': [
+        'watchdog-alert-board-json-preset-unsuppressed-after-deadline',
+    ],
+    'watchdog-alert-proof-target-check-board-text-after-deadline': [
+        'watchdog-alert-board-text-preset-unsuppressed-after-deadline',
+    ],
+    'watchdog-alert-proof-target-check-board-pair-after-deadline': [
+        'watchdog-alert-board-pair-bundle-unsuppressed-after-deadline',
+    ],
+    'watchdog-alert-proof-target-check-board-suite-after-deadline': [
+        'watchdog-alert-board-suite-bundle-unsuppressed-after-deadline',
+    ],
+}
 
 WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'watchdog-consumer-format-passthrough-all-routes',
@@ -14299,12 +14335,103 @@ def evaluate_watchdog_full_sweep_route_families_registry_case():
     )
 
 
+def evaluate_watchdog_alert_proof_target_check_route_families_registry_case(
+    *,
+    batch_name: str,
+    expected_family_case_names_by_name: dict[str, list[str]],
+    actual_batch_case_names: list[str],
+) -> dict:
+    failures = []
+    audit_bits: list[str] = []
+    actual_case_names = unique_case_names(actual_batch_case_names)
+    expected_case_names = unique_case_names([
+        case_name
+        for case_names in expected_family_case_names_by_name.values()
+        for case_name in case_names
+    ])
+    actual_case_names_in_expected_order = [
+        case_name
+        for case_name in actual_batch_case_names
+        if case_name in expected_case_names
+    ]
+
+    missing_case_names = [
+        case_name for case_name in expected_case_names
+        if case_name not in actual_case_names
+    ]
+    unexpected_case_names = [
+        case_name for case_name in actual_case_names
+        if case_name not in expected_case_names
+    ]
+    duplicate_case_names = [
+        case_name
+        for case_name in actual_case_names
+        if actual_batch_case_names.count(case_name) > 1
+    ]
+
+    audit_bits.append(
+        f'{batch_name} families {len(expected_family_case_names_by_name)}/{len(expected_family_case_names_by_name)}'
+    )
+    audit_bits.append(
+        f'{batch_name} cases {len(actual_case_names)}/{len(expected_case_names)} tegen verwachte family-matrix'
+    )
+    audit_bits.append(
+        f'{batch_name} order ' + ('stabiel' if actual_case_names_in_expected_order == expected_case_names else 'afwijkend')
+    )
+
+    if missing_case_names:
+        failures.append(
+            f'{batch_name} mist verwachte routecases: ' + ', '.join(missing_case_names)
+        )
+    if unexpected_case_names:
+        failures.append(
+            f'{batch_name} bevat onverwachte routecases: ' + ', '.join(unexpected_case_names)
+        )
+    if duplicate_case_names:
+        failures.append(
+            f'{batch_name} bevat dubbele routecases: ' + ', '.join(duplicate_case_names)
+        )
+    if actual_case_names_in_expected_order != expected_case_names:
+        failures.append(
+            f'{batch_name} veranderde van family/phase-volgorde; verwacht '
+            + ', '.join(expected_case_names)
+            + ' maar kreeg '
+            + ', '.join(actual_case_names_in_expected_order)
+        )
+
+    for family_name, family_case_names in expected_family_case_names_by_name.items():
+        actual_family_case_names = [
+            case_name for case_name in actual_case_names
+            if case_name in family_case_names
+        ]
+        audit_bits.append(
+            f'{family_name}: {len(actual_family_case_names)}/{len(family_case_names)} family-cases aanwezig'
+        )
+        missing_family_case_names = [
+            case_name for case_name in family_case_names
+            if case_name not in actual_case_names
+        ]
+        if missing_family_case_names:
+            failures.append(
+                f'{family_name} mist routecases in {batch_name}: ' + ', '.join(missing_family_case_names)
+            )
+
+    return build_registry_case_result(
+        name=f'registry-keeps-{batch_name}-route-families-complete',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+
 def evaluate_list_cases_output_case():
     failures = []
     audit_bits: list[str] = []
     filtered_case_names = [
         'registry-keeps-watchdog-full-sweep-route-families-complete',
         'registry-keeps-watchdog-proof-context-route-families-complete',
+        'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
+        'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
         'registry-keeps-watchdog-full-sweep-complete',
         'watchdog-alert-consumer-format-passthrough',
         'watchdog-consumer-format-passthrough',
@@ -15691,6 +15818,20 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-watchdog-proof-context-route-families-complete'] = (
         evaluate_watchdog_proof_context_route_families_registry_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete'] = (
+        lambda: evaluate_watchdog_alert_proof_target_check_route_families_registry_case(
+            batch_name='watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
+            expected_family_case_names_by_name=WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_ROUTE_FAMILY_EXPECTATIONS,
+            actual_batch_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_BEFORE_DEADLINE_CASE_NAMES,
+        )
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete'] = (
+        lambda: evaluate_watchdog_alert_proof_target_check_route_families_registry_case(
+            batch_name='watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
+            expected_family_case_names_by_name=WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_ROUTE_FAMILY_EXPECTATIONS,
+            actual_batch_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES,
+        )
     )
     named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
     named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
