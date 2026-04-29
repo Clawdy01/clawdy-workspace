@@ -1,0 +1,67 @@
+Titel: GitHub verschuift review-kosten naar Actions
+Bron: https://github.blog/changelog/2026-04-27-example/ | https://docs.github.com/en/example | https://resources.github.com/en/example | https://developer.github.com/en/example | https://docs.github.com/en/example-runner | https://github.blog/changelog/2026-06-06-example | https://github.blog/changelog/2026-07-07-example | https://github.blog/changelog/2026-08-08-example | https://github.blog/changelog/2026-09-09-example | https://github.blog/changelog/2026-10-10-example | https://github.blog/changelog/2026-11-11-example | https://github.blog/changelog/2026-12-12-example | https://github.blog/changelog/2027-01-13-example | https://github.blog/changelog/2027-02-14-example | https://github.blog/changelog/2027-03-15-example | https://github.blog/changelog/2027-04-16-example | https://github.blog/changelog/2027-05-17-example | https://github.blog/changelog/2027-06-18-example | https://github.blog/changelog/2027-07-19-example | https://github.blog/changelog/2027-08-20-example | https://github.blog/changelog/2027-09-21-example | https://github.blog/changelog/2027-10-22-example | https://github.blog/changelog/2027-11-23-example | https://github.blog/changelog/2027-12-24-example | https://github.blog/changelog/2028-01-25-example | https://github.blog/changelog/2028-02-26-example | https://github.blog/changelog/2028-03-27-example | https://github.blog/changelog/2028-04-28-example | https://github.blog/changelog/2028-05-29-example | https://github.blog/changelog/2028-06-30-example | https://github.blog/changelog/2028-07-31-example | https://github.blog/changelog/2028-08-01-example | https://github.blog/changelog/2028-09-02-example | https://github.blog/changelog/2028-10-03-example | https://github.blog/changelog/2028-11-04-example
+Datum: 27 april 2026
+Wat is er nieuw: GitHub meldt een kleine pricingwijziging voor private repositories.
+Waarom is dit belangrijk: Dit test dat een expliciete huidige Datum:-regel niet alsnog door een toekomstige datum in alleen de vijfendertigste bron-URL wordt overschreven.
+Relevant voor Christian: Budgetimpact en repo-beleid.
+
+Titel: OpenAI publiceert nieuwe orchestration-notitie
+Bron: https://openai.com/index/example-orchestration/ | https://github.com/openai/example-orchestration
+Datum: 27 april 2026
+Wat is er nieuw: OpenAI beschrijft een nieuwe aanpak voor agent-orchestratie.
+Waarom is dit belangrijk: Dit houdt de sample op drie items met geldige bronnen.
+Relevant voor Christian: Relevant voor automation-keuzes.
+
+Titel: Microsoft past AI-partnerdeal aan
+Bron: https://blogs.microsoft.com/blog/2026/04/27/example/ | https://www.cnbc.com/2026/04/27/example.html
+Datum: 27 april 2026
+Wat is er nieuw: Microsoft en OpenAI passen hun commerciële afspraken aan.
+Waarom is dit belangrijk: Dit geeft een derde geldig item met expliciete datumregel.
+Relevant voor Christian: Relevant voor vendorstrategie.
+
+Wat moeten wij hiermee?
+Test.
+
+Wat ik vandaag het belangrijkst vind
+Test.
+
+Bronnenlijst
+https://github.blog/changelog/2026-04-27-example/
+https://docs.github.com/en/example
+https://resources.github.com/en/example
+https://developer.github.com/en/example
+https://docs.github.com/en/example-runner
+https://github.blog/changelog/2026-06-06-example
+https://github.blog/changelog/2026-07-07-example
+https://github.blog/changelog/2026-08-08-example
+https://github.blog/changelog/2026-09-09-example
+https://github.blog/changelog/2026-10-10-example
+https://github.blog/changelog/2026-11-11-example
+https://github.blog/changelog/2026-12-12-example
+https://github.blog/changelog/2027-01-13-example
+https://github.blog/changelog/2027-02-14-example
+https://github.blog/changelog/2027-03-15-example
+https://github.blog/changelog/2027-04-16-example
+https://github.blog/changelog/2027-05-17-example
+https://github.blog/changelog/2027-06-18-example
+https://github.blog/changelog/2027-07-19-example
+https://github.blog/changelog/2027-08-20-example
+https://github.blog/changelog/2027-09-21-example
+https://github.blog/changelog/2027-10-22-example
+https://github.blog/changelog/2027-11-23-example
+https://github.blog/changelog/2027-12-24-example
+https://github.blog/changelog/2028-01-25-example
+https://github.blog/changelog/2028-02-26-example
+https://github.blog/changelog/2028-03-27-example
+https://github.blog/changelog/2028-04-28-example
+https://github.blog/changelog/2028-05-29-example
+https://github.blog/changelog/2028-06-30-example
+https://github.blog/changelog/2028-07-31-example
+https://github.blog/changelog/2028-08-01-example
+https://github.blog/changelog/2028-09-02-example
+https://github.blog/changelog/2028-10-03-example
+https://github.blog/changelog/2028-11-04-example
+https://openai.com/index/example-orchestration/
+https://github.com/openai/example-orchestration
+https://blogs.microsoft.com/blog/2026/04/27/example/
+https://www.cnbc.com/2026/04/27/example.html
