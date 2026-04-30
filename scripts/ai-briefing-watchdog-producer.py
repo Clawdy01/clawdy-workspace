@@ -139,6 +139,10 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['proof_next_action_window_text']))
     elif payload.get('proof_next_action_text'):
         bits.append(str(payload['proof_next_action_text']))
+    if payload.get('proof_recheck_schedule_kind_text'):
+        bits.append(str(payload['proof_recheck_schedule_kind_text']))
+    if payload.get('proof_recheck_schedule_text'):
+        bits.append(str(payload['proof_recheck_schedule_text']))
     if payload.get('proof_recheck_commands_text'):
         bits.append(str(payload['proof_recheck_commands_text']))
     if payload.get('proof_next_action_window_text'):

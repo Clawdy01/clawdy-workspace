@@ -15091,6 +15091,7 @@ def evaluate_watchdog_producer_case(case):
                     'proof_recheck_schedule_kind_text',
                     'proof_recheck_schedule_text',
                     'proof_next_action_window_text',
+                    'proof_target_check_gate_text',
                 ]:
                     if board_payload.get(field_name) != overall.get(field_name):
                         failures.append(
@@ -15117,6 +15118,7 @@ def evaluate_watchdog_producer_case(case):
                         'proof_recheck_schedule_kind_text',
                         'proof_recheck_schedule_text',
                         'proof_next_action_window_text',
+                        'proof_target_check_gate_text',
                     ]:
                         if eventlog_payload.get(field_name) != overall.get(field_name):
                             failures.append(
@@ -15140,6 +15142,7 @@ def evaluate_watchdog_producer_case(case):
                 'proof_wait_until_text',
                 'proof_next_action_window_text',
                 'proof_recheck_after_text_compact',
+                'proof_target_check_gate_text',
             ]:
                 field_value = overall.get(field_name)
                 if field_value and field_value not in board_text_output:
@@ -15167,6 +15170,7 @@ def evaluate_watchdog_producer_case(case):
             overall.get('proof_next_action_window_text'),
             overall.get('proof_next_action_text'),
             overall.get('proof_recheck_after_text_compact'),
+            overall.get('proof_target_check_gate_text'),
             board_text_output,
             quiet_output,
         ] if bit
@@ -15180,6 +15184,22 @@ def evaluate_watchdog_producer_case(case):
         failures.append(
             'watchdog-producer-quiet mist proof_wait_until_reason_text uit overall/stdout-json: '
             f"{overall.get('proof_wait_until_reason_text')}"
+        )
+    if (
+        overall.get('proof_recheck_schedule_kind_text')
+        and overall['proof_recheck_schedule_kind_text'] not in quiet_output
+    ):
+        failures.append(
+            'watchdog-producer-quiet mist proof_recheck_schedule_kind_text uit overall/stdout-json: '
+            f"{overall.get('proof_recheck_schedule_kind_text')}"
+        )
+    if (
+        overall.get('proof_recheck_schedule_text')
+        and overall['proof_recheck_schedule_text'] not in quiet_output
+    ):
+        failures.append(
+            'watchdog-producer-quiet mist proof_recheck_schedule_text uit overall/stdout-json: '
+            f"{overall.get('proof_recheck_schedule_text')}"
         )
     if (
         overall.get('proof_target_due_at_if_next_slot_missed_text')
@@ -15196,6 +15216,14 @@ def evaluate_watchdog_producer_case(case):
         failures.append(
             'watchdog-producer-quiet mist proof_recheck_after_text_compact uit overall/stdout-json: '
             f"{overall.get('proof_recheck_after_text_compact')}"
+        )
+    if (
+        overall.get('proof_target_check_gate_text')
+        and overall['proof_target_check_gate_text'] not in quiet_output
+    ):
+        failures.append(
+            'watchdog-producer-quiet mist proof_target_check_gate_text uit overall/stdout-json: '
+            f"{overall.get('proof_target_check_gate_text')}"
         )
     for snippet in case.get('expect_text_substrings', []):
         if snippet not in combined_text:
