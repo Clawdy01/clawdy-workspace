@@ -2306,6 +2306,10 @@ def summarize_output_examples(summary_output_audit):
     if top3_missing_multi_source_examples:
         examples.append('top3 zonder multi-source: ' + ', '.join(top3_missing_multi_source_examples[:3]))
 
+    top3_missing_primary_source_examples = summary_output_audit.get('top3_missing_primary_source_examples') or []
+    if top3_missing_primary_source_examples:
+        examples.append('top3 zonder primaire bron: ' + ', '.join(top3_missing_primary_source_examples[:3]))
+
     top3_missing_fresh_examples = summary_output_audit.get('top3_missing_fresh_examples') or []
     if top3_missing_fresh_examples:
         examples.append('top3 zonder verse datum: ' + ', '.join(top3_missing_fresh_examples[:3]))

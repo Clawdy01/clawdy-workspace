@@ -8282,6 +8282,17 @@ STATUS_SUMMARY_AUDIT_CASES = [
         ],
     },
     {
+        'name': 'status-summary-audit-cli-keeps-top3-missing-primary-source-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-missing-primary-source-sample.txt',
+        'reference_ms': 1776124800000,
+        'expect_rendered_text_substrings': [
+            'niet elk top-3 item heeft een herkenbare primaire bron (2/3): Onderzoekers bespreken nieuwe agent benchmark voor tool calling',
+            'top3 zonder primaire bron Onderzoekers bespreken nieuwe agent benchmark voor tool calling',
+            'top3 met primaire bron 2/3',
+            'top3 met primaire bron+verse datum 2/3',
+        ],
+    },
+    {
         'name': 'status-summary-audit-cli-keeps-field-order-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-label-order-mismatch-sample.txt',
     },
