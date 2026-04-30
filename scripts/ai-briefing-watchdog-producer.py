@@ -165,7 +165,7 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['recent_run_duration_text']))
     summary_output_examples = [example for example in (payload.get('summary_output_examples') or []) if example]
     if summary_output_examples:
-        bits.append('bewijs: ' + ' | '.join(summary_output_examples[:2]))
+        bits.append('bewijs: ' + ' | '.join(summary_output_examples[:3]))
     if returncode != 0:
         reasons = compact_reasons(payload.get('reasons') or [])
         if reasons:

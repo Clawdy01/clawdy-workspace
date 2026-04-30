@@ -2310,6 +2310,10 @@ def summarize_output_examples(summary_output_audit):
     if top3_missing_primary_source_examples:
         examples.append('top3 zonder primaire bron: ' + ', '.join(top3_missing_primary_source_examples[:3]))
 
+    top3_missing_recent_date_examples = summary_output_audit.get('top3_missing_recent_date_examples') or []
+    if top3_missing_recent_date_examples:
+        examples.append('top3 zonder recente datum: ' + ', '.join(top3_missing_recent_date_examples[:3]))
+
     top3_missing_fresh_examples = summary_output_audit.get('top3_missing_fresh_examples') or []
     if top3_missing_fresh_examples:
         examples.append('top3 zonder verse datum: ' + ', '.join(top3_missing_fresh_examples[:3]))
@@ -3485,7 +3489,7 @@ def render_text(data):
         parts.append(f"proof freshness: {data['proof_freshness_text']}")
     summary_output_examples = [example for example in (data.get('summary_output_examples') or []) if example]
     if summary_output_examples:
-        parts.append('outputvoorbeelden: ' + '; '.join(summary_output_examples[:2]))
+        parts.append('outputvoorbeelden: ' + '; '.join(summary_output_examples[:3]))
     if data.get('proof_config_identity_text'):
         parts.append(data['proof_config_identity_text'])
     if data.get('last_run_config_relation_text'):

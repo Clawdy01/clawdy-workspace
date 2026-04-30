@@ -268,6 +268,10 @@ def summarize_output_examples(status: dict) -> list[str]:
     if top3_missing_primary_source_examples:
         examples.append('top3 zonder primaire bron: ' + ', '.join(top3_missing_primary_source_examples[:3]))
 
+    top3_missing_recent_date_examples = summary_output_audit.get('top3_missing_recent_date_examples') or []
+    if top3_missing_recent_date_examples:
+        examples.append('top3 zonder recente datum: ' + ', '.join(top3_missing_recent_date_examples[:3]))
+
     top3_missing_fresh_examples = summary_output_audit.get('top3_missing_fresh_examples') or []
     if top3_missing_fresh_examples:
         examples.append('top3 zonder verse datum: ' + ', '.join(top3_missing_fresh_examples[:3]))
@@ -648,7 +652,7 @@ def main() -> int:
         example for example in (result.get('summary_output_examples') or []) if example
     ]
     if summary_output_examples:
-        lines.append('proof example: ' + ' | '.join(summary_output_examples[:2]))
+        lines.append('proof example: ' + ' | '.join(summary_output_examples[:3]))
     if result['last_proof_qualified_run_at_text']:
         lines.append(f"last qualified run: {result['last_proof_qualified_run_at_text']}")
     text_output = '\n'.join(unique_bits(lines)) + '\n'

@@ -460,7 +460,7 @@ def build_text(payload: dict) -> str:
         payload.get('proof_today_block_text'),
         payload.get('proof_freshness_text'),
         payload.get('proof_plan_text'),
-        ('outputvoorbeelden: ' + '; '.join(summary_output_examples[:2])) if summary_output_examples else None,
+        ('outputvoorbeelden: ' + '; '.join(summary_output_examples[:3])) if summary_output_examples else None,
         payload.get('proof_next_action_window_text'),
         payload.get('proof_recheck_window_text'),
         payload.get('proof_schedule_risk_text'),

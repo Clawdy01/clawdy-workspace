@@ -157,7 +157,7 @@ def render_text(data, show_preview=False):
             ai_bits.append(proof_freshness_text)
         summary_output_examples = [example for example in (ai_briefing_status.get('summary_output_examples') or []) if example]
         if summary_output_examples:
-            ai_bits.append('outputvoorbeelden: ' + '; '.join(summary_output_examples[:2]))
+            ai_bits.append('outputvoorbeelden: ' + '; '.join(summary_output_examples[:3]))
         if ai_briefing_status.get('proof_progress_text'):
             ai_bits.append(ai_briefing_status['proof_progress_text'])
         payload_audit = ai_briefing_status.get('payload_audit') or {}

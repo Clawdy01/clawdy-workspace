@@ -11262,7 +11262,7 @@ def evaluate_status_stdout_case(case):
             f"{payload.get('proof_countdown_text')}"
         )
     summary_examples_text = (
-        'outputvoorbeelden: ' + '; '.join((payload.get('summary_output_examples') or [])[:2])
+        'outputvoorbeelden: ' + '; '.join((payload.get('summary_output_examples') or [])[:3])
         if payload.get('summary_output_examples') else None
     )
     if summary_examples_text and summary_examples_text not in text_output:
@@ -11545,7 +11545,7 @@ def evaluate_watchdog_stdout_case(case):
             f"{payload.get('proof_countdown_text')}"
         )
     watchdog_example_text = (
-        'proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2])
+        'proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:3])
         if payload.get('summary_output_examples') else None
     )
     if watchdog_example_text and watchdog_example_text not in text_output:
@@ -11570,7 +11570,7 @@ def evaluate_watchdog_stdout_case(case):
             payload.get('proof_blocker_text'),
             payload.get('proof_target_due_at_if_next_slot_missed_text'),
             payload.get('proof_countdown_text'),
-            ('proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:2]))
+            ('proof example: ' + ' | '.join((payload.get('summary_output_examples') or [])[:3]))
             if payload.get('summary_output_examples') else None,
             payload.get('proof_next_action_window_text'),
             payload.get('proof_next_action_text'),
@@ -12391,7 +12391,7 @@ def evaluate_proof_recheck_producer_case(case):
                 f"{overall.get('proof_today_block_text')}"
             )
         quiet_examples_text = (
-            'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2])
+            'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:3])
             if overall.get('summary_output_examples') else None
         )
         if quiet_examples_text and quiet_examples_text not in quiet_text:
@@ -12898,7 +12898,7 @@ def evaluate_proof_recheck_producer_case(case):
                     )
 
         text_artifact_examples_text = (
-            'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:2])
+            'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:3])
             if overall.get('summary_output_examples') else None
         )
         if overall.get('proof_wait_until_text') and overall['proof_wait_until_text'] not in artifact_text:
@@ -13317,7 +13317,7 @@ def evaluate_brief_consumer_case(case):
             ai_briefing_status.get('proof_recheck_schedule_text'),
             ai_briefing_status.get('proof_recheck_schedule_kind_text'),
             ai_briefing_status.get('proof_freshness_text'),
-            ('outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:2]))
+            ('outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:3]))
             if ai_briefing_status.get('summary_output_examples') else None,
             ai_briefing_status.get('proof_plan_text'),
             ai_briefing_status.get('proof_config_identity_text'),
@@ -13383,7 +13383,7 @@ def evaluate_brief_consumer_case(case):
             f"{ai_briefing_status.get('proof_recheck_schedule_text')}"
         )
     brief_example_text = (
-        'outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:2])
+        'outputvoorbeelden: ' + '; '.join((ai_briefing_status.get('summary_output_examples') or [])[:3])
         if ai_briefing_status.get('summary_output_examples') else None
     )
     if brief_example_text and brief_example_text not in text_output:
