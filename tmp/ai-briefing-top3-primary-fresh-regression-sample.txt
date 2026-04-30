@@ -1,0 +1,43 @@
+Dagelijkse AI-update, donderdag 30 april 2026
+
+Korte intro: dit sample legt vast hoe de audit een top 3 met maar één vers item en maar één primaire+verse combinatie moet beoordelen.
+
+1) nieuwe AI-tools en productfeatures
+Titel: OpenAI brengt zijn modellen, Codex en managed agents naar AWS Bedrock
+Bron: https://openai.com/index/openai-on-aws https://aws.amazon.com/about-aws/whats-new/2026/04/bedrock-openai-models-codex-managed-agents/
+Datum: 2026-04-29
+Wat is er nieuw: OpenAI en AWS zetten nieuwe OpenAI-modellen, Codex en managed agents samen beschikbaar via Bedrock.
+Waarom is dit belangrijk: Dit is een concreet enterprise-distributiesignaal met directe impact op adoptie van agentic workflows.
+Relevant voor Christian: Relevante referentie voor enterprise-positionering en coding-agent distributie.
+
+2) multimodal, voice, image, video en on-device/lokale AI
+Titel: NVIDIA lanceert Nemotron 3 Nano Omni als open multimodaal model voor document-, audio-, video- en GUI-agents
+Bron: https://developer.nvidia.com/blog/nemotron-3-nano-omni https://huggingface.co/nvidia/Nemotron-3-Nano-Omni
+Datum: 2026-04-27
+Wat is er nieuw: NVIDIA publiceert een open multimodaal model voor document-, audio-, video- en GUI-agenttaken.
+Waarom is dit belangrijk: Het laat zien hoe open multimodale agentstacks sneller bruikbaar worden buiten gesloten platformen.
+Relevant voor Christian: Nuttig voor het volgen van lokale en open multimodale agentmogelijkheden.
+
+3) open-source modellen/frameworks/inference tooling
+Titel: IBM Granite 4.1 verschijnt als open Apache-2.0 modelreeks met 3B, 8B en 30B varianten en tot 512K context
+Bron: https://huggingface.co/blog/ibm-granite/granite-4-1 https://github.com/ibm-granite/granite-4.1-language-models
+Datum: 2026-04-26
+Wat is er nieuw: IBM publiceert Granite 4.1 als open modelreeks met meerdere groottes en lange context.
+Waarom is dit belangrijk: Dit levert praktische open-source bouwblokken voor enterprise en developer workflows.
+Relevant voor Christian: Bruikbaar als open-model referentie naast gesloten frontierleveranciers.
+
+Wat moeten wij hiermee?
+- Bewaak dat de audit deze top 3 als te weinig vers en te weinig primaire+vers markeert.
+- Gebruik dit sample om regressies rond watchdog-voorbeelden en audittekst vast te zetten.
+
+Wat ik vandaag het belangrijkst vind
+- Slechts één top-3 item is vers binnen 48 uur.
+- Slechts één top-3 item combineert een primaire bron met een verse datum.
+
+Bronnenlijst
+https://openai.com/index/openai-on-aws
+https://aws.amazon.com/about-aws/whats-new/2026/04/bedrock-openai-models-codex-managed-agents/
+https://developer.nvidia.com/blog/nemotron-3-nano-omni
+https://huggingface.co/nvidia/Nemotron-3-Nano-Omni
+https://huggingface.co/blog/ibm-granite/granite-4-1
+https://github.com/ibm-granite/granite-4.1-language-models

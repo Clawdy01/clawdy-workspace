@@ -1642,6 +1642,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         for title, date_value in zip(block_titles[:3], block_date_line_values[:3])
         if date_value is None or date_value < recent_cutoff_ms
     ][:3]
+    top3_missing_fresh_examples = [
+        title
+        for title, date_value in zip(block_titles[:3], block_date_line_values[:3])
+        if date_value is None or date_value < fresh_cutoff_ms
+    ][:3]
     top3_missing_primary_fresh_examples = [
         title
         for title, domains, date_value in zip(block_titles[:3], block_source_domains[:3], block_date_line_values[:3])
@@ -1974,6 +1979,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'explicit_recent_dated_item_count': explicit_recent_dated_item_count,
         'explicit_recent_dated_first3_count': explicit_recent_dated_first3_count,
         'top3_missing_recent_date_examples': top3_missing_recent_date_examples,
+        'top3_missing_fresh_examples': top3_missing_fresh_examples,
         'fresh_dated_item_count': fresh_dated_item_count,
         'fresh_dated_first3_count': fresh_dated_first3_count,
         'explicit_fresh_dated_item_count': explicit_fresh_dated_item_count,
@@ -2293,6 +2299,10 @@ def summarize_output_examples(summary_output_audit):
     top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
     if top3_missing_multi_source_examples:
         examples.append('top3 zonder multi-source: ' + ', '.join(top3_missing_multi_source_examples[:3]))
+
+    top3_missing_fresh_examples = summary_output_audit.get('top3_missing_fresh_examples') or []
+    if top3_missing_fresh_examples:
+        examples.append('top3 zonder verse datum: ' + ', '.join(top3_missing_fresh_examples[:3]))
 
     top3_missing_primary_fresh_examples = summary_output_audit.get('top3_missing_primary_fresh_examples') or []
     if top3_missing_primary_fresh_examples:
@@ -3319,6 +3329,9 @@ def render_summary_audit_text(data):
     top3_missing_recent_date_examples = data.get('top3_missing_recent_date_examples') or []
     if top3_missing_recent_date_examples:
         parts.append('top3 zonder recente datum ' + ', '.join(top3_missing_recent_date_examples[:3]))
+    top3_missing_fresh_examples = data.get('top3_missing_fresh_examples') or []
+    if top3_missing_fresh_examples:
+        parts.append('top3 zonder verse datum ' + ', '.join(top3_missing_fresh_examples[:3]))
     top3_missing_primary_fresh_examples = data.get('top3_missing_primary_fresh_examples') or []
     if top3_missing_primary_fresh_examples:
         parts.append('top3 zonder primaire+verse combo ' + ', '.join(top3_missing_primary_fresh_examples[:3]))
