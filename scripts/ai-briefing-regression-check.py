@@ -12400,12 +12400,36 @@ def evaluate_proof_recheck_producer_case(case):
                 f"{overall.get('proof_plan_text')}"
             )
         if (
+            overall.get('proof_recheck_schedule_kind_text')
+            and overall['proof_recheck_schedule_kind_text'] not in quiet_text
+        ):
+            failures.append(
+                'producer-quiet-tekst mist proof_recheck_schedule_kind_text uit overall/stdout-json: '
+                f"{overall.get('proof_recheck_schedule_kind_text')}"
+            )
+        if (
+            overall.get('proof_recheck_schedule_text')
+            and overall['proof_recheck_schedule_text'] not in quiet_text
+        ):
+            failures.append(
+                'producer-quiet-tekst mist proof_recheck_schedule_text uit overall/stdout-json: '
+                f"{overall.get('proof_recheck_schedule_text')}"
+            )
+        if (
             overall.get('proof_recheck_after_text_compact')
             and overall['proof_recheck_after_text_compact'] not in quiet_text
         ):
             failures.append(
                 'producer-quiet-tekst mist proof_recheck_after_text_compact uit overall/stdout-json: '
                 f"{overall.get('proof_recheck_after_text_compact')}"
+            )
+        if (
+            overall.get('proof_target_check_gate_text')
+            and overall['proof_target_check_gate_text'] not in quiet_text
+        ):
+            failures.append(
+                'producer-quiet-tekst mist proof_target_check_gate_text uit overall/stdout-json: '
+                f"{overall.get('proof_target_check_gate_text')}"
             )
         if overall.get('proof_today_block_text') and overall['proof_today_block_text'] not in quiet_text:
             failures.append(
@@ -12913,6 +12937,11 @@ def evaluate_proof_recheck_producer_case(case):
                         f'{label} proof_recheck_schedule_text verwacht pariteit met overall/stdout-json {overall.get("proof_recheck_schedule_text")}, kreeg '
                         f"{artifact_payload.get('proof_recheck_schedule_text')}"
                     )
+                if artifact_payload.get('proof_recheck_after_text_compact') != overall.get('proof_recheck_after_text_compact'):
+                    failures.append(
+                        f'{label} proof_recheck_after_text_compact verwacht pariteit met overall/stdout-json {overall.get("proof_recheck_after_text_compact")}, kreeg '
+                        f"{artifact_payload.get('proof_recheck_after_text_compact')}"
+                    )
                 if artifact_payload.get('summary_output_examples') != overall.get('summary_output_examples'):
                     failures.append(
                         f'{label} summary_output_examples verwacht pariteit met overall/stdout-json {overall.get("summary_output_examples")}, kreeg '
@@ -12983,6 +13012,14 @@ def evaluate_proof_recheck_producer_case(case):
                 'board-text-artifact mist proof_recheck_schedule_text uit overall/stdout-json: '
                 f"{overall.get('proof_recheck_schedule_text')}"
             )
+        if (
+            overall.get('proof_recheck_after_text_compact')
+            and overall['proof_recheck_after_text_compact'] not in artifact_text
+        ):
+            failures.append(
+                'board-text-artifact mist proof_recheck_after_text_compact uit overall/stdout-json: '
+                f"{overall.get('proof_recheck_after_text_compact')}"
+            )
         if overall.get('last_run_timeout_text') and overall['last_run_timeout_text'] not in artifact_text:
             failures.append(
                 'board-text-artifact mist last_run_timeout_text uit overall/stdout-json: '
@@ -13020,6 +13057,7 @@ def evaluate_proof_recheck_producer_case(case):
                 overall.get('proof_plan_text') or '',
                 overall.get('proof_recheck_schedule_kind_text') or '',
                 overall.get('proof_recheck_schedule_text') or '',
+                overall.get('proof_recheck_after_text_compact') or '',
                 overall.get('proof_target_check_gate_text') or '',
                 text_artifact_examples_text or '',
                 quiet_text,

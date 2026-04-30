@@ -444,6 +444,7 @@ def build_text(payload: dict) -> str:
         ]
         if bit
     )
+    proof_recheck_after_text_compact = payload.get('proof_recheck_after_text_compact')
     bits = [
         f"AI-briefing proof-recheck: {payload.get('summary')}",
         payload.get('result_text'),
@@ -463,6 +464,14 @@ def build_text(payload: dict) -> str:
         payload.get('proof_plan_text'),
         ('outputvoorbeelden: ' + '; '.join(summary_output_examples[:3])) if summary_output_examples else None,
         payload.get('proof_next_action_window_text'),
+        (
+            proof_recheck_after_text_compact
+            if proof_recheck_after_text_compact not in {
+                payload.get('proof_next_action_window_text'),
+                payload.get('proof_recheck_window_text'),
+            }
+            else None
+        ),
         payload.get('proof_recheck_window_text'),
         payload.get('proof_schedule_risk_text'),
         None if proof_target_due_text and proof_target_due_text in richer_due_context else proof_target_due_text,
