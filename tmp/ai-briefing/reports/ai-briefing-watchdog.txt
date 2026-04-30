@@ -1,39 +1,34 @@
-ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 15/17 runs ok, 15 afgeleverd, streak 12, laatste duur 3m 54s, laatste zojuist
-proof state: bewijs wacht tijdsgebonden op het eerstvolgende kwalificatieslot van morgen (waiting-next-scheduled-run-tomorrow)
-proof blocker: tijdslotblokker: huidige config wacht op geplande kwalificatierun 2026-05-01 09:00 CEST (over 1 d) (time-gated-next-slot)
+ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 15/17 runs ok, 15 afgeleverd, streak 12, laatste duur 3m 54s, laatste 24 uur geleden
+proof state: hercheckvenster is open voor het huidige kwalificatieslot (recheck-window-open)
+proof blocker: hercheckvenster is open, dus dit spoor wacht alleen nog op directe hercheck (recheck-window-open)
 reasons:
 - status not ok
-- next run slot wijkt 24u 0m af van verwacht 2026-04-30 09:00 CEST
 - runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-30 09:04 CEST > 2026-04-30 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
-- next run: next run slot wijkt 24u 0m af van verwacht 2026-04-30 09:00 CEST; briefing-output: te weinig verse items in top 3 (1/3 binnen 48 uur); te weinig top-3 items met primaire bron én verse datum (1/3 binnen 48 uur): OpenAI brengt zijn modellen, Codex en managed agents naar AWS Bedrock, NVIDIA lanceert Nemotron 3 Nano Omni als open multimodaal model voor document-, audio-, video- en GUI-agents
+- proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-30 09:04 CEST > 2026-04-30 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: te weinig verse items in top 3 (1/3 binnen 48 uur); te weinig top-3 items met primaire bron én verse datum (1/3 binnen 48 uur): OpenAI brengt zijn modellen, Codex en managed agents naar AWS Bedrock, NVIDIA lanceert Nemotron 3 Nano Omni als open multimodaal model voor document-, audio-, video- en GUI-agents
 - onvoldoende gekwalificeerde runs voor huidige config (0/3)
 - geen gekwalificeerde run sinds verwacht dagslot 2026-04-30 09:00 CEST
-readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan; tijdsgebonden wachtstatus tot het eerstvolgende kwalificatieslot van morgen
-reference: referentietijd 2026-04-30 08:58 CEST
-proof config: bewijsconfig 6fb35ef24ceb, gewijzigd 2026-04-30 09:04 CEST (zojuist)
+readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan; runbewijs met aandachtspunt
+reference: referentietijd 2026-05-01 09:15 CEST
+proof config: bewijsconfig 6fb35ef24ceb, gewijzigd 2026-04-30 09:04 CEST (24 uur geleden)
 last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-04-30 09:04 CEST nog op eerste run
 proof recheck schedule kind: proof-recheck-cronstatus: ok
 proof recheck schedule: proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)
 proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan
-proof wait state: wacht op eerstvolgende geplande kwalificatierun
 proof requirement: 0/3 gekwalificeerde runs
 proof remaining: nog 3 te gaan
 next run: 2026-05-01 09:00 CEST
 proof target due: 2026-05-03 09:15 CEST
 proof target due if next slot missed: 2026-05-04 09:15 CEST
-proof plan: geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-01 09:00 CEST (over 1 d), doel 2026-05-03 09:15 CEST
+proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-05-01 09:00 CEST (nu), doel 2026-05-03 09:15 CEST
 proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-04-30 09:04 CEST > 2026-04-30 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
-proof next action window: wacht op geplande kwalificatierun 2026-05-01 09:00 CEST (over 1 d); hercheck vanaf 2026-05-01 09:15 CEST (over 1 d)
-proof recheck window: hercheckvenster opent 2026-05-01 09:15 CEST (over 1 d)
+proof next action window: hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw
 proof recheck commands: daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3
-proof recheck: hercheck niet vóór 2026-05-01 09:15 CEST (over 1 d)
-proof today block: geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-01 09:00 CEST (over 1 d)
+proof recheck: hercheck niet vóór 2026-05-01 09:15 CEST (nu)
 proof schedule risk: als slot 2026-05-01 09:00 CEST mist, schuift bewijsdoel naar 2026-05-04 09:15 CEST
-proof wait until: 2026-05-01 09:00 CEST (over 1 d) [T+24u] - bewijs blijft tijdsgebonden wachten tot het eerstvolgende kwalificatieslot van morgen
-next qualifying run: 2026-05-01 09:00 CEST (over 1 d) [T+24u] [morgen]
-proof countdown: wachtvenster tot 2026-05-01 09:00 CEST (over 1 d); bewijsdoel 2026-05-03 09:15 CEST (over 3 d); mist volgend slot => 2026-05-04 09:15 CEST (slip +24u)
-proof target check gate: proof-target-check blijft stil tot 2026-05-03 09:15 CEST (over 3 d) (suppressed-until-deadline)
-qualifying run slots: 2026-05-01 09:00 CEST (over 1 d | morgen), 2026-05-02 09:00 CEST (over 2 d | over 2 d), 2026-05-03 09:00 CEST (over 3 d | over 3 d)
+next qualifying run: 2026-05-01 09:00 CEST (nu) [T-0.2u] [vandaag]
+proof countdown: bewijsdoel 2026-05-03 09:15 CEST (over 2 d); mist volgend slot => 2026-05-04 09:15 CEST (slip +24u)
+proof target check gate: proof-target-check blijft stil tot 2026-05-03 09:15 CEST (over 2 d) (suppressed-until-deadline)
+qualifying run slots: 2026-05-01 09:00 CEST (nu | vandaag), 2026-05-02 09:00 CEST (over 23u 45m | morgen), 2026-05-03 09:00 CEST (over 1 d 23 u | over 2 d)
 last run timeout audit: laatste run had 8m 5s timeout-speling (3m 54s op limiet 12m 0s)
 recent run duration audit: recente duurtrend 1m 52s tot 3m 54s, gemiddeld 2m 59s, onder huidige limiet 12m 0s
 proof example: top3 zonder verse datum: OpenAI brengt zijn modellen, Codex en managed agents naar AWS Bedrock, NVIDIA lanceert Nemotron 3 Nano Omni als open multimodaal model voor document-, audio-, video- en GUI-agents | top3 zonder primaire+verse combo: OpenAI brengt zijn modellen, Codex en managed agents naar AWS Bedrock, NVIDIA lanceert Nemotron 3 Nano Omni als open multimodaal model voor document-, audio-, video- en GUI-agents

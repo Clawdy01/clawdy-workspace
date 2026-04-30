@@ -152,6 +152,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_recheck_grace_ms': first_non_null(status_data.get('proof_recheck_grace_ms'), watchdog_data.get('proof_recheck_grace_ms')),
         'proof_recheck_after_at': first_non_null(status_data.get('proof_recheck_after_at'), watchdog_data.get('proof_recheck_after_at')),
         'proof_recheck_after_text': first_non_null(status_data.get('proof_recheck_after_text'), watchdog_data.get('proof_recheck_after_text')),
+        'proof_recheck_after_text_compact': first_non_null(status_data.get('proof_recheck_after_text_compact'), watchdog_data.get('proof_recheck_after_text_compact')),
         'proof_recheck_after_hint': first_non_null(status_data.get('proof_recheck_after_hint'), watchdog_data.get('proof_recheck_after_hint')),
         'proof_recheck_after_remaining_ms': first_non_null(status_data.get('proof_recheck_after_remaining_ms'), watchdog_data.get('proof_recheck_after_remaining_ms')),
         'proof_recheck_after_remaining_hours': first_non_null(status_data.get('proof_recheck_after_remaining_hours'), watchdog_data.get('proof_recheck_after_remaining_hours')),

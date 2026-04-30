@@ -9783,6 +9783,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'resultaat: too-early',
             'proof-recheck-cronstatus: ok',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW.get('proof_recheck_after_text_compact'),
         ],
         'expect_quiet_absent_substrings': [
             '--json --consumer-bundle board-suite: exit=',
@@ -9800,6 +9801,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
             'proof-recheck-cronstatus: ok',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
+            STATUS_BEFORE_SLOT_TOMORROW.get('proof_recheck_after_text_compact'),
         ],
     },
     {
@@ -9830,6 +9832,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'resultaat: attention-needed',
             'proof-recheck-cronstatus: ok',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN.get('proof_recheck_after_text_compact'),
         ],
         'expect_quiet_absent_substrings': [
             '--json --consumer-bundle board-suite: exit=',
@@ -9847,6 +9850,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'hercheckvenster is open, maar bewijsdoel is nog niet gehaald',
             'proof-recheck-cronstatus: ok',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
+            STATUS_RECHECK_WINDOW_OPEN.get('proof_recheck_after_text_compact'),
         ],
     },
 ]
@@ -12385,6 +12389,14 @@ def evaluate_proof_recheck_producer_case(case):
                 'producer-quiet-tekst mist proof_plan_text uit overall/stdout-json: '
                 f"{overall.get('proof_plan_text')}"
             )
+        if (
+            overall.get('proof_recheck_after_text_compact')
+            and overall['proof_recheck_after_text_compact'] not in quiet_text
+        ):
+            failures.append(
+                'producer-quiet-tekst mist proof_recheck_after_text_compact uit overall/stdout-json: '
+                f"{overall.get('proof_recheck_after_text_compact')}"
+            )
         if overall.get('proof_today_block_text') and overall['proof_today_block_text'] not in quiet_text:
             failures.append(
                 'producer-quiet-tekst mist proof_today_block_text uit overall/stdout-json: '
@@ -13934,6 +13946,23 @@ def evaluate_watchdog_alert_case(case):
                     'watchdog-alert alert_text mist proof_recheck_schedule_text uit stdout-json: '
                     f"{payload.get('proof_recheck_schedule_text')}"
                 )
+        summary_output_examples = [example for example in (payload.get('summary_output_examples') or []) if example]
+        proof_example_limit = 2 if mode == 'preflight' else 3
+        expected_proof_examples_text = (
+            'bewijs: ' + ' | '.join(summary_output_examples[:proof_example_limit])
+            if summary_output_examples else None
+        )
+        if expected_proof_examples_text:
+            if expected_proof_examples_text not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist summary_output_examples uit stdout-json: '
+                    f"{expected_proof_examples_text}"
+                )
+            if expected_proof_examples_text not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist summary_output_examples uit stdout-json: '
+                    f"{expected_proof_examples_text}"
+                )
 
     if consumer_bundle == 'board-pair' and consumer_root is not None:
         board_json_path = consumer_root / 'ai-briefing-watchdog-alert.json'
@@ -15064,6 +15093,7 @@ def evaluate_watchdog_producer_case(case):
                 'proof_recheck_schedule_text',
                 'proof_wait_until_text',
                 'proof_next_action_window_text',
+                'proof_recheck_after_text_compact',
             ]:
                 field_value = overall.get(field_name)
                 if field_value and field_value not in board_text_output:
@@ -15083,12 +15113,14 @@ def evaluate_watchdog_producer_case(case):
             payload.get('proof_recheck_schedule_kind_text'),
             payload.get('proof_config_identity_text'),
             payload.get('proof_plan_text'),
+            payload.get('proof_recheck_after_text_compact'),
             overall.get('proof_recheck_schedule_text'),
             overall.get('proof_recheck_schedule_kind_text'),
             overall.get('proof_config_identity_text'),
             overall.get('proof_plan_text'),
             overall.get('proof_next_action_window_text'),
             overall.get('proof_next_action_text'),
+            overall.get('proof_recheck_after_text_compact'),
             board_text_output,
             quiet_output,
         ] if bit
@@ -15110,6 +15142,14 @@ def evaluate_watchdog_producer_case(case):
         failures.append(
             'watchdog-producer-quiet mist proof_target_due_at_if_next_slot_missed_text uit overall/stdout-json: '
             f"{overall.get('proof_target_due_at_if_next_slot_missed_text')}"
+        )
+    if (
+        overall.get('proof_recheck_after_text_compact')
+        and overall['proof_recheck_after_text_compact'] not in quiet_output
+    ):
+        failures.append(
+            'watchdog-producer-quiet mist proof_recheck_after_text_compact uit overall/stdout-json: '
+            f"{overall.get('proof_recheck_after_text_compact')}"
         )
     for snippet in case.get('expect_text_substrings', []):
         if snippet not in combined_text:

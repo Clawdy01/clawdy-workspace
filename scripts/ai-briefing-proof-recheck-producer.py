@@ -141,6 +141,13 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_next_action_text']))
     if payload.get('proof_recheck_commands_text'):
         bits.append(str(payload['proof_recheck_commands_text']))
+    proof_recheck_after_text_compact = payload.get('proof_recheck_after_text_compact')
+    if proof_recheck_after_text_compact and proof_recheck_after_text_compact not in {
+        payload.get('proof_next_action_window_text'),
+        payload.get('proof_next_action_text'),
+        payload.get('proof_recheck_window_text'),
+    }:
+        bits.append(str(proof_recheck_after_text_compact))
     if payload.get('proof_schedule_risk_text'):
         bits.append(str(payload['proof_schedule_risk_text']))
     if proof_target_due_text and proof_target_due_text not in richer_due_context:
@@ -257,6 +264,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_recheck_grace_ms': payload.get('proof_recheck_grace_ms'),
         'proof_recheck_after_at': payload.get('proof_recheck_after_at'),
         'proof_recheck_after_text': payload.get('proof_recheck_after_text'),
+        'proof_recheck_after_text_compact': payload.get('proof_recheck_after_text_compact'),
         'proof_recheck_after_hint': payload.get('proof_recheck_after_hint'),
         'proof_recheck_after_remaining_ms': payload.get('proof_recheck_after_remaining_ms'),
         'proof_recheck_after_remaining_hours': payload.get('proof_recheck_after_remaining_hours'),
