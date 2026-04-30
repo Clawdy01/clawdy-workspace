@@ -8225,6 +8225,7 @@ WATCHDOG_STDOUT_CASES = [
         'expect_exit_code': 2,
         'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
         'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_no_compact_recheck_line': True,
         'expect_proof_waiting_for_next_scheduled_run': True,
         'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
         'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
@@ -8239,6 +8240,7 @@ WATCHDOG_STDOUT_CASES = [
         'expect_exit_code': 2,
         'expect_proof_state': 'recheck-window-open',
         'expect_proof_next_action_kind': 'recheck-now',
+        'expect_no_compact_recheck_line': True,
         'expect_proof_waiting_for_next_scheduled_run': False,
         'expect_proof_config_identity_text': STATUS_RECHECK_WINDOW_OPEN['proof_config_identity_text'],
         'expect_last_run_config_relation_text': STATUS_RECHECK_WINDOW_OPEN['last_run_config_relation_text'],
@@ -11518,7 +11520,17 @@ def evaluate_watchdog_stdout_case(case):
             'watchdog-stdout-tekst mist proof_wait_until_reason_text uit stdout-json: '
             f"{payload.get('proof_wait_until_reason_text')}"
         )
-    if (
+    compact_recheck_line = (
+        f"proof recheck: {payload.get('proof_recheck_after_text_compact')}"
+        if payload.get('proof_recheck_after_text_compact') else None
+    )
+    if case.get('expect_no_compact_recheck_line'):
+        if compact_recheck_line and compact_recheck_line in text_output:
+            failures.append(
+                'watchdog-stdout-tekst toont redundante proof_recheck_after_text_compact-regel ondanks aanwezige venstercontext: '
+                f"{compact_recheck_line}"
+            )
+    elif (
         payload.get('proof_recheck_after_text_compact')
         and payload['proof_recheck_after_text_compact'] not in text_output
     ):
