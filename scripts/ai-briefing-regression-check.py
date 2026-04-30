@@ -4709,6 +4709,7 @@ DEFAULT_CASES = [
         'expect_first3_unique_source_url_count': 6,
         'expect_first3_source_domain_count': 6,
         'expect_future_dated_item_count': 1,
+        'expect_explicit_dated_item_count': 2,
         'expect_explicit_future_dated_item_count': 0,
         'expect_invalid_source_issue_counts': {},
         'expect_exact_field_line_counts': {
@@ -4720,6 +4721,7 @@ DEFAULT_CASES = [
             'Relevant voor Christian:': 3,
         },
         'expect_reason_substrings': [
+            'niet elk item heeft een expliciete Datum:-regel (2/3)',
             'te weinig top-3 items met zowel bron als recente datum (2/3)',
             'verdachte toekomstige datums in briefing (1 item(s), tolerantie 1 dag)',
         ],
@@ -4746,6 +4748,7 @@ DEFAULT_CASES = [
         'expect_first3_unique_source_url_count': 6,
         'expect_first3_source_domain_count': 6,
         'expect_future_dated_item_count': 0,
+        'expect_explicit_dated_item_count': 2,
         'expect_explicit_future_dated_item_count': 0,
         'expect_invalid_source_issue_counts': {},
         'expect_exact_field_line_counts': {
@@ -4757,6 +4760,7 @@ DEFAULT_CASES = [
             'Relevant voor Christian:': 3,
         },
         'expect_reason_substrings': [
+            'niet elk item heeft een expliciete Datum:-regel (2/3)',
             'te weinig top-3 items met zowel bron als recente datum (2/3)',
         ],
     },
@@ -4782,6 +4786,7 @@ DEFAULT_CASES = [
         'expect_first3_unique_source_url_count': 6,
         'expect_first3_source_domain_count': 6,
         'expect_future_dated_item_count': 0,
+        'expect_explicit_dated_item_count': 2,
         'expect_explicit_future_dated_item_count': 0,
         'expect_invalid_source_issue_counts': {},
         'expect_exact_field_line_counts': {
@@ -4793,6 +4798,7 @@ DEFAULT_CASES = [
             'Relevant voor Christian:': 3,
         },
         'expect_reason_substrings': [
+            'niet elk item heeft een expliciete Datum:-regel (2/3)',
             'te weinig top-3 items met zowel bron als recente datum (2/3)',
         ],
     },
@@ -8264,6 +8270,18 @@ STATUS_SUMMARY_AUDIT_CASES = [
         ],
     },
     {
+        'name': 'status-summary-audit-cli-keeps-top3-missing-date-line-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-missing-date-line-sample.txt',
+        'reference_ms': 1776124800000,
+        'expect_rendered_text_substrings': [
+            'niet elk item heeft een expliciete Datum:-regel (2/3): OpenAI verbreedt agents-SDK documentatie met nieuwe voorbeelden',
+            'top3 zonder recente datum OpenAI verbreedt agents-SDK documentatie met nieuwe voorbeelden',
+            'top3 zonder verse datum OpenAI verbreedt agents-SDK documentatie met nieuwe voorbeelden',
+            'top3 met bron+recente datum 2/3',
+            'top3 met primaire bron+verse datum 2/3',
+        ],
+    },
+    {
         'name': 'status-summary-audit-cli-keeps-field-order-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-label-order-mismatch-sample.txt',
     },
@@ -9051,6 +9069,9 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'name': 'status-summary-audit-cli-keeps-future-inline-with-empty-explicit-date-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-future-inline-with-empty-explicit-date-sample.txt',
         'expect_rendered_text_substrings': [
+            'niet elk item heeft een expliciete Datum:-regel (2/3): GitHub verschuift review-kosten naar Actions',
+            'top3 zonder recente datum GitHub verschuift review-kosten naar Actions',
+            'top3 zonder verse datum GitHub verschuift review-kosten naar Actions',
             'toekomstige datums 1',
             'expliciet toekomstige datums 0',
         ],
@@ -9059,6 +9080,9 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'name': 'status-summary-audit-cli-keeps-current-inline-with-empty-explicit-date-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-current-inline-with-empty-explicit-date-sample.txt',
         'expect_rendered_text_substrings': [
+            'niet elk item heeft een expliciete Datum:-regel (2/3): GitHub verschuift review-kosten naar Actions',
+            'top3 zonder recente datum GitHub verschuift review-kosten naar Actions',
+            'top3 zonder verse datum GitHub verschuift review-kosten naar Actions',
             'toekomstige datums 0',
             'expliciet toekomstige datums 0',
         ],
@@ -9067,6 +9091,9 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'name': 'status-summary-audit-cli-keeps-current-inline-with-empty-explicit-date-and-future-source-url-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-current-inline-with-empty-explicit-date-and-future-source-url-sample.txt',
         'expect_rendered_text_substrings': [
+            'niet elk item heeft een expliciete Datum:-regel (2/3): GitHub verschuift review-kosten naar Actions',
+            'top3 zonder recente datum GitHub verschuift review-kosten naar Actions',
+            'top3 zonder verse datum GitHub verschuift review-kosten naar Actions',
             'toekomstige datums 0',
             'expliciet toekomstige datums 0',
         ],

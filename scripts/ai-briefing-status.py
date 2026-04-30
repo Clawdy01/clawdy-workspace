@@ -826,6 +826,12 @@ def extract_date_line_text(block):
     return None
 
 
+def has_explicit_date_line_value(line):
+    if not isinstance(line, str):
+        return False
+    return bool(re.sub(r'(?i)^datum:\s*', '', line).strip())
+
+
 def split_source_line_tokens(line):
     if not isinstance(line, str):
         return []
@@ -1414,7 +1420,7 @@ def audit_summary_output(summary_text, reference_ms=None):
     block_has_source_line = [bool(line) for line in block_source_lines]
     block_valid_source_line = [is_valid_source_line(line) for line in block_source_lines]
     block_date_lines = [extract_date_line_text(block) for block in item_blocks]
-    block_has_date_line = [bool(line) for line in block_date_lines]
+    block_has_date_line = [has_explicit_date_line_value(line) for line in block_date_lines]
     block_date_line_values = [latest_block_date_ms(line, reference_ms=now_ms) for line in block_date_lines]
     block_invalid_source_line = [
         bool(line) and not is_valid
