@@ -11539,6 +11539,16 @@ def evaluate_watchdog_stdout_case(case):
             'watchdog-stdout-tekst mist proof_recheck_schedule_text uit stdout-json: '
             f"{payload.get('proof_recheck_schedule_text')}"
         )
+    if payload.get('proof_schedule_risk_text') and payload['proof_schedule_risk_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_schedule_risk_text uit stdout-json: '
+            f"{payload.get('proof_schedule_risk_text')}"
+        )
+    if payload.get('proof_target_check_gate_text') and payload['proof_target_check_gate_text'] not in text_output:
+        failures.append(
+            'watchdog-stdout-tekst mist proof_target_check_gate_text uit stdout-json: '
+            f"{payload.get('proof_target_check_gate_text')}"
+        )
     if (
         payload.get('proof_target_due_at_if_next_slot_missed_text')
         and payload['proof_target_due_at_if_next_slot_missed_text'] not in text_output
@@ -11566,6 +11576,8 @@ def evaluate_watchdog_stdout_case(case):
         bit for bit in [
             payload.get('proof_recheck_schedule_text'),
             payload.get('proof_recheck_schedule_kind_text'),
+            payload.get('proof_schedule_risk_text'),
+            payload.get('proof_target_check_gate_text'),
             payload.get('proof_freshness_text'),
             payload.get('proof_plan_text'),
             payload.get('proof_config_identity_text'),
@@ -13418,6 +13430,7 @@ def evaluate_brief_consumer_case(case):
             ai_briefing_status.get('proof_wait_until_text'),
             ai_briefing_status.get('proof_wait_until_reason_text'),
             ai_briefing_status.get('proof_recheck_after_text_compact'),
+            ai_briefing_status.get('proof_schedule_risk_text'),
             ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text'),
             ai_briefing_status.get('proof_countdown_text'),
             ai_briefing_status.get('proof_today_block_text'),
@@ -13516,6 +13529,14 @@ def evaluate_brief_consumer_case(case):
         failures.append(
             'brief-consumer-tekst mist proof_recheck_after_text_compact uit ai_briefing_status: '
             f"{ai_briefing_status.get('proof_recheck_after_text_compact')}"
+        )
+    if (
+        ai_briefing_status.get('proof_schedule_risk_text')
+        and ai_briefing_status['proof_schedule_risk_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_schedule_risk_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_schedule_risk_text')}"
         )
     if (
         ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text')
