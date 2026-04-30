@@ -134,7 +134,7 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['recent_run_duration_text']))
     examples = payload.get('summary_output_examples') or []
     if examples:
-        bits.append('outputvoorbeelden: ' + '; '.join(str(example) for example in examples[:2]))
+        bits.append('outputvoorbeelden: ' + '; '.join(str(example) for example in examples[:3]))
     if payload.get('proof_next_action_window_text'):
         bits.append(str(payload['proof_next_action_window_text']))
     elif payload.get('proof_next_action_text'):

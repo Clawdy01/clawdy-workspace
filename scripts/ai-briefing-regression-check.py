@@ -13879,6 +13879,17 @@ def evaluate_watchdog_alert_case(case):
                     'watchdog-alert alert_text mist proof_next_action_window_text uit stdout-json: '
                     f"{payload.get('proof_next_action_window_text')}"
                 )
+        if payload.get('proof_recheck_after_text_compact'):
+            if payload['proof_recheck_after_text_compact'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_recheck_after_text_compact uit stdout-json: '
+                    f"{payload.get('proof_recheck_after_text_compact')}"
+                )
+            if payload['proof_recheck_after_text_compact'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_recheck_after_text_compact uit stdout-json: '
+                    f"{payload.get('proof_recheck_after_text_compact')}"
+                )
         if payload.get('proof_config_identity_text'):
             if payload['proof_config_identity_text'] not in text_output:
                 failures.append(

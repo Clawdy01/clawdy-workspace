@@ -155,11 +155,11 @@
   "consumer_requested_outputs_status_kind": "requested",
   "consumer_requested_outputs_status_text": "consumer-output-aanvraag vastgelegd voor 2 artifact(s)",
   "consumer_requested_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
-  "generated_at": "2026-04-30T13:39:56.696660+00:00",
-  "generated_at_text": "2026-04-30 15:39:56 CEST",
-  "started_at": "2026-04-30T13:39:56.563716+00:00",
-  "started_at_text": "2026-04-30 15:39:56 CEST",
-  "duration_ms": 133,
-  "duration_seconds": 0.133,
-  "duration_text": "0.133s"
+  "generated_at": "2026-04-30T14:40:20.160692+00:00",
+  "generated_at_text": "2026-04-30 16:40:20 CEST",
+  "started_at": "2026-04-30T14:40:20.028630+00:00",
+  "started_at_text": "2026-04-30 16:40:20 CEST",
+  "duration_ms": 132,
+  "duration_seconds": 0.132,
+  "duration_text": "0.132s"
 }

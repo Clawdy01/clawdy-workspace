@@ -251,7 +251,7 @@ def summarize_output_examples(status: dict) -> list[str]:
     if top3_invalid_source_line_examples:
         rendered = ', '.join(
             f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
-            for example in top3_invalid_source_line_examples[:2]
+            for example in top3_invalid_source_line_examples[:3]
         )
         if rendered:
             examples.append('top3 ongeldige Bron-regel: ' + rendered)
@@ -292,7 +292,7 @@ def summarize_output_examples(status: dict) -> list[str]:
     if items_invalid_source_line_examples and not top3_invalid_source_line_examples:
         rendered = ', '.join(
             f"{example.get('title', 'onbekend')} -> {example.get('source_line', '').strip()}"
-            for example in items_invalid_source_line_examples[:2]
+            for example in items_invalid_source_line_examples[:3]
         )
         if rendered:
             examples.append('ongeldige Bron-regel: ' + rendered)

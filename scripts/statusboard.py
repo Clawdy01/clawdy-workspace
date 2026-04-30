@@ -207,8 +207,11 @@ def render_text(data, show_preview=False):
         if not ai_briefing_status.get('proof_next_action_window_text'):
             if ai_briefing_status.get('proof_recheck_window_text') and ai_briefing_status.get('proof_recheck_window_text') != ai_briefing_status.get('proof_next_action_text'):
                 ai_bits.append(ai_briefing_status['proof_recheck_window_text'])
-            elif ai_briefing_status.get('proof_recheck_after_text_compact'):
-                ai_bits.append(ai_briefing_status['proof_recheck_after_text_compact'])
+        if (
+            ai_briefing_status.get('proof_recheck_after_text_compact')
+            and ai_briefing_status.get('proof_recheck_after_text_compact') != ai_briefing_status.get('proof_next_action_window_text')
+        ):
+            ai_bits.append(ai_briefing_status['proof_recheck_after_text_compact'])
         if ai_briefing_status.get('proof_plan_text'):
             ai_bits.append(ai_briefing_status['proof_plan_text'])
         if ai_briefing_status.get('proof_schedule_risk_text'):
@@ -271,7 +274,7 @@ def render_text(data, show_preview=False):
                     'items met ongeldige Bron-regel '
                     + ', '.join(
                         f"{example.get('title', 'item')} -> {example.get('source_line', '')}"
-                        for example in items_invalid_source_line_examples[:2]
+                        for example in items_invalid_source_line_examples[:3]
                     )
                 )
             top3_missing_source_examples = summary_output_audit.get('top3_missing_source_examples') or []
@@ -283,7 +286,7 @@ def render_text(data, show_preview=False):
                     'top3 met ongeldige Bron-regel '
                     + ', '.join(
                         f"{example.get('title', 'item')} -> {example.get('source_line', '')}"
-                        for example in top3_invalid_source_line_examples[:2]
+                        for example in top3_invalid_source_line_examples[:3]
                     )
                 )
             top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
