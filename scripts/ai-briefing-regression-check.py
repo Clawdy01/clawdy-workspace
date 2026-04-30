@@ -13323,6 +13323,11 @@ def evaluate_brief_consumer_case(case):
             'ai_briefing_status.proof_recheck_schedule_kind_text verwacht '
             f"{expected_status.get('proof_recheck_schedule_kind_text')}, kreeg {ai_briefing_status.get('proof_recheck_schedule_kind_text')}"
         )
+    if ai_briefing_status.get('proof_target_check_gate_text') != expected_status.get('proof_target_check_gate_text'):
+        failures.append(
+            'ai_briefing_status.proof_target_check_gate_text verwacht '
+            f"{expected_status.get('proof_target_check_gate_text')}, kreeg {ai_briefing_status.get('proof_target_check_gate_text')}"
+        )
 
     combined_text = ' || '.join(
         bit for bit in [
@@ -13345,6 +13350,7 @@ def evaluate_brief_consumer_case(case):
             ai_briefing_status.get('proof_blocker_text'),
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
+            ai_briefing_status.get('proof_target_check_gate_text'),
             text_output,
         ] if bit
     )
@@ -13476,6 +13482,14 @@ def evaluate_brief_consumer_case(case):
         failures.append(
             'brief-consumer-tekst mist proof_next_action_window_text uit ai_briefing_status: '
             f"{ai_briefing_status.get('proof_next_action_window_text')}"
+        )
+    if (
+        ai_briefing_status.get('proof_target_check_gate_text')
+        and ai_briefing_status['proof_target_check_gate_text'] not in text_output
+    ):
+        failures.append(
+            'brief-consumer-tekst mist proof_target_check_gate_text uit ai_briefing_status: '
+            f"{ai_briefing_status.get('proof_target_check_gate_text')}"
         )
 
     return {
@@ -13945,6 +13959,17 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'watchdog-alert alert_text mist proof_recheck_schedule_text uit stdout-json: '
                     f"{payload.get('proof_recheck_schedule_text')}"
+                )
+        if payload.get('proof_target_check_gate_text'):
+            if payload['proof_target_check_gate_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_target_check_gate_text uit stdout-json: '
+                    f"{payload.get('proof_target_check_gate_text')}"
+                )
+            if payload['proof_target_check_gate_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_target_check_gate_text uit stdout-json: '
+                    f"{payload.get('proof_target_check_gate_text')}"
                 )
         summary_output_examples = [example for example in (payload.get('summary_output_examples') or []) if example]
         proof_example_limit = 2 if mode == 'preflight' else 3
