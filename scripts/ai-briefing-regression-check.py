@@ -11256,6 +11256,16 @@ def evaluate_status_stdout_case(case):
             'status-stdout-tekst mist proof_recheck_schedule_text uit stdout-json: '
             f"{payload.get('proof_recheck_schedule_text')}"
         )
+    if payload.get('proof_schedule_risk_text') and payload['proof_schedule_risk_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_schedule_risk_text uit stdout-json: '
+            f"{payload.get('proof_schedule_risk_text')}"
+        )
+    if payload.get('proof_target_check_gate_text') and payload['proof_target_check_gate_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_target_check_gate_text uit stdout-json: '
+            f"{payload.get('proof_target_check_gate_text')}"
+        )
     if (
         payload.get('proof_target_due_at_if_next_slot_missed_text')
         and payload['proof_target_due_at_if_next_slot_missed_text'] not in text_output
@@ -11283,6 +11293,8 @@ def evaluate_status_stdout_case(case):
         bit for bit in [
             payload.get('proof_recheck_schedule_text'),
             payload.get('proof_recheck_schedule_kind_text'),
+            payload.get('proof_schedule_risk_text'),
+            payload.get('proof_target_check_gate_text'),
             payload.get('proof_freshness_text'),
             payload.get('proof_plan_text'),
             payload.get('proof_config_identity_text'),
@@ -12096,6 +12108,14 @@ def evaluate_proof_recheck_case(case):
         failures.append(
             'proof-recheck-plain-tekst mist proof_recheck_window_text uit stdout-json: '
             f"{payload.get('proof_recheck_window_text')}"
+        )
+    if (
+        payload.get('proof_recheck_after_text_compact')
+        and payload['proof_recheck_after_text_compact'] not in text_output
+    ):
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_recheck_after_text_compact uit stdout-json: '
+            f"{payload.get('proof_recheck_after_text_compact')}"
         )
     if payload.get('proof_schedule_risk_text') and payload['proof_schedule_risk_text'] not in text_output:
         failures.append(
