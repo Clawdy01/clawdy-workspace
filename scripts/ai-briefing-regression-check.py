@@ -12085,6 +12085,11 @@ def evaluate_proof_recheck_case(case):
             'proof-recheck-plain-tekst mist proof_recheck_window_text uit stdout-json: '
             f"{payload.get('proof_recheck_window_text')}"
         )
+    if payload.get('proof_schedule_risk_text') and payload['proof_schedule_risk_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_schedule_risk_text uit stdout-json: '
+            f"{payload.get('proof_schedule_risk_text')}"
+        )
     if (
         payload.get('proof_target_due_at_if_next_slot_missed_text')
         and payload['proof_target_due_at_if_next_slot_missed_text'] not in text_output
@@ -12398,6 +12403,11 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'producer-quiet-tekst mist proof_plan_text uit overall/stdout-json: '
                 f"{overall.get('proof_plan_text')}"
+            )
+        if overall.get('proof_schedule_risk_text') and overall['proof_schedule_risk_text'] not in quiet_text:
+            failures.append(
+                'producer-quiet-tekst mist proof_schedule_risk_text uit overall/stdout-json: '
+                f"{overall.get('proof_schedule_risk_text')}"
             )
         if (
             overall.get('proof_recheck_schedule_kind_text')
@@ -13001,6 +13011,11 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'board-text-artifact mist proof_plan_text uit overall/stdout-json: '
                 f"{overall.get('proof_plan_text')}"
+            )
+        if overall.get('proof_schedule_risk_text') and overall['proof_schedule_risk_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_schedule_risk_text uit overall/stdout-json: '
+                f"{overall.get('proof_schedule_risk_text')}"
             )
         if overall.get('proof_recheck_schedule_kind_text') and overall['proof_recheck_schedule_kind_text'] not in artifact_text:
             failures.append(
@@ -13974,6 +13989,17 @@ def evaluate_watchdog_alert_case(case):
                 failures.append(
                     'watchdog-alert alert_text mist proof_recheck_after_text_compact uit stdout-json: '
                     f"{payload.get('proof_recheck_after_text_compact')}"
+                )
+        if payload.get('proof_schedule_risk_text'):
+            if payload['proof_schedule_risk_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_schedule_risk_text uit stdout-json: '
+                    f"{payload.get('proof_schedule_risk_text')}"
+                )
+            if payload['proof_schedule_risk_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_schedule_risk_text uit stdout-json: '
+                    f"{payload.get('proof_schedule_risk_text')}"
                 )
         if payload.get('proof_config_identity_text'):
             if payload['proof_config_identity_text'] not in text_output:
@@ -15256,6 +15282,14 @@ def evaluate_watchdog_producer_case(case):
             f"{overall.get('proof_recheck_after_text_compact')}"
         )
     if (
+        overall.get('proof_schedule_risk_text')
+        and overall['proof_schedule_risk_text'] not in quiet_output
+    ):
+        failures.append(
+            'watchdog-producer-quiet mist proof_schedule_risk_text uit overall/stdout-json: '
+            f"{overall.get('proof_schedule_risk_text')}"
+        )
+    if (
         overall.get('proof_target_check_gate_text')
         and overall['proof_target_check_gate_text'] not in quiet_output
     ):
@@ -15367,6 +15401,7 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                 'recent_run_duration_text',
                 'proof_recheck_schedule_kind_text',
                 'proof_recheck_schedule_text',
+                'proof_schedule_risk_text',
                 'proof_countdown_text',
             ]:
                 field_value = json_payload.get(field_name)
@@ -15437,6 +15472,7 @@ def evaluate_proof_recheck_consumer_format_passthrough_case():
                     'recent_run_duration_text',
                     'proof_recheck_schedule_kind_text',
                     'proof_recheck_schedule_text',
+                    'proof_schedule_risk_text',
                     'proof_countdown_text',
                 ]:
                     if artifact_payload.get(field_name) != json_payload.get(field_name):
