@@ -9784,6 +9784,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             STATUS_BEFORE_SLOT_TOMORROW.get('proof_recheck_after_text_compact'),
+            STATUS_BEFORE_SLOT_TOMORROW.get('proof_target_check_gate_text'),
         ],
         'expect_quiet_absent_substrings': [
             '--json --consumer-bundle board-suite: exit=',
@@ -9802,6 +9803,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             f'wacht op geplande kwalificatierun {CURRENT_PROOF_NEXT_SLOT_TEXT}',
             STATUS_BEFORE_SLOT_TOMORROW.get('proof_recheck_after_text_compact'),
+            STATUS_BEFORE_SLOT_TOMORROW.get('proof_target_check_gate_text'),
         ],
     },
     {
@@ -9833,6 +9835,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             STATUS_RECHECK_WINDOW_OPEN.get('proof_recheck_after_text_compact'),
+            STATUS_RECHECK_WINDOW_OPEN.get('proof_target_check_gate_text'),
         ],
         'expect_quiet_absent_substrings': [
             '--json --consumer-bundle board-suite: exit=',
@@ -9851,6 +9854,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
             'proof-recheck-cronstatus: ok',
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
             STATUS_RECHECK_WINDOW_OPEN.get('proof_recheck_after_text_compact'),
+            STATUS_RECHECK_WINDOW_OPEN.get('proof_target_check_gate_text'),
         ],
     },
 ]
@@ -12019,6 +12023,7 @@ def evaluate_proof_recheck_case(case):
             payload.get('proof_recheck_schedule_kind_text'),
             payload.get('proof_recheck_schedule_text'),
             payload.get('proof_recheck_commands_text'),
+            payload.get('proof_target_check_gate_text'),
         ]
         if bit
     )
@@ -12087,6 +12092,11 @@ def evaluate_proof_recheck_case(case):
         failures.append(
             'proof-recheck-plain-tekst mist proof_target_due_at_if_next_slot_missed_text uit stdout-json: '
             f"{payload.get('proof_target_due_at_if_next_slot_missed_text')}"
+        )
+    if payload.get('proof_target_check_gate_text') and payload['proof_target_check_gate_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_target_check_gate_text uit stdout-json: '
+            f"{payload.get('proof_target_check_gate_text')}"
         )
 
     for snippet in case.get('expect_plain_not_substrings', []):
@@ -12908,6 +12918,11 @@ def evaluate_proof_recheck_producer_case(case):
                         f'{label} summary_output_examples verwacht pariteit met overall/stdout-json {overall.get("summary_output_examples")}, kreeg '
                         f"{artifact_payload.get('summary_output_examples')}"
                     )
+                if artifact_payload.get('proof_target_check_gate_text') != overall.get('proof_target_check_gate_text'):
+                    failures.append(
+                        f'{label} proof_target_check_gate_text verwacht pariteit met overall/stdout-json {overall.get("proof_target_check_gate_text")}, kreeg '
+                        f"{artifact_payload.get('proof_target_check_gate_text')}"
+                    )
 
         text_artifact_examples_text = (
             'outputvoorbeelden: ' + '; '.join((overall.get('summary_output_examples') or [])[:3])
@@ -12978,6 +12993,11 @@ def evaluate_proof_recheck_producer_case(case):
                 'board-text-artifact mist recent_run_duration_text uit overall/stdout-json: '
                 f"{overall.get('recent_run_duration_text')}"
             )
+        if overall.get('proof_target_check_gate_text') and overall['proof_target_check_gate_text'] not in artifact_text:
+            failures.append(
+                'board-text-artifact mist proof_target_check_gate_text uit overall/stdout-json: '
+                f"{overall.get('proof_target_check_gate_text')}"
+            )
         if text_artifact_examples_text and text_artifact_examples_text not in artifact_text:
             failures.append(
                 'board-text-artifact mist outputvoorbeelden uit overall/stdout-json: '
@@ -13000,6 +13020,7 @@ def evaluate_proof_recheck_producer_case(case):
                 overall.get('proof_plan_text') or '',
                 overall.get('proof_recheck_schedule_kind_text') or '',
                 overall.get('proof_recheck_schedule_text') or '',
+                overall.get('proof_target_check_gate_text') or '',
                 text_artifact_examples_text or '',
                 quiet_text,
                 json_text,
