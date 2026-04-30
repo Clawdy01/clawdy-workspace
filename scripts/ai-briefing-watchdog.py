@@ -264,6 +264,14 @@ def summarize_output_examples(status: dict) -> list[str]:
     if top3_missing_multi_source_examples:
         examples.append('top3 zonder multi-source: ' + ', '.join(top3_missing_multi_source_examples[:3]))
 
+    top3_missing_primary_source_examples = summary_output_audit.get('top3_missing_primary_source_examples') or []
+    if top3_missing_primary_source_examples:
+        examples.append('top3 zonder primaire bron: ' + ', '.join(top3_missing_primary_source_examples[:3]))
+
+    top3_missing_fresh_examples = summary_output_audit.get('top3_missing_fresh_examples') or []
+    if top3_missing_fresh_examples:
+        examples.append('top3 zonder verse datum: ' + ', '.join(top3_missing_fresh_examples[:3]))
+
     top3_missing_primary_fresh_examples = summary_output_audit.get('top3_missing_primary_fresh_examples') or []
     if top3_missing_primary_fresh_examples:
         examples.append('top3 zonder primaire+verse combo: ' + ', '.join(top3_missing_primary_fresh_examples[:3]))
@@ -287,21 +295,17 @@ def summarize_output_examples(status: dict) -> list[str]:
 
     exact_field_line_counts = summary_output_audit.get('exact_field_line_counts') or {}
     item_count = int(summary_output_audit.get('item_count') or 0)
-    if item_count > 0:
-        mismatched_fields = []
-        for field_name in (
-            'Titel:',
-            'Bron:',
-            'Datum:',
-            'Wat is er nieuw:',
-            'Waarom is dit belangrijk:',
-            'Relevant voor Christian:',
-        ):
-            field_count = int(exact_field_line_counts.get(field_name) or 0)
-            if field_count != item_count:
-                mismatched_fields.append(f'{field_name} {field_count}/{item_count}')
-        if mismatched_fields:
-            examples.append('exacte veldlabels missen: ' + ', '.join(mismatched_fields[:4]))
+    for field_name in (
+        'Titel:',
+        'Bron:',
+        'Datum:',
+        'Wat is er nieuw:',
+        'Waarom is dit belangrijk:',
+        'Relevant voor Christian:',
+    ):
+        field_count = int(exact_field_line_counts.get(field_name) or 0)
+        if field_count < item_count:
+            examples.append(f'{field_name} aanwezig op {field_count}/{item_count} items')
 
     return examples[:3]
 
