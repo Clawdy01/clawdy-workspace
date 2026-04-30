@@ -1,0 +1,118 @@
+Titel: GitHub verschuift review-kosten naar Actions
+Bron: https://github.blog/changelog/2026-04-27-example/ | https://docs.github.com/en/example | https://resources.github.com/en/example | https://developer.github.com/en/example | https://docs.github.com/en/example-runner | https://github.blog/changelog/2026-06-06-example | https://github.blog/changelog/2026-07-07-example | https://github.blog/changelog/2026-08-08-example | https://github.blog/changelog/2026-09-09-example | https://github.blog/changelog/2026-10-10-example | https://github.blog/changelog/2026-11-11-example | https://github.blog/changelog/2026-12-12-example | https://github.blog/changelog/2027-01-13-example | https://github.blog/changelog/2027-02-14-example | https://github.blog/changelog/2027-03-15-example | https://github.blog/changelog/2027-04-16-example | https://github.blog/changelog/2027-05-17-example | https://github.blog/changelog/2027-06-18-example | https://github.blog/changelog/2027-07-19-example | https://github.blog/changelog/2027-08-20-example | https://github.blog/changelog/2027-09-21-example | https://github.blog/changelog/2027-10-22-example | https://github.blog/changelog/2027-11-23-example | https://github.blog/changelog/2027-12-24-example | https://github.blog/changelog/2028-01-25-example | https://github.blog/changelog/2028-02-26-example | https://github.blog/changelog/2028-03-27-example | https://github.blog/changelog/2028-04-28-example | https://github.blog/changelog/2028-05-29-example | https://github.blog/changelog/2028-06-30-example | https://github.blog/changelog/2028-07-31-example | https://github.blog/changelog/2028-08-01-example | https://github.blog/changelog/2028-09-02-example | https://github.blog/changelog/2028-10-03-example | https://github.blog/changelog/2028-11-04-example | https://github.blog/changelog/2028-12-05-example | https://github.blog/changelog/2029-01-06-example | https://github.blog/changelog/2029-02-07-example | https://github.blog/changelog/2029-03-08-example | https://github.blog/changelog/2029-04-09-example | https://github.blog/changelog/2029-05-10-example | https://github.blog/changelog/2029-06-11-example | https://github.blog/changelog/2029-07-12-example | https://github.blog/changelog/2029-08-13-example | https://github.blog/changelog/2029-09-14-example | https://github.blog/changelog/2029-10-15-example | https://github.blog/changelog/2029-11-16-example | https://github.blog/changelog/2029-12-17-example | https://github.blog/changelog/2030-01-18-example | https://github.blog/changelog/2030-02-19-example | https://github.blog/changelog/2030-03-20-example | https://github.blog/changelog/2030-04-21-example | https://github.blog/changelog/2030-05-22-example | https://github.blog/changelog/2030-06-23-example | https://github.blog/changelog/2030-07-24-example | https://github.blog/changelog/2030-08-25-example | https://github.blog/changelog/2030-09-26-example | https://github.blog/changelog/2030-10-27-example | https://github.blog/changelog/2030-11-28-example | https://github.blog/changelog/2030-12-29-example | https://github.blog/changelog/2031-01-30-example | https://github.blog/changelog/2031-02-01-example | https://github.blog/changelog/2031-03-02-example | https://github.blog/changelog/2031-04-03-example | https://github.blog/changelog/2031-05-04-example | https://github.blog/changelog/2031-06-05-example | https://github.blog/changelog/2031-07-06-example | https://github.blog/changelog/2031-08-07-example | https://github.blog/changelog/2031-09-08-example | https://github.blog/changelog/2031-10-09-example | https://github.blog/changelog/2031-11-10-example | https://github.blog/changelog/2031-12-11-example | https://github.blog/changelog/2032-01-12-example | https://github.blog/changelog/2032-02-13-example | https://github.blog/changelog/2032-03-14-example | https://github.blog/changelog/2032-04-15-example | https://github.blog/changelog/2032-05-16-example | https://github.blog/changelog/2032-06-17-example | https://github.blog/changelog/2032-07-18-example | https://github.blog/changelog/2032-08-19-example | https://github.blog/changelog/2032-09-20-example | https://github.blog/changelog/2032-10-21-example | https://github.blog/changelog/2032-11-22-example | https://github.blog/changelog/2032-12-23-example | https://github.blog/changelog/2033-01-24-example | https://github.blog/changelog/2033-02-25-example
+Datum: 27 april 2026
+Wat is er nieuw: GitHub meldt een kleine pricingwijziging voor private repositories.
+Waarom is dit belangrijk: Dit test dat een expliciete huidige Datum:-regel niet alsnog door een toekomstige datum in alleen de vierentachtigste bron-URL wordt overschreven.
+Relevant voor Christian: Budgetimpact en repo-beleid.
+
+Titel: OpenAI publiceert nieuwe orchestration-notitie
+Bron: https://openai.com/index/example-orchestration/ | https://github.com/openai/example-orchestration
+Datum: 27 april 2026
+Wat is er nieuw: OpenAI beschrijft een nieuwe aanpak voor agent-orchestratie.
+Waarom is dit belangrijk: Dit houdt de sample op drie items met geldige bronnen.
+Relevant voor Christian: Relevant voor automation-keuzes.
+
+Titel: Microsoft past AI-partnerdeal aan
+Bron: https://blogs.microsoft.com/blog/2026/04/27/example/ | https://www.cnbc.com/2026/04/27/example.html
+Datum: 27 april 2026
+Wat is er nieuw: Microsoft en OpenAI passen hun commerciële afspraken aan.
+Waarom is dit belangrijk: Dit geeft een derde geldig item met expliciete datumregel.
+Relevant voor Christian: Relevant voor vendorstrategie.
+
+Wat moeten wij hiermee?
+Test.
+
+Wat ik vandaag het belangrijkst vind
+Test.
+
+Bronnenlijst
+https://github.blog/changelog/2026-04-27-example/
+https://docs.github.com/en/example
+https://resources.github.com/en/example
+https://developer.github.com/en/example
+https://docs.github.com/en/example-runner
+https://github.blog/changelog/2026-06-06-example
+https://github.blog/changelog/2026-07-07-example
+https://github.blog/changelog/2026-08-08-example
+https://github.blog/changelog/2026-09-09-example
+https://github.blog/changelog/2026-10-10-example
+https://github.blog/changelog/2026-11-11-example
+https://github.blog/changelog/2026-12-12-example
+https://github.blog/changelog/2027-01-13-example
+https://github.blog/changelog/2027-02-14-example
+https://github.blog/changelog/2027-03-15-example
+https://github.blog/changelog/2027-04-16-example
+https://github.blog/changelog/2027-05-17-example
+https://github.blog/changelog/2027-06-18-example
+https://github.blog/changelog/2027-07-19-example
+https://github.blog/changelog/2027-08-20-example
+https://github.blog/changelog/2027-09-21-example
+https://github.blog/changelog/2027-10-22-example
+https://github.blog/changelog/2027-11-23-example
+https://github.blog/changelog/2027-12-24-example
+https://github.blog/changelog/2028-01-25-example
+https://github.blog/changelog/2028-02-26-example
+https://github.blog/changelog/2028-03-27-example
+https://github.blog/changelog/2028-04-28-example
+https://github.blog/changelog/2028-05-29-example
+https://github.blog/changelog/2028-06-30-example
+https://github.blog/changelog/2028-07-31-example
+https://github.blog/changelog/2028-08-01-example
+https://github.blog/changelog/2028-09-02-example
+https://github.blog/changelog/2028-10-03-example
+https://github.blog/changelog/2028-11-04-example
+https://github.blog/changelog/2028-12-05-example
+https://github.blog/changelog/2029-01-06-example
+https://github.blog/changelog/2029-02-07-example
+https://github.blog/changelog/2029-03-08-example
+https://github.blog/changelog/2029-04-09-example
+https://github.blog/changelog/2029-05-10-example
+https://github.blog/changelog/2029-06-11-example
+https://github.blog/changelog/2029-07-12-example
+https://github.blog/changelog/2029-08-13-example
+https://github.blog/changelog/2029-09-14-example
+https://github.blog/changelog/2029-10-15-example
+https://github.blog/changelog/2029-11-16-example
+https://github.blog/changelog/2029-12-17-example
+https://github.blog/changelog/2030-01-18-example
+https://github.blog/changelog/2030-02-19-example
+https://github.blog/changelog/2030-03-20-example
+https://github.blog/changelog/2030-04-21-example
+https://github.blog/changelog/2030-05-22-example
+https://github.blog/changelog/2030-06-23-example
+https://github.blog/changelog/2030-07-24-example
+https://github.blog/changelog/2030-08-25-example
+https://github.blog/changelog/2030-09-26-example
+https://github.blog/changelog/2030-10-27-example
+https://github.blog/changelog/2030-11-28-example
+https://github.blog/changelog/2030-12-29-example
+https://github.blog/changelog/2031-01-30-example
+https://github.blog/changelog/2031-02-01-example
+https://github.blog/changelog/2031-03-02-example
+https://github.blog/changelog/2031-04-03-example
+https://github.blog/changelog/2031-05-04-example
+https://github.blog/changelog/2031-06-05-example
+https://github.blog/changelog/2031-07-06-example
+https://github.blog/changelog/2031-08-07-example
+https://github.blog/changelog/2031-09-08-example
+https://github.blog/changelog/2031-10-09-example
+https://github.blog/changelog/2031-11-10-example
+https://github.blog/changelog/2031-12-11-example
+https://github.blog/changelog/2032-01-12-example
+https://github.blog/changelog/2032-02-13-example
+https://github.blog/changelog/2032-03-14-example
+https://github.blog/changelog/2032-04-15-example
+https://github.blog/changelog/2032-05-16-example
+https://github.blog/changelog/2032-06-17-example
+https://github.blog/changelog/2032-07-18-example
+https://github.blog/changelog/2032-08-19-example
+https://github.blog/changelog/2032-09-20-example
+https://github.blog/changelog/2032-10-21-example
+https://github.blog/changelog/2032-11-22-example
+https://github.blog/changelog/2032-12-23-example
+https://github.blog/changelog/2033-01-24-example
+https://github.blog/changelog/2033-02-25-example
+https://openai.com/index/example-orchestration/
+https://github.com/openai/example-orchestration
+https://blogs.microsoft.com/blog/2026/04/27/example/
+https://www.cnbc.com/2026/04/27/example.html
