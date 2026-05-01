@@ -10227,6 +10227,14 @@ def load_proof_recheck_producer_module():
     return module
 
 
+def load_watchdog_producer_module():
+    spec = importlib.util.spec_from_file_location('ai_briefing_watchdog_producer', WATCHDOG_PRODUCER_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    return module
+
+
 def collect_audit_expectation_failures(case, audit, failures):
     if 'expect_available' in case and audit.get('available') != case['expect_available']:
         failures.append(
@@ -12431,6 +12439,14 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'producer-quiet-tekst mist proof_wait_until_reason_text uit overall/stdout-json: '
                 f"{overall.get('proof_wait_until_reason_text')}"
+            )
+        if (
+            overall.get('proof_next_action_window_text')
+            and overall['proof_next_action_window_text'] not in quiet_text
+        ):
+            failures.append(
+                'producer-quiet-tekst mist proof_next_action_window_text uit overall/stdout-json: '
+                f"{overall.get('proof_next_action_window_text')}"
             )
         if (
             overall.get('proof_target_due_at_if_next_slot_missed_text')
@@ -14975,6 +14991,64 @@ def evaluate_watchdog_alert_case(case):
     }
 
 
+def run_watchdog_producer_quiet_wait_until_dedup_case(producer_module):
+    failures = []
+    repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
+    payload = {
+        'summary': 'synthetische watchdog-producer payload',
+        'proof_wait_until_text': repeated_instruction,
+        'proof_wait_until_reason_text': repeated_instruction,
+        'proof_next_action_text': repeated_instruction,
+        'proof_recheck_after_text_compact': repeated_instruction,
+        'proof_recheck_commands_text': 'draai daarna: python3 scripts/ai-briefing-watchdog.py --json',
+    }
+    quiet_summary = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if not quiet_summary:
+        failures.append('watchdog-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische wait-until payload')
+        quiet_summary = ''
+    if repeated_instruction not in quiet_summary:
+        failures.append('watchdog-producer quiet-summary mist de synthetische wait-until instructie')
+    if quiet_summary.count(repeated_instruction) != 1:
+        failures.append(
+            'watchdog-producer quiet-summary toont synthetische wait-until instructie niet exact één keer: '
+            f"{quiet_summary.count(repeated_instruction)}"
+        )
+    if 'draai daarna: python3 scripts/ai-briefing-watchdog.py --json' not in quiet_summary:
+        failures.append('watchdog-producer quiet-summary mist proof_recheck_commands_text voor synthetische wait-until payload')
+
+    return {
+        'name': 'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def evaluate_watchdog_producer_case(case):
     mode = case.get('mode', 'proof-all')
     expected_status = run_status_json(case['reference_ms'])
@@ -15430,6 +15504,32 @@ def evaluate_watchdog_producer_case(case):
             'watchdog-producer-quiet mist proof_recheck_schedule_text uit overall/stdout-json: '
             f"{overall.get('proof_recheck_schedule_text')}"
         )
+    if (
+        overall.get('proof_next_action_window_text')
+        and overall['proof_next_action_window_text'] not in quiet_output
+    ):
+        failures.append(
+            'watchdog-producer-quiet mist proof_next_action_window_text uit overall/stdout-json: '
+            f"{overall.get('proof_next_action_window_text')}"
+        )
+    quiet_recheck_window_redundant = bool(
+        overall.get('proof_recheck_window_text')
+        and overall.get('proof_next_action_window_text')
+        and (
+            overall['proof_recheck_window_text'] == overall.get('proof_next_action_window_text')
+            or (
+                overall.get('proof_recheck_after_text')
+                and overall['proof_recheck_after_text'] in overall.get('proof_recheck_window_text', '')
+                and overall['proof_recheck_after_text'] in overall.get('proof_next_action_window_text', '')
+            )
+        )
+    )
+    if overall.get('proof_recheck_window_text') and not quiet_recheck_window_redundant:
+        if overall['proof_recheck_window_text'] not in quiet_output:
+            failures.append(
+                'watchdog-producer-quiet mist proof_recheck_window_text uit overall/stdout-json: '
+                f"{overall.get('proof_recheck_window_text')}"
+            )
     if (
         overall.get('proof_target_due_at_if_next_slot_missed_text')
         and overall['proof_target_due_at_if_next_slot_missed_text'] not in quiet_output
@@ -21149,6 +21249,10 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases.update({case['name']: (lambda case=case: evaluate_brief_consumer_case(case)) for case in BRIEF_CONSUMER_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_watchdog_alert_case(case)) for case in WATCHDOG_ALERT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_watchdog_producer_case(case)) for case in WATCHDOG_PRODUCER_CASES})
+    producer_module = load_watchdog_producer_module()
+    named_cases['watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
+        lambda producer_module=producer_module: run_watchdog_producer_quiet_wait_until_dedup_case(producer_module)
+    )
     named_cases['proof-recheck-producer-quiet-falls-back-to-requested-outputs'] = (
         lambda: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)
     )

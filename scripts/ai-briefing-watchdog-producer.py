@@ -157,8 +157,15 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
     else:
         if payload.get('proof_recheck_window_text') and payload.get('proof_recheck_window_text') != payload.get('proof_next_action_text'):
             bits.append(str(payload['proof_recheck_window_text']))
-        elif payload.get('proof_recheck_after_text_compact'):
-            bits.append(str(payload['proof_recheck_after_text_compact']))
+        else:
+            proof_recheck_after_text_compact = payload.get('proof_recheck_after_text_compact')
+            if (
+                proof_recheck_after_text_compact
+                and proof_recheck_after_text_compact != payload.get('proof_next_action_text')
+                and proof_recheck_after_text_compact != payload.get('proof_wait_until_text')
+                and proof_recheck_after_text_compact != payload.get('proof_wait_until_reason_text')
+            ):
+                bits.append(str(proof_recheck_after_text_compact))
     if payload.get('proof_schedule_risk_text'):
         bits.append(str(payload['proof_schedule_risk_text']))
     if payload.get('proof_countdown_text'):
