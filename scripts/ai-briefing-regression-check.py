@@ -19824,6 +19824,17 @@ def build_transitive_full_sweep_registry_case_names() -> list[str]:
     return list(TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES_BY_BATCH.values())
 
 
+def build_transitive_full_sweep_meta_registry_case_names() -> list[str]:
+    return [
+        'registry-keeps-transitive-full-sweep-registry-cases-registered',
+        'registry-keeps-transitive-full-sweep-registry-case-mappings-align-with-batches',
+        'registry-keeps-transitive-full-sweep-registry-cases-derived-from-batches',
+        'registry-keeps-transitive-full-sweep-route-family-registry-cases-registered',
+        'registry-keeps-transitive-full-sweep-route-family-registry-case-mappings-align-with-batches',
+        'registry-keeps-transitive-full-sweep-route-family-registry-cases-derived-from-batches',
+    ]
+
+
 def build_proof_recheck_route_family_registry_case_names() -> list[str]:
     return list(PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values())
 
@@ -21601,14 +21612,19 @@ def evaluate_status_proof_context_route_families_registry_case():
 def evaluate_list_cases_output_case():
     failures = []
     audit_bits: list[str] = []
+    expected_transitive_full_sweep_registry_case_names = sorted(
+        build_transitive_full_sweep_registry_case_names()
+    )
     expected_transitive_full_sweep_route_family_registry_case_names = sorted(
         build_transitive_full_sweep_route_family_registry_case_names()
     )
+    expected_transitive_full_sweep_meta_registry_case_names = sorted(
+        build_transitive_full_sweep_meta_registry_case_names()
+    )
     filtered_case_names = [
+        *build_transitive_full_sweep_registry_case_names(),
+        *build_transitive_full_sweep_meta_registry_case_names(),
         *build_transitive_full_sweep_route_family_registry_case_names(),
-        'registry-keeps-watchdog-full-sweep-complete',
-        'registry-keeps-proof-recheck-full-sweep-complete',
-        'registry-keeps-briefing-proof-context-full-sweep-complete',
         'watchdog-alert-consumer-format-passthrough',
         'watchdog-consumer-format-passthrough',
         *WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
@@ -21619,6 +21635,17 @@ def evaluate_list_cases_output_case():
         *list(PROOF_RECHECK_BATCH_CASE_DEPENDENCIES.keys()),
         *list(BRIEFING_PROOF_CONTEXT_BATCH_CASE_DEPENDENCIES.keys()),
     ]
+    actual_transitive_full_sweep_registry_case_names = sorted([
+        case_name
+        for case_name in filtered_case_names
+        if case_name.startswith('registry-keeps-')
+        and case_name.endswith('-full-sweep-complete')
+    ])
+    actual_transitive_full_sweep_meta_registry_case_names = sorted([
+        case_name
+        for case_name in filtered_case_names
+        if case_name in expected_transitive_full_sweep_meta_registry_case_names
+    ])
     actual_transitive_full_sweep_route_family_registry_case_names = sorted([
         case_name
         for case_name in filtered_case_names
@@ -21637,6 +21664,26 @@ def evaluate_list_cases_output_case():
     ]
     sorted_filtered_case_names = sorted(filtered_case_names)
 
+    missing_transitive_full_sweep_registry_case_names = [
+        case_name
+        for case_name in expected_transitive_full_sweep_registry_case_names
+        if case_name not in actual_transitive_full_sweep_registry_case_names
+    ]
+    unexpected_transitive_full_sweep_registry_case_names = [
+        case_name
+        for case_name in actual_transitive_full_sweep_registry_case_names
+        if case_name not in expected_transitive_full_sweep_registry_case_names
+    ]
+    missing_transitive_full_sweep_meta_registry_case_names = [
+        case_name
+        for case_name in expected_transitive_full_sweep_meta_registry_case_names
+        if case_name not in actual_transitive_full_sweep_meta_registry_case_names
+    ]
+    unexpected_transitive_full_sweep_meta_registry_case_names = [
+        case_name
+        for case_name in actual_transitive_full_sweep_meta_registry_case_names
+        if case_name not in expected_transitive_full_sweep_meta_registry_case_names
+    ]
     missing_transitive_full_sweep_route_family_registry_case_names = [
         case_name
         for case_name in expected_transitive_full_sweep_route_family_registry_case_names
@@ -21647,6 +21694,14 @@ def evaluate_list_cases_output_case():
         for case_name in actual_transitive_full_sweep_route_family_registry_case_names
         if case_name not in expected_transitive_full_sweep_route_family_registry_case_names
     ]
+    audit_bits.append(
+        'transitieve full-sweep registry discoverability-cases '
+        f'{len(actual_transitive_full_sweep_registry_case_names)}/{len(expected_transitive_full_sweep_registry_case_names)}'
+    )
+    audit_bits.append(
+        'transitieve full-sweep meta-registry discoverability-cases '
+        f'{len(actual_transitive_full_sweep_meta_registry_case_names)}/{len(expected_transitive_full_sweep_meta_registry_case_names)}'
+    )
     audit_bits.append(
         'transitieve full-sweep route-family discoverability-cases '
         f'{len(actual_transitive_full_sweep_route_family_registry_case_names)}/{len(expected_transitive_full_sweep_route_family_registry_case_names)}'
@@ -21659,6 +21714,26 @@ def evaluate_list_cases_output_case():
         failures.append(
             'regression-check-list-cases-output bevat dubbele discoverability-cases: '
             + ', '.join(duplicate_filtered_case_names)
+        )
+    if missing_transitive_full_sweep_registry_case_names:
+        failures.append(
+            'regression-check-list-cases-output mist transitieve full-sweep registry discoverability-cases: '
+            + ', '.join(missing_transitive_full_sweep_registry_case_names)
+        )
+    if unexpected_transitive_full_sweep_registry_case_names:
+        failures.append(
+            'regression-check-list-cases-output bevat onverwachte transitieve full-sweep registry discoverability-cases: '
+            + ', '.join(unexpected_transitive_full_sweep_registry_case_names)
+        )
+    if missing_transitive_full_sweep_meta_registry_case_names:
+        failures.append(
+            'regression-check-list-cases-output mist transitieve full-sweep meta-registry discoverability-cases: '
+            + ', '.join(missing_transitive_full_sweep_meta_registry_case_names)
+        )
+    if unexpected_transitive_full_sweep_meta_registry_case_names:
+        failures.append(
+            'regression-check-list-cases-output bevat onverwachte transitieve full-sweep meta-registry discoverability-cases: '
+            + ', '.join(unexpected_transitive_full_sweep_meta_registry_case_names)
         )
     if missing_transitive_full_sweep_route_family_registry_case_names:
         failures.append(
