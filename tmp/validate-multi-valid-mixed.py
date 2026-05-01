@@ -78,6 +78,10 @@ if json_payload.get('unknown_case_names') != expected_unknown:
     raise SystemExit(f'json unknown_case_names mismatch: {json_payload.get("unknown_case_names")} != {expected_unknown}')
 if json_payload.get('unknown_case_count') != len(expected_unknown):
     raise SystemExit(f'json unknown_case_count mismatch: {json_payload.get("unknown_case_count")} != {len(expected_unknown)}')
+if json_payload.get('available_case_names') != all_cases:
+    raise SystemExit('json available_case_names mismatch met volledige --list-cases uitvoer')
+if json_payload.get('available_case_count') != len(all_cases):
+    raise SystemExit(f'json available_case_count mismatch: {json_payload.get("available_case_count")} != {len(all_cases)}')
 suggestions = json_payload.get('suggested_case_names_by_input')
 if not isinstance(suggestions, dict):
     raise SystemExit('json suggested_case_names_by_input ontbreekt of is geen dict')
@@ -104,6 +108,12 @@ if json_list_payload.get('selected_case_count') != len(expected_selected):
     raise SystemExit(f'json --list-cases selected_case_count mismatch: {json_list_payload.get("selected_case_count")} != {len(expected_selected)}')
 if json_list_payload.get('unknown_case_names') != expected_unknown:
     raise SystemExit(f'json --list-cases unknown_case_names mismatch: {json_list_payload.get("unknown_case_names")} != {expected_unknown}')
+if json_list_payload.get('unknown_case_count') != len(expected_unknown):
+    raise SystemExit(f'json --list-cases unknown_case_count mismatch: {json_list_payload.get("unknown_case_count")} != {len(expected_unknown)}')
+if json_list_payload.get('available_case_names') != all_cases:
+    raise SystemExit('json --list-cases available_case_names mismatch met volledige --list-cases uitvoer')
+if json_list_payload.get('available_case_count') != len(all_cases):
+    raise SystemExit(f'json --list-cases available_case_count mismatch: {json_list_payload.get("available_case_count")} != {len(all_cases)}')
 list_suggestions = json_list_payload.get('suggested_case_names_by_input')
 if not isinstance(list_suggestions, dict):
     raise SystemExit('json --list-cases suggested_case_names_by_input ontbreekt of is geen dict')
@@ -111,6 +121,35 @@ if list_suggestions.get(UNKNOWN) != []:
     raise SystemExit(f'json --list-cases suggestions voor echte onbekende hoort [] te zijn, kreeg {list_suggestions.get(UNKNOWN)}')
 if SUGGESTION not in (list_suggestions.get(TYPO) or []):
     raise SystemExit(f'json --list-cases suggestions voor typo mist {SUGGESTION}: {list_suggestions.get(TYPO)}')
+
+json_fields = {
+    key: value
+    for key, value in json_payload.items()
+    if key not in {
+        'generated_at',
+        'generated_at_text',
+        'started_at',
+        'started_at_text',
+        'duration_ms',
+        'duration_seconds',
+        'duration_text',
+    }
+}
+json_list_fields = {
+    key: value
+    for key, value in json_list_payload.items()
+    if key not in {
+        'generated_at',
+        'generated_at_text',
+        'started_at',
+        'started_at_text',
+        'duration_ms',
+        'duration_seconds',
+        'duration_text',
+    }
+}
+if json_list_fields != json_fields:
+    raise SystemExit('json en json --list-cases unknown-cases payloads horen buiten runtime-metadata identiek te zijn')
 
 print(json.dumps({
     'ok': True,
