@@ -469,6 +469,7 @@ def build_text(payload: dict) -> str:
             if proof_recheck_after_text_compact not in {
                 payload.get('proof_next_action_window_text'),
                 payload.get('proof_recheck_window_text'),
+                payload.get('proof_next_action_text'),
             }
             else None
         ),

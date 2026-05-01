@@ -177,6 +177,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         require_qualified_runs > 0
         and data.get('proof_recheck_after_text_compact')
         and data.get('proof_recheck_after_text_compact') != data.get('proof_next_action_window_text')
+        and data.get('proof_recheck_after_text_compact') != data.get('proof_recheck_window_text')
+        and data.get('proof_recheck_after_text_compact') != data.get('proof_next_action_text')
     ):
         bits.append(data['proof_recheck_after_text_compact'])
     if data.get('proof_schedule_risk_text') and require_qualified_runs > 0:

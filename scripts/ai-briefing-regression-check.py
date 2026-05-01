@@ -12121,14 +12121,26 @@ def evaluate_proof_recheck_case(case):
             'proof-recheck-plain-tekst mist proof_recheck_window_text uit stdout-json: '
             f"{payload.get('proof_recheck_window_text')}"
         )
-    if (
+    redundant_proof_recheck_after_text = (
         payload.get('proof_recheck_after_text_compact')
-        and payload['proof_recheck_after_text_compact'] not in text_output
-    ):
-        failures.append(
-            'proof-recheck-plain-tekst mist proof_recheck_after_text_compact uit stdout-json: '
-            f"{payload.get('proof_recheck_after_text_compact')}"
-        )
+        and payload['proof_recheck_after_text_compact'] in {
+            payload.get('proof_next_action_window_text'),
+            payload.get('proof_recheck_window_text'),
+            payload.get('proof_next_action_text'),
+        }
+    )
+    if payload.get('proof_recheck_after_text_compact'):
+        if redundant_proof_recheck_after_text:
+            if payload['proof_recheck_after_text_compact'] in text_output:
+                failures.append(
+                    'proof-recheck-plain-tekst toont redundante proof_recheck_after_text_compact ondanks aanwezige venstercontext: '
+                    f"{payload.get('proof_recheck_after_text_compact')}"
+                )
+        elif payload['proof_recheck_after_text_compact'] not in text_output:
+            failures.append(
+                'proof-recheck-plain-tekst mist proof_recheck_after_text_compact uit stdout-json: '
+                f"{payload.get('proof_recheck_after_text_compact')}"
+            )
     if payload.get('proof_schedule_risk_text') and payload['proof_schedule_risk_text'] not in text_output:
         failures.append(
             'proof-recheck-plain-tekst mist proof_schedule_risk_text uit stdout-json: '
@@ -12469,14 +12481,26 @@ def evaluate_proof_recheck_producer_case(case):
                 'producer-quiet-tekst mist proof_recheck_schedule_text uit overall/stdout-json: '
                 f"{overall.get('proof_recheck_schedule_text')}"
             )
-        if (
+        quiet_recheck_after_redundant = (
             overall.get('proof_recheck_after_text_compact')
-            and overall['proof_recheck_after_text_compact'] not in quiet_text
-        ):
-            failures.append(
-                'producer-quiet-tekst mist proof_recheck_after_text_compact uit overall/stdout-json: '
-                f"{overall.get('proof_recheck_after_text_compact')}"
-            )
+            and overall['proof_recheck_after_text_compact'] in {
+                overall.get('proof_next_action_window_text'),
+                overall.get('proof_next_action_text'),
+                overall.get('proof_recheck_window_text'),
+            }
+        )
+        if overall.get('proof_recheck_after_text_compact'):
+            if quiet_recheck_after_redundant:
+                if overall['proof_recheck_after_text_compact'] in quiet_text:
+                    failures.append(
+                        'producer-quiet-tekst toont redundante proof_recheck_after_text_compact ondanks aanwezige venstercontext: '
+                        f"{overall.get('proof_recheck_after_text_compact')}"
+                    )
+            elif overall['proof_recheck_after_text_compact'] not in quiet_text:
+                failures.append(
+                    'producer-quiet-tekst mist proof_recheck_after_text_compact uit overall/stdout-json: '
+                    f"{overall.get('proof_recheck_after_text_compact')}"
+                )
         if (
             overall.get('proof_target_check_gate_text')
             and overall['proof_target_check_gate_text'] not in quiet_text
@@ -13071,14 +13095,26 @@ def evaluate_proof_recheck_producer_case(case):
                 'board-text-artifact mist proof_recheck_schedule_text uit overall/stdout-json: '
                 f"{overall.get('proof_recheck_schedule_text')}"
             )
-        if (
+        artifact_recheck_after_redundant = (
             overall.get('proof_recheck_after_text_compact')
-            and overall['proof_recheck_after_text_compact'] not in artifact_text
-        ):
-            failures.append(
-                'board-text-artifact mist proof_recheck_after_text_compact uit overall/stdout-json: '
-                f"{overall.get('proof_recheck_after_text_compact')}"
-            )
+            and overall['proof_recheck_after_text_compact'] in {
+                overall.get('proof_next_action_window_text'),
+                overall.get('proof_next_action_text'),
+                overall.get('proof_recheck_window_text'),
+            }
+        )
+        if overall.get('proof_recheck_after_text_compact'):
+            if artifact_recheck_after_redundant:
+                if overall['proof_recheck_after_text_compact'] in artifact_text:
+                    failures.append(
+                        'board-text-artifact toont redundante proof_recheck_after_text_compact ondanks aanwezige venstercontext: '
+                        f"{overall.get('proof_recheck_after_text_compact')}"
+                    )
+            elif overall['proof_recheck_after_text_compact'] not in artifact_text:
+                failures.append(
+                    'board-text-artifact mist proof_recheck_after_text_compact uit overall/stdout-json: '
+                    f"{overall.get('proof_recheck_after_text_compact')}"
+                )
         if overall.get('last_run_timeout_text') and overall['last_run_timeout_text'] not in artifact_text:
             failures.append(
                 'board-text-artifact mist last_run_timeout_text uit overall/stdout-json: '
@@ -14032,17 +14068,37 @@ def evaluate_watchdog_alert_case(case):
                     'watchdog-alert alert_text mist proof_next_action_window_text uit stdout-json: '
                     f"{payload.get('proof_next_action_window_text')}"
                 )
+        redundant_proof_recheck_after_text = (
+            payload.get('proof_recheck_after_text_compact')
+            and payload['proof_recheck_after_text_compact'] in {
+                payload.get('proof_next_action_window_text'),
+                payload.get('proof_recheck_window_text'),
+                payload.get('proof_next_action_text'),
+            }
+        )
         if payload.get('proof_recheck_after_text_compact'):
-            if payload['proof_recheck_after_text_compact'] not in text_output:
-                failures.append(
-                    'watchdog-alert-tekst mist proof_recheck_after_text_compact uit stdout-json: '
-                    f"{payload.get('proof_recheck_after_text_compact')}"
-                )
-            if payload['proof_recheck_after_text_compact'] not in (payload.get('alert_text') or ''):
-                failures.append(
-                    'watchdog-alert alert_text mist proof_recheck_after_text_compact uit stdout-json: '
-                    f"{payload.get('proof_recheck_after_text_compact')}"
-                )
+            if redundant_proof_recheck_after_text:
+                if payload['proof_recheck_after_text_compact'] in text_output:
+                    failures.append(
+                        'watchdog-alert-tekst toont redundante proof_recheck_after_text_compact ondanks aanwezige venstercontext: '
+                        f"{payload.get('proof_recheck_after_text_compact')}"
+                    )
+                if payload['proof_recheck_after_text_compact'] in (payload.get('alert_text') or ''):
+                    failures.append(
+                        'watchdog-alert alert_text toont redundante proof_recheck_after_text_compact ondanks aanwezige venstercontext: '
+                        f"{payload.get('proof_recheck_after_text_compact')}"
+                    )
+            else:
+                if payload['proof_recheck_after_text_compact'] not in text_output:
+                    failures.append(
+                        'watchdog-alert-tekst mist proof_recheck_after_text_compact uit stdout-json: '
+                        f"{payload.get('proof_recheck_after_text_compact')}"
+                    )
+                if payload['proof_recheck_after_text_compact'] not in (payload.get('alert_text') or ''):
+                    failures.append(
+                        'watchdog-alert alert_text mist proof_recheck_after_text_compact uit stdout-json: '
+                        f"{payload.get('proof_recheck_after_text_compact')}"
+                    )
         if payload.get('proof_schedule_risk_text'):
             if payload['proof_schedule_risk_text'] not in text_output:
                 failures.append(
