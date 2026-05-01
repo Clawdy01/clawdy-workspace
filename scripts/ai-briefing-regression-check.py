@@ -19745,6 +19745,30 @@ WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH = {
     'watchdog-all-routes-full-sweep': 'registry-keeps-watchdog-full-sweep-route-families-complete',
 }
 
+PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH = {
+    'proof-recheck-proof-context-all-routes': 'registry-keeps-proof-recheck-proof-context-route-families-complete',
+    'proof-recheck-consumer-format-passthrough-all-routes': 'registry-keeps-proof-recheck-consumer-format-passthrough-all-routes-route-families-complete',
+    'proof-recheck-all-routes-full-sweep': 'registry-keeps-proof-recheck-full-sweep-route-families-complete',
+}
+
+BRIEFING_PROOF_CONTEXT_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH = {
+    'status-proof-context-all-routes': 'registry-keeps-status-proof-context-route-families-complete',
+    'brief-consumer-proof-context-all-routes': 'registry-keeps-brief-consumer-proof-context-route-families-complete',
+    'briefing-proof-context-all-routes-full-sweep': 'registry-keeps-briefing-proof-context-full-sweep-route-families-complete',
+}
+
+TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES_BY_BATCH = {
+    'watchdog-all-routes-full-sweep': 'registry-keeps-watchdog-full-sweep-complete',
+    'proof-recheck-all-routes-full-sweep': 'registry-keeps-proof-recheck-full-sweep-complete',
+    'briefing-proof-context-all-routes-full-sweep': 'registry-keeps-briefing-proof-context-full-sweep-complete',
+    'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline': (
+        'registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete'
+    ),
+    'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline': (
+        'registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete'
+    ),
+}
+
 TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
     'registry-keeps-watchdog-full-sweep-complete',
     'registry-keeps-proof-recheck-full-sweep-complete',
@@ -19770,6 +19794,18 @@ TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES = [
     'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
     'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
 ]
+
+
+def build_transitive_full_sweep_registry_case_names() -> list[str]:
+    return list(TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES_BY_BATCH.values())
+
+
+def build_transitive_full_sweep_route_family_registry_case_names() -> list[str]:
+    return (
+        build_watchdog_route_family_registry_case_names()
+        + list(PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values())
+        + list(BRIEFING_PROOF_CONTEXT_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values())
+    )
 
 
 def build_watchdog_route_family_registry_case_names() -> list[str]:
@@ -20305,12 +20341,100 @@ def evaluate_transitive_full_sweep_registry_cases_registered_case():
     )
 
 
+def evaluate_transitive_full_sweep_registry_case_names_derived_case():
+    expected_case_names = TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES
+    derived_case_names = build_transitive_full_sweep_registry_case_names()
+    unique_expected_case_names = unique_case_names(expected_case_names)
+    unique_derived_case_names = unique_case_names(derived_case_names)
+    duplicate_derived_case_names = [
+        case_name
+        for case_name in unique_derived_case_names
+        if derived_case_names.count(case_name) > 1
+    ]
+    missing_from_derived = [
+        case_name for case_name in unique_expected_case_names if case_name not in unique_derived_case_names
+    ]
+    unexpected_in_derived = [
+        case_name for case_name in unique_derived_case_names if case_name not in unique_expected_case_names
+    ]
+    audit_bits = [
+        f'{len(unique_derived_case_names)}/{len(derived_case_names)} afgeleide transitieve full-sweep-registrycases uniek',
+        f'{len(unique_expected_case_names) - len(missing_from_derived)}/{len(unique_expected_case_names)} verwachte transitieve full-sweep-registrycases afgeleid',
+        f'{len(unique_derived_case_names) - len(unexpected_in_derived)}/{len(unique_derived_case_names)} afgeleide transitieve full-sweep-registrycases volgen de verwachte set',
+    ]
+    failures = []
+    if duplicate_derived_case_names:
+        failures.append(
+            'afgeleide transitieve full-sweep-registrycases bevatten dubbele casenamen: '
+            + ', '.join(duplicate_derived_case_names)
+        )
+    if missing_from_derived:
+        failures.append(
+            'verwachte transitieve full-sweep-registrycases ontbreken in de afgeleide batchset: '
+            + ', '.join(missing_from_derived)
+        )
+    if unexpected_in_derived:
+        failures.append(
+            'afgeleide transitieve full-sweep-registrycases vallen buiten de verwachte set: '
+            + ', '.join(unexpected_in_derived)
+        )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-registry-cases-derived-from-batches',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_transitive_full_sweep_route_family_registry_cases_registered_case():
     return evaluate_transitive_registry_case_set(
         name='registry-keeps-transitive-full-sweep-route-family-registry-cases-registered',
         expected_case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
         suffix='-route-families-complete',
         label='transitieve full-sweep-route-family-registrycases',
+    )
+
+
+def evaluate_transitive_full_sweep_route_family_registry_case_names_derived_case():
+    expected_case_names = TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES
+    derived_case_names = build_transitive_full_sweep_route_family_registry_case_names()
+    unique_expected_case_names = unique_case_names(expected_case_names)
+    unique_derived_case_names = unique_case_names(derived_case_names)
+    duplicate_derived_case_names = [
+        case_name
+        for case_name in unique_derived_case_names
+        if derived_case_names.count(case_name) > 1
+    ]
+    missing_from_derived = [
+        case_name for case_name in unique_expected_case_names if case_name not in unique_derived_case_names
+    ]
+    unexpected_in_derived = [
+        case_name for case_name in unique_derived_case_names if case_name not in unique_expected_case_names
+    ]
+    audit_bits = [
+        f'{len(unique_derived_case_names)}/{len(derived_case_names)} afgeleide transitieve full-sweep-route-family-registrycases uniek',
+        f'{len(unique_expected_case_names) - len(missing_from_derived)}/{len(unique_expected_case_names)} verwachte transitieve full-sweep-route-family-registrycases afgeleid',
+        f'{len(unique_derived_case_names) - len(unexpected_in_derived)}/{len(unique_derived_case_names)} afgeleide transitieve full-sweep-route-family-registrycases volgen de verwachte set',
+    ]
+    failures = []
+    if duplicate_derived_case_names:
+        failures.append(
+            'afgeleide transitieve full-sweep-route-family-registrycases bevatten dubbele casenamen: '
+            + ', '.join(duplicate_derived_case_names)
+        )
+    if missing_from_derived:
+        failures.append(
+            'verwachte transitieve full-sweep-route-family-registrycases ontbreken in de afgeleide batchset: '
+            + ', '.join(missing_from_derived)
+        )
+    if unexpected_in_derived:
+        failures.append(
+            'afgeleide transitieve full-sweep-route-family-registrycases vallen buiten de verwachte set: '
+            + ', '.join(unexpected_in_derived)
+        )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-route-family-registry-cases-derived-from-batches',
+        failures=failures,
+        audit_bits=audit_bits,
     )
 
 
@@ -22759,8 +22883,14 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-transitive-full-sweep-registry-cases-registered'] = (
         evaluate_transitive_full_sweep_registry_cases_registered_case
     )
+    named_cases['registry-keeps-transitive-full-sweep-registry-cases-derived-from-batches'] = (
+        evaluate_transitive_full_sweep_registry_case_names_derived_case
+    )
     named_cases['registry-keeps-transitive-full-sweep-route-family-registry-cases-registered'] = (
         evaluate_transitive_full_sweep_route_family_registry_cases_registered_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-route-family-registry-cases-derived-from-batches'] = (
+        evaluate_transitive_full_sweep_route_family_registry_case_names_derived_case
     )
     named_cases['registry-keeps-watchdog-full-sweep-complete'] = (
         evaluate_watchdog_full_sweep_registry_case
