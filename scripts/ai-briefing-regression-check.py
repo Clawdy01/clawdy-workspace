@@ -19328,6 +19328,66 @@ LOWERCASE_ENCODED_EQUALS_CLUSTER_AUDIT_SUFFIXES = [
     'empty-value-fragment-duplicate-audit',
 ]
 
+PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
+    'proof-recheck-before-slot-too-early',
+    'proof-recheck-grace-window-too-early',
+    'proof-recheck-open-window-needs-attention',
+    'proof-recheck-plain-deduplicates-wait-until-recheck-after-text',
+    'proof-recheck-producer-before-slot-too-early',
+    'proof-recheck-producer-open-window-needs-attention',
+    'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
+]
+
+PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
+    'proof-recheck-plain-before-slot': [
+        'proof-recheck-before-slot-too-early',
+    ],
+    'proof-recheck-plain-grace-window': [
+        'proof-recheck-grace-window-too-early',
+    ],
+    'proof-recheck-plain-open-window': [
+        'proof-recheck-open-window-needs-attention',
+    ],
+    'proof-recheck-plain-wait-until-dedup': [
+        'proof-recheck-plain-deduplicates-wait-until-recheck-after-text',
+    ],
+    'proof-recheck-producer-before-slot': [
+        'proof-recheck-producer-before-slot-too-early',
+    ],
+    'proof-recheck-producer-open-window': [
+        'proof-recheck-producer-open-window-needs-attention',
+    ],
+    'proof-recheck-producer-wait-until-dedup': [
+        'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
+    ],
+}
+
+BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
+    'statusboard-before-slot-keeps-proof-recheck-cronstatus',
+    'statusboard-open-window-keeps-proof-recheck-cronstatus',
+    'clawdy-brief-before-slot-keeps-proof-recheck-cronstatus',
+    'clawdy-brief-open-window-keeps-proof-recheck-cronstatus',
+    'brief-consumers-deduplicate-wait-until-recheck-after-text',
+]
+
+BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
+    'statusboard-before-slot': [
+        'statusboard-before-slot-keeps-proof-recheck-cronstatus',
+    ],
+    'statusboard-open-window': [
+        'statusboard-open-window-keeps-proof-recheck-cronstatus',
+    ],
+    'clawdy-brief-before-slot': [
+        'clawdy-brief-before-slot-keeps-proof-recheck-cronstatus',
+    ],
+    'clawdy-brief-open-window': [
+        'clawdy-brief-open-window-keeps-proof-recheck-cronstatus',
+    ],
+    'brief-consumers-wait-until-dedup': [
+        'brief-consumers-deduplicate-wait-until-recheck-after-text',
+    ],
+}
+
 WATCHDOG_CONSUMER_FORMAT_PASSTHROUGH_ALL_ROUTE_CASE_NAMES = [
     'watchdog-consumer-format-passthrough',
     'watchdog-alert-consumer-format-passthrough',
@@ -19874,6 +19934,8 @@ def append_route_family_expectation_matrix_failures(
     audit_bits: list[str],
     label: str,
     expected_family_case_names_by_name: dict[str, list[str]],
+    required_case_prefix: str = 'watchdog-',
+    required_case_prefix_label: str = 'watchdog-cases',
 ) -> None:
     flattened_expected_case_names = [
         case_name
@@ -19885,9 +19947,9 @@ def append_route_family_expectation_matrix_failures(
         for case_name in unique_case_names(flattened_expected_case_names)
         if flattened_expected_case_names.count(case_name) > 1
     ]
-    non_watchdog_expected_case_names = [
+    non_matching_expected_case_names = [
         case_name for case_name in unique_case_names(flattened_expected_case_names)
-        if not case_name.startswith('watchdog-')
+        if not case_name.startswith(required_case_prefix)
     ]
     empty_family_names = [
         family_name
@@ -19905,8 +19967,8 @@ def append_route_family_expectation_matrix_failures(
         f'{len(unique_case_names(flattened_expected_case_names))}/{len(flattened_expected_case_names)}'
     )
     audit_bits.append(
-        f'{label} expectation-matrix watchdog-namespace '
-        f'{len(unique_case_names(flattened_expected_case_names)) - len(non_watchdog_expected_case_names)}/{len(unique_case_names(flattened_expected_case_names))}'
+        f'{label} expectation-matrix {required_case_prefix.rstrip('-')}-namespace '
+        f'{len(unique_case_names(flattened_expected_case_names)) - len(non_matching_expected_case_names)}/{len(unique_case_names(flattened_expected_case_names))}'
     )
     audit_bits.append(
         f'{label} expectation-matrix niet-lege families '
@@ -19922,10 +19984,10 @@ def append_route_family_expectation_matrix_failures(
             f'{label} expectation-matrix bevat dubbele routecases: '
             + ', '.join(duplicate_expected_case_names)
         )
-    if non_watchdog_expected_case_names:
+    if non_matching_expected_case_names:
         failures.append(
-            f'{label} expectation-matrix mag alleen watchdog-cases bevatten: '
-            + ', '.join(non_watchdog_expected_case_names)
+            f'{label} expectation-matrix mag alleen {required_case_prefix_label} bevatten: '
+            + ', '.join(non_matching_expected_case_names)
         )
     if empty_family_names:
         failures.append(
@@ -19944,9 +20006,9 @@ def append_route_family_expectation_matrix_failures(
             for case_name in unique_case_names(family_case_names)
             if family_case_names.count(case_name) > 1
         ]
-        non_watchdog_family_case_names = [
+        non_matching_family_case_names = [
             case_name for case_name in unique_case_names(family_case_names)
-            if not case_name.startswith('watchdog-')
+            if not case_name.startswith(required_case_prefix)
         ]
         audit_bits.append(
             f'{family_name}: expectation-matrix unieke cases '
@@ -19957,10 +20019,10 @@ def append_route_family_expectation_matrix_failures(
                 f'{family_name} expectation-matrix bevat dubbele routecases: '
                 + ', '.join(duplicate_family_case_names)
             )
-        if non_watchdog_family_case_names:
+        if non_matching_family_case_names:
             failures.append(
-                f'{family_name} expectation-matrix mag alleen watchdog-cases bevatten: '
-                + ', '.join(non_watchdog_family_case_names)
+                f'{family_name} expectation-matrix mag alleen {required_case_prefix_label} bevatten: '
+                + ', '.join(non_matching_family_case_names)
             )
 
 
@@ -20185,6 +20247,8 @@ def evaluate_watchdog_alert_proof_target_check_route_families_registry_case(
         audit_bits=audit_bits,
         label=batch_name,
         expected_family_case_names_by_name=expected_family_case_names_by_name,
+        required_case_prefix='watchdog-',
+        required_case_prefix_label='watchdog-cases',
     )
     actual_case_names = unique_case_names(actual_batch_case_names)
     expected_case_names = unique_case_names([
@@ -20261,6 +20325,203 @@ def evaluate_watchdog_alert_proof_target_check_route_families_registry_case(
 
     return build_registry_case_result(
         name=f'registry-keeps-{batch_name}-route-families-complete',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+
+def evaluate_proof_recheck_proof_context_route_families_registry_case():
+    failures = []
+    audit_bits: list[str] = []
+    append_route_family_expectation_matrix_failures(
+        failures=failures,
+        audit_bits=audit_bits,
+        label='proof-recheck-proof-context-all-routes',
+        expected_family_case_names_by_name=PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS,
+        required_case_prefix='proof-recheck-',
+        required_case_prefix_label='proof-recheck-cases',
+    )
+    actual_case_names = unique_case_names(PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES)
+    expected_case_names = unique_case_names([
+        case_name
+        for case_names in PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS.values()
+        for case_name in case_names
+    ])
+    actual_case_names_in_expected_order = [
+        case_name
+        for case_name in PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES
+        if case_name in expected_case_names
+    ]
+
+    missing_case_names = [
+        case_name for case_name in expected_case_names
+        if case_name not in actual_case_names
+    ]
+    unexpected_case_names = [
+        case_name for case_name in actual_case_names
+        if case_name not in expected_case_names
+    ]
+    duplicate_case_names = [
+        case_name
+        for case_name in actual_case_names
+        if PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES.count(case_name) > 1
+    ]
+
+    audit_bits.append(
+        'proof-recheck-proof-context-all-routes families '
+        f'{len(PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS)}/{len(PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS)}'
+    )
+    audit_bits.append(
+        'proof-recheck-proof-context-all-routes cases '
+        f'{len(actual_case_names)}/{len(expected_case_names)} tegen verwachte family-matrix'
+    )
+    audit_bits.append(
+        'proof-recheck-proof-context-all-routes order '
+        + ('stabiel' if actual_case_names_in_expected_order == expected_case_names else 'afwijkend')
+    )
+
+    if missing_case_names:
+        failures.append(
+            'proof-recheck-proof-context-all-routes mist verwachte routecases: '
+            + ', '.join(missing_case_names)
+        )
+    if unexpected_case_names:
+        failures.append(
+            'proof-recheck-proof-context-all-routes bevat onverwachte routecases: '
+            + ', '.join(unexpected_case_names)
+        )
+    if duplicate_case_names:
+        failures.append(
+            'proof-recheck-proof-context-all-routes bevat dubbele routecases: '
+            + ', '.join(duplicate_case_names)
+        )
+    if actual_case_names_in_expected_order != expected_case_names:
+        failures.append(
+            'proof-recheck-proof-context-all-routes veranderde van family/phase-volgorde; verwacht '
+            + ', '.join(expected_case_names)
+            + ' maar kreeg '
+            + ', '.join(actual_case_names_in_expected_order)
+        )
+
+    for family_name, family_case_names in PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS.items():
+        actual_family_case_names = [
+            case_name for case_name in actual_case_names
+            if case_name in family_case_names
+        ]
+        audit_bits.append(
+            f'{family_name}: {len(actual_family_case_names)}/{len(family_case_names)} family-cases aanwezig'
+        )
+        missing_family_case_names = [
+            case_name for case_name in family_case_names
+            if case_name not in actual_case_names
+        ]
+        if missing_family_case_names:
+            failures.append(
+                f'{family_name} mist routecases in proof-recheck-proof-context-all-routes: '
+                + ', '.join(missing_family_case_names)
+            )
+
+    return build_registry_case_result(
+        name='registry-keeps-proof-recheck-proof-context-route-families-complete',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_brief_consumer_proof_context_route_families_registry_case():
+    failures = []
+    audit_bits: list[str] = []
+    append_route_family_expectation_matrix_failures(
+        failures=failures,
+        audit_bits=audit_bits,
+        label='brief-consumer-proof-context-all-routes',
+        expected_family_case_names_by_name=BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS,
+        required_case_prefix='',
+        required_case_prefix_label='brief-consumer-cases',
+    )
+    actual_case_names = unique_case_names(BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES)
+    expected_case_names = unique_case_names([
+        case_name
+        for case_names in BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS.values()
+        for case_name in case_names
+    ])
+    actual_case_names_in_expected_order = [
+        case_name
+        for case_name in BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES
+        if case_name in expected_case_names
+    ]
+
+    missing_case_names = [
+        case_name for case_name in expected_case_names
+        if case_name not in actual_case_names
+    ]
+    unexpected_case_names = [
+        case_name for case_name in actual_case_names
+        if case_name not in expected_case_names
+    ]
+    duplicate_case_names = [
+        case_name
+        for case_name in actual_case_names
+        if BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES.count(case_name) > 1
+    ]
+
+    audit_bits.append(
+        'brief-consumer-proof-context-all-routes families '
+        f'{len(BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS)}/{len(BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS)}'
+    )
+    audit_bits.append(
+        'brief-consumer-proof-context-all-routes cases '
+        f'{len(actual_case_names)}/{len(expected_case_names)} tegen verwachte family-matrix'
+    )
+    audit_bits.append(
+        'brief-consumer-proof-context-all-routes order '
+        + ('stabiel' if actual_case_names_in_expected_order == expected_case_names else 'afwijkend')
+    )
+
+    if missing_case_names:
+        failures.append(
+            'brief-consumer-proof-context-all-routes mist verwachte routecases: '
+            + ', '.join(missing_case_names)
+        )
+    if unexpected_case_names:
+        failures.append(
+            'brief-consumer-proof-context-all-routes bevat onverwachte routecases: '
+            + ', '.join(unexpected_case_names)
+        )
+    if duplicate_case_names:
+        failures.append(
+            'brief-consumer-proof-context-all-routes bevat dubbele routecases: '
+            + ', '.join(duplicate_case_names)
+        )
+    if actual_case_names_in_expected_order != expected_case_names:
+        failures.append(
+            'brief-consumer-proof-context-all-routes veranderde van family/phase-volgorde; verwacht '
+            + ', '.join(expected_case_names)
+            + ' maar kreeg '
+            + ', '.join(actual_case_names_in_expected_order)
+        )
+
+    for family_name, family_case_names in BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS.items():
+        actual_family_case_names = [
+            case_name for case_name in actual_case_names
+            if case_name in family_case_names
+        ]
+        audit_bits.append(
+            f'{family_name}: {len(actual_family_case_names)}/{len(family_case_names)} family-cases aanwezig'
+        )
+        missing_family_case_names = [
+            case_name for case_name in family_case_names
+            if case_name not in actual_case_names
+        ]
+        if missing_family_case_names:
+            failures.append(
+                f'{family_name} mist routecases in brief-consumer-proof-context-all-routes: '
+                + ', '.join(missing_family_case_names)
+            )
+
+    return build_registry_case_result(
+        name='registry-keeps-brief-consumer-proof-context-route-families-complete',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -21720,6 +21981,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-watchdog-full-sweep-complete'] = (
         evaluate_watchdog_full_sweep_registry_case
     )
+    named_cases['registry-keeps-proof-recheck-proof-context-route-families-complete'] = (
+        lambda: evaluate_proof_recheck_proof_context_route_families_registry_case()
+    )
+    named_cases['registry-keeps-brief-consumer-proof-context-route-families-complete'] = (
+        lambda: evaluate_brief_consumer_proof_context_route_families_registry_case()
+    )
     named_cases['registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete'] = (
         lambda: evaluate_watchdog_alert_proof_target_check_route_families_registry_case(
             batch_name='watchdog-consumer-format-passthrough-all-routes',
@@ -21817,6 +22084,17 @@ def build_named_case_runners(module, producer_module):
 
     for watchdog_batch_name in WATCHDOG_BATCH_CASE_DEPENDENCIES:
         named_cases[watchdog_batch_name] = build_watchdog_batch_runner(watchdog_batch_name)
+
+    named_cases['proof-recheck-proof-context-all-routes'] = lambda: evaluate_case_batch(
+        name='proof-recheck-proof-context-all-routes',
+        case_names=PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
+        named_cases=named_cases,
+    )
+    named_cases['brief-consumer-proof-context-all-routes'] = lambda: evaluate_case_batch(
+        name='brief-consumer-proof-context-all-routes',
+        case_names=BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
+        named_cases=named_cases,
+    )
 
     return named_cases
 
