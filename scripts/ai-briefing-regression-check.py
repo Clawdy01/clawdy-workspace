@@ -23034,13 +23034,36 @@ def evaluate_list_cases_output_case():
             failures.append(
                 'json gemengde geldige/typofout --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
             )
+        if mixed_suggested_json_payload.get('requested_case_count') != 2:
+            failures.append(
+                'json gemengde geldige/typofout --case requested_case_count verwacht 2, kreeg '
+                f"{mixed_suggested_json_payload.get('requested_case_count')}"
+            )
         if mixed_suggested_json_payload.get('selected_case_names') != [expected_mixed_valid_case_name]:
             failures.append(
                 'json gemengde geldige/typofout --case selected_case_names hoort de geldige subset te bewaren'
             )
+        if mixed_suggested_json_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json gemengde geldige/typofout --case selected_case_count verwacht 1, kreeg '
+                f"{mixed_suggested_json_payload.get('selected_case_count')}"
+            )
         if mixed_suggested_json_payload.get('unknown_case_names') != [suggested_unknown_case_name]:
             failures.append(
                 'json gemengde geldige/typofout --case unknown_case_names hoort alleen de typo-subset te tonen'
+            )
+        if mixed_suggested_json_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json gemengde geldige/typofout --case unknown_case_count verwacht 1, kreeg '
+                f"{mixed_suggested_json_payload.get('unknown_case_count')}"
+            )
+        if mixed_suggested_json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json gemengde geldige/typofout --case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if mixed_suggested_json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json gemengde geldige/typofout --case available_case_count hoort exact de volledige caseteller te geven'
             )
         mixed_suggested_suggestions = mixed_suggested_json_payload.get('suggested_case_names_by_input')
         if not isinstance(mixed_suggested_suggestions, dict):
@@ -23113,13 +23136,36 @@ def evaluate_list_cases_output_case():
             failures.append(
                 'json --list-cases met gemengde geldige/typofout --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
             )
+        if mixed_suggested_list_cases_json_payload.get('requested_case_count') != 2:
+            failures.append(
+                'json --list-cases met gemengde geldige/typofout --case requested_case_count verwacht 2, kreeg '
+                f"{mixed_suggested_list_cases_json_payload.get('requested_case_count')}"
+            )
         if mixed_suggested_list_cases_json_payload.get('selected_case_names') != [expected_mixed_valid_case_name]:
             failures.append(
                 'json --list-cases met gemengde geldige/typofout --case selected_case_names hoort de geldige subset te bewaren'
             )
+        if mixed_suggested_list_cases_json_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json --list-cases met gemengde geldige/typofout --case selected_case_count verwacht 1, kreeg '
+                f"{mixed_suggested_list_cases_json_payload.get('selected_case_count')}"
+            )
         if mixed_suggested_list_cases_json_payload.get('unknown_case_names') != [suggested_unknown_case_name]:
             failures.append(
                 'json --list-cases met gemengde geldige/typofout --case unknown_case_names hoort alleen de typo-subset te tonen'
+            )
+        if mixed_suggested_list_cases_json_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json --list-cases met gemengde geldige/typofout --case unknown_case_count verwacht 1, kreeg '
+                f"{mixed_suggested_list_cases_json_payload.get('unknown_case_count')}"
+            )
+        if mixed_suggested_list_cases_json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json --list-cases met gemengde geldige/typofout --case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if mixed_suggested_list_cases_json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json --list-cases met gemengde geldige/typofout --case available_case_count hoort exact de volledige caseteller te geven'
             )
         mixed_suggested_list_cases_suggestions = mixed_suggested_list_cases_json_payload.get(
             'suggested_case_names_by_input'
@@ -23584,6 +23630,15 @@ def evaluate_list_cases_output_case():
                 'json --list-cases met dubbele onbekende typofout-case requested_case_count verwacht 1, kreeg '
                 f"{duplicate_suggested_list_cases_json_payload.get('requested_case_count')}"
             )
+        if duplicate_suggested_list_cases_json_payload.get('selected_case_names') != []:
+            failures.append(
+                'json --list-cases met dubbele onbekende typofout-case selected_case_names hoort leeg te zijn zonder geldige matches'
+            )
+        if duplicate_suggested_list_cases_json_payload.get('selected_case_count') != 0:
+            failures.append(
+                'json --list-cases met dubbele onbekende typofout-case selected_case_count verwacht 0, kreeg '
+                f"{duplicate_suggested_list_cases_json_payload.get('selected_case_count')}"
+            )
         if duplicate_suggested_list_cases_json_payload.get('unknown_case_names') != [suggested_unknown_case_name]:
             failures.append(
                 'json --list-cases met dubbele onbekende typofout-case unknown_case_names hoort dubbele typo-invoer te dedupliceren'
@@ -23593,6 +23648,27 @@ def evaluate_list_cases_output_case():
                 'json --list-cases met dubbele onbekende typofout-case unknown_case_count verwacht 1, kreeg '
                 f"{duplicate_suggested_list_cases_json_payload.get('unknown_case_count')}"
             )
+        if duplicate_suggested_list_cases_json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json --list-cases met dubbele onbekende typofout-case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if duplicate_suggested_list_cases_json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json --list-cases met dubbele onbekende typofout-case available_case_count hoort exact de volledige caseteller te geven'
+            )
+        duplicate_suggested_list_cases_suggestions = duplicate_suggested_list_cases_json_payload.get(
+            'suggested_case_names_by_input'
+        )
+        if not isinstance(duplicate_suggested_list_cases_suggestions, dict):
+            failures.append(
+                'json --list-cases met dubbele onbekende typofout-case suggested_case_names_by_input hoort een dict te zijn'
+            )
+        else:
+            typo_suggestions = duplicate_suggested_list_cases_suggestions.get(suggested_unknown_case_name)
+            if not isinstance(typo_suggestions, list) or expected_suggested_case_name not in typo_suggestions:
+                failures.append(
+                    'json --list-cases met dubbele onbekende typofout-case hoort de dichtstbijzijnde casenaam voor te stellen'
+                )
 
     duplicate_suggested_json_proc = subprocess.run(
         [
@@ -23630,6 +23706,13 @@ def evaluate_list_cases_output_case():
     if duplicate_suggested_json_payload:
         assert_runtime_metadata(duplicate_suggested_json_payload, 'json dubbele onbekende typofout-case')
         assert_unknown_cases_error_message(duplicate_suggested_json_payload, 'json dubbele onbekende typofout-case')
+        if duplicate_suggested_json_payload.get('ok') is not False:
+            failures.append('json dubbele onbekende typofout-case ok verwacht False bij onbekende invoer')
+        if duplicate_suggested_json_payload.get('error') != 'unknown-cases':
+            failures.append(
+                'json dubbele onbekende typofout-case error verwacht unknown-cases, kreeg '
+                f"{duplicate_suggested_json_payload.get('error')}"
+            )
         if duplicate_suggested_json_payload.get('requested_case_names') != [suggested_unknown_case_name]:
             failures.append(
                 'json dubbele onbekende typofout-case requested_case_names hoort dubbele typo-invoer te dedupliceren'
@@ -23648,11 +23731,286 @@ def evaluate_list_cases_output_case():
                 'json dubbele onbekende typofout-case unknown_case_count verwacht 1, kreeg '
                 f"{duplicate_suggested_json_payload.get('unknown_case_count')}"
             )
+        if duplicate_suggested_json_payload.get('selected_case_names') != []:
+            failures.append('json dubbele onbekende typofout-case selected_case_names hoort leeg te zijn zonder geldige matches')
+        if duplicate_suggested_json_payload.get('selected_case_count') != 0:
+            failures.append(
+                'json dubbele onbekende typofout-case selected_case_count verwacht 0, kreeg '
+                f"{duplicate_suggested_json_payload.get('selected_case_count')}"
+            )
+        if duplicate_suggested_json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json dubbele onbekende typofout-case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if duplicate_suggested_json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json dubbele onbekende typofout-case available_case_count hoort exact de volledige caseteller te geven'
+            )
+        duplicate_suggested_json_suggestions = duplicate_suggested_json_payload.get('suggested_case_names_by_input')
+        if not isinstance(duplicate_suggested_json_suggestions, dict):
+            failures.append('json dubbele onbekende typofout-case suggested_case_names_by_input hoort een dict te zijn')
+        else:
+            typo_suggestions = duplicate_suggested_json_suggestions.get(suggested_unknown_case_name)
+            if not isinstance(typo_suggestions, list) or expected_suggested_case_name not in typo_suggestions:
+                failures.append(
+                    'json dubbele onbekende typofout-case hoort de dichtstbijzijnde casenaam voor te stellen'
+                )
 
     if duplicate_suggested_list_cases_json_payload and duplicate_suggested_json_payload:
         if strip_runtime_metadata(duplicate_suggested_list_cases_json_payload) != strip_runtime_metadata(duplicate_suggested_json_payload):
             failures.append(
                 'json --list-cases met dubbele onbekende typofout-case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
+            )
+
+    mixed_unknown_kind_case_args = [
+        '--case', unknown_case_name,
+        '--case', suggested_unknown_case_name,
+        '--case', unknown_case_name,
+    ]
+    expected_mixed_unknown_kind_requested_case_names = [unknown_case_name, suggested_unknown_case_name]
+    mixed_unknown_kind_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            *mixed_unknown_kind_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if mixed_unknown_kind_plain_proc.returncode != 2:
+        failures.append(
+            'plain gemengde onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{mixed_unknown_kind_plain_proc.returncode}'
+        )
+    if mixed_unknown_kind_plain_proc.stdout.strip():
+        failures.append('plain gemengde onbekende+typofout --case hoort geen stdout-output te geven')
+    mixed_unknown_kind_plain_stderr = mixed_unknown_kind_plain_proc.stderr or ''
+    if f'onbekende regressiecase: {unknown_case_name}' not in mixed_unknown_kind_plain_stderr:
+        failures.append('plain gemengde onbekende+typofout --case hoort de onbekende invoer op stderr te noemen')
+    if f'onbekende regressiecase: {suggested_unknown_case_name}' not in mixed_unknown_kind_plain_stderr:
+        failures.append('plain gemengde onbekende+typofout --case hoort de typofout-invoer op stderr te noemen')
+    if expected_suggested_case_name not in mixed_unknown_kind_plain_stderr:
+        failures.append('plain gemengde onbekende+typofout --case hoort alleen voor de typofout een suggestie te geven')
+
+    mixed_unknown_kind_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
+            *mixed_unknown_kind_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if mixed_unknown_kind_json_proc.returncode != 2:
+        failures.append(
+            'json gemengde onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{mixed_unknown_kind_json_proc.returncode}'
+        )
+
+    mixed_unknown_kind_json_payload = {}
+    mixed_unknown_kind_json_stdout = mixed_unknown_kind_json_proc.stdout.strip() or mixed_unknown_kind_json_proc.stderr.strip()
+    if not mixed_unknown_kind_json_stdout:
+        failures.append('json gemengde onbekende+typofout --case gaf geen output')
+    else:
+        try:
+            mixed_unknown_kind_json_payload = json.loads(mixed_unknown_kind_json_stdout)
+            audit_bits.append(
+                'unknown-json-mixed-kinds=' + json.dumps(mixed_unknown_kind_json_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json gemengde onbekende+typofout --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if mixed_unknown_kind_json_payload:
+        assert_runtime_metadata(mixed_unknown_kind_json_payload, 'json gemengde onbekende+typofout --case')
+        assert_unknown_cases_error_message(mixed_unknown_kind_json_payload, 'json gemengde onbekende+typofout --case')
+        if mixed_unknown_kind_json_payload.get('ok') is not False:
+            failures.append('json gemengde onbekende+typofout --case ok verwacht False')
+        if mixed_unknown_kind_json_payload.get('error') != 'unknown-cases':
+            failures.append(
+                'json gemengde onbekende+typofout --case error verwacht unknown-cases, kreeg '
+                f"{mixed_unknown_kind_json_payload.get('error')}"
+            )
+        if mixed_unknown_kind_json_payload.get('requested_case_names') != expected_mixed_unknown_kind_requested_case_names:
+            failures.append(
+                'json gemengde onbekende+typofout --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
+            )
+        if mixed_unknown_kind_json_payload.get('requested_case_count') != 2:
+            failures.append(
+                'json gemengde onbekende+typofout --case requested_case_count verwacht 2, kreeg '
+                f"{mixed_unknown_kind_json_payload.get('requested_case_count')}"
+            )
+        if mixed_unknown_kind_json_payload.get('selected_case_names') != []:
+            failures.append('json gemengde onbekende+typofout --case selected_case_names hoort leeg te zijn')
+        if mixed_unknown_kind_json_payload.get('selected_case_count') != 0:
+            failures.append(
+                'json gemengde onbekende+typofout --case selected_case_count verwacht 0, kreeg '
+                f"{mixed_unknown_kind_json_payload.get('selected_case_count')}"
+            )
+        if mixed_unknown_kind_json_payload.get('unknown_case_names') != expected_mixed_unknown_kind_requested_case_names:
+            failures.append(
+                'json gemengde onbekende+typofout --case unknown_case_names hoort beide onbekende invoeren gededupliceerd te tonen'
+            )
+        if mixed_unknown_kind_json_payload.get('unknown_case_count') != 2:
+            failures.append(
+                'json gemengde onbekende+typofout --case unknown_case_count verwacht 2, kreeg '
+                f"{mixed_unknown_kind_json_payload.get('unknown_case_count')}"
+            )
+        if mixed_unknown_kind_json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json gemengde onbekende+typofout --case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if mixed_unknown_kind_json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json gemengde onbekende+typofout --case available_case_count hoort exact de volledige caseteller te geven'
+            )
+        mixed_unknown_kind_suggestions = mixed_unknown_kind_json_payload.get('suggested_case_names_by_input')
+        if not isinstance(mixed_unknown_kind_suggestions, dict):
+            failures.append('json gemengde onbekende+typofout --case suggested_case_names_by_input hoort een dict te zijn')
+        else:
+            if mixed_unknown_kind_suggestions.get(unknown_case_name) != []:
+                failures.append(
+                    'json gemengde onbekende+typofout --case hoort voor de niet-typofout een lege suggestielijst te geven'
+                )
+            typo_suggestions = mixed_unknown_kind_suggestions.get(suggested_unknown_case_name)
+            if not isinstance(typo_suggestions, list) or expected_suggested_case_name not in typo_suggestions:
+                failures.append(
+                    'json gemengde onbekende+typofout --case hoort voor de typofout de dichtstbijzijnde casenaam voor te stellen'
+                )
+
+    mixed_unknown_kind_list_cases_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
+            *mixed_unknown_kind_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if mixed_unknown_kind_list_cases_plain_proc.returncode != 2:
+        failures.append(
+            'plain --list-cases met gemengde onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{mixed_unknown_kind_list_cases_plain_proc.returncode}'
+        )
+    if mixed_unknown_kind_list_cases_plain_proc.stdout.strip():
+        failures.append('plain --list-cases met gemengde onbekende+typofout --case hoort geen stdout-caselijst te geven')
+    if (mixed_unknown_kind_list_cases_plain_proc.stderr or '') != mixed_unknown_kind_plain_stderr:
+        failures.append(
+            'plain --list-cases met gemengde onbekende+typofout --case hoort exact dezelfde gededupliceerde stderr-melding te geven als een gewone run'
+        )
+
+    mixed_unknown_kind_list_cases_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
+            *mixed_unknown_kind_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if mixed_unknown_kind_list_cases_proc.returncode != 2:
+        failures.append(
+            'json --list-cases met gemengde onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{mixed_unknown_kind_list_cases_proc.returncode}'
+        )
+
+    mixed_unknown_kind_list_cases_payload = {}
+    mixed_unknown_kind_list_cases_stdout = (
+        mixed_unknown_kind_list_cases_proc.stdout.strip() or mixed_unknown_kind_list_cases_proc.stderr.strip()
+    )
+    if not mixed_unknown_kind_list_cases_stdout:
+        failures.append('json --list-cases met gemengde onbekende+typofout --case gaf geen output')
+    else:
+        try:
+            mixed_unknown_kind_list_cases_payload = json.loads(mixed_unknown_kind_list_cases_stdout)
+            audit_bits.append(
+                'unknown-list-cases-json-mixed-kinds='
+                + json.dumps(mixed_unknown_kind_list_cases_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if mixed_unknown_kind_list_cases_payload:
+        assert_runtime_metadata(
+            mixed_unknown_kind_list_cases_payload,
+            'json --list-cases met gemengde onbekende+typofout --case',
+        )
+        assert_unknown_cases_error_message(
+            mixed_unknown_kind_list_cases_payload,
+            'json --list-cases met gemengde onbekende+typofout --case',
+        )
+        assert_list_cases_payload_stays_discoverable(
+            mixed_unknown_kind_list_cases_payload,
+            'json --list-cases met gemengde onbekende+typofout --case',
+        )
+        assert_list_cases_error_payload_avoids_success_fields(
+            mixed_unknown_kind_list_cases_payload,
+            'json --list-cases met gemengde onbekende+typofout --case',
+        )
+        if mixed_unknown_kind_list_cases_payload.get('requested_case_names') != expected_mixed_unknown_kind_requested_case_names:
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case requested_case_names hoort de unieke invoervolgorde te spiegelen'
+            )
+        if mixed_unknown_kind_list_cases_payload.get('requested_case_count') != 2:
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case requested_case_count verwacht 2, kreeg '
+                f"{mixed_unknown_kind_list_cases_payload.get('requested_case_count')}"
+            )
+        if mixed_unknown_kind_list_cases_payload.get('selected_case_names') != []:
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case selected_case_names hoort leeg te zijn'
+            )
+        if mixed_unknown_kind_list_cases_payload.get('selected_case_count') != 0:
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case selected_case_count verwacht 0, kreeg '
+                f"{mixed_unknown_kind_list_cases_payload.get('selected_case_count')}"
+            )
+        if mixed_unknown_kind_list_cases_payload.get('unknown_case_names') != expected_mixed_unknown_kind_requested_case_names:
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case unknown_case_names hoort beide onbekende invoeren gededupliceerd te tonen'
+            )
+        if mixed_unknown_kind_list_cases_payload.get('unknown_case_count') != 2:
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case unknown_case_count verwacht 2, kreeg '
+                f"{mixed_unknown_kind_list_cases_payload.get('unknown_case_count')}"
+            )
+        if mixed_unknown_kind_list_cases_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if mixed_unknown_kind_list_cases_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case available_case_count hoort exact de volledige caseteller te geven'
+            )
+        mixed_unknown_kind_list_cases_suggestions = mixed_unknown_kind_list_cases_payload.get('suggested_case_names_by_input')
+        if not isinstance(mixed_unknown_kind_list_cases_suggestions, dict):
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case suggested_case_names_by_input hoort een dict te zijn'
+            )
+        else:
+            if mixed_unknown_kind_list_cases_suggestions.get(unknown_case_name) != []:
+                failures.append(
+                    'json --list-cases met gemengde onbekende+typofout --case hoort voor de niet-typofout een lege suggestielijst te geven'
+                )
+            typo_suggestions = mixed_unknown_kind_list_cases_suggestions.get(suggested_unknown_case_name)
+            if not isinstance(typo_suggestions, list) or expected_suggested_case_name not in typo_suggestions:
+                failures.append(
+                    'json --list-cases met gemengde onbekende+typofout --case hoort voor de typofout de dichtstbijzijnde casenaam voor te stellen'
+                )
+
+    if mixed_unknown_kind_list_cases_payload and mixed_unknown_kind_json_payload:
+        if strip_runtime_metadata(mixed_unknown_kind_list_cases_payload) != strip_runtime_metadata(mixed_unknown_kind_json_payload):
+            failures.append(
+                'json --list-cases met gemengde onbekende+typofout --case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
             )
 
     return build_registry_case_result(
