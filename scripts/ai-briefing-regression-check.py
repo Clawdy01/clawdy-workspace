@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
+import contextlib
 import importlib.util
+import io
 import json
 import signal
 import subprocess
@@ -8249,6 +8251,32 @@ WATCHDOG_STDOUT_CASES = [
             'hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw',
         ],
     },
+    {
+        'name': 'watchdog-stdout-deduplicates-wait-until-recheck-after-text',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'synthetic_status': {
+            **STATUS_BEFORE_SLOT_TOMORROW,
+            'summary': 'synthetische watchdog payload',
+            'proof_wait_until_text': 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw',
+            'proof_wait_until_reason_text': 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw',
+            'proof_next_action_text': 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw',
+            'proof_next_action_window_text': None,
+            'proof_recheck_window_text': None,
+            'proof_recheck_after_text_compact': 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw',
+            'proof_recheck_commands_text': 'draai daarna: python3 scripts/ai-briefing-watchdog.py --json',
+        },
+        'expect_exit_code': 2,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_no_compact_recheck_line': True,
+        'expect_proof_waiting_for_next_scheduled_run': True,
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
+        'expect_text_substrings': [
+            'proof wait until: wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw',
+            'proof recheck commands: draai daarna: python3 scripts/ai-briefing-watchdog.py --json',
+        ],
+    },
 ]
 
 STATUS_SUMMARY_AUDIT_CASES = [
@@ -10219,6 +10247,14 @@ def load_status_module():
     return module
 
 
+def load_proof_recheck_module():
+    spec = importlib.util.spec_from_file_location('ai_briefing_proof_recheck', PROOF_RECHECK_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    return module
+
+
 def load_proof_recheck_producer_module():
     spec = importlib.util.spec_from_file_location('ai_briefing_proof_recheck_producer', PROOF_RECHECK_PRODUCER_SCRIPT)
     module = importlib.util.module_from_spec(spec)
@@ -10229,6 +10265,22 @@ def load_proof_recheck_producer_module():
 
 def load_watchdog_producer_module():
     spec = importlib.util.spec_from_file_location('ai_briefing_watchdog_producer', WATCHDOG_PRODUCER_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_watchdog_module():
+    spec = importlib.util.spec_from_file_location('ai_briefing_watchdog', WATCHDOG_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_watchdog_alert_module():
+    spec = importlib.util.spec_from_file_location('ai_briefing_watchdog_alert', WATCHDOG_ALERT_SCRIPT)
     module = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     spec.loader.exec_module(module)
@@ -11369,29 +11421,57 @@ def evaluate_status_stdout_case(case):
 
 
 def evaluate_watchdog_stdout_case(case):
-    expected_status = run_status_json(case['reference_ms'])
-    json_proc = subprocess.run(
-        [
-            'python3', str(WATCHDOG_SCRIPT), '--json',
-            '--require-qualified-runs', '3',
-            '--reference-ms', str(case['reference_ms']),
-        ],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    text_proc = subprocess.run(
-        [
-            'python3', str(WATCHDOG_SCRIPT),
-            '--require-qualified-runs', '3',
-            '--reference-ms', str(case['reference_ms']),
-        ],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    synthetic_status = case.get('synthetic_status')
+    if synthetic_status is None:
+        expected_status = run_status_json(case['reference_ms'])
+        json_proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_SCRIPT), '--json',
+                '--require-qualified-runs', '3',
+                '--reference-ms', str(case['reference_ms']),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        text_proc = subprocess.run(
+            [
+                'python3', str(WATCHDOG_SCRIPT),
+                '--require-qualified-runs', '3',
+                '--reference-ms', str(case['reference_ms']),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    else:
+        expected_status = synthetic_status
+        watchdog_module = load_watchdog_module()
+        original_load_status = watchdog_module.load_status
+        original_argv = sys.argv[:]
+
+        def run_watchdog_with_args(argv):
+            stdout_buffer = io.StringIO()
+            stderr_buffer = io.StringIO()
+            exit_code = None
+            try:
+                watchdog_module.load_status = lambda timeout, reference_ms=None: synthetic_status
+                sys.argv = argv
+                with contextlib.redirect_stdout(stdout_buffer), contextlib.redirect_stderr(stderr_buffer):
+                    exit_code = watchdog_module.main()
+            finally:
+                watchdog_module.load_status = original_load_status
+                sys.argv = original_argv
+            return subprocess.CompletedProcess(argv, exit_code, stdout_buffer.getvalue(), stderr_buffer.getvalue())
+
+        json_proc = run_watchdog_with_args([
+            'ai-briefing-watchdog.py', '--json', '--require-qualified-runs', '3', '--reference-ms', str(case['reference_ms'])
+        ])
+        text_proc = run_watchdog_with_args([
+            'ai-briefing-watchdog.py', '--require-qualified-runs', '3', '--reference-ms', str(case['reference_ms'])
+        ])
 
     failures = []
     json_output = json_proc.stdout.strip() or json_proc.stderr.strip()
@@ -12149,6 +12229,8 @@ def evaluate_proof_recheck_case(case):
             payload.get('proof_next_action_window_text'),
             payload.get('proof_recheck_window_text'),
             payload.get('proof_next_action_text'),
+            payload.get('proof_wait_until_text'),
+            payload.get('proof_wait_until_reason_text'),
         }
     )
     if payload.get('proof_recheck_after_text_compact'):
@@ -15070,6 +15152,57 @@ def evaluate_watchdog_alert_case(case):
     }
 
 
+def run_watchdog_alert_wait_until_dedup_case(watchdog_alert_module):
+    failures = []
+    repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
+    payload = {
+        'summary': 'synthetische watchdog-alert payload',
+        'proof_wait_until_text': repeated_instruction,
+        'proof_wait_until_reason_text': repeated_instruction,
+        'proof_next_action_text': repeated_instruction,
+        'proof_recheck_after_text_compact': repeated_instruction,
+        'proof_recheck_commands_text': 'draai daarna: python3 scripts/ai-briefing-watchdog.py --json',
+    }
+    alert_text = watchdog_alert_module.build_alert(payload, 'proof-check', 3)
+    if repeated_instruction not in alert_text:
+        failures.append('watchdog-alert mist de synthetische wait-until instructie')
+    if alert_text.count(repeated_instruction) != 1:
+        failures.append(
+            'watchdog-alert toont synthetische wait-until instructie niet exact één keer: '
+            f"{alert_text.count(repeated_instruction)}"
+        )
+    if payload['proof_recheck_commands_text'] not in alert_text:
+        failures.append('watchdog-alert mist proof_recheck_commands_text voor synthetische wait-until payload')
+
+    return {
+        'name': 'watchdog-alert-deduplicates-wait-until-recheck-after-text',
+        'path': str(WATCHDOG_ALERT_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': alert_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_watchdog_producer_quiet_wait_until_dedup_case(producer_module):
     failures = []
     repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
@@ -15106,6 +15239,58 @@ def run_watchdog_producer_quiet_wait_until_dedup_case(producer_module):
         'failures': failures,
         'audit_ok': not failures,
         'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_proof_recheck_plain_wait_until_dedup_case(proof_recheck_module):
+    failures = []
+    repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
+    payload = {
+        'summary': 'synthetische proof-recheck payload',
+        'result_text': 'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+        'proof_wait_until_text': repeated_instruction,
+        'proof_wait_until_reason_text': repeated_instruction,
+        'proof_next_action_text': repeated_instruction,
+        'proof_recheck_after_text_compact': repeated_instruction,
+        'proof_recheck_commands_text': 'draai daarna: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3',
+    }
+    text_output = proof_recheck_module.build_text(payload)
+    if repeated_instruction not in text_output:
+        failures.append('proof-recheck plain-text mist de synthetische wait-until instructie')
+    if text_output.count(repeated_instruction) != 1:
+        failures.append(
+            'proof-recheck plain-text toont synthetische wait-until instructie niet exact één keer: '
+            f"{text_output.count(repeated_instruction)}"
+        )
+    if payload['proof_recheck_commands_text'] not in text_output:
+        failures.append('proof-recheck plain-text mist proof_recheck_commands_text voor synthetische wait-until payload')
+
+    return {
+        'name': 'proof-recheck-plain-deduplicates-wait-until-recheck-after-text',
+        'path': str(PROOF_RECHECK_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': text_output,
         'item_count': None,
         'items_with_source_count': None,
         'items_with_valid_source_line_count': None,
@@ -19212,10 +19397,13 @@ WATCHDOG_ALERT_CONSUMER_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
 WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-stdout-json-before-slot-keeps-proof-config-context',
     'watchdog-stdout-json-open-window-keeps-proof-config-context',
+    'watchdog-stdout-deduplicates-wait-until-recheck-after-text',
     'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
+    'watchdog-alert-deduplicates-wait-until-recheck-after-text',
     'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
+    'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
     'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-board-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-eventlog-before-slot-keeps-proof-recheck-cronstatus',
@@ -19226,14 +19414,17 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     'watchdog-stdout-json': [
         'watchdog-stdout-json-before-slot-keeps-proof-config-context',
         'watchdog-stdout-json-open-window-keeps-proof-config-context',
+        'watchdog-stdout-deduplicates-wait-until-recheck-after-text',
     ],
     'watchdog-alert': [
         'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
         'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
+        'watchdog-alert-deduplicates-wait-until-recheck-after-text',
     ],
     'watchdog-producer': [
         'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
         'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
+        'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
     ],
     'watchdog-producer-proof-board': [
         'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
@@ -21500,8 +21691,16 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases.update({case['name']: (lambda case=case: evaluate_brief_consumer_case(case)) for case in BRIEF_CONSUMER_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_watchdog_alert_case(case)) for case in WATCHDOG_ALERT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_watchdog_producer_case(case)) for case in WATCHDOG_PRODUCER_CASES})
+    proof_recheck_module = load_proof_recheck_module()
+    watchdog_alert_module = load_watchdog_alert_module()
     watchdog_producer_module = load_watchdog_producer_module()
     proof_recheck_producer_module = load_proof_recheck_producer_module()
+    named_cases['proof-recheck-plain-deduplicates-wait-until-recheck-after-text'] = (
+        lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_wait_until_dedup_case(proof_recheck_module)
+    )
+    named_cases['watchdog-alert-deduplicates-wait-until-recheck-after-text'] = (
+        lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_wait_until_dedup_case(watchdog_alert_module)
+    )
     named_cases['watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_wait_until_dedup_case(producer_module)
     )

@@ -612,6 +612,8 @@ def main() -> int:
         and not result.get('proof_next_action_window_text')
         and not result.get('proof_recheck_window_text')
         and result.get('proof_recheck_after_text_compact') != result.get('proof_next_action_text')
+        and result.get('proof_recheck_after_text_compact') != result.get('proof_wait_until_text')
+        and result.get('proof_recheck_after_text_compact') != result.get('proof_wait_until_reason_text')
     ):
         lines.append(f"proof recheck: {result['proof_recheck_after_text_compact']}")
     if result['proof_today_block_text']:

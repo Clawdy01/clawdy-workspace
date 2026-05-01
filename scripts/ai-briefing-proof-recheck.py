@@ -470,6 +470,8 @@ def build_text(payload: dict) -> str:
                 payload.get('proof_next_action_window_text'),
                 payload.get('proof_recheck_window_text'),
                 payload.get('proof_next_action_text'),
+                payload.get('proof_wait_until_text'),
+                payload.get('proof_wait_until_reason_text'),
             }
             else None
         ),
