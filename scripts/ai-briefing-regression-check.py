@@ -12487,6 +12487,8 @@ def evaluate_proof_recheck_producer_case(case):
                 overall.get('proof_next_action_window_text'),
                 overall.get('proof_next_action_text'),
                 overall.get('proof_recheck_window_text'),
+                overall.get('proof_wait_until_text'),
+                overall.get('proof_wait_until_reason_text'),
             }
         )
         if overall.get('proof_recheck_after_text_compact'):
@@ -13101,6 +13103,8 @@ def evaluate_proof_recheck_producer_case(case):
                 overall.get('proof_next_action_window_text'),
                 overall.get('proof_next_action_text'),
                 overall.get('proof_recheck_window_text'),
+                overall.get('proof_wait_until_text'),
+                overall.get('proof_wait_until_reason_text'),
             }
         )
         if overall.get('proof_recheck_after_text_compact'):
@@ -13590,14 +13594,45 @@ def evaluate_brief_consumer_case(case):
             'brief-consumer-tekst mist proof_wait_until_reason_text uit ai_briefing_status: '
             f"{ai_briefing_status.get('proof_wait_until_reason_text')}"
         )
-    if (
+    redundant_brief_recheck_window_text = (
+        ai_briefing_status.get('proof_recheck_window_text')
+        and ai_briefing_status['proof_recheck_window_text'] in {
+            ai_briefing_status.get('proof_next_action_window_text'),
+            ai_briefing_status.get('proof_next_action_text'),
+        }
+    )
+    if ai_briefing_status.get('proof_recheck_window_text'):
+        if redundant_brief_recheck_window_text:
+            if ai_briefing_status['proof_recheck_window_text'] in text_output:
+                failures.append(
+                    'brief-consumer-tekst toont redundante proof_recheck_window_text ondanks aanwezige actiecontext: '
+                    f"{ai_briefing_status.get('proof_recheck_window_text')}"
+                )
+        elif ai_briefing_status['proof_recheck_window_text'] not in text_output:
+            failures.append(
+                'brief-consumer-tekst mist proof_recheck_window_text uit ai_briefing_status: '
+                f"{ai_briefing_status.get('proof_recheck_window_text')}"
+            )
+    redundant_brief_recheck_after_text = (
         ai_briefing_status.get('proof_recheck_after_text_compact')
-        and ai_briefing_status['proof_recheck_after_text_compact'] not in text_output
-    ):
-        failures.append(
-            'brief-consumer-tekst mist proof_recheck_after_text_compact uit ai_briefing_status: '
-            f"{ai_briefing_status.get('proof_recheck_after_text_compact')}"
-        )
+        and ai_briefing_status['proof_recheck_after_text_compact'] in {
+            ai_briefing_status.get('proof_recheck_window_text'),
+            ai_briefing_status.get('proof_next_action_window_text'),
+            ai_briefing_status.get('proof_next_action_text'),
+        }
+    )
+    if ai_briefing_status.get('proof_recheck_after_text_compact'):
+        if redundant_brief_recheck_after_text:
+            if ai_briefing_status['proof_recheck_after_text_compact'] in text_output:
+                failures.append(
+                    'brief-consumer-tekst toont redundante proof_recheck_after_text_compact ondanks aanwezige venstercontext: '
+                    f"{ai_briefing_status.get('proof_recheck_after_text_compact')}"
+                )
+        elif ai_briefing_status['proof_recheck_after_text_compact'] not in text_output:
+            failures.append(
+                'brief-consumer-tekst mist proof_recheck_after_text_compact uit ai_briefing_status: '
+                f"{ai_briefing_status.get('proof_recheck_after_text_compact')}"
+            )
     if (
         ai_briefing_status.get('proof_schedule_risk_text')
         and ai_briefing_status['proof_schedule_risk_text'] not in text_output
@@ -15314,13 +15349,34 @@ def evaluate_watchdog_producer_case(case):
                 'proof_recheck_schedule_text',
                 'proof_wait_until_text',
                 'proof_next_action_window_text',
-                'proof_recheck_after_text_compact',
                 'proof_target_check_gate_text',
             ]:
                 field_value = overall.get(field_name)
                 if field_value and field_value not in board_text_output:
                     failures.append(
                         f'consumer board-text artifact mist {field_name} uit overall/stdout-json: {field_value}'
+                    )
+            board_text_recheck_after_redundant = bool(
+                overall.get('proof_recheck_after_text_compact')
+                and (
+                    overall.get('proof_next_action_window_text')
+                    or overall.get('proof_recheck_window_text')
+                    or overall['proof_recheck_after_text_compact'] == overall.get('proof_next_action_text')
+                    or overall['proof_recheck_after_text_compact'] == overall.get('proof_wait_until_text')
+                    or overall['proof_recheck_after_text_compact'] == overall.get('proof_wait_until_reason_text')
+                )
+            )
+            if overall.get('proof_recheck_after_text_compact'):
+                if board_text_recheck_after_redundant:
+                    if overall['proof_recheck_after_text_compact'] in board_text_output:
+                        failures.append(
+                            'consumer board-text artifact toont redundante proof_recheck_after_text_compact ondanks aanwezige venstercontext: '
+                            f"{overall.get('proof_recheck_after_text_compact')}"
+                        )
+                elif overall['proof_recheck_after_text_compact'] not in board_text_output:
+                    failures.append(
+                        'consumer board-text artifact mist proof_recheck_after_text_compact uit overall/stdout-json: '
+                        f"{overall.get('proof_recheck_after_text_compact')}"
                     )
             if overall.get('proof_waiting_for_next_scheduled_run') is True:
                 waiting_text = overall.get('proof_state_text') or overall.get('proof_blocker_text')
@@ -15382,14 +15438,28 @@ def evaluate_watchdog_producer_case(case):
             'watchdog-producer-quiet mist proof_target_due_at_if_next_slot_missed_text uit overall/stdout-json: '
             f"{overall.get('proof_target_due_at_if_next_slot_missed_text')}"
         )
-    if (
+    proof_recheck_after_text_compact_is_redundant = bool(
         overall.get('proof_recheck_after_text_compact')
-        and overall['proof_recheck_after_text_compact'] not in quiet_output
-    ):
-        failures.append(
-            'watchdog-producer-quiet mist proof_recheck_after_text_compact uit overall/stdout-json: '
-            f"{overall.get('proof_recheck_after_text_compact')}"
-        )
+        and overall['proof_recheck_after_text_compact'] in {
+            overall.get('proof_next_action_window_text'),
+            overall.get('proof_next_action_text'),
+            overall.get('proof_recheck_window_text'),
+            overall.get('proof_wait_until_text'),
+            overall.get('proof_wait_until_reason_text'),
+        }
+    )
+    if overall.get('proof_recheck_after_text_compact'):
+        if proof_recheck_after_text_compact_is_redundant:
+            if overall['proof_recheck_after_text_compact'] in quiet_output:
+                failures.append(
+                    'watchdog-producer-quiet toont redundante proof_recheck_after_text_compact ondanks aanwezige venstercontext: '
+                    f"{overall.get('proof_recheck_after_text_compact')}"
+                )
+        elif overall['proof_recheck_after_text_compact'] not in quiet_output:
+            failures.append(
+                'watchdog-producer-quiet mist proof_recheck_after_text_compact uit overall/stdout-json: '
+                f"{overall.get('proof_recheck_after_text_compact')}"
+            )
     if (
         overall.get('proof_schedule_risk_text')
         and overall['proof_schedule_risk_text'] not in quiet_output
