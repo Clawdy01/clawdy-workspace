@@ -13610,21 +13610,26 @@ def evaluate_brief_consumer_case(case):
             'brief-consumer-tekst mist proof_wait_until_reason_text uit ai_briefing_status: '
             f"{ai_briefing_status.get('proof_wait_until_reason_text')}"
         )
+    brief_proof_recheck_window_text = ai_briefing_status.get('proof_recheck_window_text')
     redundant_brief_recheck_window_text = (
-        ai_briefing_status.get('proof_recheck_window_text')
-        and ai_briefing_status['proof_recheck_window_text'] in {
+        brief_proof_recheck_window_text
+        and brief_proof_recheck_window_text in {
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
         }
     )
-    if ai_briefing_status.get('proof_recheck_window_text'):
+    if brief_proof_recheck_window_text:
         if redundant_brief_recheck_window_text:
-            if ai_briefing_status['proof_recheck_window_text'] in text_output:
+            allowed_brief_recheck_window_occurrences = 1 if brief_proof_recheck_window_text in {
+                ai_briefing_status.get('proof_next_action_window_text'),
+                ai_briefing_status.get('proof_next_action_text'),
+            } else 0
+            if text_output.count(brief_proof_recheck_window_text) > allowed_brief_recheck_window_occurrences:
                 failures.append(
                     'brief-consumer-tekst toont redundante proof_recheck_window_text ondanks aanwezige actiecontext: '
                     f"{ai_briefing_status.get('proof_recheck_window_text')}"
                 )
-        elif ai_briefing_status['proof_recheck_window_text'] not in text_output:
+        elif brief_proof_recheck_window_text not in text_output:
             failures.append(
                 'brief-consumer-tekst mist proof_recheck_window_text uit ai_briefing_status: '
                 f"{ai_briefing_status.get('proof_recheck_window_text')}"
@@ -14119,6 +14124,52 @@ def evaluate_watchdog_alert_case(case):
                     'watchdog-alert alert_text mist proof_next_action_window_text uit stdout-json: '
                     f"{payload.get('proof_next_action_window_text')}"
                 )
+        proof_recheck_window_text = payload.get('proof_recheck_window_text')
+        proof_recheck_after_text = payload.get('proof_recheck_after_text')
+        redundant_proof_recheck_window_text = False
+        if proof_recheck_window_text:
+            redundant_proof_recheck_window_text = proof_recheck_window_text in {
+                payload.get('proof_next_action_window_text'),
+                payload.get('proof_next_action_text'),
+            }
+            if (
+                not redundant_proof_recheck_window_text
+                and proof_recheck_after_text
+                and proof_recheck_after_text in proof_recheck_window_text
+            ):
+                next_action_window_text = payload.get('proof_next_action_window_text') or ''
+                next_action_text = payload.get('proof_next_action_text') or ''
+                redundant_proof_recheck_window_text = (
+                    proof_recheck_after_text in next_action_window_text
+                    or proof_recheck_after_text in next_action_text
+                )
+        if proof_recheck_window_text:
+            if redundant_proof_recheck_window_text:
+                allowed_recheck_window_occurrences = 1 if proof_recheck_window_text in {
+                    payload.get('proof_next_action_window_text'),
+                    payload.get('proof_next_action_text'),
+                } else 0
+                if text_output.count(proof_recheck_window_text) > allowed_recheck_window_occurrences:
+                    failures.append(
+                        'watchdog-alert-tekst toont redundante proof_recheck_window_text ondanks aanwezige actiecontext: '
+                        f"{payload.get('proof_recheck_window_text')}"
+                    )
+                if (payload.get('alert_text') or '').count(proof_recheck_window_text) > allowed_recheck_window_occurrences:
+                    failures.append(
+                        'watchdog-alert alert_text toont redundante proof_recheck_window_text ondanks aanwezige actiecontext: '
+                        f"{payload.get('proof_recheck_window_text')}"
+                    )
+            else:
+                if proof_recheck_window_text not in text_output:
+                    failures.append(
+                        'watchdog-alert-tekst mist proof_recheck_window_text uit stdout-json: '
+                        f"{payload.get('proof_recheck_window_text')}"
+                    )
+                if proof_recheck_window_text not in (payload.get('alert_text') or ''):
+                    failures.append(
+                        'watchdog-alert alert_text mist proof_recheck_window_text uit stdout-json: '
+                        f"{payload.get('proof_recheck_window_text')}"
+                    )
         redundant_proof_recheck_after_text = (
             payload.get('proof_recheck_after_text_compact')
             and payload['proof_recheck_after_text_compact'] in {
@@ -15023,6 +15074,66 @@ def run_watchdog_producer_quiet_wait_until_dedup_case(producer_module):
     return {
         'name': 'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
         'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module):
+    failures = []
+    repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
+    payload = {
+        'summary': 'synthetische proof-recheck-producer payload',
+        'proof_wait_until_text': repeated_instruction,
+        'proof_wait_until_reason_text': repeated_instruction,
+        'proof_next_action_text': repeated_instruction,
+        'proof_recheck_after_text_compact': repeated_instruction,
+        'proof_recheck_commands_text': 'draai daarna: python3 scripts/ai-briefing-proof-recheck.py --json',
+    }
+    quiet_summary, extracted_payload = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if extracted_payload != payload:
+        failures.append('proof-recheck-producer build_quiet_summary gaf niet dezelfde payload terug voor synthetische wait-until payload')
+    if not quiet_summary:
+        failures.append('proof-recheck-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische wait-until payload')
+        quiet_summary = ''
+    if repeated_instruction not in quiet_summary:
+        failures.append('proof-recheck-producer quiet-summary mist de synthetische wait-until instructie')
+    if quiet_summary.count(repeated_instruction) != 1:
+        failures.append(
+            'proof-recheck-producer quiet-summary toont synthetische wait-until instructie niet exact één keer: '
+            f"{quiet_summary.count(repeated_instruction)}"
+        )
+    if 'draai daarna: python3 scripts/ai-briefing-proof-recheck.py --json' not in quiet_summary:
+        failures.append('proof-recheck-producer quiet-summary mist proof_recheck_commands_text voor synthetische wait-until payload')
+
+    return {
+        'name': 'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
         'ok': not failures,
         'failures': failures,
         'audit_ok': not failures,
@@ -21249,12 +21360,16 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases.update({case['name']: (lambda case=case: evaluate_brief_consumer_case(case)) for case in BRIEF_CONSUMER_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_watchdog_alert_case(case)) for case in WATCHDOG_ALERT_CASES})
     named_cases.update({case['name']: (lambda case=case: evaluate_watchdog_producer_case(case)) for case in WATCHDOG_PRODUCER_CASES})
-    producer_module = load_watchdog_producer_module()
+    watchdog_producer_module = load_watchdog_producer_module()
+    proof_recheck_producer_module = load_proof_recheck_producer_module()
     named_cases['watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
-        lambda producer_module=producer_module: run_watchdog_producer_quiet_wait_until_dedup_case(producer_module)
+        lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_wait_until_dedup_case(producer_module)
+    )
+    named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
+        lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module)
     )
     named_cases['proof-recheck-producer-quiet-falls-back-to-requested-outputs'] = (
-        lambda: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)
+        lambda producer_module=proof_recheck_producer_module: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)
     )
     named_cases['regression-check-list-cases-output'] = evaluate_list_cases_output_case
     named_cases['registry-keeps-lowercase-encoded-equals-cluster-complete'] = (
