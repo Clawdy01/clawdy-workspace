@@ -11235,6 +11235,20 @@ def evaluate_status_stdout_case(case):
         )
     if (
         payload.get('proof_recheck_after_text_compact')
+        and payload['proof_recheck_after_text_compact'] in {
+            payload.get('proof_recheck_window_text'),
+            payload.get('proof_next_action_window_text'),
+            payload.get('proof_next_action_text'),
+            payload.get('proof_wait_until_text'),
+            payload.get('proof_wait_until_reason_text'),
+        }
+    ):
+        failures.append(
+            'status-stdout-tekst toont redundante proof_recheck_after_text_compact ondanks aanwezige venstercontext: '
+            f"{payload.get('proof_recheck_after_text_compact')}"
+        )
+    elif (
+        payload.get('proof_recheck_after_text_compact')
         and payload['proof_recheck_after_text_compact'] not in text_output
     ):
         failures.append(
@@ -13616,6 +13630,8 @@ def evaluate_brief_consumer_case(case):
         and brief_proof_recheck_window_text in {
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
+            ai_briefing_status.get('proof_wait_until_text'),
+            ai_briefing_status.get('proof_wait_until_reason_text'),
         }
     )
     if brief_proof_recheck_window_text:
@@ -13623,13 +13639,21 @@ def evaluate_brief_consumer_case(case):
             allowed_brief_recheck_window_occurrences = 1 if brief_proof_recheck_window_text in {
                 ai_briefing_status.get('proof_next_action_window_text'),
                 ai_briefing_status.get('proof_next_action_text'),
+                ai_briefing_status.get('proof_wait_until_text'),
+                ai_briefing_status.get('proof_wait_until_reason_text'),
             } else 0
             if text_output.count(brief_proof_recheck_window_text) > allowed_brief_recheck_window_occurrences:
                 failures.append(
                     'brief-consumer-tekst toont redundante proof_recheck_window_text ondanks aanwezige actiecontext: '
                     f"{ai_briefing_status.get('proof_recheck_window_text')}"
                 )
-        elif brief_proof_recheck_window_text not in text_output:
+        elif (
+            brief_proof_recheck_window_text not in text_output
+            and not (
+                ai_briefing_status.get('proof_recheck_after_text_compact')
+                and ai_briefing_status['proof_recheck_after_text_compact'] in text_output
+            )
+        ):
             failures.append(
                 'brief-consumer-tekst mist proof_recheck_window_text uit ai_briefing_status: '
                 f"{ai_briefing_status.get('proof_recheck_window_text')}"
@@ -13640,6 +13664,8 @@ def evaluate_brief_consumer_case(case):
             ai_briefing_status.get('proof_recheck_window_text'),
             ai_briefing_status.get('proof_next_action_window_text'),
             ai_briefing_status.get('proof_next_action_text'),
+            ai_briefing_status.get('proof_wait_until_text'),
+            ai_briefing_status.get('proof_wait_until_reason_text'),
         }
     )
     if ai_briefing_status.get('proof_recheck_after_text_compact'):
@@ -14176,6 +14202,8 @@ def evaluate_watchdog_alert_case(case):
                 payload.get('proof_next_action_window_text'),
                 payload.get('proof_recheck_window_text'),
                 payload.get('proof_next_action_text'),
+                payload.get('proof_wait_until_text'),
+                payload.get('proof_wait_until_reason_text'),
             }
         )
         if payload.get('proof_recheck_after_text_compact'):
@@ -15138,6 +15166,118 @@ def run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module):
         'failures': failures,
         'audit_ok': not failures,
         'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_brief_consumer_wait_until_dedup_case(status_module):
+    failures = []
+    repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
+    payload = {
+        'found': True,
+        'enabled': True,
+        'text': 'synthetische briefingstatus',
+        'proof_wait_until_text': repeated_instruction,
+        'proof_wait_until_reason_text': repeated_instruction,
+        'proof_next_action_text': repeated_instruction,
+        'proof_recheck_after_text_compact': repeated_instruction,
+        'proof_recheck_commands_text': 'draai daarna: python3 scripts/ai-briefing-status.py --json',
+    }
+
+    def load_module(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        assert spec and spec.loader
+        spec.loader.exec_module(module)
+        return module
+
+    statusboard_module = load_module('statusboard', STATUSBOARD_SCRIPT)
+    clawdy_brief_module = load_module('clawdy_brief', CLAWDY_BRIEF_SCRIPT)
+
+    outputs = {
+        'status-stdout': status_module.render_text(payload),
+        'statusboard': statusboard_module.render_text({
+            'status': {
+                'version': 'test',
+                'gateway': {'text': 'ok'},
+                'telegram': 'ok',
+                'heartbeat': 'ok',
+                'tasks': {'active': 0, 'failures': 0, 'lost': 0},
+                'audit': {'errors': 0, 'warnings': 0, 'lost': 0},
+                'session': None,
+            },
+            'security': {'text': 'ok'},
+            'recent_mail': [],
+            'recent_mail_current': [],
+            'recent_threads': [],
+            'recent_threads_current': [],
+            'mail_triage': {},
+            'mail_focus': {},
+            'mail_high_recent': {},
+            'mail_next_step': {},
+            'creative_smoke': {},
+            'ai_briefing_status': payload,
+            'mail': {'last_uid': 0, 'tracked_notifications': 0, 'account': 'test'},
+        }),
+        'clawdy-brief': clawdy_brief_module.render_text({
+            'status': {
+                'version': 'test',
+                'gateway': {'text': 'ok'},
+                'telegram': 'ok',
+                'heartbeat': 'ok',
+                'tasks': {'active': 0, 'failures': 0, 'lost': 0},
+                'audit': {'errors': 0, 'warnings': 0, 'lost': 0},
+                'session': None,
+            },
+            'security': {'text': 'ok'},
+            'task_audit': {},
+            'recent_mail': [],
+            'recent_mail_current': [],
+            'recent_threads': [],
+            'recent_threads_current': [],
+            'mail_triage': {},
+            'mail_focus': {},
+            'mail_high_recent': {},
+            'mail_next_step': {},
+            'creative_smoke': {},
+            'ai_briefing_status': payload,
+            'mail': {'account': 'test', 'host': 'localhost', 'last_uid': 0, 'tracked_notifications': 0},
+        }),
+    }
+
+    for label, output in outputs.items():
+        if repeated_instruction not in output:
+            failures.append(f'{label} mist de synthetische wait-until instructie')
+        if output.count(repeated_instruction) != 1:
+            failures.append(
+                f'{label} toont de synthetische wait-until instructie niet exact één keer: {output.count(repeated_instruction)}'
+            )
+
+    return {
+        'name': 'brief-consumers-deduplicate-wait-until-recheck-after-text',
+        'path': str(STATUS_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': '\n\n'.join(f'## {label}\n{output}' for label, output in outputs.items()),
         'item_count': None,
         'items_with_source_count': None,
         'items_with_valid_source_line_count': None,
@@ -21367,6 +21507,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module)
+    )
+    named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text'] = (
+        lambda status_module=module: run_brief_consumer_wait_until_dedup_case(status_module)
     )
     named_cases['proof-recheck-producer-quiet-falls-back-to-requested-outputs'] = (
         lambda producer_module=proof_recheck_producer_module: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)

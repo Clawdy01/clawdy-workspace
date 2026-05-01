@@ -146,6 +146,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         payload.get('proof_next_action_window_text'),
         payload.get('proof_next_action_text'),
         payload.get('proof_recheck_window_text'),
+        payload.get('proof_wait_until_text'),
+        payload.get('proof_wait_until_reason_text'),
     }:
         bits.append(str(proof_recheck_after_text_compact))
     if payload.get('proof_schedule_risk_text'):

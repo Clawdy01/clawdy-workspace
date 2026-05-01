@@ -379,6 +379,8 @@ def render_text(summary):
             and ai_briefing_status.get('proof_recheck_after_text_compact') != ai_briefing_status.get('proof_recheck_window_text')
             and ai_briefing_status.get('proof_recheck_after_text_compact') != ai_briefing_status.get('proof_next_action_window_text')
             and ai_briefing_status.get('proof_recheck_after_text_compact') != ai_briefing_status.get('proof_next_action_text')
+            and ai_briefing_status.get('proof_recheck_after_text_compact') != ai_briefing_status.get('proof_wait_until_text')
+            and ai_briefing_status.get('proof_recheck_after_text_compact') != ai_briefing_status.get('proof_wait_until_reason_text')
         ):
             ai_bits.append(ai_briefing_status['proof_recheck_after_text_compact'])
         if ai_briefing_status.get('proof_plan_text'):
