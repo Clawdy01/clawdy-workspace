@@ -1,24 +1,32 @@
 #!/usr/bin/env python3
 import imaplib
+import socket
 import time
 
 from workspace_secrets import load_mail_config
 
 
-def open_inbox(readonly=True, retries=3, initial_delay=0.75):
+DEFAULT_TIMEOUT_SECONDS = 20
+
+
+def open_inbox(readonly=True, retries=3, initial_delay=0.75, timeout=DEFAULT_TIMEOUT_SECONDS):
     conf = load_mail_config()
     last_error = None
 
     for attempt in range(1, max(1, retries) + 1):
         mailbox = None
         try:
-            mailbox = imaplib.IMAP4_SSL(conf['host'], conf.get('imapPort', 993))
+            mailbox = imaplib.IMAP4_SSL(
+                conf['host'],
+                conf.get('imapPort', 993),
+                timeout=timeout,
+            )
             mailbox.login(conf['username'], conf['password'])
             status, _ = mailbox.select('INBOX', readonly=readonly)
             if status != 'OK':
                 raise RuntimeError('select failed')
             return mailbox
-        except (imaplib.IMAP4.error, imaplib.IMAP4.abort, OSError, RuntimeError) as exc:
+        except (imaplib.IMAP4.error, imaplib.IMAP4.abort, OSError, RuntimeError, socket.timeout) as exc:
             last_error = exc
             if mailbox is not None:
                 try:
