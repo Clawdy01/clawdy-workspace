@@ -21785,6 +21785,11 @@ def evaluate_list_cases_output_case():
     suggested_unknown_case_name = 'regression-check-list-case-output'
     expected_suggested_case_name = 'regression-check-list-cases-output'
     expected_mixed_valid_case_name = 'watchdog-all-routes-full-sweep'
+    second_expected_mixed_valid_case_name = next(
+        case_name
+        for case_name in filtered_case_names
+        if case_name != expected_mixed_valid_case_name
+    )
     expected_unknown_cases_message = 'onbekende regressiecase opgegeven'
     duplicate_filtered_case_names = [
         case_name
@@ -23990,6 +23995,805 @@ def evaluate_list_cases_output_case():
         ):
             failures.append(
                 'json --list-cases met verweven gemengde geldige/onbekende+typofout --case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
+            )
+
+    unknown_first_interleaved_mixed_case_names = [
+        unknown_case_name,
+        expected_mixed_valid_case_name,
+        suggested_unknown_case_name,
+        unknown_case_name,
+        expected_mixed_valid_case_name,
+        suggested_unknown_case_name,
+    ]
+    unknown_first_interleaved_mixed_case_args = [
+        arg
+        for case_name in unknown_first_interleaved_mixed_case_names
+        for arg in ('--case', case_name)
+    ]
+    unknown_first_interleaved_mixed_unique_case_names = [
+        unknown_case_name,
+        expected_mixed_valid_case_name,
+        suggested_unknown_case_name,
+    ]
+    unknown_first_interleaved_mixed_unknown_case_names = [
+        unknown_case_name,
+        suggested_unknown_case_name,
+    ]
+
+    unknown_first_interleaved_mixed_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            *unknown_first_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if unknown_first_interleaved_mixed_plain_proc.returncode != 2:
+        failures.append(
+            'plain onbekende-eerst verweven gemengde geldige/onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{unknown_first_interleaved_mixed_plain_proc.returncode}'
+        )
+    if unknown_first_interleaved_mixed_plain_proc.stdout.strip():
+        failures.append(
+            'plain onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort geen stdout-output te geven'
+        )
+    unknown_first_interleaved_mixed_plain_stderr = unknown_first_interleaved_mixed_plain_proc.stderr or ''
+    if (
+        f'geldige regressiecases in dezelfde aanvraag: {expected_mixed_valid_case_name}'
+        not in unknown_first_interleaved_mixed_plain_stderr
+    ):
+        failures.append(
+            'plain onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort de geldige subset op stderr te noemen'
+        )
+    if f'onbekende regressiecase: {unknown_case_name}' not in unknown_first_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort de echte onbekende subset op stderr te noemen'
+        )
+    if f'onbekende regressiecase: {suggested_unknown_case_name}' not in unknown_first_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort de typofout-subset op stderr te noemen'
+        )
+    if expected_suggested_case_name not in unknown_first_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort een typo-suggestie op stderr te geven'
+        )
+
+    unknown_first_interleaved_mixed_list_cases_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
+            *unknown_first_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if unknown_first_interleaved_mixed_list_cases_plain_proc.returncode != 2:
+        failures.append(
+            'plain --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{unknown_first_interleaved_mixed_list_cases_plain_proc.returncode}'
+        )
+    if unknown_first_interleaved_mixed_list_cases_plain_proc.stdout.strip():
+        failures.append(
+            'plain --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort geen stdout-caselijst te geven'
+        )
+    if (unknown_first_interleaved_mixed_list_cases_plain_proc.stderr or '') != unknown_first_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort exact dezelfde gededupliceerde stderr-melding te geven als een gewone run'
+        )
+
+    unknown_first_interleaved_mixed_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
+            *unknown_first_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if unknown_first_interleaved_mixed_json_proc.returncode != 2:
+        failures.append(
+            'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{unknown_first_interleaved_mixed_json_proc.returncode}'
+        )
+
+    unknown_first_interleaved_mixed_json_payload = {}
+    unknown_first_interleaved_mixed_json_stdout = (
+        unknown_first_interleaved_mixed_json_proc.stdout.strip()
+        or unknown_first_interleaved_mixed_json_proc.stderr.strip()
+    )
+    if not unknown_first_interleaved_mixed_json_stdout:
+        failures.append('json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case gaf geen output')
+    else:
+        try:
+            unknown_first_interleaved_mixed_json_payload = json.loads(unknown_first_interleaved_mixed_json_stdout)
+            audit_bits.append(
+                'unknown-json-interleaved-unknown-first-mixed='
+                + json.dumps(unknown_first_interleaved_mixed_json_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if unknown_first_interleaved_mixed_json_payload:
+        assert_runtime_metadata(
+            unknown_first_interleaved_mixed_json_payload,
+            'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        assert_unknown_cases_error_message(
+            unknown_first_interleaved_mixed_json_payload,
+            'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        if unknown_first_interleaved_mixed_json_payload.get('requested_case_names') != unknown_first_interleaved_mixed_unique_case_names:
+            failures.append(
+                'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case requested_case_names hoort de unieke first-seen invoervolgorde te spiegelen'
+            )
+        if unknown_first_interleaved_mixed_json_payload.get('requested_case_count') != len(unknown_first_interleaved_mixed_unique_case_names):
+            failures.append(
+                'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case requested_case_count verwacht '
+                f"{len(unknown_first_interleaved_mixed_unique_case_names)}, kreeg {unknown_first_interleaved_mixed_json_payload.get('requested_case_count')}"
+            )
+        if unknown_first_interleaved_mixed_json_payload.get('selected_case_names') != [expected_mixed_valid_case_name]:
+            failures.append(
+                'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case selected_case_names hoort de geldige subset te bewaren'
+            )
+        if unknown_first_interleaved_mixed_json_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case selected_case_count verwacht 1, kreeg '
+                f"{unknown_first_interleaved_mixed_json_payload.get('selected_case_count')}"
+            )
+        if unknown_first_interleaved_mixed_json_payload.get('unknown_case_names') != unknown_first_interleaved_mixed_unknown_case_names:
+            failures.append(
+                'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case unknown_case_names hoort de unieke onbekende-eerst-volgorde te bewaren'
+            )
+        if unknown_first_interleaved_mixed_json_payload.get('unknown_case_count') != len(unknown_first_interleaved_mixed_unknown_case_names):
+            failures.append(
+                'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case unknown_case_count verwacht '
+                f"{len(unknown_first_interleaved_mixed_unknown_case_names)}, kreeg {unknown_first_interleaved_mixed_json_payload.get('unknown_case_count')}"
+            )
+        unknown_first_interleaved_mixed_json_suggestions = unknown_first_interleaved_mixed_json_payload.get(
+            'suggested_case_names_by_input'
+        )
+        if not isinstance(unknown_first_interleaved_mixed_json_suggestions, dict):
+            failures.append(
+                'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case suggested_case_names_by_input hoort een dict te zijn'
+            )
+        else:
+            if unknown_first_interleaved_mixed_json_suggestions.get(unknown_case_name) != []:
+                failures.append(
+                    'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort voor de echte onbekende invoer geen suggesties te geven'
+                )
+            unknown_first_interleaved_typo_suggestions = unknown_first_interleaved_mixed_json_suggestions.get(
+                suggested_unknown_case_name
+            )
+            if not isinstance(unknown_first_interleaved_typo_suggestions, list) or expected_suggested_case_name not in unknown_first_interleaved_typo_suggestions:
+                failures.append(
+                    'json onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort voor de typo de dichtstbijzijnde casenaam voor te stellen'
+                )
+
+    unknown_first_interleaved_mixed_list_cases_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
+            *unknown_first_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if unknown_first_interleaved_mixed_list_cases_json_proc.returncode != 2:
+        failures.append(
+            'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{unknown_first_interleaved_mixed_list_cases_json_proc.returncode}'
+        )
+
+    unknown_first_interleaved_mixed_list_cases_json_payload = {}
+    unknown_first_interleaved_mixed_list_cases_json_stdout = (
+        unknown_first_interleaved_mixed_list_cases_json_proc.stdout.strip()
+        or unknown_first_interleaved_mixed_list_cases_json_proc.stderr.strip()
+    )
+    if not unknown_first_interleaved_mixed_list_cases_json_stdout:
+        failures.append('json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case gaf geen output')
+    else:
+        try:
+            unknown_first_interleaved_mixed_list_cases_json_payload = json.loads(
+                unknown_first_interleaved_mixed_list_cases_json_stdout
+            )
+            audit_bits.append(
+                'unknown-list-cases-json-interleaved-unknown-first-mixed='
+                + json.dumps(unknown_first_interleaved_mixed_list_cases_json_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if unknown_first_interleaved_mixed_list_cases_json_payload:
+        assert_runtime_metadata(
+            unknown_first_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        assert_unknown_cases_error_message(
+            unknown_first_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        assert_list_cases_payload_stays_discoverable(
+            unknown_first_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        assert_list_cases_error_payload_avoids_success_fields(
+            unknown_first_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        if unknown_first_interleaved_mixed_list_cases_json_payload.get('requested_case_names') != unknown_first_interleaved_mixed_unique_case_names:
+            failures.append(
+                'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case requested_case_names hoort de unieke first-seen invoervolgorde te spiegelen'
+            )
+        if unknown_first_interleaved_mixed_list_cases_json_payload.get('requested_case_count') != len(unknown_first_interleaved_mixed_unique_case_names):
+            failures.append(
+                'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case requested_case_count verwacht '
+                f"{len(unknown_first_interleaved_mixed_unique_case_names)}, kreeg {unknown_first_interleaved_mixed_list_cases_json_payload.get('requested_case_count')}"
+            )
+        if unknown_first_interleaved_mixed_list_cases_json_payload.get('selected_case_names') != [expected_mixed_valid_case_name]:
+            failures.append(
+                'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case selected_case_names hoort de geldige subset te bewaren'
+            )
+        if unknown_first_interleaved_mixed_list_cases_json_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case selected_case_count verwacht 1, kreeg '
+                f"{unknown_first_interleaved_mixed_list_cases_json_payload.get('selected_case_count')}"
+            )
+        if unknown_first_interleaved_mixed_list_cases_json_payload.get('unknown_case_names') != unknown_first_interleaved_mixed_unknown_case_names:
+            failures.append(
+                'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case unknown_case_names hoort de unieke onbekende-eerst-volgorde te bewaren'
+            )
+        if unknown_first_interleaved_mixed_list_cases_json_payload.get('unknown_case_count') != len(unknown_first_interleaved_mixed_unknown_case_names):
+            failures.append(
+                'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case unknown_case_count verwacht '
+                f"{len(unknown_first_interleaved_mixed_unknown_case_names)}, kreeg {unknown_first_interleaved_mixed_list_cases_json_payload.get('unknown_case_count')}"
+            )
+        unknown_first_interleaved_mixed_list_cases_suggestions = (
+            unknown_first_interleaved_mixed_list_cases_json_payload.get('suggested_case_names_by_input')
+        )
+        if not isinstance(unknown_first_interleaved_mixed_list_cases_suggestions, dict):
+            failures.append(
+                'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case suggested_case_names_by_input hoort een dict te zijn'
+            )
+        else:
+            if unknown_first_interleaved_mixed_list_cases_suggestions.get(unknown_case_name) != []:
+                failures.append(
+                    'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort voor de echte onbekende invoer geen suggesties te geven'
+                )
+            unknown_first_interleaved_list_cases_typo_suggestions = unknown_first_interleaved_mixed_list_cases_suggestions.get(
+                suggested_unknown_case_name
+            )
+            if not isinstance(unknown_first_interleaved_list_cases_typo_suggestions, list) or expected_suggested_case_name not in unknown_first_interleaved_list_cases_typo_suggestions:
+                failures.append(
+                    'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort voor de typo de dichtstbijzijnde casenaam voor te stellen'
+                )
+
+    if (
+        unknown_first_interleaved_mixed_list_cases_json_payload
+        and unknown_first_interleaved_mixed_json_payload
+    ):
+        if strip_runtime_metadata(unknown_first_interleaved_mixed_list_cases_json_payload) != strip_runtime_metadata(
+            unknown_first_interleaved_mixed_json_payload
+        ):
+            failures.append(
+                'json --list-cases met onbekende-eerst verweven gemengde geldige/onbekende+typofout --case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
+            )
+
+    valid_first_interleaved_mixed_case_names = [
+        expected_mixed_valid_case_name,
+        unknown_case_name,
+        suggested_unknown_case_name,
+        expected_mixed_valid_case_name,
+        unknown_case_name,
+        suggested_unknown_case_name,
+    ]
+    valid_first_interleaved_mixed_case_args = [
+        arg
+        for case_name in valid_first_interleaved_mixed_case_names
+        for arg in ('--case', case_name)
+    ]
+    valid_first_interleaved_mixed_unique_case_names = [
+        expected_mixed_valid_case_name,
+        unknown_case_name,
+        suggested_unknown_case_name,
+    ]
+    valid_first_interleaved_mixed_unknown_case_names = [
+        unknown_case_name,
+        suggested_unknown_case_name,
+    ]
+
+    valid_first_interleaved_mixed_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            *valid_first_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if valid_first_interleaved_mixed_plain_proc.returncode != 2:
+        failures.append(
+            'plain geldig-eerst verweven gemengde geldige/onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{valid_first_interleaved_mixed_plain_proc.returncode}'
+        )
+    if valid_first_interleaved_mixed_plain_proc.stdout.strip():
+        failures.append(
+            'plain geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort geen stdout-output te geven'
+        )
+    valid_first_interleaved_mixed_plain_stderr = valid_first_interleaved_mixed_plain_proc.stderr or ''
+    if f'geldige regressiecases in dezelfde aanvraag: {expected_mixed_valid_case_name}' not in valid_first_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort de geldige subset op stderr te noemen'
+        )
+    if f'onbekende regressiecase: {unknown_case_name}' not in valid_first_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort de echte onbekende subset op stderr te noemen'
+        )
+    if f'onbekende regressiecase: {suggested_unknown_case_name}' not in valid_first_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort de typofout-subset op stderr te noemen'
+        )
+    if expected_suggested_case_name not in valid_first_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort een suggestie op stderr te geven'
+        )
+
+    valid_first_interleaved_mixed_list_cases_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
+            *valid_first_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if valid_first_interleaved_mixed_list_cases_plain_proc.returncode != 2:
+        failures.append(
+            'plain --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{valid_first_interleaved_mixed_list_cases_plain_proc.returncode}'
+        )
+    if valid_first_interleaved_mixed_list_cases_plain_proc.stdout.strip():
+        failures.append(
+            'plain --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort geen stdout-caselijst te geven'
+        )
+    if (valid_first_interleaved_mixed_list_cases_plain_proc.stderr or '') != valid_first_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort exact dezelfde gededupliceerde stderr-melding te geven als een gewone run'
+        )
+
+    valid_first_interleaved_mixed_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
+            *valid_first_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if valid_first_interleaved_mixed_json_proc.returncode != 2:
+        failures.append(
+            'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{valid_first_interleaved_mixed_json_proc.returncode}'
+        )
+
+    valid_first_interleaved_mixed_json_payload = {}
+    valid_first_interleaved_mixed_json_stdout = (
+        valid_first_interleaved_mixed_json_proc.stdout.strip()
+        or valid_first_interleaved_mixed_json_proc.stderr.strip()
+    )
+    if not valid_first_interleaved_mixed_json_stdout:
+        failures.append('json geldig-eerst verweven gemengde geldige/onbekende+typofout --case gaf geen output')
+    else:
+        try:
+            valid_first_interleaved_mixed_json_payload = json.loads(valid_first_interleaved_mixed_json_stdout)
+            audit_bits.append(
+                'unknown-json-interleaved-valid-first-mixed='
+                + json.dumps(valid_first_interleaved_mixed_json_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if valid_first_interleaved_mixed_json_payload:
+        assert_runtime_metadata(
+            valid_first_interleaved_mixed_json_payload,
+            'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        assert_unknown_cases_error_message(
+            valid_first_interleaved_mixed_json_payload,
+            'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        if valid_first_interleaved_mixed_json_payload.get('requested_case_names') != valid_first_interleaved_mixed_unique_case_names:
+            failures.append(
+                'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case requested_case_names hoort de unieke first-seen invoervolgorde te spiegelen'
+            )
+        if valid_first_interleaved_mixed_json_payload.get('requested_case_count') != len(valid_first_interleaved_mixed_unique_case_names):
+            failures.append(
+                'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case requested_case_count verwacht '
+                f"{len(valid_first_interleaved_mixed_unique_case_names)}, kreeg {valid_first_interleaved_mixed_json_payload.get('requested_case_count')}"
+            )
+        if valid_first_interleaved_mixed_json_payload.get('selected_case_names') != [expected_mixed_valid_case_name]:
+            failures.append(
+                'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case selected_case_names hoort de geldige subset te bewaren'
+            )
+        if valid_first_interleaved_mixed_json_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case selected_case_count verwacht 1, kreeg '
+                f"{valid_first_interleaved_mixed_json_payload.get('selected_case_count')}"
+            )
+        if valid_first_interleaved_mixed_json_payload.get('unknown_case_names') != valid_first_interleaved_mixed_unknown_case_names:
+            failures.append(
+                'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case unknown_case_names hoort de unieke onbekendevolgorde te bewaren'
+            )
+        if valid_first_interleaved_mixed_json_payload.get('unknown_case_count') != len(valid_first_interleaved_mixed_unknown_case_names):
+            failures.append(
+                'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case unknown_case_count verwacht '
+                f"{len(valid_first_interleaved_mixed_unknown_case_names)}, kreeg {valid_first_interleaved_mixed_json_payload.get('unknown_case_count')}"
+            )
+        valid_first_interleaved_mixed_json_suggestions = valid_first_interleaved_mixed_json_payload.get(
+            'suggested_case_names_by_input'
+        )
+        if not isinstance(valid_first_interleaved_mixed_json_suggestions, dict):
+            failures.append(
+                'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case suggested_case_names_by_input hoort een dict te zijn'
+            )
+        else:
+            if valid_first_interleaved_mixed_json_suggestions.get(unknown_case_name) != []:
+                failures.append(
+                    'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort voor de echte onbekende invoer geen suggesties te geven'
+                )
+            valid_first_interleaved_typo_suggestions = valid_first_interleaved_mixed_json_suggestions.get(
+                suggested_unknown_case_name
+            )
+            if not isinstance(valid_first_interleaved_typo_suggestions, list) or expected_suggested_case_name not in valid_first_interleaved_typo_suggestions:
+                failures.append(
+                    'json geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort voor de typo de dichtstbijzijnde casenaam voor te stellen'
+                )
+
+    valid_first_interleaved_mixed_list_cases_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
+            *valid_first_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if valid_first_interleaved_mixed_list_cases_json_proc.returncode != 2:
+        failures.append(
+            'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{valid_first_interleaved_mixed_list_cases_json_proc.returncode}'
+        )
+
+    valid_first_interleaved_mixed_list_cases_json_payload = {}
+    valid_first_interleaved_mixed_list_cases_json_stdout = (
+        valid_first_interleaved_mixed_list_cases_json_proc.stdout.strip()
+        or valid_first_interleaved_mixed_list_cases_json_proc.stderr.strip()
+    )
+    if not valid_first_interleaved_mixed_list_cases_json_stdout:
+        failures.append('json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case gaf geen output')
+    else:
+        try:
+            valid_first_interleaved_mixed_list_cases_json_payload = json.loads(
+                valid_first_interleaved_mixed_list_cases_json_stdout
+            )
+            audit_bits.append(
+                'unknown-list-cases-json-interleaved-valid-first-mixed='
+                + json.dumps(valid_first_interleaved_mixed_list_cases_json_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if valid_first_interleaved_mixed_list_cases_json_payload:
+        assert_runtime_metadata(
+            valid_first_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        assert_unknown_cases_error_message(
+            valid_first_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        assert_list_cases_payload_stays_discoverable(
+            valid_first_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        assert_list_cases_error_payload_avoids_success_fields(
+            valid_first_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case',
+        )
+        if valid_first_interleaved_mixed_list_cases_json_payload.get('requested_case_names') != valid_first_interleaved_mixed_unique_case_names:
+            failures.append(
+                'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case requested_case_names hoort de unieke first-seen invoervolgorde te spiegelen'
+            )
+        if valid_first_interleaved_mixed_list_cases_json_payload.get('requested_case_count') != len(valid_first_interleaved_mixed_unique_case_names):
+            failures.append(
+                'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case requested_case_count verwacht '
+                f"{len(valid_first_interleaved_mixed_unique_case_names)}, kreeg {valid_first_interleaved_mixed_list_cases_json_payload.get('requested_case_count')}"
+            )
+        if valid_first_interleaved_mixed_list_cases_json_payload.get('selected_case_names') != [expected_mixed_valid_case_name]:
+            failures.append(
+                'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case selected_case_names hoort de geldige subset te bewaren'
+            )
+        if valid_first_interleaved_mixed_list_cases_json_payload.get('selected_case_count') != 1:
+            failures.append(
+                'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case selected_case_count verwacht 1, kreeg '
+                f"{valid_first_interleaved_mixed_list_cases_json_payload.get('selected_case_count')}"
+            )
+        if valid_first_interleaved_mixed_list_cases_json_payload.get('unknown_case_names') != valid_first_interleaved_mixed_unknown_case_names:
+            failures.append(
+                'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case unknown_case_names hoort de unieke onbekendevolgorde te bewaren'
+            )
+        if valid_first_interleaved_mixed_list_cases_json_payload.get('unknown_case_count') != len(valid_first_interleaved_mixed_unknown_case_names):
+            failures.append(
+                'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case unknown_case_count verwacht '
+                f"{len(valid_first_interleaved_mixed_unknown_case_names)}, kreeg {valid_first_interleaved_mixed_list_cases_json_payload.get('unknown_case_count')}"
+            )
+        valid_first_interleaved_mixed_list_cases_suggestions = (
+            valid_first_interleaved_mixed_list_cases_json_payload.get('suggested_case_names_by_input')
+        )
+        if not isinstance(valid_first_interleaved_mixed_list_cases_suggestions, dict):
+            failures.append(
+                'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case suggested_case_names_by_input hoort een dict te zijn'
+            )
+        else:
+            if valid_first_interleaved_mixed_list_cases_suggestions.get(unknown_case_name) != []:
+                failures.append(
+                    'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort voor de echte onbekende invoer geen suggesties te geven'
+                )
+            valid_first_interleaved_list_cases_typo_suggestions = valid_first_interleaved_mixed_list_cases_suggestions.get(
+                suggested_unknown_case_name
+            )
+            if not isinstance(valid_first_interleaved_list_cases_typo_suggestions, list) or expected_suggested_case_name not in valid_first_interleaved_list_cases_typo_suggestions:
+                failures.append(
+                    'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort voor de typo de dichtstbijzijnde casenaam voor te stellen'
+                )
+
+    if (
+        valid_first_interleaved_mixed_list_cases_json_payload
+        and valid_first_interleaved_mixed_json_payload
+    ):
+        if strip_runtime_metadata(valid_first_interleaved_mixed_list_cases_json_payload) != strip_runtime_metadata(
+            valid_first_interleaved_mixed_json_payload
+        ):
+            failures.append(
+                'json --list-cases met geldig-eerst verweven gemengde geldige/onbekende+typofout --case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
+            )
+
+    multi_valid_interleaved_mixed_case_names = [
+        expected_mixed_valid_case_name,
+        unknown_case_name,
+        second_expected_mixed_valid_case_name,
+        suggested_unknown_case_name,
+        second_expected_mixed_valid_case_name,
+        expected_mixed_valid_case_name,
+        unknown_case_name,
+        suggested_unknown_case_name,
+    ]
+    multi_valid_interleaved_mixed_case_args = [
+        arg
+        for case_name in multi_valid_interleaved_mixed_case_names
+        for arg in ('--case', case_name)
+    ]
+    multi_valid_interleaved_mixed_unique_case_names = unique_case_names(
+        multi_valid_interleaved_mixed_case_names
+    )
+    multi_valid_interleaved_mixed_selected_case_names = [
+        expected_mixed_valid_case_name,
+        second_expected_mixed_valid_case_name,
+    ]
+    multi_valid_interleaved_mixed_unknown_case_names = [
+        unknown_case_name,
+        suggested_unknown_case_name,
+    ]
+
+    multi_valid_interleaved_mixed_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'),
+            *multi_valid_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if multi_valid_interleaved_mixed_plain_proc.returncode != 2:
+        failures.append(
+            'plain verweven gemengde dubbele twee geldige+onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{multi_valid_interleaved_mixed_plain_proc.returncode}'
+        )
+    if multi_valid_interleaved_mixed_plain_proc.stdout.strip():
+        failures.append(
+            'plain verweven gemengde dubbele twee geldige+onbekende+typofout --case hoort geen stdout-output te geven'
+        )
+    multi_valid_interleaved_mixed_plain_stderr = multi_valid_interleaved_mixed_plain_proc.stderr or ''
+    expected_multi_valid_stderr_intro = (
+        'geldige regressiecases in dezelfde aanvraag: '
+        + ', '.join(multi_valid_interleaved_mixed_selected_case_names)
+    )
+    if expected_multi_valid_stderr_intro not in multi_valid_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain verweven gemengde dubbele twee geldige+onbekende+typofout --case hoort beide geldige first-seen cases op stderr te noemen'
+        )
+
+    multi_valid_interleaved_mixed_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json',
+            *multi_valid_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if multi_valid_interleaved_mixed_json_proc.returncode != 2:
+        failures.append(
+            'json verweven gemengde dubbele twee geldige+onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{multi_valid_interleaved_mixed_json_proc.returncode}'
+        )
+
+    multi_valid_interleaved_mixed_json_payload = {}
+    multi_valid_interleaved_mixed_json_stdout = (
+        multi_valid_interleaved_mixed_json_proc.stdout.strip()
+        or multi_valid_interleaved_mixed_json_proc.stderr.strip()
+    )
+    if not multi_valid_interleaved_mixed_json_stdout:
+        failures.append(
+            'json verweven gemengde dubbele twee geldige+onbekende+typofout --case gaf geen output'
+        )
+    else:
+        try:
+            multi_valid_interleaved_mixed_json_payload = json.loads(
+                multi_valid_interleaved_mixed_json_stdout
+            )
+            audit_bits.append(
+                'unknown-json-interleaved-multi-valid-mixed='
+                + json.dumps(multi_valid_interleaved_mixed_json_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json verweven gemengde dubbele twee geldige+onbekende+typofout --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if multi_valid_interleaved_mixed_json_payload:
+        assert_runtime_metadata(
+            multi_valid_interleaved_mixed_json_payload,
+            'json verweven gemengde dubbele twee geldige+onbekende+typofout --case',
+        )
+        assert_unknown_cases_error_message(
+            multi_valid_interleaved_mixed_json_payload,
+            'json verweven gemengde dubbele twee geldige+onbekende+typofout --case',
+        )
+        if multi_valid_interleaved_mixed_json_payload.get('requested_case_names') != multi_valid_interleaved_mixed_unique_case_names:
+            failures.append(
+                'json verweven gemengde dubbele twee geldige+onbekende+typofout --case requested_case_names hoort de unieke first-seen invoervolgorde te spiegelen'
+            )
+        if multi_valid_interleaved_mixed_json_payload.get('selected_case_names') != multi_valid_interleaved_mixed_selected_case_names:
+            failures.append(
+                'json verweven gemengde dubbele twee geldige+onbekende+typofout --case selected_case_names hoort beide geldige first-seen cases te bewaren'
+            )
+        if multi_valid_interleaved_mixed_json_payload.get('selected_case_count') != len(multi_valid_interleaved_mixed_selected_case_names):
+            failures.append(
+                'json verweven gemengde dubbele twee geldige+onbekende+typofout --case selected_case_count verwacht '
+                f"{len(multi_valid_interleaved_mixed_selected_case_names)}, kreeg {multi_valid_interleaved_mixed_json_payload.get('selected_case_count')}"
+            )
+        if multi_valid_interleaved_mixed_json_payload.get('unknown_case_names') != multi_valid_interleaved_mixed_unknown_case_names:
+            failures.append(
+                'json verweven gemengde dubbele twee geldige+onbekende+typofout --case unknown_case_names hoort de unieke onbekendevolgorde te bewaren'
+            )
+
+    multi_valid_interleaved_mixed_list_cases_plain_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases',
+            *multi_valid_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if multi_valid_interleaved_mixed_list_cases_plain_proc.returncode != 2:
+        failures.append(
+            'plain --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{multi_valid_interleaved_mixed_list_cases_plain_proc.returncode}'
+        )
+    if (multi_valid_interleaved_mixed_list_cases_plain_proc.stderr or '') != multi_valid_interleaved_mixed_plain_stderr:
+        failures.append(
+            'plain --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case hoort exact dezelfde stderr-melding te geven als een gewone run'
+        )
+
+    multi_valid_interleaved_mixed_list_cases_json_proc = subprocess.run(
+        [
+            'python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases',
+            *multi_valid_interleaved_mixed_case_args,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if multi_valid_interleaved_mixed_list_cases_json_proc.returncode != 2:
+        failures.append(
+            'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case exitcode verwacht 2, kreeg '
+            f'{multi_valid_interleaved_mixed_list_cases_json_proc.returncode}'
+        )
+
+    multi_valid_interleaved_mixed_list_cases_json_payload = {}
+    multi_valid_interleaved_mixed_list_cases_json_stdout = (
+        multi_valid_interleaved_mixed_list_cases_json_proc.stdout.strip()
+        or multi_valid_interleaved_mixed_list_cases_json_proc.stderr.strip()
+    )
+    if not multi_valid_interleaved_mixed_list_cases_json_stdout:
+        failures.append(
+            'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case gaf geen output'
+        )
+    else:
+        try:
+            multi_valid_interleaved_mixed_list_cases_json_payload = json.loads(
+                multi_valid_interleaved_mixed_list_cases_json_stdout
+            )
+            audit_bits.append(
+                'unknown-list-cases-json-interleaved-multi-valid-mixed='
+                + json.dumps(multi_valid_interleaved_mixed_list_cases_json_payload, ensure_ascii=False)
+            )
+        except json.JSONDecodeError as exc:
+            failures.append(
+                'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case hoort parsebare JSON te geven, kreeg parsefout: '
+                f'{exc}'
+            )
+
+    if multi_valid_interleaved_mixed_list_cases_json_payload:
+        assert_runtime_metadata(
+            multi_valid_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case',
+        )
+        assert_unknown_cases_error_message(
+            multi_valid_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case',
+        )
+        assert_list_cases_payload_stays_discoverable(
+            multi_valid_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case',
+        )
+        assert_list_cases_error_payload_avoids_success_fields(
+            multi_valid_interleaved_mixed_list_cases_json_payload,
+            'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case',
+        )
+        if multi_valid_interleaved_mixed_list_cases_json_payload.get('requested_case_names') != multi_valid_interleaved_mixed_unique_case_names:
+            failures.append(
+                'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case requested_case_names hoort de unieke first-seen invoervolgorde te spiegelen'
+            )
+        if multi_valid_interleaved_mixed_list_cases_json_payload.get('selected_case_names') != multi_valid_interleaved_mixed_selected_case_names:
+            failures.append(
+                'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case selected_case_names hoort de geldige first-seen subset te bewaren'
+            )
+        if multi_valid_interleaved_mixed_list_cases_json_payload.get('selected_case_count') != len(multi_valid_interleaved_mixed_selected_case_names):
+            failures.append(
+                'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case selected_case_count verwacht '
+                f"{len(multi_valid_interleaved_mixed_selected_case_names)}, kreeg {multi_valid_interleaved_mixed_list_cases_json_payload.get('selected_case_count')}"
+            )
+        if multi_valid_interleaved_mixed_list_cases_json_payload.get('unknown_case_names') != multi_valid_interleaved_mixed_unknown_case_names:
+            failures.append(
+                'json --list-cases met verweven gemengde dubbele twee geldige+onbekende+typofout --case unknown_case_names hoort de unieke onbekendevolgorde te bewaren'
             )
 
     mixed_unknown_plain_proc = subprocess.run(
