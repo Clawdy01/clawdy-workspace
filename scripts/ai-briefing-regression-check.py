@@ -21773,7 +21773,7 @@ def evaluate_list_cases_output_case():
     actual_transitive_full_sweep_meta_registry_case_names = sorted([
         case_name
         for case_name in filtered_case_names
-        if case_name in expected_transitive_full_sweep_meta_registry_case_names
+        if case_name.startswith('registry-keeps-transitive-full-sweep-meta-registry-')
     ])
     actual_transitive_full_sweep_route_family_registry_case_names = sorted([
         case_name
@@ -22883,6 +22883,59 @@ def evaluate_list_cases_output_case():
             suggested_list_cases_json_payload,
             'json --list-cases met onbekende typofout-case',
         )
+        if suggested_list_cases_json_payload.get('ok') is not False:
+            failures.append('json --list-cases met onbekende typofout-case ok verwacht False')
+        if suggested_list_cases_json_payload.get('error') != 'unknown-cases':
+            failures.append(
+                'json --list-cases met onbekende typofout-case error verwacht unknown-cases, kreeg '
+                f"{suggested_list_cases_json_payload.get('error')}"
+            )
+        if suggested_list_cases_json_payload.get('requested_case_names') != [suggested_unknown_case_name]:
+            failures.append(
+                'json --list-cases met onbekende typofout-case requested_case_names hoort de typo-invoer te spiegelen'
+            )
+        if suggested_list_cases_json_payload.get('requested_case_count') != 1:
+            failures.append(
+                'json --list-cases met onbekende typofout-case requested_case_count verwacht 1, kreeg '
+                f"{suggested_list_cases_json_payload.get('requested_case_count')}"
+            )
+        if suggested_list_cases_json_payload.get('selected_case_names') != []:
+            failures.append(
+                'json --list-cases met onbekende typofout-case selected_case_names hoort leeg te zijn zonder geldige matches'
+            )
+        if suggested_list_cases_json_payload.get('selected_case_count') != 0:
+            failures.append(
+                'json --list-cases met onbekende typofout-case selected_case_count verwacht 0, kreeg '
+                f"{suggested_list_cases_json_payload.get('selected_case_count')}"
+            )
+        if suggested_list_cases_json_payload.get('unknown_case_names') != [suggested_unknown_case_name]:
+            failures.append(
+                'json --list-cases met onbekende typofout-case unknown_case_names hoort de typo-subset te tonen'
+            )
+        if suggested_list_cases_json_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json --list-cases met onbekende typofout-case unknown_case_count verwacht 1, kreeg '
+                f"{suggested_list_cases_json_payload.get('unknown_case_count')}"
+            )
+        if suggested_list_cases_json_payload.get('available_case_names') != plain_lines:
+            failures.append(
+                'json --list-cases met onbekende typofout-case available_case_names hoort de volledige alfabetische caselijst mee te geven'
+            )
+        if suggested_list_cases_json_payload.get('available_case_count') != len(plain_lines):
+            failures.append(
+                'json --list-cases met onbekende typofout-case available_case_count hoort exact de volledige caseteller te geven'
+            )
+        suggested_list_cases_suggestions = suggested_list_cases_json_payload.get('suggested_case_names_by_input')
+        if not isinstance(suggested_list_cases_suggestions, dict):
+            failures.append(
+                'json --list-cases met onbekende typofout-case suggested_case_names_by_input hoort een dict te zijn'
+            )
+        else:
+            typo_suggestions = suggested_list_cases_suggestions.get(suggested_unknown_case_name)
+            if not isinstance(typo_suggestions, list) or expected_suggested_case_name not in typo_suggestions:
+                failures.append(
+                    'json --list-cases met onbekende typofout-case hoort de dichtstbijzijnde casenaam voor te stellen'
+                )
 
     mixed_unknown_plain_proc = subprocess.run(
         [
