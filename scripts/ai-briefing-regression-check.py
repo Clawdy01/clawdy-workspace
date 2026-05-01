@@ -19433,6 +19433,12 @@ PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'proof-recheck-consumer-format-passthrough-all-routes',
 ]
 
+PROOF_RECHECK_BATCH_CASE_DEPENDENCIES = {
+    'proof-recheck-proof-context-all-routes': PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
+    'proof-recheck-consumer-format-passthrough-all-routes': PROOF_RECHECK_CONSUMER_FORMAT_PASSTHROUGH_ALL_ROUTE_CASE_NAMES,
+    'proof-recheck-all-routes-full-sweep': PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
+}
+
 PROOF_RECHECK_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
     'proof-recheck-proof-context': [
         'proof-recheck-proof-context-all-routes',
@@ -19446,6 +19452,12 @@ BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'status-proof-context-all-routes',
     'brief-consumer-proof-context-all-routes',
 ]
+
+BRIEFING_PROOF_CONTEXT_BATCH_CASE_DEPENDENCIES = {
+    'status-proof-context-all-routes': STATUS_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
+    'brief-consumer-proof-context-all-routes': BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
+    'briefing-proof-context-all-routes-full-sweep': BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
+}
 
 BRIEFING_PROOF_CONTEXT_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
     'status-proof-context': [
@@ -19710,10 +19722,36 @@ WATCHDOG_BATCH_CASE_DEPENDENCIES = {
     'watchdog-all-routes-full-sweep': WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
 }
 
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_BATCH_CASE_DEPENDENCIES = {
+    'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline': (
+        WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_BEFORE_DEADLINE_CASE_NAMES
+    ),
+    'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline': (
+        WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_BEFORE_DEADLINE_CASE_NAMES
+    ),
+}
+
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_BATCH_CASE_DEPENDENCIES = {
+    'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline': (
+        WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_AFTER_DEADLINE_CASE_NAMES
+    ),
+    'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline': (
+        WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES
+    ),
+}
+
 WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH = {
     'watchdog-proof-context-all-routes': 'registry-keeps-watchdog-proof-context-route-families-complete',
     'watchdog-all-routes-full-sweep': 'registry-keeps-watchdog-full-sweep-route-families-complete',
 }
+
+TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
+    'registry-keeps-watchdog-full-sweep-complete',
+    'registry-keeps-proof-recheck-full-sweep-complete',
+    'registry-keeps-briefing-proof-context-full-sweep-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete',
+]
 
 
 def build_watchdog_route_family_registry_case_names() -> list[str]:
@@ -19991,6 +20029,221 @@ def evaluate_watchdog_full_sweep_registry_case():
 
     return build_registry_case_result(
         name='registry-keeps-watchdog-full-sweep-complete',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_batch_dependency_transitive_full_sweep_registry_case(
+    *,
+    registry_name: str,
+    label: str,
+    batch_case_dependencies: dict[str, list[str]],
+    full_sweep_batch_name: str,
+    required_case_prefixes: str | tuple[str, ...] | None = None,
+    required_case_prefix_label: str,
+    relevant_case_names: list[str] | None = None,
+):
+    failures = []
+    audit_bits: list[str] = []
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    named_case_names = set(build_named_case_runners(module, producer_module).keys())
+    prefix_tuple = None
+    if required_case_prefixes is not None:
+        prefix_tuple = (required_case_prefixes,) if isinstance(required_case_prefixes, str) else required_case_prefixes
+
+    for batch_name, child_case_names in batch_case_dependencies.items():
+        unique_child_case_names = unique_case_names(child_case_names)
+        duplicate_children = [
+            case_name
+            for case_name in unique_child_case_names
+            if child_case_names.count(case_name) > 1
+        ]
+        missing_children = [case_name for case_name in unique_child_case_names if case_name not in named_case_names]
+        audit_bits.append(
+            f'{batch_name}: {len(unique_child_case_names) - len(missing_children)}/{len(unique_child_case_names)} unieke children aanwezig'
+        )
+        if not child_case_names:
+            failures.append(f'{label}-batchcase {batch_name} hoort minstens één childcase te hebben')
+        if batch_name in unique_child_case_names:
+            failures.append(f'{label}-batchcase {batch_name} mag zichzelf niet als childcase opnemen')
+        if duplicate_children:
+            failures.append(
+                f'{label}-batchcase {batch_name} bevat dubbele childcases: ' + ', '.join(duplicate_children)
+            )
+        if missing_children:
+            failures.append(
+                f'{label}-batchcase {batch_name} mist childcases in registry: ' + ', '.join(missing_children)
+            )
+
+    def walk_batch_cycles(batch_name: str, path: list[str], visited: set[tuple[str, str]]) -> None:
+        for child_case_name in unique_case_names(batch_case_dependencies.get(batch_name, [])):
+            if child_case_name not in batch_case_dependencies:
+                continue
+            edge = (batch_name, child_case_name)
+            if edge in visited:
+                continue
+            visited.add(edge)
+            if child_case_name in path:
+                cycle_path = path[path.index(child_case_name):] + [child_case_name]
+                failures.append(
+                    f'{label}-batchcases mogen geen transitieve cyclus vormen: ' + ' -> '.join(cycle_path)
+                )
+                continue
+            walk_batch_cycles(child_case_name, path + [child_case_name], visited)
+
+    def collect_transitive_case_names(batch_name: str, stack: tuple[str, ...] = ()) -> list[str]:
+        if batch_name in stack:
+            return []
+        expanded_case_names: list[str] = []
+        for child_case_name in unique_case_names(batch_case_dependencies.get(batch_name, [])):
+            expanded_case_names.append(child_case_name)
+            if child_case_name in batch_case_dependencies:
+                expanded_case_names.extend(collect_transitive_case_names(child_case_name, stack + (batch_name,)))
+        return expanded_case_names
+
+    visited_edges: set[tuple[str, str]] = set()
+    for batch_name in batch_case_dependencies:
+        walk_batch_cycles(batch_name, [batch_name], visited_edges)
+
+    transitive_case_names_by_batch: dict[str, list[str]] = {}
+    for batch_name in batch_case_dependencies:
+        transitive_case_names = collect_transitive_case_names(batch_name)
+        transitive_case_names_by_batch[batch_name] = transitive_case_names
+        duplicate_transitive_case_names = [
+            case_name
+            for case_name in unique_case_names(transitive_case_names)
+            if transitive_case_names.count(case_name) > 1
+        ]
+        audit_bits.append(
+            f'{batch_name}: {len(unique_case_names(transitive_case_names))}/{len(transitive_case_names)} transitieve casepaden uniek'
+        )
+        if duplicate_transitive_case_names:
+            failures.append(
+                f'{label}-batchcase {batch_name} bevat dubbel bereikbare transitieve cases: '
+                + ', '.join(duplicate_transitive_case_names)
+            )
+
+    full_sweep_case_names = unique_case_names(
+        [full_sweep_batch_name]
+        + transitive_case_names_by_batch.get(full_sweep_batch_name, [])
+    )
+    if relevant_case_names is None:
+        relevant_case_names = sorted(
+            case_name for case_name in named_case_names
+            if prefix_tuple is not None and case_name.startswith(prefix_tuple)
+        )
+    else:
+        relevant_case_names = unique_case_names(relevant_case_names)
+    missing_from_full_sweep = [
+        case_name for case_name in relevant_case_names
+        if case_name not in full_sweep_case_names
+    ]
+    audit_bits.append(
+        f'{full_sweep_batch_name} dekt {len(full_sweep_case_names)}/{len(relevant_case_names)} {required_case_prefix_label} transitief af'
+    )
+    if missing_from_full_sweep:
+        failures.append(
+            f'{full_sweep_batch_name} mist {required_case_prefix_label}: ' + ', '.join(missing_from_full_sweep)
+        )
+
+    nested_batch_count = sum(
+        1
+        for child_case_names in batch_case_dependencies.values()
+        for child_case_name in unique_case_names(child_case_names)
+        if child_case_name in batch_case_dependencies
+    )
+    audit_bits.append(
+        f'{label}-batchcases transitieve sweep-grafiek gecontroleerd over {len(batch_case_dependencies)} batchcases en {nested_batch_count} batch-op-batch-randen'
+    )
+
+    return build_registry_case_result(
+        name=registry_name,
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_proof_recheck_full_sweep_registry_case():
+    return evaluate_batch_dependency_transitive_full_sweep_registry_case(
+        registry_name='registry-keeps-proof-recheck-full-sweep-complete',
+        label='proof-recheck',
+        batch_case_dependencies=PROOF_RECHECK_BATCH_CASE_DEPENDENCIES,
+        full_sweep_batch_name='proof-recheck-all-routes-full-sweep',
+        required_case_prefix_label='proof-recheck-routecases',
+        relevant_case_names=(
+            PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES
+            + PROOF_RECHECK_CONSUMER_FORMAT_PASSTHROUGH_ALL_ROUTE_CASE_NAMES
+            + list(PROOF_RECHECK_BATCH_CASE_DEPENDENCIES.keys())
+        ),
+    )
+
+
+def evaluate_briefing_proof_context_full_sweep_registry_case():
+    return evaluate_batch_dependency_transitive_full_sweep_registry_case(
+        registry_name='registry-keeps-briefing-proof-context-full-sweep-complete',
+        label='briefing-proof-context',
+        batch_case_dependencies=BRIEFING_PROOF_CONTEXT_BATCH_CASE_DEPENDENCIES,
+        full_sweep_batch_name='briefing-proof-context-all-routes-full-sweep',
+        required_case_prefix_label='briefing-proof-context-routecases',
+        relevant_case_names=(
+            STATUS_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES
+            + BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES
+            + list(BRIEFING_PROOF_CONTEXT_BATCH_CASE_DEPENDENCIES.keys())
+        ),
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_before_deadline_full_sweep_registry_case():
+    return evaluate_batch_dependency_transitive_full_sweep_registry_case(
+        registry_name='registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete',
+        label='watchdog-alert-proof-target-check-before-deadline',
+        batch_case_dependencies=WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_BATCH_CASE_DEPENDENCIES,
+        full_sweep_batch_name='watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
+        required_case_prefix_label='watchdog-alert-proof-target-check-before-deadline-routecases',
+        relevant_case_names=(
+            WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_BEFORE_DEADLINE_CASE_NAMES
+            + WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_BEFORE_DEADLINE_CASE_NAMES
+            + list(WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_BATCH_CASE_DEPENDENCIES.keys())
+        ),
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_after_deadline_full_sweep_registry_case():
+    return evaluate_batch_dependency_transitive_full_sweep_registry_case(
+        registry_name='registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete',
+        label='watchdog-alert-proof-target-check-after-deadline',
+        batch_case_dependencies=WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_BATCH_CASE_DEPENDENCIES,
+        full_sweep_batch_name='watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
+        required_case_prefix_label='watchdog-alert-proof-target-check-after-deadline-routecases',
+        relevant_case_names=(
+            WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_AFTER_DEADLINE_CASE_NAMES
+            + WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES
+            + list(WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_BATCH_CASE_DEPENDENCIES.keys())
+        ),
+    )
+
+
+def evaluate_transitive_full_sweep_registry_cases_registered_case():
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    named_case_names = set(build_named_case_runners_without_watchdog_batches(module, producer_module).keys())
+    missing_case_names = [
+        case_name
+        for case_name in TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES
+        if case_name not in named_case_names
+    ]
+    audit_bits = [
+        f'{len(TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES) - len(missing_case_names)}/{len(TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES)} transitieve full-sweep-registrycases geregistreerd'
+    ]
+    failures = []
+    if missing_case_names:
+        failures.append(
+            'ontbrekende transitieve full-sweep-registrycases: ' + ', '.join(missing_case_names)
+        )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-registry-cases-registered',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -22438,8 +22691,23 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-lowercase-encoded-equals-cluster-complete'] = (
         evaluate_lowercase_encoded_equals_cluster_registry_case
     )
+    named_cases['registry-keeps-transitive-full-sweep-registry-cases-registered'] = (
+        evaluate_transitive_full_sweep_registry_cases_registered_case
+    )
     named_cases['registry-keeps-watchdog-full-sweep-complete'] = (
         evaluate_watchdog_full_sweep_registry_case
+    )
+    named_cases['registry-keeps-proof-recheck-full-sweep-complete'] = (
+        evaluate_proof_recheck_full_sweep_registry_case
+    )
+    named_cases['registry-keeps-briefing-proof-context-full-sweep-complete'] = (
+        evaluate_briefing_proof_context_full_sweep_registry_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete'] = (
+        evaluate_watchdog_alert_proof_target_check_before_deadline_full_sweep_registry_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete'] = (
+        evaluate_watchdog_alert_proof_target_check_after_deadline_full_sweep_registry_case
     )
     named_cases['registry-keeps-proof-recheck-proof-context-route-families-complete'] = (
         lambda: evaluate_proof_recheck_proof_context_route_families_registry_case()
