@@ -19428,6 +19428,34 @@ PROOF_RECHECK_CONSUMER_FORMAT_PASSTHROUGH_ROUTE_FAMILY_EXPECTATIONS = {
     ],
 }
 
+PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
+    'proof-recheck-proof-context-all-routes',
+    'proof-recheck-consumer-format-passthrough-all-routes',
+]
+
+PROOF_RECHECK_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
+    'proof-recheck-proof-context': [
+        'proof-recheck-proof-context-all-routes',
+    ],
+    'proof-recheck-consumer-format': [
+        'proof-recheck-consumer-format-passthrough-all-routes',
+    ],
+}
+
+BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
+    'status-proof-context-all-routes',
+    'brief-consumer-proof-context-all-routes',
+]
+
+BRIEFING_PROOF_CONTEXT_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
+    'status-proof-context': [
+        'status-proof-context-all-routes',
+    ],
+    'brief-consumer-proof-context': [
+        'brief-consumer-proof-context-all-routes',
+    ],
+}
+
 WATCHDOG_CONSUMER_FORMAT_PASSTHROUGH_ALL_ROUTE_CASE_NAMES = [
     'watchdog-consumer-format-passthrough',
     'watchdog-alert-consumer-format-passthrough',
@@ -20567,6 +20595,104 @@ def evaluate_proof_recheck_consumer_format_passthrough_route_families_registry_c
     )
 
 
+def evaluate_proof_recheck_full_sweep_route_families_registry_case():
+    failures = []
+    audit_bits: list[str] = []
+    append_route_family_expectation_matrix_failures(
+        failures=failures,
+        audit_bits=audit_bits,
+        label='proof-recheck-all-routes-full-sweep',
+        expected_family_case_names_by_name=PROOF_RECHECK_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS,
+        required_case_prefix='proof-recheck-',
+        required_case_prefix_label='proof-recheck-batchcases',
+    )
+    actual_case_names = unique_case_names(PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES)
+    expected_case_names = unique_case_names([
+        case_name
+        for case_names in PROOF_RECHECK_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS.values()
+        for case_name in case_names
+    ])
+    actual_case_names_in_expected_order = [
+        case_name
+        for case_name in PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES
+        if case_name in expected_case_names
+    ]
+
+    missing_case_names = [
+        case_name for case_name in expected_case_names
+        if case_name not in actual_case_names
+    ]
+    unexpected_case_names = [
+        case_name for case_name in actual_case_names
+        if case_name not in expected_case_names
+    ]
+    duplicate_case_names = [
+        case_name
+        for case_name in actual_case_names
+        if PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES.count(case_name) > 1
+    ]
+
+    audit_bits.append(
+        'proof-recheck-all-routes-full-sweep families '
+        f'{len(PROOF_RECHECK_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS)}/{len(PROOF_RECHECK_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS)}'
+    )
+    audit_bits.append(
+        'proof-recheck-all-routes-full-sweep cases '
+        f'{len(actual_case_names)}/{len(expected_case_names)} tegen verwachte family-matrix'
+    )
+    audit_bits.append(
+        'proof-recheck-all-routes-full-sweep order '
+        + ('stabiel' if actual_case_names_in_expected_order == expected_case_names else 'afwijkend')
+    )
+
+    if missing_case_names:
+        failures.append(
+            'proof-recheck-all-routes-full-sweep mist verwachte top-level routecases: '
+            + ', '.join(missing_case_names)
+        )
+    if unexpected_case_names:
+        failures.append(
+            'proof-recheck-all-routes-full-sweep bevat onverwachte top-level routecases: '
+            + ', '.join(unexpected_case_names)
+        )
+    if duplicate_case_names:
+        failures.append(
+            'proof-recheck-all-routes-full-sweep bevat dubbele top-level routecases: '
+            + ', '.join(duplicate_case_names)
+        )
+    if actual_case_names_in_expected_order != expected_case_names:
+        failures.append(
+            'proof-recheck-all-routes-full-sweep veranderde van family/phase-volgorde; verwacht '
+            + ', '.join(expected_case_names)
+            + ' maar kreeg '
+            + ', '.join(actual_case_names_in_expected_order)
+        )
+
+    for family_name, family_case_names in PROOF_RECHECK_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS.items():
+        actual_family_case_names = [
+            case_name for case_name in actual_case_names
+            if case_name in family_case_names
+        ]
+        audit_bits.append(
+            f'{family_name}: {len(actual_family_case_names)}/{len(family_case_names)} family-cases aanwezig'
+        )
+        missing_family_case_names = [
+            case_name for case_name in family_case_names
+            if case_name not in actual_case_names
+        ]
+        if missing_family_case_names:
+            failures.append(
+                f'{family_name} mist top-level sweep-cases in proof-recheck-all-routes-full-sweep: '
+                + ', '.join(missing_family_case_names)
+            )
+
+    return build_registry_case_result(
+        name='registry-keeps-proof-recheck-full-sweep-route-families-complete',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_brief_consumer_proof_context_route_families_registry_case():
     failures = []
     audit_bits: list[str] = []
@@ -20660,6 +20786,104 @@ def evaluate_brief_consumer_proof_context_route_families_registry_case():
 
     return build_registry_case_result(
         name='registry-keeps-brief-consumer-proof-context-route-families-complete',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_briefing_proof_context_full_sweep_route_families_registry_case():
+    failures = []
+    audit_bits: list[str] = []
+    append_route_family_expectation_matrix_failures(
+        failures=failures,
+        audit_bits=audit_bits,
+        label='briefing-proof-context-all-routes-full-sweep',
+        expected_family_case_names_by_name=BRIEFING_PROOF_CONTEXT_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS,
+        required_case_prefix='',
+        required_case_prefix_label='briefing-proof-context-batchcases',
+    )
+    actual_case_names = unique_case_names(BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES)
+    expected_case_names = unique_case_names([
+        case_name
+        for case_names in BRIEFING_PROOF_CONTEXT_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS.values()
+        for case_name in case_names
+    ])
+    actual_case_names_in_expected_order = [
+        case_name
+        for case_name in BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES
+        if case_name in expected_case_names
+    ]
+
+    missing_case_names = [
+        case_name for case_name in expected_case_names
+        if case_name not in actual_case_names
+    ]
+    unexpected_case_names = [
+        case_name for case_name in actual_case_names
+        if case_name not in expected_case_names
+    ]
+    duplicate_case_names = [
+        case_name
+        for case_name in actual_case_names
+        if BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES.count(case_name) > 1
+    ]
+
+    audit_bits.append(
+        'briefing-proof-context-all-routes-full-sweep families '
+        f'{len(BRIEFING_PROOF_CONTEXT_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS)}/{len(BRIEFING_PROOF_CONTEXT_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS)}'
+    )
+    audit_bits.append(
+        'briefing-proof-context-all-routes-full-sweep cases '
+        f'{len(actual_case_names)}/{len(expected_case_names)} tegen verwachte family-matrix'
+    )
+    audit_bits.append(
+        'briefing-proof-context-all-routes-full-sweep order '
+        + ('stabiel' if actual_case_names_in_expected_order == expected_case_names else 'afwijkend')
+    )
+
+    if missing_case_names:
+        failures.append(
+            'briefing-proof-context-all-routes-full-sweep mist verwachte top-level routecases: '
+            + ', '.join(missing_case_names)
+        )
+    if unexpected_case_names:
+        failures.append(
+            'briefing-proof-context-all-routes-full-sweep bevat onverwachte top-level routecases: '
+            + ', '.join(unexpected_case_names)
+        )
+    if duplicate_case_names:
+        failures.append(
+            'briefing-proof-context-all-routes-full-sweep bevat dubbele top-level routecases: '
+            + ', '.join(duplicate_case_names)
+        )
+    if actual_case_names_in_expected_order != expected_case_names:
+        failures.append(
+            'briefing-proof-context-all-routes-full-sweep veranderde van family/phase-volgorde; verwacht '
+            + ', '.join(expected_case_names)
+            + ' maar kreeg '
+            + ', '.join(actual_case_names_in_expected_order)
+        )
+
+    for family_name, family_case_names in BRIEFING_PROOF_CONTEXT_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS.items():
+        actual_family_case_names = [
+            case_name for case_name in actual_case_names
+            if case_name in family_case_names
+        ]
+        audit_bits.append(
+            f'{family_name}: {len(actual_family_case_names)}/{len(family_case_names)} family-cases aanwezig'
+        )
+        missing_family_case_names = [
+            case_name for case_name in family_case_names
+            if case_name not in actual_case_names
+        ]
+        if missing_family_case_names:
+            failures.append(
+                f'{family_name} mist top-level sweep-cases in briefing-proof-context-all-routes-full-sweep: '
+                + ', '.join(missing_family_case_names)
+            )
+
+    return build_registry_case_result(
+        name='registry-keeps-briefing-proof-context-full-sweep-route-families-complete',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -22223,11 +22447,17 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-proof-recheck-consumer-format-passthrough-all-routes-route-families-complete'] = (
         lambda: evaluate_proof_recheck_consumer_format_passthrough_route_families_registry_case()
     )
+    named_cases['registry-keeps-proof-recheck-full-sweep-route-families-complete'] = (
+        lambda: evaluate_proof_recheck_full_sweep_route_families_registry_case()
+    )
     named_cases['registry-keeps-status-proof-context-route-families-complete'] = (
         lambda: evaluate_status_proof_context_route_families_registry_case()
     )
     named_cases['registry-keeps-brief-consumer-proof-context-route-families-complete'] = (
         lambda: evaluate_brief_consumer_proof_context_route_families_registry_case()
+    )
+    named_cases['registry-keeps-briefing-proof-context-full-sweep-route-families-complete'] = (
+        lambda: evaluate_briefing_proof_context_full_sweep_route_families_registry_case()
     )
     named_cases['registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete'] = (
         lambda: evaluate_watchdog_alert_proof_target_check_route_families_registry_case(
@@ -22337,6 +22567,11 @@ def build_named_case_runners(module, producer_module):
         case_names=PROOF_RECHECK_CONSUMER_FORMAT_PASSTHROUGH_ALL_ROUTE_CASE_NAMES,
         named_cases=named_cases,
     )
+    named_cases['proof-recheck-all-routes-full-sweep'] = lambda: evaluate_case_batch(
+        name='proof-recheck-all-routes-full-sweep',
+        case_names=PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
+        named_cases=named_cases,
+    )
     named_cases['status-proof-context-all-routes'] = lambda: evaluate_case_batch(
         name='status-proof-context-all-routes',
         case_names=STATUS_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
@@ -22345,6 +22580,11 @@ def build_named_case_runners(module, producer_module):
     named_cases['brief-consumer-proof-context-all-routes'] = lambda: evaluate_case_batch(
         name='brief-consumer-proof-context-all-routes',
         case_names=BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES,
+        named_cases=named_cases,
+    )
+    named_cases['briefing-proof-context-all-routes-full-sweep'] = lambda: evaluate_case_batch(
+        name='briefing-proof-context-all-routes-full-sweep',
+        case_names=BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
         named_cases=named_cases,
     )
 
