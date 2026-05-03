@@ -8,7 +8,7 @@ SCRIPT = ROOT / 'scripts' / 'ai-briefing-regression-check.py'
 UNKNOWN = 'definitely-not-a-real-regression-case'
 TYPO = 'regression-check-list-case-output'
 SUGGESTION = 'regression-check-list-cases-output'
-ORDER = [52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 26, 28, 24, 27, 22, 25, 20, 23, 18, 21, 16, 19, 14, 17, 12, 15, 10, 13, 8, 11, 6, 9, 4, 7, 2, 5, 0, 3, 1]
+ORDER = [53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 26, 28, 24, 27, 22, 25, 20, 23, 18, 21, 16, 19, 14, 17, 12, 15, 10, 13, 8, 11, 6, 9, 4, 7, 2, 5, 0, 3, 1]
 
 
 def run(*args: str) -> subprocess.CompletedProcess[str]:
@@ -33,9 +33,9 @@ list_proc = run('--list-cases')
 if list_proc.returncode != 0:
     raise SystemExit(f'--list-cases faalde met code {list_proc.returncode}: {list_proc.stderr or list_proc.stdout}')
 all_cases = [line.strip() for line in list_proc.stdout.splitlines() if line.strip()]
-valid_cases = [case_name for case_name in all_cases if case_name not in {UNKNOWN, TYPO}][:53]
-if len(valid_cases) != 53:
-    raise SystemExit(f'kon geen drieënvijftig geldige casenamen vinden, kreeg {valid_cases}')
+valid_cases = [case_name for case_name in all_cases if case_name not in {UNKNOWN, TYPO}][:54]
+if len(valid_cases) != 54:
+    raise SystemExit(f'kon geen vierenvijftig geldige casenamen vinden, kreeg {valid_cases}')
 
 valid_order = [valid_cases[index] for index in ORDER]
 case_names = valid_order[:1] + [UNKNOWN] + valid_order[1:3] + [TYPO] + valid_order[3:] + valid_order[:1] + [UNKNOWN] + valid_order[1:3] + [TYPO] + valid_order[3:]
@@ -51,7 +51,7 @@ if plain_proc.stdout.strip():
     raise SystemExit('plain run hoort geen stdout te geven')
 expected_stderr = 'geldige regressiecases in dezelfde aanvraag: ' + ', '.join(expected_selected)
 if expected_stderr not in (plain_proc.stderr or ''):
-    raise SystemExit('plain stderr noemt niet alle drieënvijftig geldige first-seen cases')
+    raise SystemExit('plain stderr noemt niet alle vierenvijftig geldige first-seen cases')
 
 json_proc = run('--json', *case_args)
 if json_proc.returncode != 2:

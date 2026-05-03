@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path('/home/clawdy/.openclaw/workspace')
 SCRIPT = ROOT / 'scripts' / 'ai-briefing-regression-check.py'
-ORDER = [52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 26, 28, 24, 27, 22, 25, 20, 23, 18, 21, 16, 19, 14, 17, 12, 15, 10, 13, 8, 11, 6, 9, 4, 7, 2, 5, 0, 3, 1]
+ORDER = [55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 26, 28, 24, 27, 22, 25, 20, 23, 18, 21, 16, 19, 14, 17, 12, 15, 10, 13, 8, 11, 6, 9, 4, 7, 2, 5, 0, 3, 1]
 
 
 def run(*args: str) -> subprocess.CompletedProcess[str]:
@@ -30,9 +30,9 @@ list_proc = run('--list-cases')
 if list_proc.returncode != 0:
     raise SystemExit(f'--list-cases faalde met code {list_proc.returncode}: {list_proc.stderr or list_proc.stdout}')
 all_cases = [line.strip() for line in list_proc.stdout.splitlines() if line.strip()]
-valid_cases = all_cases[:53]
-if len(valid_cases) != 53:
-    raise SystemExit(f'kon geen drieënvijftig geldige casenamen vinden, kreeg {valid_cases}')
+valid_cases = all_cases[:56]
+if len(valid_cases) != 56:
+    raise SystemExit(f'kon geen zesenvijftig geldige casenamen vinden, kreeg {valid_cases}')
 
 case_names = [valid_cases[index] for index in ORDER] + [valid_cases[index] for index in ORDER]
 case_args = [arg for case_name in case_names for arg in ('--case', case_name)]
