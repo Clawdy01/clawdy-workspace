@@ -1,0 +1,43 @@
+Dagelijkse AI-update, donderdag 7 mei 2026
+
+Korte intro: dit sample legt de actuele mix vast waarbij de top 3 tegelijk een multi-domein-misser en twee stale items bevat.
+
+1) nieuwe AI-tools en productfeatures
+Titel: OpenAI zet GPT-5.5 Instant live als nieuwe standaard in ChatGPT
+Bron: https://openai.com/index/introducing-gpt-5-5-instant/ https://openai.com/index/chatgpt-updates/
+Datum: 2026-05-04
+Wat is er nieuw: OpenAI zet GPT-5.5 Instant neer als nieuwe standaard in ChatGPT, maar de onderbouwing blijft binnen één domein.
+Waarom is dit belangrijk: Dit is precies het type headline dat niet als echte multi-domein corroboratie mag meetellen.
+Relevant voor Christian: Houdt de briefing scherp op onafhankelijke bronspreiding in plaats van twee interne links.
+
+2) infrastructuur, chips en AI-platforms
+Titel: OpenAI publiceert MRC, een nieuwe netwerklaag voor training van grote AI-clusters
+Bron: https://openai.com/index/mrc-network-layer/ https://www.theverge.com/ai-artificial-intelligence/2026/05/05/openai-mrc-network-layer
+Datum: 2026-05-05
+Wat is er nieuw: OpenAI beschrijft MRC als nieuwe netwerklaag voor grootschalige AI-training en krijgt aanvullende verslaggeving van een tweede domein.
+Waarom is dit belangrijk: Het is wel multi-domein en primair onderbouwd, maar de datum hoort nog steeds als niet vers binnen 48 uur te tellen.
+Relevant voor Christian: Goed regressiegeval voor het verschil tussen bronkwaliteit en versheid.
+
+3) belangrijke researchdoorbraken of capabilities
+Titel: Anthropic deelt nieuwe eval-aanpak voor agentbetrouwbaarheid
+Bron: https://www.anthropic.com/news/agent-reliability-evals https://venturebeat.com/ai/anthropic-agent-reliability-evals/
+Datum: 2026-05-06
+Wat is er nieuw: Anthropic beschrijft een nieuwe eval-aanpak voor agentbetrouwbaarheid en krijgt onafhankelijke follow-up van VentureBeat.
+Waarom is dit belangrijk: Dit item hoort juist als multi-domein, primair en vers te tellen.
+Relevant voor Christian: Referentiepunt voor hoe een sterke top-3 onderbouwing eruit moet zien.
+
+Wat moeten wij hiermee?
+- Bewaak dat één same-domain topitem niet stil groen wordt op broncorroboratie.
+- Bewaak dat stale maar goed onderbouwde items alsnog rood blijven op 48u-versheid.
+
+Wat ik vandaag het belangrijkst vind
+- Slechts één top-3 item is vers binnen 48 uur.
+- Slechts één top-3 item combineert primaire bron, multi-domein corroboratie en een verse datum.
+
+Bronnenlijst
+https://openai.com/index/introducing-gpt-5-5-instant/
+https://openai.com/index/chatgpt-updates/
+https://openai.com/index/mrc-network-layer/
+https://www.theverge.com/ai-artificial-intelligence/2026/05/05/openai-mrc-network-layer
+https://www.anthropic.com/news/agent-reliability-evals
+https://venturebeat.com/ai/anthropic-agent-reliability-evals/
