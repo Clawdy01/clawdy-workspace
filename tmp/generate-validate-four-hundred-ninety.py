@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+from pathlib import Path
+
+root = Path('/home/clawdy/.openclaw/workspace')
+repls = [
+    ('three-hundred-sixty-one', 'four-hundred-ninety'),
+    ('driehonderdeenenzestig', 'vierhonderdnegentig'),
+    ('all_cases[:356]', 'all_cases[:475]'),
+    ('{UNKNOWN, TYPO}][:356]', '{UNKNOWN, TYPO}][:475]'),
+    ('!= 356', '!= 475'),
+    (' 353, 354, 355]', ' 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403]'),
+]
+
+for kind in ('valid-list-cases', 'valid-mixed'):
+    src = root / 'tmp' / f'validate-three-hundred-sixty-one-{kind}.py'
+    dst = root / 'tmp' / f'validate-four-hundred-ninety-{kind}.py'
+    text = src.read_text()
+    for old, new in repls:
+        text = text.replace(old, new)
+    dst.write_text(text)
