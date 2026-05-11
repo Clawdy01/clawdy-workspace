@@ -13,7 +13,7 @@ repls = [
 
 for kind in ('valid-list-cases', 'valid-mixed'):
     src = root / 'tmp' / f'validate-three-hundred-sixty-one-{kind}.py'
-    dst = root / 'tmp' / f'validate-four-hundred-ninety-five-{kind}.py'
+    dst = root / 'tmp' / f'validate-four-hundred-ninety-three-{kind}.py'
     text = src.read_text()
     for old, new in repls:
         text = text.replace(old, new)

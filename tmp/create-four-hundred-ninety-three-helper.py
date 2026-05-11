@@ -1,16 +1,87 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python5
 from pathlib import Path
-import re
 
-src = Path('/home/clawdy/.openclaw/workspace/tmp/create-four-hundred-ninety-two-helper.py').read_text()
-first_line, body = src.splitlines(True)[0], ''.join(src.splitlines(True)[1:])
-body = body.replace('four-hundred-ninety-one', '__SRC_SLUG__')
-body = body.replace('four-hundred-ninety-two', '__DST_SLUG__')
-body = body.replace('vierhonderdeenennegentig', '__SRC_DUTCH__')
-body = body.replace('vierhonderdtweeënnegentig', '__DST_DUTCH__')
-body = re.sub(r'\d+', lambda m: str(int(m.group()) + 1), body)
-body = body.replace('__SRC_SLUG__', 'four-hundred-ninety-two')
-body = body.replace('__DST_SLUG__', 'four-hundred-ninety-three')
-body = body.replace('__SRC_DUTCH__', 'vierhonderdtweeënnegentig')
-body = body.replace('__DST_DUTCH__', 'vierhonderddrieënnegentig')
-exec(compile(first_line + body, '<generated-create-four-hundred-ninety-three-helper>', 'exec'))
+root = Path('/home/clawdy/.openclaw/workspace/tmp')
+files = [
+    'create-four-hundred-ninety-one-assets.py',
+    'create-four-hundred-ninety-one-bootstrap.py',
+    'create-four-hundred-ninety-one-minimal.py',
+    'make-four-hundred-ninety-one.py',
+    'create-four-hundred-ninety-one-files.py',
+    'create-four-hundred-ninety-one.py',
+    'generate-validate-four-hundred-ninety-one.py',
+    'validate-four-hundred-ninety-one-valid-list-cases.py',
+    'validate-four-hundred-ninety-one-valid-mixed.py',
+    'verify-four-hundred-ninety-one.py',
+]
+base_repls = [
+    ('four-hundred-ninety-one', 'four-hundred-ninety-three'),
+    ('vierhonderdeenennegentig', 'vierhonderddrieënnegentig'),
+]
+per_file = {
+    'create-four-hundred-ninety-one-assets.py': [
+        ('[:478]', '[:479]'),
+        ('!= 478', '!= 479'),
+        ('kreeg 478', 'kreeg 479'),
+        (', 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468, 469, 470]', ', 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468, 469, 470, 471]'),
+    ],
+    'create-four-hundred-ninety-one-bootstrap.py': [
+        ('all_cases[:478]', 'all_cases[:479]'),
+        ('{UNKNOWN, TYPO}][:478]', '{UNKNOWN, TYPO}][:479]'),
+        ('!= 478', '!= 479'),
+        ('kreeg 478', 'kreeg 479'),
+        (', 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466]', ', 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467]'),
+    ],
+    'create-four-hundred-ninety-one-minimal.py': [
+        ('!= 478', '!= 479'),
+        ('kreeg 478', 'kreeg 479'),
+        (', 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466]', ', 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467]'),
+    ],
+    'make-four-hundred-ninety-one.py': [
+        ('all_cases[:478]', 'all_cases[:479]'),
+        ('{UNKNOWN, TYPO}][:478]', '{UNKNOWN, TYPO}][:479]'),
+        ('!= 478', '!= 479'),
+        ('378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406]', '378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407]'),
+    ],
+    'create-four-hundred-ninety-one-files.py': [
+        ('all_cases[:478]', 'all_cases[:479]'),
+        ('{UNKNOWN, TYPO}][:478]', '{UNKNOWN, TYPO}][:479]'),
+        ('!= 478', '!= 479'),
+        ('371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406]', '371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407]'),
+    ],
+    'create-four-hundred-ninety-one.py': [
+        ('all_cases[:478]', 'all_cases[:479]'),
+        ('{UNKNOWN, TYPO}][:478]', '{UNKNOWN, TYPO}][:479]'),
+        ('!= 478', '!= 479'),
+        ('361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409]', '361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410]'),
+    ],
+    'generate-validate-four-hundred-ninety-one.py': [
+        ('all_cases[:478]', 'all_cases[:479]'),
+        ('{UNKNOWN, TYPO}][:478]', '{UNKNOWN, TYPO}][:479]'),
+        ('!= 478', '!= 479'),
+        (' 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406]', ' 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407]'),
+    ],
+    'validate-four-hundred-ninety-one-valid-list-cases.py': [
+        (', 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467]', ', 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468]'),
+        ('all_cases[:478]', 'all_cases[:479]'),
+        ('len(valid_cases) != 478', 'len(valid_cases) != 479'),
+    ],
+    'validate-four-hundred-ninety-one-valid-mixed.py': [
+        (', 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467]', ', 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468]'),
+        ('[:478]', '[:479]'),
+        ('len(valid_cases) != 478', 'len(valid_cases) != 479'),
+    ],
+    'verify-four-hundred-ninety-one.py': [],
+}
+for name in files:
+    text = (root / name).read_text()
+    for old, new in base_repls:
+        if old in text:
+            text = text.replace(old, new)
+    for old, new in per_file[name]:
+        if old not in text:
+            raise SystemExit(f'missing in {name}: {old}')
+        text = text.replace(old, new)
+    out = root / name.replace('four-hundred-ninety-one', 'four-hundred-ninety-three')
+    out.write_text(text)
+    print(out.name)

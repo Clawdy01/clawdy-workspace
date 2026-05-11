@@ -12,10 +12,10 @@ repls = [
 ]
 
 for src_name, dst_name in (
-    ('create-three-hundred-seventy-four.py', 'create-four-hundred-ninety-five.py'),
-    ('generate-validate-three-hundred-seventy-four.py', 'generate-validate-four-hundred-ninety-five.py'),
-    ('validate-three-hundred-seventy-four-valid-list-cases.py', 'validate-four-hundred-ninety-five-valid-list-cases.py'),
-    ('validate-three-hundred-seventy-four-valid-mixed.py', 'validate-four-hundred-ninety-five-valid-mixed.py'),
+    ('create-three-hundred-seventy-four.py', 'create-four-hundred-ninety-three.py'),
+    ('generate-validate-three-hundred-seventy-four.py', 'generate-validate-four-hundred-ninety-three.py'),
+    ('validate-three-hundred-seventy-four-valid-list-cases.py', 'validate-four-hundred-ninety-three-valid-list-cases.py'),
+    ('validate-three-hundred-seventy-four-valid-mixed.py', 'validate-four-hundred-ninety-three-valid-mixed.py'),
 ):
     text = (root / src_name).read_text()
     for old, new in repls:
