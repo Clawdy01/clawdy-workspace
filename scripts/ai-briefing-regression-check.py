@@ -26306,6 +26306,239 @@ def evaluate_list_cases_success_registry_alignment_case():
     )
 
 
+def evaluate_list_cases_full_registry_mixed_unknown_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    def strip_runtime_metadata(payload: dict) -> dict:
+        return {
+            key: value
+            for key, value in payload.items()
+            if key not in {
+                'generated_at',
+                'generated_at_text',
+                'started_at',
+                'started_at_text',
+                'duration_ms',
+                'duration_seconds',
+                'duration_text',
+            }
+        }
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    highest_case_name = expected_case_names[-1]
+    unknown_case_name = 'registry-keeps-list-cases-full-registry-mixed-unknown-aligned-unknown'
+    request_case_names = [*expected_case_names, unknown_case_name, highest_case_name]
+
+    def parse_payload(proc: subprocess.CompletedProcess[str], label: str) -> dict | None:
+        payload_stdout = proc.stdout.strip() or proc.stderr.strip()
+        if not payload_stdout:
+            failures.append(f'{label} gaf geen JSON-payload')
+            return None
+        try:
+            return json.loads(payload_stdout)
+        except json.JSONDecodeError as exc:
+            failures.append(f'{label} gaf ongeldige JSON: {exc}')
+            return None
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', *sum([['--case', case_name] for case_name in request_case_names], [])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 2:
+        failures.append(
+            'json full-registry gemengde onbekende --case exitcode verwacht 2, kreeg '
+            f'{json_proc.returncode}'
+        )
+    regular_payload = parse_payload(json_proc, 'json full-registry gemengde onbekende --case')
+
+    list_cases_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *sum([['--case', case_name] for case_name in request_case_names], [])],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if list_cases_proc.returncode != 2:
+        failures.append(
+            'json --list-cases full-registry gemengde onbekende --case exitcode verwacht 2, kreeg '
+            f'{list_cases_proc.returncode}'
+        )
+    list_cases_payload = parse_payload(list_cases_proc, 'json --list-cases full-registry gemengde onbekende --case')
+
+    if regular_payload is not None:
+        assert_runtime_metadata(regular_payload, 'json full-registry gemengde onbekende --case', failures)
+    if list_cases_payload is not None:
+        assert_runtime_metadata(list_cases_payload, 'json --list-cases full-registry gemengde onbekende --case', failures)
+        if list_cases_payload.get('error') != 'unknown-cases':
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case error verwacht unknown-cases'
+            )
+        if list_cases_payload.get('message') != 'onbekende regressiecase opgegeven':
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case message verwacht onbekende regressiecase opgegeven'
+            )
+        if list_cases_payload.get('requested_case_names') != [*expected_case_names, unknown_case_name]:
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case requested_case_names hoort de volledige registry plus één onbekende in first-seen volgorde te behouden'
+            )
+        if list_cases_payload.get('requested_case_count') != len(expected_case_names) + 1:
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case requested_case_count verwacht '
+                f'{len(expected_case_names) + 1}, kreeg {list_cases_payload.get("requested_case_count")}'
+            )
+        if list_cases_payload.get('selected_case_names') != expected_case_names:
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case selected_case_names hoort exact de volledige discoverable registry te spiegelen'
+            )
+        if list_cases_payload.get('selected_case_count') != len(expected_case_names):
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case selected_case_count verwacht '
+                f'{len(expected_case_names)}, kreeg {list_cases_payload.get("selected_case_count")}'
+            )
+        if list_cases_payload.get('unknown_case_names') != [unknown_case_name]:
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case unknown_case_names hoort exact de onbekende suffix te tonen'
+            )
+        if list_cases_payload.get('unknown_case_count') != 1:
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case unknown_case_count verwacht 1, kreeg '
+                f'{list_cases_payload.get("unknown_case_count")}'
+            )
+        if list_cases_payload.get('available_case_names') != expected_case_names:
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case available_case_names hoort de volledige discoverable registry te tonen'
+            )
+        if list_cases_payload.get('available_case_count') != len(expected_case_names):
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case available_case_count verwacht '
+                f'{len(expected_case_names)}, kreeg {list_cases_payload.get("available_case_count")}'
+            )
+        if 'cases' in list_cases_payload:
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case hoort geen cases-lijst mee te geven op de foutende discoverability-route'
+            )
+        if 'case_count' in list_cases_payload:
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case hoort geen case_count mee te geven op de foutende discoverability-route'
+            )
+    if regular_payload is not None and list_cases_payload is not None:
+        if strip_runtime_metadata(regular_payload) != strip_runtime_metadata(list_cases_payload):
+            failures.append(
+                'json --list-cases full-registry gemengde onbekende --case hoort exact dezelfde unknown-cases payload te geven als een gewone json-run'
+            )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'unknown-case-name={unknown_case_name}')
+    audit_bits.append(f'requested-case-count={len(expected_case_names) + 1}')
+    audit_bits.append(f'upper-boundary-case={highest_case_name}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-full-registry-mixed-unknown-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_list_cases_full_registry_mixed_unknown_plain_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    highest_case_name = expected_case_names[-1]
+    unknown_case_name = 'registry-keeps-list-cases-full-registry-mixed-unknown-plain-aligned-unknown'
+    request_case_names = [*expected_case_names, unknown_case_name, highest_case_name]
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 2:
+        failures.append(
+            'plain full-registry gemengde onbekende --case exitcode verwacht 2, kreeg '
+            f'{plain_proc.returncode}'
+        )
+    if plain_proc.stdout.strip():
+        failures.append(
+            'plain full-registry gemengde onbekende --case hoort geen stdout te geven op de foutende route'
+        )
+
+    plain_list_cases_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_list_cases_proc.returncode != 2:
+        failures.append(
+            'plain --list-cases full-registry gemengde onbekende --case exitcode verwacht 2, kreeg '
+            f'{plain_list_cases_proc.returncode}'
+        )
+    if plain_list_cases_proc.stdout.strip():
+        failures.append(
+            'plain --list-cases full-registry gemengde onbekende --case hoort geen stdout-caselijst te geven op de foutende route'
+        )
+
+    plain_stderr = plain_proc.stderr or ''
+    plain_list_cases_stderr = plain_list_cases_proc.stderr or ''
+    if not plain_stderr.strip():
+        failures.append('plain full-registry gemengde onbekende --case hoort stderr te geven')
+    if not plain_list_cases_stderr.strip():
+        failures.append('plain --list-cases full-registry gemengde onbekende --case hoort stderr te geven')
+    if plain_list_cases_stderr != plain_stderr:
+        failures.append(
+            'plain --list-cases full-registry gemengde onbekende --case hoort exact dezelfde gededupliceerde stderr-melding te geven als een gewone run'
+        )
+
+    unique_requested_case_names = [*expected_case_names, unknown_case_name]
+    selected_prefix = 'geldige regressiecases in dezelfde aanvraag: '
+    stderr_lines = [line.strip() for line in plain_stderr.splitlines() if line.strip()]
+    if not stderr_lines:
+        failures.append('plain full-registry gemengde onbekende --case stderr hoort niet leeg te zijn')
+    else:
+        if stderr_lines[0] != selected_prefix + ', '.join(expected_case_names):
+            failures.append(
+                'plain full-registry gemengde onbekende --case hoort eerst de volledige discoverable registry in alfabetische volgorde op stderr te tonen'
+            )
+        unknown_line = f'onbekende regressiecase: {unknown_case_name}'
+        if unknown_line not in stderr_lines:
+            failures.append(
+                'plain full-registry gemengde onbekende --case hoort de onbekende suffix op stderr te tonen'
+            )
+        if stderr_lines.count(unknown_line) != 1:
+            failures.append(
+                'plain full-registry gemengde onbekende --case hoort de onbekende suffix exact eenmaal te melden'
+            )
+        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        if len(suggestion_lines) > 1:
+            failures.append(
+                'plain full-registry gemengde onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'requested-case-count={len(unique_requested_case_names)}')
+    audit_bits.append(f'upper-boundary-case={highest_case_name}')
+    audit_bits.append(f'unknown-case-name={unknown_case_name}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-full-registry-mixed-unknown-plain-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases = {}
     named_cases.update({case['name']: (lambda case=case: evaluate_case(module, case)) for case in DEFAULT_CASES})
@@ -26343,6 +26576,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['regression-check-list-cases-output'] = evaluate_list_cases_output_case
     named_cases['registry-keeps-list-cases-success-registry-aligned'] = (
         evaluate_list_cases_success_registry_alignment_case
+    )
+    named_cases['registry-keeps-list-cases-full-registry-mixed-unknown-aligned'] = (
+        evaluate_list_cases_full_registry_mixed_unknown_alignment_case
+    )
+    named_cases['registry-keeps-list-cases-full-registry-mixed-unknown-plain-aligned'] = (
+        evaluate_list_cases_full_registry_mixed_unknown_plain_alignment_case
     )
     named_cases['registry-keeps-lowercase-encoded-equals-cluster-complete'] = (
         evaluate_lowercase_encoded_equals_cluster_registry_case
