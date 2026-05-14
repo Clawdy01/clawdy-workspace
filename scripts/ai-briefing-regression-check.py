@@ -26097,9 +26097,207 @@ def evaluate_list_cases_success_registry_alignment_case():
             f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
         )
 
+    highest_case_name = expected_case_names[-1]
+    request_case_names = [*expected_case_names, highest_case_name]
+    reverse_request_case_names = [*reversed(expected_case_names), expected_case_names[0]]
+
+    def run_list_cases_payload(case_names: list[str], *, as_json: bool) -> tuple[subprocess.CompletedProcess[str], dict | None]:
+        cmd = ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py')]
+        if as_json:
+            cmd.append('--json')
+        cmd.append('--list-cases')
+        for case_name in case_names:
+            cmd.extend(['--case', case_name])
+        proc = subprocess.run(
+            cmd,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if not as_json:
+            return proc, None
+        payload_stdout = proc.stdout.strip()
+        if not payload_stdout:
+            failures.append('json filtered --list-cases gaf geen stdout-payload')
+            return proc, None
+        try:
+            return proc, json.loads(payload_stdout)
+        except json.JSONDecodeError as exc:
+            failures.append(f'json filtered --list-cases gaf ongeldige JSON: {exc}')
+            return proc, None
+
+    plain_filtered_proc, _ = run_list_cases_payload(request_case_names, as_json=False)
+    if plain_filtered_proc.returncode != 0:
+        failures.append(
+            f'plain filtered --list-cases exitcode verwacht 0, kreeg {plain_filtered_proc.returncode}'
+        )
+    if plain_filtered_proc.stderr.strip():
+        failures.append(
+            'plain filtered --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_filtered_proc.stderr.strip()}'
+        )
+    plain_filtered_lines = [line.strip() for line in plain_filtered_proc.stdout.splitlines() if line.strip()]
+    if plain_filtered_lines != expected_case_names:
+        failures.append(
+            'plain filtered --list-cases hoort met de volledige registry-aanvraag exact de discoverable registry te tonen'
+        )
+
+    json_filtered_proc, filtered_payload = run_list_cases_payload(request_case_names, as_json=True)
+    if json_filtered_proc.returncode != 0:
+        failures.append(
+            f'json filtered --list-cases exitcode verwacht 0, kreeg {json_filtered_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-success-registry-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_filtered_proc.stderr.strip():
+        failures.append(
+            'json filtered --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_filtered_proc.stderr.strip()}'
+        )
+    if filtered_payload is None:
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-success-registry-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(filtered_payload, 'json filtered --list-cases registry-alignment', failures)
+
+    if filtered_payload.get('ok') is not True:
+        failures.append(f'json filtered --list-cases ok verwacht True, kreeg {filtered_payload.get("ok")}')
+    if filtered_payload.get('requested_case_names') != expected_case_names:
+        failures.append(
+            'json filtered --list-cases requested_case_names hoort de volledige discoverable registry precies eenmaal te behouden'
+        )
+    if filtered_payload.get('requested_case_count') != len(expected_case_names):
+        failures.append(
+            'json filtered --list-cases requested_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {filtered_payload.get("requested_case_count")}'
+        )
+    if filtered_payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json filtered --list-cases selected_case_names hoort exact de volledige registry te spiegelen'
+        )
+    if filtered_payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json filtered --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {filtered_payload.get("selected_case_count")}'
+        )
+    if filtered_payload.get('cases') != expected_case_names:
+        failures.append('json filtered --list-cases cases hoort exact de volledige registry te spiegelen')
+    if filtered_payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json filtered --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {filtered_payload.get("case_count")}'
+        )
+    if filtered_payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json filtered --list-cases available_case_names hoort ondanks filters de volledige discoverable registry te tonen'
+        )
+    if filtered_payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json filtered --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {filtered_payload.get("available_case_count")}'
+        )
+
+    plain_reverse_proc, _ = run_list_cases_payload(reverse_request_case_names, as_json=False)
+    if plain_reverse_proc.returncode != 0:
+        failures.append(
+            f'plain omgekeerde filtered --list-cases exitcode verwacht 0, kreeg {plain_reverse_proc.returncode}'
+        )
+    if plain_reverse_proc.stderr.strip():
+        failures.append(
+            'plain omgekeerde filtered --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_reverse_proc.stderr.strip()}'
+        )
+    plain_reverse_lines = [line.strip() for line in plain_reverse_proc.stdout.splitlines() if line.strip()]
+    if plain_reverse_lines != expected_case_names:
+        failures.append(
+            'plain omgekeerde filtered --list-cases hoort ondanks reverse first-seen invoer exact de discoverable registry te tonen'
+        )
+
+    json_reverse_proc, reverse_filtered_payload = run_list_cases_payload(reverse_request_case_names, as_json=True)
+    if json_reverse_proc.returncode != 0:
+        failures.append(
+            f'json omgekeerde filtered --list-cases exitcode verwacht 0, kreeg {json_reverse_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-success-registry-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_reverse_proc.stderr.strip():
+        failures.append(
+            'json omgekeerde filtered --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_reverse_proc.stderr.strip()}'
+        )
+    if reverse_filtered_payload is None:
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-success-registry-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    reverse_expected_requested_case_names = list(reversed(expected_case_names))
+    assert_runtime_metadata(reverse_filtered_payload, 'json omgekeerde filtered --list-cases registry-alignment', failures)
+    if reverse_filtered_payload.get('ok') is not True:
+        failures.append(
+            f'json omgekeerde filtered --list-cases ok verwacht True, kreeg {reverse_filtered_payload.get("ok")}'
+        )
+    if reverse_filtered_payload.get('requested_case_names') != reverse_expected_requested_case_names:
+        failures.append(
+            'json omgekeerde filtered --list-cases requested_case_names hoort de reverse first-seen discoverable registry precies eenmaal te behouden'
+        )
+    if reverse_filtered_payload.get('requested_case_count') != len(reverse_expected_requested_case_names):
+        failures.append(
+            'json omgekeerde filtered --list-cases requested_case_count verwacht '
+            f'{len(reverse_expected_requested_case_names)}, kreeg {reverse_filtered_payload.get("requested_case_count")}'
+        )
+    if reverse_filtered_payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde filtered --list-cases selected_case_names hoort ondanks reverse first-seen invoer exact de volledige registry te spiegelen'
+        )
+    if reverse_filtered_payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde filtered --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {reverse_filtered_payload.get("selected_case_count")}'
+        )
+    if reverse_filtered_payload.get('cases') != expected_case_names:
+        failures.append(
+            'json omgekeerde filtered --list-cases cases hoort ondanks reverse first-seen invoer exact de volledige registry te spiegelen'
+        )
+    if reverse_filtered_payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde filtered --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {reverse_filtered_payload.get("case_count")}'
+        )
+    if reverse_filtered_payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde filtered --list-cases available_case_names hoort ondanks reverse first-seen invoer de volledige discoverable registry te tonen'
+        )
+    if reverse_filtered_payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde filtered --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {reverse_filtered_payload.get("available_case_count")}'
+        )
+
     audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'upper-boundary-case={highest_case_name}')
+    audit_bits.append(f'reverse-boundary-case={expected_case_names[0]}')
     if payload.get('available_case_count') is not None:
         audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+    if filtered_payload.get('selected_case_count') is not None:
+        audit_bits.append(
+            f'filtered-payload-selected-case-count={filtered_payload.get("selected_case_count")}'
+        )
+    if reverse_filtered_payload.get('requested_case_count') is not None:
+        audit_bits.append(
+            f'reverse-filtered-payload-requested-case-count={reverse_filtered_payload.get("requested_case_count")}'
+        )
 
     return build_registry_case_result(
         name='registry-keeps-list-cases-success-registry-aligned',
