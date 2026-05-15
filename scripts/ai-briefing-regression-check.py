@@ -26686,6 +26686,100 @@ def evaluate_list_cases_full_registry_mixed_unknown_plain_alignment_case():
     )
 
 
+def evaluate_list_cases_full_registry_duplicate_unknown_plain_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    highest_case_name = expected_case_names[-1]
+    unknown_case_name = 'registry-keeps-list-cases-full-registry-duplicate-unknown-plain-aligned-unknown'
+    request_case_names = [*expected_case_names, unknown_case_name, highest_case_name, unknown_case_name]
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 2:
+        failures.append(
+            'plain full-registry dubbele onbekende --case exitcode verwacht 2, kreeg '
+            f'{plain_proc.returncode}'
+        )
+    if plain_proc.stdout.strip():
+        failures.append(
+            'plain full-registry dubbele onbekende --case hoort geen stdout te geven op de foutende route'
+        )
+
+    plain_list_cases_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_list_cases_proc.returncode != 2:
+        failures.append(
+            'plain --list-cases full-registry dubbele onbekende --case exitcode verwacht 2, kreeg '
+            f'{plain_list_cases_proc.returncode}'
+        )
+    if plain_list_cases_proc.stdout.strip():
+        failures.append(
+            'plain --list-cases full-registry dubbele onbekende --case hoort geen stdout-caselijst te geven op de foutende route'
+        )
+
+    plain_stderr = plain_proc.stderr or ''
+    plain_list_cases_stderr = plain_list_cases_proc.stderr or ''
+    if not plain_stderr.strip():
+        failures.append('plain full-registry dubbele onbekende --case hoort stderr te geven')
+    if not plain_list_cases_stderr.strip():
+        failures.append('plain --list-cases full-registry dubbele onbekende --case hoort stderr te geven')
+    if plain_list_cases_stderr != plain_stderr:
+        failures.append(
+            'plain --list-cases full-registry dubbele onbekende --case hoort exact dezelfde gededupliceerde stderr-melding te geven als een gewone run'
+        )
+
+    unique_requested_case_names = [*expected_case_names, unknown_case_name]
+    selected_prefix = 'geldige regressiecases in dezelfde aanvraag: '
+    stderr_lines = [line.strip() for line in plain_stderr.splitlines() if line.strip()]
+    if not stderr_lines:
+        failures.append('plain full-registry dubbele onbekende --case stderr hoort niet leeg te zijn')
+    else:
+        if stderr_lines[0] != selected_prefix + ', '.join(expected_case_names):
+            failures.append(
+                'plain full-registry dubbele onbekende --case hoort eerst de volledige discoverable registry in alfabetische volgorde op stderr te tonen'
+            )
+        unknown_line = f'onbekende regressiecase: {unknown_case_name}'
+        if unknown_line not in stderr_lines:
+            failures.append(
+                'plain full-registry dubbele onbekende --case hoort de onbekende suffix op stderr te tonen'
+            )
+        if stderr_lines.count(unknown_line) != 1:
+            failures.append(
+                'plain full-registry dubbele onbekende --case hoort de onbekende suffix exact eenmaal te melden'
+            )
+        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        if len(suggestion_lines) > 1:
+            failures.append(
+                'plain full-registry dubbele onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'requested-case-count={len(unique_requested_case_names)}')
+    audit_bits.append(f'upper-boundary-case={highest_case_name}')
+    audit_bits.append(f'unknown-case-name={unknown_case_name}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-full-registry-duplicate-unknown-plain-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_list_cases_reverse_full_registry_mixed_unknown_alignment_case():
     failures: list[str] = []
     audit_bits: list[str] = []
@@ -27075,6 +27169,101 @@ def evaluate_list_cases_reverse_full_registry_mixed_unknown_plain_alignment_case
     )
 
 
+def evaluate_list_cases_reverse_full_registry_duplicate_unknown_plain_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    lowest_case_name = expected_case_names[0]
+    unknown_case_name = 'registry-keeps-list-cases-reverse-full-registry-duplicate-unknown-plain-aligned-unknown'
+    reverse_expected_case_names = list(reversed(expected_case_names))
+    request_case_names = [*reverse_expected_case_names, unknown_case_name, lowest_case_name, unknown_case_name]
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 2:
+        failures.append(
+            'plain reverse full-registry dubbele onbekende --case exitcode verwacht 2, kreeg '
+            f'{plain_proc.returncode}'
+        )
+    if plain_proc.stdout.strip():
+        failures.append(
+            'plain reverse full-registry dubbele onbekende --case hoort geen stdout te geven op de foutende route'
+        )
+
+    plain_list_cases_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_list_cases_proc.returncode != 2:
+        failures.append(
+            'plain --list-cases reverse full-registry dubbele onbekende --case exitcode verwacht 2, kreeg '
+            f'{plain_list_cases_proc.returncode}'
+        )
+    if plain_list_cases_proc.stdout.strip():
+        failures.append(
+            'plain --list-cases reverse full-registry dubbele onbekende --case hoort geen stdout-caselijst te geven op de foutende route'
+        )
+
+    plain_stderr = plain_proc.stderr or ''
+    plain_list_cases_stderr = plain_list_cases_proc.stderr or ''
+    if not plain_stderr.strip():
+        failures.append('plain reverse full-registry dubbele onbekende --case hoort stderr te geven')
+    if not plain_list_cases_stderr.strip():
+        failures.append('plain --list-cases reverse full-registry dubbele onbekende --case hoort stderr te geven')
+    if plain_list_cases_stderr != plain_stderr:
+        failures.append(
+            'plain --list-cases reverse full-registry dubbele onbekende --case hoort exact dezelfde gededupliceerde stderr-melding te geven als een gewone run'
+        )
+
+    unique_requested_case_names = [*reverse_expected_case_names, unknown_case_name]
+    selected_prefix = 'geldige regressiecases in dezelfde aanvraag: '
+    stderr_lines = [line.strip() for line in plain_stderr.splitlines() if line.strip()]
+    if not stderr_lines:
+        failures.append('plain reverse full-registry dubbele onbekende --case stderr hoort niet leeg te zijn')
+    else:
+        if stderr_lines[0] != selected_prefix + ', '.join(reverse_expected_case_names):
+            failures.append(
+                'plain reverse full-registry dubbele onbekende --case hoort eerst de reverse first-seen discoverable registry op stderr te tonen'
+            )
+        unknown_line = f'onbekende regressiecase: {unknown_case_name}'
+        if unknown_line not in stderr_lines:
+            failures.append(
+                'plain reverse full-registry dubbele onbekende --case hoort de onbekende suffix op stderr te tonen'
+            )
+        if stderr_lines.count(unknown_line) != 1:
+            failures.append(
+                'plain reverse full-registry dubbele onbekende --case hoort de onbekende suffix exact eenmaal te melden'
+            )
+        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        if len(suggestion_lines) > 1:
+            failures.append(
+                'plain reverse full-registry dubbele onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'requested-case-count={len(unique_requested_case_names)}')
+    audit_bits.append(f'lower-boundary-case={lowest_case_name}')
+    audit_bits.append(f'unknown-case-name={unknown_case_name}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-reverse-full-registry-duplicate-unknown-plain-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases = {}
     named_cases.update({case['name']: (lambda case=case: evaluate_case(module, case)) for case in DEFAULT_CASES})
@@ -27122,6 +27311,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-full-registry-mixed-unknown-plain-aligned'] = (
         evaluate_list_cases_full_registry_mixed_unknown_plain_alignment_case
     )
+    named_cases['registry-keeps-list-cases-full-registry-duplicate-unknown-plain-aligned'] = (
+        evaluate_list_cases_full_registry_duplicate_unknown_plain_alignment_case
+    )
     named_cases['registry-keeps-list-cases-reverse-full-registry-mixed-unknown-aligned'] = (
         evaluate_list_cases_reverse_full_registry_mixed_unknown_alignment_case
     )
@@ -27130,6 +27322,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-list-cases-reverse-full-registry-mixed-unknown-plain-aligned'] = (
         evaluate_list_cases_reverse_full_registry_mixed_unknown_plain_alignment_case
+    )
+    named_cases['registry-keeps-list-cases-reverse-full-registry-duplicate-unknown-plain-aligned'] = (
+        evaluate_list_cases_reverse_full_registry_duplicate_unknown_plain_alignment_case
     )
     named_cases['registry-keeps-lowercase-encoded-equals-cluster-complete'] = (
         evaluate_lowercase_encoded_equals_cluster_registry_case
