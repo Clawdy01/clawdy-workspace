@@ -19370,6 +19370,16 @@ def build_registry_case_result(*, name: str, failures: list[str], audit_bits: li
     }
 
 
+def extract_plain_suggestion_lines(stderr_lines: list[str]) -> list[str]:
+    return [
+        line
+        for line in stderr_lines
+        if line.startswith('suggesties: ')
+        or line.startswith('suggesties:')
+        or line.startswith('  suggesties: ')
+    ]
+
+
 def evaluate_case_batch(*, name: str, case_names: list[str], named_cases: dict[str, callable]) -> dict:
     failures: list[str] = []
     audit_bits: list[str] = []
@@ -26815,10 +26825,18 @@ def evaluate_list_cases_full_registry_prefix_unknown_plain_alignment_case():
             failures.append(
                 'plain full-registry prefix-onbekende --case hoort de prefix-onbekende suffix exact eenmaal te melden'
             )
-        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        suggestion_lines = extract_plain_suggestion_lines(stderr_lines)
         if len(suggestion_lines) > 1:
             failures.append(
                 'plain full-registry prefix-onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif not suggestion_lines:
+            failures.append(
+                'plain full-registry prefix-onbekende --case hoort één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif 'registry-keeps-list-cases-full-registry-prefix-unknown-aligned' not in suggestion_lines[0]:
+            failures.append(
+                'plain full-registry prefix-onbekende --case hoort de dichtstbijzijnde registry-case in de suggestieregel te tonen'
             )
 
     audit_bits.append(f'registry-case-count={len(expected_case_names)}')
@@ -26909,10 +26927,18 @@ def evaluate_list_cases_full_registry_mixed_unknown_plain_alignment_case():
             failures.append(
                 'plain full-registry gemengde onbekende --case hoort de onbekende suffix exact eenmaal te melden'
             )
-        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        suggestion_lines = extract_plain_suggestion_lines(stderr_lines)
         if len(suggestion_lines) > 1:
             failures.append(
                 'plain full-registry gemengde onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif not suggestion_lines:
+            failures.append(
+                'plain full-registry gemengde onbekende --case hoort één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif 'registry-keeps-list-cases-full-registry-mixed-unknown-aligned' not in suggestion_lines[0]:
+            failures.append(
+                'plain full-registry gemengde onbekende --case hoort de dichtstbijzijnde registry-case in de suggestieregel te tonen'
             )
 
     audit_bits.append(f'registry-case-count={len(expected_case_names)}')
@@ -27150,10 +27176,18 @@ def evaluate_list_cases_full_registry_prefix_duplicate_unknown_plain_alignment_c
             failures.append(
                 'plain full-registry prefix-dubbele onbekende --case hoort de onbekende suffix exact eenmaal te melden'
             )
-        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        suggestion_lines = extract_plain_suggestion_lines(stderr_lines)
         if len(suggestion_lines) > 1:
             failures.append(
                 'plain full-registry prefix-dubbele onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif not suggestion_lines:
+            failures.append(
+                'plain full-registry prefix-dubbele onbekende --case hoort één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif 'registry-keeps-list-cases-full-registry-prefix-duplicate-unknown-aligned' not in suggestion_lines[0]:
+            failures.append(
+                'plain full-registry prefix-dubbele onbekende --case hoort de dichtstbijzijnde registry-case in de suggestieregel te tonen'
             )
 
     audit_bits.append(f'registry-case-count={len(expected_case_names)}')
@@ -27244,10 +27278,18 @@ def evaluate_list_cases_full_registry_duplicate_unknown_plain_alignment_case():
             failures.append(
                 'plain full-registry dubbele onbekende --case hoort de onbekende suffix exact eenmaal te melden'
             )
-        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        suggestion_lines = extract_plain_suggestion_lines(stderr_lines)
         if len(suggestion_lines) > 1:
             failures.append(
                 'plain full-registry dubbele onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif not suggestion_lines:
+            failures.append(
+                'plain full-registry dubbele onbekende --case hoort één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif 'registry-keeps-list-cases-full-registry-duplicate-unknown-aligned' not in suggestion_lines[0]:
+            failures.append(
+                'plain full-registry dubbele onbekende --case hoort de dichtstbijzijnde registry-case in de suggestieregel te tonen'
             )
 
     audit_bits.append(f'registry-case-count={len(expected_case_names)}')
@@ -27935,10 +27977,18 @@ def evaluate_list_cases_reverse_full_registry_mixed_unknown_plain_alignment_case
             failures.append(
                 'plain reverse full-registry gemengde onbekende --case hoort de onbekende suffix exact eenmaal te melden'
             )
-        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        suggestion_lines = extract_plain_suggestion_lines(stderr_lines)
         if len(suggestion_lines) > 1:
             failures.append(
                 'plain reverse full-registry gemengde onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif not suggestion_lines:
+            failures.append(
+                'plain reverse full-registry gemengde onbekende --case hoort één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif 'registry-keeps-list-cases-reverse-full-registry-mixed-unknown-aligned' not in suggestion_lines[0]:
+            failures.append(
+                'plain reverse full-registry gemengde onbekende --case hoort de dichtstbijzijnde registry-case in de suggestieregel te tonen'
             )
 
     audit_bits.append(f'registry-case-count={len(expected_case_names)}')
@@ -28030,10 +28080,18 @@ def evaluate_list_cases_reverse_full_registry_prefix_unknown_plain_alignment_cas
             failures.append(
                 'plain reverse full-registry prefix-onbekende --case hoort de prefix-onbekende suffix exact eenmaal te melden'
             )
-        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        suggestion_lines = extract_plain_suggestion_lines(stderr_lines)
         if len(suggestion_lines) > 1:
             failures.append(
                 'plain reverse full-registry prefix-onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif not suggestion_lines:
+            failures.append(
+                'plain reverse full-registry prefix-onbekende --case hoort één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif 'registry-keeps-list-cases-reverse-full-registry-prefix-unknown-aligned' not in suggestion_lines[0]:
+            failures.append(
+                'plain reverse full-registry prefix-onbekende --case hoort de dichtstbijzijnde registry-case in de suggestieregel te tonen'
             )
 
     audit_bits.append(f'registry-case-count={len(expected_case_names)}')
@@ -28125,10 +28183,18 @@ def evaluate_list_cases_reverse_full_registry_duplicate_unknown_plain_alignment_
             failures.append(
                 'plain reverse full-registry dubbele onbekende --case hoort de onbekende suffix exact eenmaal te melden'
             )
-        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        suggestion_lines = extract_plain_suggestion_lines(stderr_lines)
         if len(suggestion_lines) > 1:
             failures.append(
                 'plain reverse full-registry dubbele onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif not suggestion_lines:
+            failures.append(
+                'plain reverse full-registry dubbele onbekende --case hoort één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif 'registry-keeps-list-cases-reverse-full-registry-duplicate-unknown-aligned' not in suggestion_lines[0]:
+            failures.append(
+                'plain reverse full-registry dubbele onbekende --case hoort de dichtstbijzijnde registry-case in de suggestieregel te tonen'
             )
 
     audit_bits.append(f'registry-case-count={len(expected_case_names)}')
@@ -28220,10 +28286,18 @@ def evaluate_list_cases_reverse_full_registry_prefix_duplicate_unknown_plain_ali
             failures.append(
                 'plain reverse full-registry prefix-dubbele onbekende --case hoort de prefix-onbekende suffix exact eenmaal te melden'
             )
-        suggestion_lines = [line for line in stderr_lines if line.startswith('suggesties: ') or line.startswith('suggesties:') or line.startswith('  suggesties: ')]
+        suggestion_lines = extract_plain_suggestion_lines(stderr_lines)
         if len(suggestion_lines) > 1:
             failures.append(
                 'plain reverse full-registry prefix-dubbele onbekende --case hoort hoogstens één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif not suggestion_lines:
+            failures.append(
+                'plain reverse full-registry prefix-dubbele onbekende --case hoort één suggestieregel voor de onbekende suffix te geven'
+            )
+        elif 'registry-keeps-list-cases-reverse-full-registry-prefix-duplicate-unknown-aligned' not in suggestion_lines[0]:
+            failures.append(
+                'plain reverse full-registry prefix-dubbele onbekende --case hoort de dichtstbijzijnde registry-case in de suggestieregel te tonen'
             )
 
     audit_bits.append(f'registry-case-count={len(expected_case_names)}')
