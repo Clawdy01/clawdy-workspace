@@ -26654,6 +26654,148 @@ def evaluate_list_cases_full_registry_high_pair_boundary_alignment_case():
     )
 
 
+def evaluate_list_cases_full_registry_low_pair_boundary_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    lowest_case_index = 0
+    lowest_next_case_index = min(len(expected_case_names) - 1, 1)
+    lowest_case_name = expected_case_names[lowest_case_index]
+    lowest_next_case_name = expected_case_names[lowest_next_case_index]
+    request_case_names = [
+        lowest_case_name,
+        *expected_case_names[:lowest_next_case_index],
+        lowest_next_case_name,
+        *expected_case_names[lowest_next_case_index:],
+    ]
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(
+            f'plain full-registry laagstepaar-grens --list-cases exitcode verwacht 0, kreeg {plain_proc.returncode}'
+        )
+    if plain_proc.stderr.strip():
+        failures.append(
+            'plain full-registry laagstepaar-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_proc.stderr.strip()}'
+        )
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    if plain_lines != expected_case_names:
+        failures.append(
+            'plain full-registry laagstepaar-grens --list-cases hoort ondanks dubbele aangrenzende laagste grenzen exact de discoverable registry te tonen'
+        )
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(
+            f'json full-registry laagstepaar-grens --list-cases exitcode verwacht 0, kreeg {json_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-low-pair-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_proc.stderr.strip():
+        failures.append(
+            'json full-registry laagstepaar-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_proc.stderr.strip()}'
+        )
+
+    json_stdout = json_proc.stdout.strip()
+    if not json_stdout:
+        failures.append('json full-registry laagstepaar-grens --list-cases gaf geen stdout-payload')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-low-pair-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    try:
+        payload = json.loads(json_stdout)
+    except json.JSONDecodeError as exc:
+        failures.append(f'json full-registry laagstepaar-grens --list-cases gaf ongeldige JSON: {exc}')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-low-pair-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(payload, 'json full-registry laagstepaar-grens --list-cases', failures)
+
+    if payload.get('ok') is not True:
+        failures.append(
+            f'json full-registry laagstepaar-grens --list-cases ok verwacht True, kreeg {payload.get("ok")}'
+        )
+    if payload.get('requested_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry laagstepaar-grens --list-cases requested_case_names hoort de volledige registry zonder dubbele aangrenzende laagste grenzen te behouden'
+        )
+    if payload.get('requested_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry laagstepaar-grens --list-cases requested_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("requested_case_count")}'
+        )
+    if payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry laagstepaar-grens --list-cases selected_case_names hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry laagstepaar-grens --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("selected_case_count")}'
+        )
+    if payload.get('cases') != expected_case_names:
+        failures.append(
+            'json full-registry laagstepaar-grens --list-cases cases hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry laagstepaar-grens --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("case_count")}'
+        )
+    if payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry laagstepaar-grens --list-cases available_case_names hoort exact de discoverable registry te tonen'
+        )
+    if payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry laagstepaar-grens --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
+        )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'lower-boundary-index={lowest_case_index}')
+    audit_bits.append(f'lower-boundary-case={lowest_case_name}')
+    audit_bits.append(f'lower-next-boundary-index={lowest_next_case_index}')
+    audit_bits.append(f'lower-next-boundary-case={lowest_next_case_name}')
+    audit_bits.append(f'requested-case-count={len(expected_case_names)}')
+    if payload.get('available_case_count') is not None:
+        audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-full-registry-low-pair-boundary-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+
 def evaluate_list_cases_full_registry_low_boundary_alignment_case():
     failures: list[str] = []
     audit_bits: list[str] = []
@@ -28922,6 +29064,159 @@ def evaluate_list_cases_reverse_full_registry_low_boundary_alignment_case():
     )
 
 
+def evaluate_list_cases_reverse_full_registry_low_pair_boundary_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    reverse_expected_case_names = list(reversed(expected_case_names))
+    lowest_case_index = 0
+    lowest_next_case_index = min(len(expected_case_names) - 1, 1)
+    lowest_case_name = expected_case_names[lowest_case_index]
+    lowest_next_case_name = expected_case_names[lowest_next_case_index]
+    reverse_lowest_next_case_index = reverse_expected_case_names.index(lowest_next_case_name)
+    request_case_names = [
+        *reverse_expected_case_names[:reverse_lowest_next_case_index],
+        lowest_case_name,
+        lowest_next_case_name,
+        *reverse_expected_case_names[reverse_lowest_next_case_index:],
+    ]
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(
+            'plain omgekeerde full-registry laagstepaar-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {plain_proc.returncode}'
+        )
+    if plain_proc.stderr.strip():
+        failures.append(
+            'plain omgekeerde full-registry laagstepaar-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_proc.stderr.strip()}'
+        )
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    if plain_lines != expected_case_names:
+        failures.append(
+            'plain omgekeerde full-registry laagstepaar-grens --list-cases hoort ondanks dubbele aangrenzende laagste reverse-grenzen exact de discoverable registry te tonen'
+        )
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {json_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-low-pair-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_proc.stderr.strip():
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_proc.stderr.strip()}'
+        )
+
+    json_stdout = json_proc.stdout.strip()
+    if not json_stdout:
+        failures.append('json omgekeerde full-registry laagstepaar-grens --list-cases gaf geen stdout-payload')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-low-pair-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    try:
+        payload = json.loads(json_stdout)
+    except json.JSONDecodeError as exc:
+        failures.append(f'json omgekeerde full-registry laagstepaar-grens --list-cases gaf ongeldige JSON: {exc}')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-low-pair-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(payload, 'json omgekeerde full-registry laagstepaar-grens --list-cases', failures)
+
+    if payload.get('ok') is not True:
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases ok verwacht True, kreeg '
+            f'{payload.get("ok")}'
+        )
+    expected_requested_case_names = [
+        *reverse_expected_case_names[:reverse_lowest_next_case_index],
+        lowest_case_name,
+        lowest_next_case_name,
+    ]
+    if payload.get('requested_case_names') != expected_requested_case_names:
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases requested_case_names hoort de reverse first-seen discoverable registry met de laagste aangrenzende grenspaarvolgorde te behouden'
+        )
+    if payload.get('requested_case_count') != len(reverse_expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases requested_case_count verwacht '
+            f'{len(reverse_expected_case_names)}, kreeg {payload.get("requested_case_count")}'
+        )
+    if payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases selected_case_names hoort ondanks reverse first-seen invoer exact de discoverable registry te spiegelen'
+        )
+    if payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("selected_case_count")}'
+        )
+    if payload.get('cases') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases cases hoort ondanks reverse first-seen invoer exact de discoverable registry te spiegelen'
+        )
+    if payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("case_count")}'
+        )
+    if payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases available_case_names hoort ondanks reverse first-seen invoer exact de discoverable registry te tonen'
+        )
+    if payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry laagstepaar-grens --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
+        )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'reverse-lower-boundary-index={lowest_case_index}')
+    audit_bits.append(f'reverse-lower-boundary-case={lowest_case_name}')
+    audit_bits.append(f'reverse-lower-next-boundary-index={lowest_next_case_index}')
+    audit_bits.append(f'reverse-lower-next-boundary-case={lowest_next_case_name}')
+    audit_bits.append(f'requested-case-count={len(reverse_expected_case_names)}')
+    if payload.get('requested_case_count') is not None:
+        audit_bits.append(f'payload-requested-case-count={payload.get("requested_case_count")}')
+    if payload.get('available_case_count') is not None:
+        audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-reverse-full-registry-low-pair-boundary-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_list_cases_full_registry_mixed_unknown_alignment_case():
     failures: list[str] = []
     audit_bits: list[str] = []
@@ -30962,6 +31257,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-full-registry-high-pair-boundary-aligned'] = (
         evaluate_list_cases_full_registry_high_pair_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-full-registry-low-pair-boundary-aligned'] = (
+        evaluate_list_cases_full_registry_low_pair_boundary_alignment_case
+    )
     named_cases['registry-keeps-list-cases-full-registry-low-boundary-aligned'] = (
         evaluate_list_cases_full_registry_low_boundary_alignment_case
     )
@@ -31009,6 +31307,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-list-cases-reverse-full-registry-low-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_low_boundary_alignment_case
+    )
+    named_cases['registry-keeps-list-cases-reverse-full-registry-low-pair-boundary-aligned'] = (
+        evaluate_list_cases_reverse_full_registry_low_pair_boundary_alignment_case
     )
     named_cases['registry-keeps-list-cases-full-registry-mixed-unknown-aligned'] = (
         evaluate_list_cases_full_registry_mixed_unknown_alignment_case
