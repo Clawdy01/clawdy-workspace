@@ -31217,6 +31217,224 @@ def evaluate_list_cases_full_registry_low_quattuordecet_boundary_alignment_case(
         failures=failures,
         audit_bits=audit_bits,
     )
+def evaluate_list_cases_full_registry_low_quindecet_boundary_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    lowest_case_index = 0
+    lowest_next_case_index = min(len(expected_case_names) - 1, 1)
+    lowest_third_case_index = min(len(expected_case_names) - 1, 2)
+    lowest_fourth_case_index = min(len(expected_case_names) - 1, 3)
+    lowest_fifth_case_index = min(len(expected_case_names) - 1, 4)
+    lowest_sixth_case_index = min(len(expected_case_names) - 1, 5)
+    lowest_seventh_case_index = min(len(expected_case_names) - 1, 6)
+    lowest_eighth_case_index = min(len(expected_case_names) - 1, 7)
+    lowest_ninth_case_index = min(len(expected_case_names) - 1, 8)
+    lowest_tenth_case_index = min(len(expected_case_names) - 1, 9)
+    lowest_eleventh_case_index = min(len(expected_case_names) - 1, 10)
+    lowest_twelfth_case_index = min(len(expected_case_names) - 1, 11)
+    lowest_thirteenth_case_index = min(len(expected_case_names) - 1, 12)
+    lowest_fourteenth_case_index = min(len(expected_case_names) - 1, 13)
+    lowest_fifteenth_case_index = min(len(expected_case_names) - 1, 14)
+    lowest_case_name = expected_case_names[lowest_case_index]
+    lowest_next_case_name = expected_case_names[lowest_next_case_index]
+    lowest_third_case_name = expected_case_names[lowest_third_case_index]
+    lowest_fourth_case_name = expected_case_names[lowest_fourth_case_index]
+    lowest_fifth_case_name = expected_case_names[lowest_fifth_case_index]
+    lowest_sixth_case_name = expected_case_names[lowest_sixth_case_index]
+    lowest_seventh_case_name = expected_case_names[lowest_seventh_case_index]
+    lowest_eighth_case_name = expected_case_names[lowest_eighth_case_index]
+    lowest_ninth_case_name = expected_case_names[lowest_ninth_case_index]
+    lowest_tenth_case_name = expected_case_names[lowest_tenth_case_index]
+    lowest_eleventh_case_name = expected_case_names[lowest_eleventh_case_index]
+    lowest_twelfth_case_name = expected_case_names[lowest_twelfth_case_index]
+    lowest_thirteenth_case_name = expected_case_names[lowest_thirteenth_case_index]
+    lowest_fourteenth_case_name = expected_case_names[lowest_fourteenth_case_index]
+    lowest_fifteenth_case_name = expected_case_names[lowest_fifteenth_case_index]
+    request_case_names = [
+        lowest_case_name,
+        *expected_case_names[:lowest_next_case_index],
+        lowest_next_case_name,
+        *expected_case_names[lowest_next_case_index:lowest_third_case_index],
+        lowest_third_case_name,
+        *expected_case_names[lowest_third_case_index:lowest_fourth_case_index],
+        lowest_fourth_case_name,
+        *expected_case_names[lowest_fourth_case_index:lowest_fifth_case_index],
+        lowest_fifth_case_name,
+        *expected_case_names[lowest_fifth_case_index:lowest_sixth_case_index],
+        lowest_sixth_case_name,
+        *expected_case_names[lowest_sixth_case_index:lowest_seventh_case_index],
+        lowest_seventh_case_name,
+        *expected_case_names[lowest_seventh_case_index:lowest_eighth_case_index],
+        lowest_eighth_case_name,
+        *expected_case_names[lowest_eighth_case_index:lowest_ninth_case_index],
+        lowest_ninth_case_name,
+        *expected_case_names[lowest_ninth_case_index:lowest_tenth_case_index],
+        lowest_tenth_case_name,
+        *expected_case_names[lowest_tenth_case_index:lowest_eleventh_case_index],
+        lowest_eleventh_case_name,
+        *expected_case_names[lowest_eleventh_case_index:lowest_twelfth_case_index],
+        lowest_twelfth_case_name,
+        *expected_case_names[lowest_twelfth_case_index:lowest_thirteenth_case_index],
+        lowest_thirteenth_case_name,
+        *expected_case_names[lowest_thirteenth_case_index:lowest_fourteenth_case_index],
+        lowest_fourteenth_case_name,
+        *expected_case_names[lowest_fourteenth_case_index:lowest_fifteenth_case_index],
+        lowest_fifteenth_case_name,
+        *expected_case_names[lowest_fifteenth_case_index:],
+    ]
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(
+            f'plain full-registry laagstequindecet-grens --list-cases exitcode verwacht 0, kreeg {plain_proc.returncode}'
+        )
+    if plain_proc.stderr.strip():
+        failures.append(
+            'plain full-registry laagstequindecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_proc.stderr.strip()}'
+        )
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    if plain_lines != expected_case_names:
+        failures.append(
+            'plain full-registry laagstequindecet-grens --list-cases hoort ondanks vijftienvoudige aangrenzende laagste grenzen exact de discoverable registry te tonen'
+        )
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(
+            f'json full-registry laagstequindecet-grens --list-cases exitcode verwacht 0, kreeg {json_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-low-quindecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_proc.stderr.strip():
+        failures.append(
+            'json full-registry laagstequindecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_proc.stderr.strip()}'
+        )
+
+    json_stdout = json_proc.stdout.strip()
+    if not json_stdout:
+        failures.append('json full-registry laagstequindecet-grens --list-cases gaf geen stdout-payload')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-low-quindecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    try:
+        payload = json.loads(json_stdout)
+    except json.JSONDecodeError as exc:
+        failures.append(f'json full-registry laagstequindecet-grens --list-cases gaf ongeldige JSON: {exc}')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-low-quindecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(payload, 'json full-registry laagstequindecet-grens --list-cases', failures)
+
+    if payload.get('ok') is not True:
+        failures.append(
+            f'json full-registry laagstequindecet-grens --list-cases ok verwacht True, kreeg {payload.get("ok")}'
+        )
+    if payload.get('requested_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry laagstequindecet-grens --list-cases requested_case_names hoort de volledige registry zonder vijftienvoudige aangrenzende laagste grenzen te behouden'
+        )
+    if payload.get('requested_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry laagstequindecet-grens --list-cases requested_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("requested_case_count")}'
+        )
+    if payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry laagstequindecet-grens --list-cases selected_case_names hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry laagstequindecet-grens --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("selected_case_count")}'
+        )
+    if payload.get('cases') != expected_case_names:
+        failures.append(
+            'json full-registry laagstequindecet-grens --list-cases cases hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry laagstequindecet-grens --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("case_count")}'
+        )
+    if payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry laagstequindecet-grens --list-cases available_case_names hoort exact de discoverable registry te tonen'
+        )
+    if payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry laagstequindecet-grens --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
+        )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'lower-boundary-index={lowest_case_index}')
+    audit_bits.append(f'lower-boundary-case={lowest_case_name}')
+    audit_bits.append(f'lower-next-boundary-index={lowest_next_case_index}')
+    audit_bits.append(f'lower-next-boundary-case={lowest_next_case_name}')
+    audit_bits.append(f'lower-third-boundary-index={lowest_third_case_index}')
+    audit_bits.append(f'lower-third-boundary-case={lowest_third_case_name}')
+    audit_bits.append(f'lower-fourth-boundary-index={lowest_fourth_case_index}')
+    audit_bits.append(f'lower-fourth-boundary-case={lowest_fourth_case_name}')
+    audit_bits.append(f'lower-fifth-boundary-index={lowest_fifth_case_index}')
+    audit_bits.append(f'lower-fifth-boundary-case={lowest_fifth_case_name}')
+    audit_bits.append(f'lower-sixth-boundary-index={lowest_sixth_case_index}')
+    audit_bits.append(f'lower-sixth-boundary-case={lowest_sixth_case_name}')
+    audit_bits.append(f'lower-seventh-boundary-index={lowest_seventh_case_index}')
+    audit_bits.append(f'lower-seventh-boundary-case={lowest_seventh_case_name}')
+    audit_bits.append(f'lower-eighth-boundary-index={lowest_eighth_case_index}')
+    audit_bits.append(f'lower-eighth-boundary-case={lowest_eighth_case_name}')
+    audit_bits.append(f'lower-ninth-boundary-index={lowest_ninth_case_index}')
+    audit_bits.append(f'lower-ninth-boundary-case={lowest_ninth_case_name}')
+    audit_bits.append(f'lower-tenth-boundary-index={lowest_tenth_case_index}')
+    audit_bits.append(f'lower-tenth-boundary-case={lowest_tenth_case_name}')
+    audit_bits.append(f'lower-eleventh-boundary-index={lowest_eleventh_case_index}')
+    audit_bits.append(f'lower-eleventh-boundary-case={lowest_eleventh_case_name}')
+    audit_bits.append(f'lower-twelfth-boundary-index={lowest_twelfth_case_index}')
+    audit_bits.append(f'lower-twelfth-boundary-case={lowest_twelfth_case_name}')
+    audit_bits.append(f'lower-thirteenth-boundary-index={lowest_thirteenth_case_index}')
+    audit_bits.append(f'lower-thirteenth-boundary-case={lowest_thirteenth_case_name}')
+    audit_bits.append(f'lower-fourteenth-boundary-index={lowest_fourteenth_case_index}')
+    audit_bits.append(f'lower-fourteenth-boundary-case={lowest_fourteenth_case_name}')
+    audit_bits.append(f'lower-fifteenth-boundary-index={lowest_fifteenth_case_index}')
+    audit_bits.append(f'lower-fifteenth-boundary-case={lowest_fifteenth_case_name}')
+    audit_bits.append(f'requested-case-count={len(expected_case_names)}')
+    if payload.get('available_case_count') is not None:
+        audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-full-registry-low-quindecet-boundary-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
 def evaluate_list_cases_full_registry_low_pair_boundary_alignment_case():
     failures: list[str] = []
     audit_bits: list[str] = []
@@ -48329,6 +48547,233 @@ def evaluate_list_cases_reverse_full_registry_high_quattuordecet_boundary_alignm
     )
 
 
+def evaluate_list_cases_reverse_full_registry_high_quindecet_boundary_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    reverse_expected_case_names = list(reversed(expected_case_names))
+    highest_case_index = len(expected_case_names) - 1
+    highest_previous_case_index = max(0, highest_case_index - 1)
+    highest_third_previous_case_index = max(0, highest_case_index - 2)
+    highest_fourth_previous_case_index = max(0, highest_case_index - 3)
+    highest_fifth_previous_case_index = max(0, highest_case_index - 4)
+    highest_sixth_previous_case_index = max(0, highest_case_index - 5)
+    highest_seventh_previous_case_index = max(0, highest_case_index - 6)
+    highest_eighth_previous_case_index = max(0, highest_case_index - 7)
+    highest_ninth_previous_case_index = max(0, highest_case_index - 8)
+    highest_tenth_previous_case_index = max(0, highest_case_index - 9)
+    highest_eleventh_previous_case_index = max(0, highest_case_index - 10)
+    highest_twelfth_previous_case_index = max(0, highest_case_index - 11)
+    highest_thirteenth_previous_case_index = max(0, highest_case_index - 12)
+    highest_fourteenth_previous_case_index = max(0, highest_case_index - 13)
+    highest_fifteenth_previous_case_index = max(0, highest_case_index - 14)
+    highest_case_name = expected_case_names[highest_case_index]
+    highest_previous_case_name = expected_case_names[highest_previous_case_index]
+    highest_third_previous_case_name = expected_case_names[highest_third_previous_case_index]
+    highest_fourth_previous_case_name = expected_case_names[highest_fourth_previous_case_index]
+    highest_fifth_previous_case_name = expected_case_names[highest_fifth_previous_case_index]
+    highest_sixth_previous_case_name = expected_case_names[highest_sixth_previous_case_index]
+    highest_seventh_previous_case_name = expected_case_names[highest_seventh_previous_case_index]
+    highest_eighth_previous_case_name = expected_case_names[highest_eighth_previous_case_index]
+    highest_ninth_previous_case_name = expected_case_names[highest_ninth_previous_case_index]
+    highest_tenth_previous_case_name = expected_case_names[highest_tenth_previous_case_index]
+    highest_eleventh_previous_case_name = expected_case_names[highest_eleventh_previous_case_index]
+    highest_twelfth_previous_case_name = expected_case_names[highest_twelfth_previous_case_index]
+    highest_thirteenth_previous_case_name = expected_case_names[highest_thirteenth_previous_case_index]
+    highest_fourteenth_previous_case_name = expected_case_names[highest_fourteenth_previous_case_index]
+    highest_fifteenth_previous_case_name = expected_case_names[highest_fifteenth_previous_case_index]
+    request_case_names = [
+        highest_case_name,
+        *reverse_expected_case_names[:1],
+        highest_previous_case_name,
+        *reverse_expected_case_names[1:2],
+        highest_third_previous_case_name,
+        *reverse_expected_case_names[2:3],
+        highest_fourth_previous_case_name,
+        *reverse_expected_case_names[3:4],
+        highest_fifth_previous_case_name,
+        *reverse_expected_case_names[4:5],
+        highest_sixth_previous_case_name,
+        *reverse_expected_case_names[5:6],
+        highest_seventh_previous_case_name,
+        *reverse_expected_case_names[6:7],
+        highest_eighth_previous_case_name,
+        *reverse_expected_case_names[7:8],
+        highest_ninth_previous_case_name,
+        *reverse_expected_case_names[8:9],
+        highest_tenth_previous_case_name,
+        *reverse_expected_case_names[9:10],
+        highest_eleventh_previous_case_name,
+        *reverse_expected_case_names[10:11],
+        highest_twelfth_previous_case_name,
+        *reverse_expected_case_names[11:12],
+        highest_thirteenth_previous_case_name,
+        *reverse_expected_case_names[12:13],
+        highest_fourteenth_previous_case_name,
+        *reverse_expected_case_names[13:14],
+        highest_fifteenth_previous_case_name,
+        *reverse_expected_case_names[14:],
+    ]
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(
+            'plain omgekeerde full-registry hoogste-quindecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {plain_proc.returncode}'
+        )
+    if plain_proc.stderr.strip():
+        failures.append(
+            'plain omgekeerde full-registry hoogste-quindecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_proc.stderr.strip()}'
+        )
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    if plain_lines != expected_case_names:
+        failures.append(
+            'plain omgekeerde full-registry hoogste-quindecet-grens --list-cases hoort ondanks vijftienvoudige aangrenzende hoogste reverse-grenzen exact de discoverable registry te tonen'
+        )
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {json_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-high-quindecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_proc.stderr.strip():
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_proc.stderr.strip()}'
+        )
+
+    json_stdout = json_proc.stdout.strip()
+    if not json_stdout:
+        failures.append('json omgekeerde full-registry hoogste-quindecet-grens --list-cases gaf geen stdout-payload')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-high-quindecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    try:
+        payload = json.loads(json_stdout)
+    except json.JSONDecodeError as exc:
+        failures.append(
+            f'json omgekeerde full-registry hoogste-quindecet-grens --list-cases gaf ongeldige JSON: {exc}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-high-quindecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(payload, 'json omgekeerde full-registry hoogste-quindecet-grens --list-cases', failures)
+
+    if payload.get('ok') is not True:
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases ok verwacht True, kreeg '
+            f'{payload.get("ok")}'
+        )
+    if payload.get('requested_case_names') != reverse_expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases requested_case_names hoort de reverse first-seen discoverable registry zonder vijftienvoudige aangrenzende hoogste grenzen te behouden'
+        )
+    if payload.get('requested_case_count') != len(reverse_expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases requested_case_count verwacht '
+            f'{len(reverse_expected_case_names)}, kreeg {payload.get("requested_case_count")}'
+        )
+    if payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases selected_case_names hoort ondanks reverse first-seen invoer exact de discoverable registry te spiegelen'
+        )
+    if payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("selected_case_count")}'
+        )
+    if payload.get('cases') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases cases hoort ondanks reverse first-seen invoer exact de discoverable registry te spiegelen'
+        )
+    if payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("case_count")}'
+        )
+    if payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases available_case_names hoort ondanks reverse first-seen invoer exact de discoverable registry te tonen'
+        )
+    if payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry hoogste-quindecet-grens --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
+        )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'reverse-upper-boundary-index={highest_case_index}')
+    audit_bits.append(f'reverse-upper-boundary-case={highest_case_name}')
+    audit_bits.append(f'reverse-upper-previous-boundary-index={highest_previous_case_index}')
+    audit_bits.append(f'reverse-upper-previous-boundary-case={highest_previous_case_name}')
+    audit_bits.append(f'reverse-upper-third-previous-boundary-index={highest_third_previous_case_index}')
+    audit_bits.append(f'reverse-upper-third-previous-boundary-case={highest_third_previous_case_name}')
+    audit_bits.append(f'reverse-upper-fourth-previous-boundary-index={highest_fourth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-fourth-previous-boundary-case={highest_fourth_previous_case_name}')
+    audit_bits.append(f'reverse-upper-fifth-previous-boundary-index={highest_fifth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-fifth-previous-boundary-case={highest_fifth_previous_case_name}')
+    audit_bits.append(f'reverse-upper-sixth-previous-boundary-index={highest_sixth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-sixth-previous-boundary-case={highest_sixth_previous_case_name}')
+    audit_bits.append(f'reverse-upper-seventh-previous-boundary-index={highest_seventh_previous_case_index}')
+    audit_bits.append(f'reverse-upper-seventh-previous-boundary-case={highest_seventh_previous_case_name}')
+    audit_bits.append(f'reverse-upper-eighth-previous-boundary-index={highest_eighth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-eighth-previous-boundary-case={highest_eighth_previous_case_name}')
+    audit_bits.append(f'reverse-upper-ninth-previous-boundary-index={highest_ninth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-ninth-previous-boundary-case={highest_ninth_previous_case_name}')
+    audit_bits.append(f'reverse-upper-tenth-previous-boundary-index={highest_tenth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-tenth-previous-boundary-case={highest_tenth_previous_case_name}')
+    audit_bits.append(f'reverse-upper-eleventh-previous-boundary-index={highest_eleventh_previous_case_index}')
+    audit_bits.append(f'reverse-upper-eleventh-previous-boundary-case={highest_eleventh_previous_case_name}')
+    audit_bits.append(f'reverse-upper-twelfth-previous-boundary-index={highest_twelfth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-twelfth-previous-boundary-case={highest_twelfth_previous_case_name}')
+    audit_bits.append(f'reverse-upper-thirteenth-previous-boundary-index={highest_thirteenth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-thirteenth-previous-boundary-case={highest_thirteenth_previous_case_name}')
+    audit_bits.append(f'reverse-upper-fourteenth-previous-boundary-index={highest_fourteenth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-fourteenth-previous-boundary-case={highest_fourteenth_previous_case_name}')
+    audit_bits.append(f'reverse-upper-fifteenth-previous-boundary-index={highest_fifteenth_previous_case_index}')
+    audit_bits.append(f'reverse-upper-fifteenth-previous-boundary-case={highest_fifteenth_previous_case_name}')
+    audit_bits.append(f'requested-case-count={len(reverse_expected_case_names)}')
+    if payload.get('requested_case_count') is not None:
+        audit_bits.append(f'payload-requested-case-count={payload.get("requested_case_count")}')
+    if payload.get('available_case_count') is not None:
+        audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-reverse-full-registry-high-quindecet-boundary-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_list_cases_reverse_full_registry_low_boundary_alignment_case():
     failures: list[str] = []
     audit_bits: list[str] = []
@@ -53032,6 +53477,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-full-registry-low-quattuordecet-boundary-aligned'] = (
         evaluate_list_cases_full_registry_low_quattuordecet_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-full-registry-low-quindecet-boundary-aligned'] = (
+        evaluate_list_cases_full_registry_low_quindecet_boundary_alignment_case
+    )
     named_cases['registry-keeps-list-cases-full-registry-low-quintet-boundary-aligned'] = (
         evaluate_list_cases_full_registry_low_quintet_boundary_alignment_case
     )
@@ -53316,6 +53764,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-list-cases-reverse-full-registry-high-quattuordecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_high_quattuordecet_boundary_alignment_case
+    )
+    named_cases['registry-keeps-list-cases-reverse-full-registry-high-quindecet-boundary-aligned'] = (
+        evaluate_list_cases_reverse_full_registry_high_quindecet_boundary_alignment_case
     )
     named_cases['registry-keeps-list-cases-reverse-full-registry-high-tredecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_high_tredecet_boundary_alignment_case
