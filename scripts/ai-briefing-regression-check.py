@@ -38644,6 +38644,331 @@ def evaluate_list_cases_full_registry_upper_middle_tredecet_boundary_alignment_c
     )
 
 
+def evaluate_list_cases_full_registry_upper_middle_quattuordecet_boundary_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    middle_case_index = len(expected_case_names) // 2
+    boundary_indices = [middle_case_index]
+    for _ in range(13):
+        boundary_indices.append(min(len(expected_case_names) - 1, boundary_indices[-1] + 1))
+    boundary_case_names = [expected_case_names[index] for index in boundary_indices]
+
+    request_case_names: list[str] = []
+    start_index = 0
+    for boundary_index, boundary_case_name in zip(boundary_indices, boundary_case_names):
+        request_case_names.extend(expected_case_names[start_index:boundary_index])
+        request_case_names.append(boundary_case_name)
+        start_index = boundary_index
+    request_case_names.extend(expected_case_names[start_index:])
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(
+            'plain full-registry bovenmiddenquattuordecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {plain_proc.returncode}'
+        )
+    if plain_proc.stderr.strip():
+        failures.append(
+            'plain full-registry bovenmiddenquattuordecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_proc.stderr.strip()}'
+        )
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    if plain_lines != expected_case_names:
+        failures.append(
+            'plain full-registry bovenmiddenquattuordecet-grens --list-cases hoort ondanks veertienvoudige aaneengesloten bovenmiddengrenzen exact de discoverable registry te tonen'
+        )
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {json_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-upper-middle-quattuordecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_proc.stderr.strip():
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_proc.stderr.strip()}'
+        )
+
+    json_stdout = json_proc.stdout.strip()
+    if not json_stdout:
+        failures.append('json full-registry bovenmiddenquattuordecet-grens --list-cases gaf geen stdout-payload')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-upper-middle-quattuordecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    try:
+        payload = json.loads(json_stdout)
+    except json.JSONDecodeError as exc:
+        failures.append(f'json full-registry bovenmiddenquattuordecet-grens --list-cases gaf ongeldige JSON: {exc}')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-upper-middle-quattuordecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(payload, 'json full-registry bovenmiddenquattuordecet-grens --list-cases', failures)
+
+    if payload.get('ok') is not True:
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases ok verwacht True, kreeg '
+            f'{payload.get("ok")}'
+        )
+    if payload.get('requested_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases requested_case_names hoort de volledige registry zonder veertienvoudige aaneengesloten bovenmiddengrenzen te behouden'
+        )
+    if payload.get('requested_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases requested_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("requested_case_count")}'
+        )
+    if payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases selected_case_names hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("selected_case_count")}'
+        )
+    if payload.get('cases') != expected_case_names:
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases cases hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("case_count")}'
+        )
+    if payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases available_case_names hoort exact de discoverable registry te tonen'
+        )
+    if payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry bovenmiddenquattuordecet-grens --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
+        )
+
+    boundary_labels = [
+        'middle-boundary',
+        'upper-middle-boundary',
+        'upper-middle-next-boundary',
+        'upper-middle-next-next-boundary',
+        'upper-middle-next-next-next-boundary',
+        'upper-middle-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-next-next-next-next-boundary',
+    ]
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    for label, boundary_index, boundary_case_name in zip(boundary_labels, boundary_indices, boundary_case_names):
+        audit_bits.append(f'{label}-index={boundary_index}')
+        audit_bits.append(f'{label}-case={boundary_case_name}')
+    audit_bits.append(f'requested-case-count={len(expected_case_names)}')
+    if payload.get('available_case_count') is not None:
+        audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-full-registry-upper-middle-quattuordecet-boundary-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_list_cases_full_registry_upper_middle_quindecet_boundary_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    middle_case_index = len(expected_case_names) // 2
+    boundary_indices = [middle_case_index]
+    for _ in range(14):
+        boundary_indices.append(min(len(expected_case_names) - 1, boundary_indices[-1] + 1))
+    boundary_case_names = [expected_case_names[index] for index in boundary_indices]
+
+    request_case_names: list[str] = []
+    start_index = 0
+    for boundary_index, boundary_case_name in zip(boundary_indices, boundary_case_names):
+        request_case_names.extend(expected_case_names[start_index:boundary_index])
+        request_case_names.append(boundary_case_name)
+        start_index = boundary_index
+    request_case_names.extend(expected_case_names[start_index:])
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(
+            'plain full-registry bovenmiddenquindecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {plain_proc.returncode}'
+        )
+    if plain_proc.stderr.strip():
+        failures.append(
+            'plain full-registry bovenmiddenquindecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_proc.stderr.strip()}'
+        )
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    if plain_lines != expected_case_names:
+        failures.append(
+            'plain full-registry bovenmiddenquindecet-grens --list-cases hoort ondanks vijftienvoudige aaneengesloten bovenmiddengrenzen exact de discoverable registry te tonen'
+        )
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {json_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-upper-middle-quindecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_proc.stderr.strip():
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_proc.stderr.strip()}'
+        )
+
+    json_stdout = json_proc.stdout.strip()
+    if not json_stdout:
+        failures.append('json full-registry bovenmiddenquindecet-grens --list-cases gaf geen stdout-payload')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-upper-middle-quindecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    try:
+        payload = json.loads(json_stdout)
+    except json.JSONDecodeError as exc:
+        failures.append(f'json full-registry bovenmiddenquindecet-grens --list-cases gaf ongeldige JSON: {exc}')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-upper-middle-quindecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(payload, 'json full-registry bovenmiddenquindecet-grens --list-cases', failures)
+
+    if payload.get('ok') is not True:
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases ok verwacht True, kreeg '
+            f'{payload.get("ok")}'
+        )
+    if payload.get('requested_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases requested_case_names hoort de volledige registry zonder vijftienvoudige aaneengesloten bovenmiddengrenzen te behouden'
+        )
+    if payload.get('requested_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases requested_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("requested_case_count")}'
+        )
+    if payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases selected_case_names hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("selected_case_count")}'
+        )
+    if payload.get('cases') != expected_case_names:
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases cases hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("case_count")}'
+        )
+    if payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases available_case_names hoort exact de discoverable registry te tonen'
+        )
+    if payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry bovenmiddenquindecet-grens --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
+        )
+
+    boundary_labels = [
+        'middle-boundary',
+        'upper-middle-boundary',
+        'upper-middle-next-boundary',
+        'upper-middle-next-next-boundary',
+        'upper-middle-next-next-next-boundary',
+        'upper-middle-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-next-next-next-next-boundary',
+        'upper-middle-next-next-next-next-next-next-next-next-next-next-next-next-next-boundary',
+    ]
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    for label, boundary_index, boundary_case_name in zip(boundary_labels, boundary_indices, boundary_case_names):
+        audit_bits.append(f'{label}-index={boundary_index}')
+        audit_bits.append(f'{label}-case={boundary_case_name}')
+    audit_bits.append(f'requested-case-count={len(expected_case_names)}')
+    if payload.get('available_case_count') is not None:
+        audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-full-registry-upper-middle-quindecet-boundary-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_list_cases_reverse_full_registry_middle_pair_boundary_alignment_case():
     failures: list[str] = []
     audit_bits: list[str] = []
@@ -54324,6 +54649,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-list-cases-full-registry-upper-middle-duodecet-boundary-aligned'] = (
         evaluate_list_cases_full_registry_upper_middle_duodecet_boundary_alignment_case
+    )
+    named_cases['registry-keeps-list-cases-full-registry-upper-middle-quattuordecet-boundary-aligned'] = (
+        evaluate_list_cases_full_registry_upper_middle_quattuordecet_boundary_alignment_case
+    )
+    named_cases['registry-keeps-list-cases-full-registry-upper-middle-quindecet-boundary-aligned'] = (
+        evaluate_list_cases_full_registry_upper_middle_quindecet_boundary_alignment_case
     )
     named_cases['registry-keeps-list-cases-full-registry-upper-middle-tredecet-boundary-aligned'] = (
         evaluate_list_cases_full_registry_upper_middle_tredecet_boundary_alignment_case
