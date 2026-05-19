@@ -39385,6 +39385,154 @@ def evaluate_list_cases_full_registry_middle_octodecet_boundary_alignment_case()
     )
 
 
+def evaluate_list_cases_full_registry_middle_novemdecet_boundary_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+
+    middle_case_index = len(expected_case_names) // 2
+    boundary_indices = list(range(max(0, middle_case_index - 9), min(len(expected_case_names), middle_case_index + 10)))
+    boundary_case_names = [expected_case_names[index] for index in boundary_indices]
+
+    request_case_names: list[str] = []
+    cursor = 0
+    for boundary_index, boundary_case_name in zip(boundary_indices, boundary_case_names):
+        request_case_names.extend(expected_case_names[cursor:boundary_index])
+        request_case_names.append(boundary_case_name)
+        cursor = boundary_index
+    request_case_names.extend(expected_case_names[cursor:])
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(
+            f'plain full-registry middlenovemdecet-grens --list-cases exitcode verwacht 0, kreeg {plain_proc.returncode}'
+        )
+    if plain_proc.stderr.strip():
+        failures.append(
+            'plain full-registry middlenovemdecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_proc.stderr.strip()}'
+        )
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    if plain_lines != expected_case_names:
+        failures.append(
+            'plain full-registry middlenovemdecet-grens --list-cases hoort ondanks negentienvoudige aaneengesloten middengrenzen exact de discoverable registry te tonen'
+        )
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(
+            f'json full-registry middlenovemdecet-grens --list-cases exitcode verwacht 0, kreeg {json_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-middle-novemdecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_proc.stderr.strip():
+        failures.append(
+            'json full-registry middlenovemdecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_proc.stderr.strip()}'
+        )
+
+    json_stdout = json_proc.stdout.strip()
+    if not json_stdout:
+        failures.append('json full-registry middlenovemdecet-grens --list-cases gaf geen stdout-payload')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-middle-novemdecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    try:
+        payload = json.loads(json_stdout)
+    except json.JSONDecodeError as exc:
+        failures.append(f'json full-registry middlenovemdecet-grens --list-cases gaf ongeldige JSON: {exc}')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-full-registry-middle-novemdecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(payload, 'json full-registry middlenovemdecet-grens --list-cases', failures)
+
+    if payload.get('ok') is not True:
+        failures.append(
+            f'json full-registry middlenovemdecet-grens --list-cases ok verwacht True, kreeg {payload.get("ok")}'
+        )
+    if payload.get('requested_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry middlenovemdecet-grens --list-cases requested_case_names hoort de volledige registry zonder negentienvoudige aaneengesloten middengrenzen te behouden'
+        )
+    if payload.get('requested_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry middlenovemdecet-grens --list-cases requested_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("requested_case_count")}'
+        )
+    if payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry middlenovemdecet-grens --list-cases selected_case_names hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry middlenovemdecet-grens --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("selected_case_count")}'
+        )
+    if payload.get('cases') != expected_case_names:
+        failures.append(
+            'json full-registry middlenovemdecet-grens --list-cases cases hoort exact de discoverable registry te spiegelen'
+        )
+    if payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry middlenovemdecet-grens --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("case_count")}'
+        )
+    if payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json full-registry middlenovemdecet-grens --list-cases available_case_names hoort exact de discoverable registry te tonen'
+        )
+    if payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json full-registry middlenovemdecet-grens --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
+        )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    for offset, case_name, boundary_index in zip(range(-9, 10), boundary_case_names, boundary_indices):
+        if offset < 0:
+            label = f'lower-middle-{abs(offset)}-previous-boundary'
+        elif offset == 0:
+            label = 'middle-boundary'
+        else:
+            label = f'upper-middle-{offset}-next-boundary'
+        audit_bits.append(f'{label}-index={boundary_index}')
+        audit_bits.append(f'{label}-case={case_name}')
+    audit_bits.append(f'requested-case-count={len(expected_case_names)}')
+    if payload.get('available_case_count') is not None:
+        audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-full-registry-middle-novemdecet-boundary-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_list_cases_full_registry_upper_middle_triplet_boundary_alignment_case():
     failures: list[str] = []
     audit_bits: list[str] = []
@@ -45209,6 +45357,169 @@ def evaluate_list_cases_reverse_full_registry_middle_octodecet_boundary_alignmen
 
     return build_registry_case_result(
         name='registry-keeps-list-cases-reverse-full-registry-middle-octodecet-boundary-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_list_cases_reverse_full_registry_middle_novemdecet_boundary_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    reverse_expected_case_names = list(reversed(expected_case_names))
+
+    middle_case_index = len(expected_case_names) // 2
+    boundary_indices = list(range(max(0, middle_case_index - 9), min(len(expected_case_names), middle_case_index + 10)))
+    boundary_case_names = [expected_case_names[index] for index in boundary_indices]
+    reverse_boundary_case_names = list(reversed(boundary_case_names))
+    reverse_boundary_indices = [reverse_expected_case_names.index(case_name) for case_name in reverse_boundary_case_names]
+
+    request_case_names: list[str] = []
+    cursor = 0
+    for case_name, reverse_boundary_index in zip(reverse_boundary_case_names, reverse_boundary_indices):
+        request_case_names.extend(reverse_expected_case_names[cursor:reverse_boundary_index])
+        request_case_names.append(case_name)
+        request_case_names.extend(reverse_expected_case_names[reverse_boundary_index:reverse_boundary_index + 1])
+        cursor = reverse_boundary_index + 1
+    request_case_names.extend(reverse_expected_case_names[cursor:])
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(
+            'plain omgekeerde full-registry middennovemdecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {plain_proc.returncode}'
+        )
+    if plain_proc.stderr.strip():
+        failures.append(
+            'plain omgekeerde full-registry middennovemdecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_proc.stderr.strip()}'
+        )
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    if plain_lines != expected_case_names:
+        failures.append(
+            'plain omgekeerde full-registry middennovemdecet-grens --list-cases hoort ondanks reverse first-seen negentienvoudige aaneengesloten middengrenzen exact de discoverable registry te tonen'
+        )
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {json_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-middle-novemdecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_proc.stderr.strip():
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_proc.stderr.strip()}'
+        )
+
+    json_stdout = json_proc.stdout.strip()
+    if not json_stdout:
+        failures.append('json omgekeerde full-registry middennovemdecet-grens --list-cases gaf geen stdout-payload')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-middle-novemdecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    try:
+        payload = json.loads(json_stdout)
+    except json.JSONDecodeError as exc:
+        failures.append(f'json omgekeerde full-registry middennovemdecet-grens --list-cases gaf ongeldige JSON: {exc}')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-middle-novemdecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(payload, 'json omgekeerde full-registry middennovemdecet-grens --list-cases', failures)
+
+    if payload.get('ok') is not True:
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases ok verwacht True, kreeg '
+            f'{payload.get("ok")}'
+        )
+    if payload.get('requested_case_names') != reverse_expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases requested_case_names hoort de reverse first-seen discoverable registry ondanks negentienvoudige aaneengesloten middengrenzen te behouden'
+        )
+    if payload.get('requested_case_count') != len(reverse_expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases requested_case_count verwacht '
+            f'{len(reverse_expected_case_names)}, kreeg {payload.get("requested_case_count")}'
+        )
+    if payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases selected_case_names hoort ondanks reverse first-seen invoer exact de discoverable registry te spiegelen'
+        )
+    if payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("selected_case_count")}'
+        )
+    if payload.get('cases') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases cases hoort ondanks reverse first-seen invoer exact de discoverable registry te spiegelen'
+        )
+    if payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("case_count")}'
+        )
+    if payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases available_case_names hoort ondanks reverse first-seen invoer exact de discoverable registry te tonen'
+        )
+    if payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry middennovemdecet-grens --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
+        )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    for offset, case_name, boundary_index, reverse_boundary_index in zip(
+        range(-9, 10),
+        boundary_case_names,
+        boundary_indices,
+        list(reversed(reverse_boundary_indices)),
+    ):
+        if offset < 0:
+            label = f'lower-middle-{abs(offset)}-previous-boundary'
+        elif offset == 0:
+            label = 'middle-boundary'
+        else:
+            label = f'upper-middle-{offset}-next-boundary'
+        audit_bits.append(f'{label}-index={boundary_index}')
+        audit_bits.append(f'{label}-case={case_name}')
+        audit_bits.append(f'reverse-{label}-index={reverse_boundary_index}')
+    audit_bits.append(f'requested-case-count={len(reverse_expected_case_names)}')
+    if payload.get('requested_case_count') is not None:
+        audit_bits.append(f'payload-requested-case-count={payload.get("requested_case_count")}')
+    if payload.get('available_case_count') is not None:
+        audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-reverse-full-registry-middle-novemdecet-boundary-aligned',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -59246,6 +59557,263 @@ def evaluate_list_cases_reverse_full_registry_low_octodecet_boundary_alignment_c
     )
 
 
+def evaluate_list_cases_reverse_full_registry_low_novemdecet_boundary_alignment_case():
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    expected_case_names = sorted(build_named_case_runners(module, producer_module).keys())
+    reverse_expected_case_names = list(reversed(expected_case_names))
+    lowest_case_index = 0
+    lowest_next_case_index = min(len(expected_case_names) - 1, 1)
+    lowest_third_case_index = min(len(expected_case_names) - 1, 2)
+    lowest_fourth_case_index = min(len(expected_case_names) - 1, 3)
+    lowest_fifth_case_index = min(len(expected_case_names) - 1, 4)
+    lowest_sixth_case_index = min(len(expected_case_names) - 1, 5)
+    lowest_seventh_case_index = min(len(expected_case_names) - 1, 6)
+    lowest_eighth_case_index = min(len(expected_case_names) - 1, 7)
+    lowest_ninth_case_index = min(len(expected_case_names) - 1, 8)
+    lowest_tenth_case_index = min(len(expected_case_names) - 1, 9)
+    lowest_eleventh_case_index = min(len(expected_case_names) - 1, 10)
+    lowest_twelfth_case_index = min(len(expected_case_names) - 1, 11)
+    lowest_thirteenth_case_index = min(len(expected_case_names) - 1, 12)
+    lowest_fourteenth_case_index = min(len(expected_case_names) - 1, 13)
+    lowest_fifteenth_case_index = min(len(expected_case_names) - 1, 14)
+    lowest_sixteenth_case_index = min(len(expected_case_names) - 1, 15)
+    lowest_seventeenth_case_index = min(len(expected_case_names) - 1, 16)
+    lowest_eighteenth_case_index = min(len(expected_case_names) - 1, 17)
+    lowest_nineteenth_case_index = min(len(expected_case_names) - 1, 18)
+    lowest_case_name = expected_case_names[lowest_case_index]
+    lowest_next_case_name = expected_case_names[lowest_next_case_index]
+    lowest_third_case_name = expected_case_names[lowest_third_case_index]
+    lowest_fourth_case_name = expected_case_names[lowest_fourth_case_index]
+    lowest_fifth_case_name = expected_case_names[lowest_fifth_case_index]
+    lowest_sixth_case_name = expected_case_names[lowest_sixth_case_index]
+    lowest_seventh_case_name = expected_case_names[lowest_seventh_case_index]
+    lowest_eighth_case_name = expected_case_names[lowest_eighth_case_index]
+    lowest_ninth_case_name = expected_case_names[lowest_ninth_case_index]
+    lowest_tenth_case_name = expected_case_names[lowest_tenth_case_index]
+    lowest_eleventh_case_name = expected_case_names[lowest_eleventh_case_index]
+    lowest_twelfth_case_name = expected_case_names[lowest_twelfth_case_index]
+    lowest_thirteenth_case_name = expected_case_names[lowest_thirteenth_case_index]
+    lowest_fourteenth_case_name = expected_case_names[lowest_fourteenth_case_index]
+    lowest_fifteenth_case_name = expected_case_names[lowest_fifteenth_case_index]
+    lowest_sixteenth_case_name = expected_case_names[lowest_sixteenth_case_index]
+    lowest_seventeenth_case_name = expected_case_names[lowest_seventeenth_case_index]
+    lowest_eighteenth_case_name = expected_case_names[lowest_eighteenth_case_index]
+    lowest_nineteenth_case_name = expected_case_names[lowest_nineteenth_case_index]
+    reverse_lowest_nineteenth_case_index = reverse_expected_case_names.index(lowest_nineteenth_case_name)
+    request_case_names = [
+        *reverse_expected_case_names[:reverse_lowest_nineteenth_case_index],
+        lowest_case_name,
+        lowest_next_case_name,
+        lowest_third_case_name,
+        lowest_fourth_case_name,
+        lowest_fifth_case_name,
+        lowest_sixth_case_name,
+        lowest_seventh_case_name,
+        lowest_eighth_case_name,
+        lowest_ninth_case_name,
+        lowest_tenth_case_name,
+        lowest_eleventh_case_name,
+        lowest_twelfth_case_name,
+        lowest_thirteenth_case_name,
+        lowest_fourteenth_case_name,
+        lowest_fifteenth_case_name,
+        lowest_sixteenth_case_name,
+        lowest_seventeenth_case_name,
+        lowest_eighteenth_case_name,
+        lowest_nineteenth_case_name,
+        *reverse_expected_case_names[reverse_lowest_nineteenth_case_index:],
+    ]
+    request_case_args = sum([['--case', case_name] for case_name in request_case_names], [])
+
+    plain_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if plain_proc.returncode != 0:
+        failures.append(
+            'plain omgekeerde full-registry laagstenovemdecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {plain_proc.returncode}'
+        )
+    if plain_proc.stderr.strip():
+        failures.append(
+            'plain omgekeerde full-registry laagstenovemdecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{plain_proc.stderr.strip()}'
+        )
+    plain_lines = [line.strip() for line in plain_proc.stdout.splitlines() if line.strip()]
+    if plain_lines != expected_case_names:
+        failures.append(
+            'plain omgekeerde full-registry laagstenovemdecet-grens --list-cases hoort ondanks negentienvoudige aangrenzende laagste reverse-grenzen exact de discoverable registry te tonen'
+        )
+
+    json_proc = subprocess.run(
+        ['python3', str(ROOT / 'scripts' / 'ai-briefing-regression-check.py'), '--json', '--list-cases', *request_case_args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if json_proc.returncode != 0:
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases exitcode verwacht 0, '
+            f'kreeg {json_proc.returncode}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-low-novemdecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+    if json_proc.stderr.strip():
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases hoort geen stderr te geven, kreeg: '
+            f'{json_proc.stderr.strip()}'
+        )
+
+    json_stdout = json_proc.stdout.strip()
+    if not json_stdout:
+        failures.append('json omgekeerde full-registry laagstenovemdecet-grens --list-cases gaf geen stdout-payload')
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-low-novemdecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    try:
+        payload = json.loads(json_stdout)
+    except json.JSONDecodeError as exc:
+        failures.append(
+            f'json omgekeerde full-registry laagstenovemdecet-grens --list-cases gaf ongeldige JSON: {exc}'
+        )
+        return build_registry_case_result(
+            name='registry-keeps-list-cases-reverse-full-registry-low-novemdecet-boundary-aligned',
+            failures=failures,
+            audit_bits=audit_bits,
+        )
+
+    assert_runtime_metadata(payload, 'json omgekeerde full-registry laagstenovemdecet-grens --list-cases', failures)
+
+    if payload.get('ok') is not True:
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases ok verwacht True, kreeg '
+            f'{payload.get("ok")}'
+        )
+    expected_requested_case_names = [
+        *reverse_expected_case_names[:reverse_lowest_nineteenth_case_index],
+        lowest_case_name,
+        lowest_next_case_name,
+        lowest_third_case_name,
+        lowest_fourth_case_name,
+        lowest_fifth_case_name,
+        lowest_sixth_case_name,
+        lowest_seventh_case_name,
+        lowest_eighth_case_name,
+        lowest_ninth_case_name,
+        lowest_tenth_case_name,
+        lowest_eleventh_case_name,
+        lowest_twelfth_case_name,
+        lowest_thirteenth_case_name,
+        lowest_fourteenth_case_name,
+        lowest_fifteenth_case_name,
+        lowest_sixteenth_case_name,
+        lowest_seventeenth_case_name,
+        lowest_eighteenth_case_name,
+        lowest_nineteenth_case_name,
+    ]
+    if payload.get('requested_case_names') != expected_requested_case_names:
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases requested_case_names hoort de reverse first-seen discoverable registry met de laagste aangrenzende novemdecetgrensvolgorde te behouden'
+        )
+    if payload.get('requested_case_count') != len(reverse_expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases requested_case_count verwacht '
+            f'{len(reverse_expected_case_names)}, kreeg {payload.get("requested_case_count")}'
+        )
+    if payload.get('selected_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases selected_case_names hoort ondanks reverse first-seen invoer exact de discoverable registry te spiegelen'
+        )
+    if payload.get('selected_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases selected_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("selected_case_count")}'
+        )
+    if payload.get('cases') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases cases hoort ondanks reverse first-seen invoer exact de discoverable registry te spiegelen'
+        )
+    if payload.get('case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("case_count")}'
+        )
+    if payload.get('available_case_names') != expected_case_names:
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases available_case_names hoort ondanks reverse first-seen invoer exact de discoverable registry te tonen'
+        )
+    if payload.get('available_case_count') != len(expected_case_names):
+        failures.append(
+            'json omgekeerde full-registry laagstenovemdecet-grens --list-cases available_case_count verwacht '
+            f'{len(expected_case_names)}, kreeg {payload.get("available_case_count")}'
+        )
+
+    audit_bits.append(f'registry-case-count={len(expected_case_names)}')
+    audit_bits.append(f'reverse-lower-boundary-index={lowest_case_index}')
+    audit_bits.append(f'reverse-lower-boundary-case={lowest_case_name}')
+    audit_bits.append(f'reverse-lower-next-boundary-index={lowest_next_case_index}')
+    audit_bits.append(f'reverse-lower-next-boundary-case={lowest_next_case_name}')
+    audit_bits.append(f'reverse-lower-third-boundary-index={lowest_third_case_index}')
+    audit_bits.append(f'reverse-lower-third-boundary-case={lowest_third_case_name}')
+    audit_bits.append(f'reverse-lower-fourth-boundary-index={lowest_fourth_case_index}')
+    audit_bits.append(f'reverse-lower-fourth-boundary-case={lowest_fourth_case_name}')
+    audit_bits.append(f'reverse-lower-fifth-boundary-index={lowest_fifth_case_index}')
+    audit_bits.append(f'reverse-lower-fifth-boundary-case={lowest_fifth_case_name}')
+    audit_bits.append(f'reverse-lower-sixth-boundary-index={lowest_sixth_case_index}')
+    audit_bits.append(f'reverse-lower-sixth-boundary-case={lowest_sixth_case_name}')
+    audit_bits.append(f'reverse-lower-seventh-boundary-index={lowest_seventh_case_index}')
+    audit_bits.append(f'reverse-lower-seventh-boundary-case={lowest_seventh_case_name}')
+    audit_bits.append(f'reverse-lower-eighth-boundary-index={lowest_eighth_case_index}')
+    audit_bits.append(f'reverse-lower-eighth-boundary-case={lowest_eighth_case_name}')
+    audit_bits.append(f'reverse-lower-ninth-boundary-index={lowest_ninth_case_index}')
+    audit_bits.append(f'reverse-lower-ninth-boundary-case={lowest_ninth_case_name}')
+    audit_bits.append(f'reverse-lower-tenth-boundary-index={lowest_tenth_case_index}')
+    audit_bits.append(f'reverse-lower-tenth-boundary-case={lowest_tenth_case_name}')
+    audit_bits.append(f'reverse-lower-eleventh-boundary-index={lowest_eleventh_case_index}')
+    audit_bits.append(f'reverse-lower-eleventh-boundary-case={lowest_eleventh_case_name}')
+    audit_bits.append(f'reverse-lower-twelfth-boundary-index={lowest_twelfth_case_index}')
+    audit_bits.append(f'reverse-lower-twelfth-boundary-case={lowest_twelfth_case_name}')
+    audit_bits.append(f'reverse-lower-thirteenth-boundary-index={lowest_thirteenth_case_index}')
+    audit_bits.append(f'reverse-lower-thirteenth-boundary-case={lowest_thirteenth_case_name}')
+    audit_bits.append(f'reverse-lower-fourteenth-boundary-index={lowest_fourteenth_case_index}')
+    audit_bits.append(f'reverse-lower-fourteenth-boundary-case={lowest_fourteenth_case_name}')
+    audit_bits.append(f'reverse-lower-fifteenth-boundary-index={lowest_fifteenth_case_index}')
+    audit_bits.append(f'reverse-lower-fifteenth-boundary-case={lowest_fifteenth_case_name}')
+    audit_bits.append(f'reverse-lower-sixteenth-boundary-index={lowest_sixteenth_case_index}')
+    audit_bits.append(f'reverse-lower-sixteenth-boundary-case={lowest_sixteenth_case_name}')
+    audit_bits.append(f'reverse-lower-seventeenth-boundary-index={lowest_seventeenth_case_index}')
+    audit_bits.append(f'reverse-lower-seventeenth-boundary-case={lowest_seventeenth_case_name}')
+    audit_bits.append(f'reverse-lower-eighteenth-boundary-index={lowest_eighteenth_case_index}')
+    audit_bits.append(f'reverse-lower-eighteenth-boundary-case={lowest_eighteenth_case_name}')
+    audit_bits.append(f'reverse-lower-nineteenth-boundary-index={lowest_nineteenth_case_index}')
+    audit_bits.append(f'reverse-lower-nineteenth-boundary-case={lowest_nineteenth_case_name}')
+    audit_bits.append(f'requested-case-count={len(reverse_expected_case_names)}')
+    if payload.get('requested_case_count') is not None:
+        audit_bits.append(f'payload-requested-case-count={payload.get("requested_case_count")}')
+    if payload.get('available_case_count') is not None:
+        audit_bits.append(f'payload-available-case-count={payload.get("available_case_count")}')
+
+    return build_registry_case_result(
+        name='registry-keeps-list-cases-reverse-full-registry-low-novemdecet-boundary-aligned',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_list_cases_full_registry_mixed_unknown_alignment_case():
     failures: list[str] = []
     audit_bits: list[str] = []
@@ -61448,6 +62016,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-full-registry-middle-octodecet-boundary-aligned'] = (
         evaluate_list_cases_full_registry_middle_octodecet_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-full-registry-middle-novemdecet-boundary-aligned'] = (
+        evaluate_list_cases_full_registry_middle_novemdecet_boundary_alignment_case
+    )
     named_cases['registry-keeps-list-cases-full-registry-lower-middle-boundary-aligned'] = (
         evaluate_list_cases_full_registry_lower_middle_boundary_alignment_case
     )
@@ -61609,6 +62180,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-list-cases-reverse-full-registry-middle-octodecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_middle_octodecet_boundary_alignment_case
+    )
+    named_cases['registry-keeps-list-cases-reverse-full-registry-middle-novemdecet-boundary-aligned'] = (
+        evaluate_list_cases_reverse_full_registry_middle_novemdecet_boundary_alignment_case
     )
     named_cases['registry-keeps-list-cases-reverse-full-registry-lower-middle-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_lower_middle_boundary_alignment_case
@@ -61816,6 +62390,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-list-cases-reverse-full-registry-low-octodecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_low_octodecet_boundary_alignment_case
+    )
+    named_cases['registry-keeps-list-cases-reverse-full-registry-low-novemdecet-boundary-aligned'] = (
+        evaluate_list_cases_reverse_full_registry_low_novemdecet_boundary_alignment_case
     )
     named_cases['registry-keeps-list-cases-reverse-full-registry-low-tredecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_low_tredecet_boundary_alignment_case
