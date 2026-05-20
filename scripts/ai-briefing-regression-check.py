@@ -18296,6 +18296,22 @@ def evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case()
     )
 
 
+def evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_board_only_case():
+    result = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-pair-bundle-unsuppressed-after-deadline-board-only',
+    }
+
+
+def evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_keeps_board_only_case():
+    result = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-pair-bundle-unsuppressed-after-deadline-keeps-board-only',
+    }
+
+
 def evaluate_watchdog_alert_board_pair_bundle_deadline_reached_keeps_board_only_case():
     result = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case()
     return {
@@ -98413,6 +98429,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-pair-bundle-board-only'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-keeps-board-only'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
+    named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline-board-only'] = (
+        evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_board_only_case
+    )
+    named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline-keeps-board-only'] = (
+        evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_keeps_board_only_case
+    )
     named_cases['watchdog-alert-board-pair-bundle-deadline-reached-keeps-board-only'] = (
         evaluate_watchdog_alert_board_pair_bundle_deadline_reached_keeps_board_only_case
     )
