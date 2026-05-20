@@ -18789,6 +18789,14 @@ def evaluate_watchdog_alert_board_json_preset_unsuppressed_after_deadline_case()
     )
 
 
+def evaluate_watchdog_alert_board_json_preset_deadline_reached_keeps_board_only_case():
+    result = evaluate_watchdog_alert_board_json_preset_unsuppressed_after_deadline_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-json-preset-deadline-reached-keeps-board-only',
+    }
+
+
 def evaluate_watchdog_alert_board_text_preset_case():
     failures = []
     audit_bits: list[str] = []
@@ -98191,12 +98199,16 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-board-json-preset-board-only'] = evaluate_watchdog_board_json_preset_case
     named_cases['watchdog-board-json-preset-keeps-board-only'] = evaluate_watchdog_board_json_preset_case
     named_cases['watchdog-board-text-preset-board-only'] = evaluate_watchdog_board_text_preset_case
+    named_cases['watchdog-board-text-preset-keeps-board-only'] = evaluate_watchdog_board_text_preset_case
     named_cases['watchdog-board-pair-bundle-board-only'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-suite-bundle-append'] = evaluate_watchdog_board_suite_bundle_append_case
     named_cases['watchdog-alert-board-json-preset-board-only'] = evaluate_watchdog_alert_board_json_preset_case
     named_cases['watchdog-alert-board-json-preset-keeps-board-only'] = evaluate_watchdog_alert_board_json_preset_case
     named_cases['watchdog-alert-board-json-preset-unsuppressed-after-deadline'] = (
         evaluate_watchdog_alert_board_json_preset_unsuppressed_after_deadline_case
+    )
+    named_cases['watchdog-alert-board-json-preset-deadline-reached-keeps-board-only'] = (
+        evaluate_watchdog_alert_board_json_preset_deadline_reached_keeps_board_only_case
     )
     named_cases['watchdog-alert-board-text-preset-board-only'] = evaluate_watchdog_alert_board_text_preset_case
     named_cases['watchdog-alert-board-text-preset-unsuppressed-after-deadline'] = (
