@@ -18525,11 +18525,29 @@ def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_append_case():
 
 
 
+def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_append_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-deadline-reached-keeps-append',
+    }
+
+
+
 def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlog_append_case():
     result = evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case()
     return {
         **result,
         'name': 'watchdog-alert-board-suite-bundle-deadline-reached-eventlog-append',
+    }
+
+
+
+def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlog_appends_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-deadline-reached-eventlog-appends',
     }
 
 
@@ -98308,8 +98326,14 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-suite-bundle-deadline-reached-append'] = (
         evaluate_watchdog_alert_board_suite_bundle_deadline_reached_append_case
     )
+    named_cases['watchdog-alert-board-suite-bundle-deadline-reached-keeps-append'] = (
+        evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_append_case
+    )
     named_cases['watchdog-alert-board-suite-bundle-deadline-reached-eventlog-append'] = (
         evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlog_append_case
+    )
+    named_cases['watchdog-alert-board-suite-bundle-deadline-reached-eventlog-appends'] = (
+        evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlog_appends_case
     )
     named_cases['watchdog-alert-board-suite-bundle-append'] = evaluate_watchdog_alert_board_suite_bundle_append_case
     named_cases['watchdog-alert-board-suite-bundle-appends'] = evaluate_watchdog_alert_board_suite_bundle_append_case
