@@ -18534,11 +18534,38 @@ def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_append_cas
 
 
 
+def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_appends_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-deadline-reached-keeps-appends',
+    }
+
+
+
 def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlog_append_case():
     result = evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case()
     return {
         **result,
         'name': 'watchdog-alert-board-suite-bundle-deadline-reached-eventlog-append',
+    }
+
+
+
+def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_eventlog_append_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-deadline-reached-keeps-eventlog-append',
+    }
+
+
+
+def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_eventlog_appends_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-deadline-reached-keeps-eventlog-appends',
     }
 
 
@@ -98329,8 +98356,17 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-suite-bundle-deadline-reached-keeps-append'] = (
         evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_append_case
     )
+    named_cases['watchdog-alert-board-suite-bundle-deadline-reached-keeps-appends'] = (
+        evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_appends_case
+    )
     named_cases['watchdog-alert-board-suite-bundle-deadline-reached-eventlog-append'] = (
         evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlog_append_case
+    )
+    named_cases['watchdog-alert-board-suite-bundle-deadline-reached-keeps-eventlog-append'] = (
+        evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_eventlog_append_case
+    )
+    named_cases['watchdog-alert-board-suite-bundle-deadline-reached-keeps-eventlog-appends'] = (
+        evaluate_watchdog_alert_board_suite_bundle_deadline_reached_keeps_eventlog_appends_case
     )
     named_cases['watchdog-alert-board-suite-bundle-deadline-reached-eventlog-appends'] = (
         evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlog_appends_case
