@@ -18516,6 +18516,24 @@ def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case():
 
 
 
+def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_append_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-deadline-reached-append',
+    }
+
+
+
+def evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlog_append_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-deadline-reached-eventlog-append',
+    }
+
+
+
 def evaluate_watchdog_alert_board_json_preset_case():
     failures = []
     audit_bits: list[str] = []
@@ -98286,6 +98304,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-suite-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case
     named_cases['watchdog-alert-board-suite-bundle-deadline-reached-appends'] = (
         evaluate_watchdog_alert_board_suite_bundle_deadline_reached_appends_case
+    )
+    named_cases['watchdog-alert-board-suite-bundle-deadline-reached-append'] = (
+        evaluate_watchdog_alert_board_suite_bundle_deadline_reached_append_case
+    )
+    named_cases['watchdog-alert-board-suite-bundle-deadline-reached-eventlog-append'] = (
+        evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlog_append_case
     )
     named_cases['watchdog-alert-board-suite-bundle-append'] = evaluate_watchdog_alert_board_suite_bundle_append_case
     named_cases['watchdog-alert-board-suite-bundle-appends'] = evaluate_watchdog_alert_board_suite_bundle_append_case
