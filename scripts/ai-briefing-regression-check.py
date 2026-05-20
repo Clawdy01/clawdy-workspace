@@ -17965,6 +17965,15 @@ def evaluate_watchdog_alert_board_suite_bundle_append_case():
     )
 
 
+def evaluate_watchdog_alert_board_suite_bundle_keeps_eventlog_appends_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_append_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-keeps-eventlog-appends',
+    }
+
+
+
 def evaluate_watchdog_alert_board_pair_bundle_case():
     failures = []
     audit_bits: list[str] = []
@@ -98373,6 +98382,10 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-alert-board-suite-bundle-append'] = evaluate_watchdog_alert_board_suite_bundle_append_case
     named_cases['watchdog-alert-board-suite-bundle-appends'] = evaluate_watchdog_alert_board_suite_bundle_append_case
+    named_cases['watchdog-alert-board-suite-bundle-eventlog-appends'] = evaluate_watchdog_alert_board_suite_bundle_append_case
+    named_cases['watchdog-alert-board-suite-bundle-keeps-eventlog-appends'] = (
+        evaluate_watchdog_alert_board_suite_bundle_keeps_eventlog_appends_case
+    )
     return named_cases
 
 
