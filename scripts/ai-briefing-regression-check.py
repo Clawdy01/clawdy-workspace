@@ -17973,6 +17973,22 @@ def evaluate_watchdog_alert_board_suite_bundle_keeps_eventlog_appends_case():
     }
 
 
+def evaluate_watchdog_alert_board_suite_bundle_keeps_eventlogs_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_append_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-keeps-eventlogs',
+    }
+
+
+def evaluate_watchdog_alert_board_suite_bundle_keeps_eventlog_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_append_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-keeps-eventlog',
+    }
+
+
 def evaluate_watchdog_alert_board_suite_bundle_keeps_eventlog_append_case():
     result = evaluate_watchdog_alert_board_suite_bundle_append_case()
     return {
@@ -98762,11 +98778,17 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-suite-bundle-keeps-appends'] = (
         evaluate_watchdog_alert_board_suite_bundle_keeps_appends_case
     )
+    named_cases['watchdog-alert-board-suite-bundle-keeps-eventlog'] = (
+        evaluate_watchdog_alert_board_suite_bundle_keeps_eventlog_case
+    )
     named_cases['watchdog-alert-board-suite-bundle-keeps-eventlog-append'] = (
         evaluate_watchdog_alert_board_suite_bundle_keeps_eventlog_append_case
     )
     named_cases['watchdog-alert-board-suite-bundle-keeps-eventlog-appends'] = (
         evaluate_watchdog_alert_board_suite_bundle_keeps_eventlog_appends_case
+    )
+    named_cases['watchdog-alert-board-suite-bundle-keeps-eventlogs'] = (
+        evaluate_watchdog_alert_board_suite_bundle_keeps_eventlogs_case
     )
     return named_cases
 
