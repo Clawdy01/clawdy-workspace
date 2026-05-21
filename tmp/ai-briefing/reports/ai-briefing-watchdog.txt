@@ -1,31 +1,32 @@
-ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 34/36 runs ok, 34 afgeleverd, streak 31, laatste duur 3m 39s, laatste 24 uur geleden
+ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 36/38 runs ok, 36 afgeleverd, streak 33, laatste duur 7m 12s, laatste 24 uur geleden
 proof state: hercheckvenster is open voor het huidige kwalificatieslot (recheck-window-open)
 proof blocker: hercheckvenster is open, dus dit spoor wacht alleen nog op directe hercheck (recheck-window-open)
 reasons:
 - status not ok
-- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-19 09:03 CEST > 2026-05-19 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
+- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-21 09:07 CEST > 2026-05-21 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
 - onvoldoende gekwalificeerde runs voor huidige config (0/3)
-- geen gekwalificeerde run sinds verwacht dagslot 2026-05-19 09:00 CEST
+- geen gekwalificeerde run sinds verwacht dagslot 2026-05-21 09:00 CEST
 readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan; runbewijs met aandachtspunt
-reference: referentietijd 2026-05-20 09:15 CEST
-proof config: bewijsconfig 6fb35ef24ceb, gewijzigd 2026-05-19 09:03 CEST (24 uur geleden)
-last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-05-19 09:03 CEST nog op eerste run
+reference: referentietijd 2026-05-22 09:15 CEST
+proof config: bewijsconfig 6fb35ef24ceb, gewijzigd 2026-05-21 09:07 CEST (24 uur geleden)
+last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-05-21 09:07 CEST nog op eerste run
 proof recheck schedule kind: proof-recheck-cronstatus: ok
 proof recheck schedule: proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)
 proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan
 proof requirement: 0/3 gekwalificeerde runs
 proof remaining: nog 3 te gaan
-next run: 2026-05-20 09:00 CEST
-proof target due: 2026-05-22 09:15 CEST
-proof target due if next slot missed: 2026-05-23 09:15 CEST
-proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-05-20 09:00 CEST (nu), doel 2026-05-22 09:15 CEST
-proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-19 09:03 CEST > 2026-05-19 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
+next run: 2026-05-22 09:00 CEST
+proof target due: 2026-05-24 09:15 CEST
+proof target due if next slot missed: 2026-05-25 09:15 CEST
+proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-05-22 09:00 CEST (nu), doel 2026-05-24 09:15 CEST
+proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-21 09:07 CEST > 2026-05-21 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
 proof next action window: hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw
 proof recheck commands: daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3
-proof schedule risk: als slot 2026-05-20 09:00 CEST mist, schuift bewijsdoel naar 2026-05-23 09:15 CEST
-next qualifying run: 2026-05-20 09:00 CEST (nu) [T-0.2u] [vandaag]
-proof countdown: bewijsdoel 2026-05-22 09:15 CEST (over 2 d); mist volgend slot => 2026-05-23 09:15 CEST (slip +24u)
-proof target check gate: proof-target-check blijft stil tot 2026-05-22 09:15 CEST (over 2 d) (suppressed-until-deadline)
-qualifying run slots: 2026-05-20 09:00 CEST (nu | vandaag), 2026-05-21 09:00 CEST (over 23u 45m | morgen), 2026-05-22 09:00 CEST (over 1 d 23 u | over 2 d)
-last run timeout audit: laatste run had 8m 20s timeout-speling (3m 39s op limiet 12m 0s)
-recent run duration audit: recente duurtrend 3m 39s tot 6m 2s, gemiddeld 4m 55s, onder huidige limiet 12m 0s
+proof schedule risk: als slot 2026-05-22 09:00 CEST mist, schuift bewijsdoel naar 2026-05-25 09:15 CEST
+next qualifying run: 2026-05-22 09:00 CEST (nu) [T-0.2u] [vandaag]
+proof countdown: bewijsdoel 2026-05-24 09:15 CEST (over 2 d); mist volgend slot => 2026-05-25 09:15 CEST (slip +24u)
+proof target check gate: proof-target-check blijft stil tot 2026-05-24 09:15 CEST (over 2 d) (suppressed-until-deadline)
+qualifying run slots: 2026-05-22 09:00 CEST (nu | vandaag), 2026-05-23 09:00 CEST (over 23u 45m | morgen), 2026-05-24 09:00 CEST (over 1 d 23 u | over 2 d)
+last run timeout audit: laatste run had 4m 47s timeout-speling (7m 12s op limiet 12m 0s)
+recent run duration audit: recente duurtrend 3m 39s tot 7m 12s, gemiddeld 4m 51s, onder huidige limiet 12m 0s
+proof example: top3 zonder verse datum: Google duwt on-device AI vooruit met LiteRT-LM en Coralboard voor multimodale edge-toepassingen | top3 zonder primaire+verse combo: Google duwt on-device AI vooruit met LiteRT-LM en Coralboard voor multimodale edge-toepassingen
