@@ -100803,6 +100803,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-text-preset-unsuppressed-after-deadline'] = (
         evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_case
     )
+    named_cases['watchdog-alert-board-text-preset-unsuppressed-keeps'] = (
+        evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_keeps_board_only_case
+    )
     named_cases['watchdog-alert-board-text-preset-unsuppressed-after-deadline-keeps'] = (
         evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_keeps_board_only_case
     )
@@ -100832,6 +100835,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
     )
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
+    named_cases['watchdog-alert-board-pair-bundle-unsuppressed-keeps'] = (
+        evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_keeps_board_only_case
+    )
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline-board-only'] = (
         evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_board_only_case
     )
