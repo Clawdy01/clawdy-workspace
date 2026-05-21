@@ -17989,6 +17989,14 @@ def evaluate_watchdog_alert_board_suite_bundle_keeps_eventlogs_appends_case():
     }
 
 
+def evaluate_watchdog_alert_board_suite_bundle_keeps_eventlogs_append_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_append_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-keeps-eventlogs-append',
+    }
+
+
 def evaluate_watchdog_alert_board_suite_bundle_keeps_eventlog_case():
     result = evaluate_watchdog_alert_board_suite_bundle_append_case()
     return {
@@ -98694,6 +98702,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-text-preset-deadline-reached-board-only'] = (
         evaluate_watchdog_alert_board_text_preset_deadline_reached_board_only_case
     )
+    named_cases['watchdog-alert-board-pair-bundle'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-board-only'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-keeps-board-only'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline'] = evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
@@ -98806,6 +98815,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-suite-bundle-deadline-reached-eventlogs'] = (
         evaluate_watchdog_alert_board_suite_bundle_deadline_reached_eventlogs_case
     )
+    named_cases['watchdog-alert-board-suite-bundle'] = evaluate_watchdog_alert_board_suite_bundle_append_case
     named_cases['watchdog-alert-board-suite-bundle-append'] = evaluate_watchdog_alert_board_suite_bundle_append_case
     named_cases['watchdog-alert-board-suite-bundle-appends'] = evaluate_watchdog_alert_board_suite_bundle_append_case
     named_cases['watchdog-alert-board-suite-bundle-eventlogs'] = (
@@ -98841,6 +98851,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-alert-board-suite-bundle-keeps-eventlogs'] = (
         evaluate_watchdog_alert_board_suite_bundle_keeps_eventlogs_case
+    )
+    named_cases['watchdog-alert-board-suite-bundle-keeps-eventlogs-append'] = (
+        evaluate_watchdog_alert_board_suite_bundle_keeps_eventlogs_append_case
     )
     named_cases['watchdog-alert-board-suite-bundle-keeps-eventlogs-appends'] = (
         evaluate_watchdog_alert_board_suite_bundle_keeps_eventlogs_appends_case
