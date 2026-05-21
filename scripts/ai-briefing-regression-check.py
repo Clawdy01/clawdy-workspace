@@ -18692,6 +18692,14 @@ def evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_event
     }
 
 
+def evaluate_watchdog_alert_board_suite_bundle_unsuppressed_eventlog_case():
+    result = evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case()
+    return {
+        **result,
+        'name': 'watchdog-alert-board-suite-bundle-unsuppressed-eventlog',
+    }
+
+
 def evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_eventlogs_case():
     result = evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_case()
     return {
@@ -100838,6 +100846,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-keeps'] = (
         evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_keeps_board_only_case
     )
+    named_cases['watchdog-alert-board-pair-bundle-unsuppressed-board-only'] = (
+        evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_board_only_case
+    )
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-after-deadline-board-only'] = (
         evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_board_only_case
     )
@@ -100884,6 +100895,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-alert-board-suite-bundle-unsuppressed-after-deadline-eventlog'] = (
         evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_eventlog_case
+    )
+    named_cases['watchdog-alert-board-suite-bundle-unsuppressed-eventlog'] = (
+        evaluate_watchdog_alert_board_suite_bundle_unsuppressed_eventlog_case
     )
     named_cases['watchdog-alert-board-suite-bundle-unsuppressed-after-deadline-eventlogs'] = (
         evaluate_watchdog_alert_board_suite_bundle_unsuppressed_after_deadline_eventlogs_case
