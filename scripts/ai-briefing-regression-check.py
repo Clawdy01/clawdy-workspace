@@ -101573,6 +101573,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-deduplicates-wait-until-recheck-after-text'] = (
         lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_wait_until_dedup_case(proof_recheck_module)
     )
+    named_cases['proof-recheck-deduplicate-wait-until-recheck-after-text'] = (
+        named_cases['proof-recheck-deduplicates-wait-until-recheck-after-text']
+    )
     watchdog_alert_module = load_watchdog_alert_module()
     watchdog_producer_module = load_watchdog_producer_module()
     proof_recheck_producer_module = load_proof_recheck_producer_module()
@@ -101587,6 +101590,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module)
+    )
+    named_cases['proof-recheck-producer-quiet-deduplicate-wait-until-recheck-after-text'] = (
+        named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
     )
     named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text'] = (
         lambda status_module=module: run_brief_consumer_wait_until_dedup_case(status_module)
