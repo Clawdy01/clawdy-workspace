@@ -101591,6 +101591,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text'] = (
         lambda status_module=module: run_brief_consumer_wait_until_dedup_case(status_module)
     )
+    named_cases['brief-consumer-deduplicates-wait-until-recheck-after-text'] = (
+        named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text']
+    )
+    named_cases['brief-consumers-deduplicates-wait-until-recheck-after-text'] = (
+        named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text']
+    )
     named_cases['proof-recheck-producer-quiet-falls-back-to-requested-outputs'] = (
         lambda producer_module=proof_recheck_producer_module: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)
     )
