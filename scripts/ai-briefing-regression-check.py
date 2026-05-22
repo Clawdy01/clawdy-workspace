@@ -101574,6 +101574,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['top3-primary-fresh-sample'] = named_cases['top3-primary-fresh-regression-sample']
     named_cases['top3-live-output-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     proof_recheck_module = load_proof_recheck_module()
     named_cases['proof-recheck-deduplicates-wait-until-recheck-after-text'] = (
         lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_wait_until_dedup_case(proof_recheck_module)
@@ -101673,6 +101674,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-full-registry-high-duovigint-boundary-aligned'] = (
         evaluate_list_cases_full_registry_high_duovigint_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-high-duovigint-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-full-registry-high-duovigint-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-full-registry-high-triovigint-boundary-aligned'] = (
         evaluate_list_cases_full_registry_high_triovigint_boundary_alignment_case
     )
