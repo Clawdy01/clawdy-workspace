@@ -101582,8 +101582,14 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-plain-deduplicates-wait-until-recheck-after-text'] = (
         lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_wait_until_dedup_case(proof_recheck_module)
     )
+    named_cases['proof-recheck-plain-deduplicate-wait-until-recheck-after-text'] = (
+        named_cases['proof-recheck-plain-deduplicates-wait-until-recheck-after-text']
+    )
     named_cases['watchdog-alert-deduplicates-wait-until-recheck-after-text'] = (
         lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_wait_until_dedup_case(watchdog_alert_module)
+    )
+    named_cases['watchdog-alert-deduplicate-wait-until-recheck-after-text'] = (
+        named_cases['watchdog-alert-deduplicates-wait-until-recheck-after-text']
     )
     named_cases['watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_wait_until_dedup_case(producer_module)
