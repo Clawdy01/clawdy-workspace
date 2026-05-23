@@ -101573,6 +101573,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['bronnenlijst-sample'] = named_cases['bronnenlijst-regression-sample']
     named_cases['top3-primary-fresh-sample'] = named_cases['top3-primary-fresh-regression-sample']
     named_cases['top3-primary-regression-sample'] = named_cases['top3-primary-fresh-regression-sample']
+    named_cases['top3-primary-sample'] = named_cases['top3-primary-fresh-regression-sample']
     named_cases['top3-live-output-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
@@ -102338,6 +102339,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-reverse-full-registry-high-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_high_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-reverse-high-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-reverse-full-registry-high-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-reverse-full-registry-high-pair-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_high_pair_boundary_alignment_case
     )
@@ -102714,6 +102718,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-board-text-preset-keeps-board-only'] = evaluate_watchdog_board_text_preset_case
     named_cases['watchdog-board-pair-bundle'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-pair-bundle-board-only'] = evaluate_watchdog_board_pair_bundle_case
+    named_cases['watchdog-board-pair-bundle-keep'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-pair-bundle-keeps'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-pair-bundle-keeps-board-only'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-suite-bundle'] = evaluate_watchdog_board_suite_bundle_append_case
@@ -102725,6 +102730,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-board-suite-bundle-eventlog-appends'] = evaluate_watchdog_board_suite_bundle_append_case
     named_cases['watchdog-board-suite-bundle-eventlogs-append'] = evaluate_watchdog_board_suite_bundle_append_case
     named_cases['watchdog-board-suite-bundle-eventlogs-appends'] = evaluate_watchdog_board_suite_bundle_append_case
+    named_cases['watchdog-board-suite-bundle-keep'] = evaluate_watchdog_board_suite_bundle_keeps_case
     named_cases['watchdog-board-suite-bundle-keeps'] = evaluate_watchdog_board_suite_bundle_keeps_case
     named_cases['watchdog-board-suite-bundle-keeps-append'] = evaluate_watchdog_board_suite_bundle_keeps_append_case
     named_cases['watchdog-board-suite-bundle-keeps-appends'] = evaluate_watchdog_board_suite_bundle_keeps_appends_case
@@ -102804,7 +102810,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-alert-board-pair-bundle'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-board-only'] = evaluate_watchdog_alert_board_pair_bundle_case
+    named_cases['watchdog-alert-board-pair-bundle-keep'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-keeps'] = evaluate_watchdog_alert_board_pair_bundle_case
+    named_cases['watchdog-alert-board-pair-bundle-keep-board-only'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-keeps-board-only'] = evaluate_watchdog_alert_board_pair_bundle_case
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed'] = (
         evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_case
@@ -103017,6 +103025,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         evaluate_watchdog_alert_board_suite_bundle_eventlog_append_case
     )
     named_cases['watchdog-alert-board-suite-bundle-eventlog-appends'] = evaluate_watchdog_alert_board_suite_bundle_append_case
+    named_cases['watchdog-alert-board-suite-bundle-keep'] = (
+        evaluate_watchdog_alert_board_suite_bundle_keeps_case
+    )
     named_cases['watchdog-alert-board-suite-bundle-keeps'] = (
         evaluate_watchdog_alert_board_suite_bundle_keeps_case
     )
