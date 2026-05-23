@@ -101582,6 +101582,8 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['top3-live-output-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-mixed-audit'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-mixed-audit-regression'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-mixed-audit-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
@@ -102796,11 +102798,17 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-text-preset-unsuppressed-keeps'] = (
         evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_keeps_board_only_case
     )
+    named_cases['watchdog-alert-board-text-preset-unsuppressed-keeps-board-only'] = (
+        evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_keeps_board_only_case
+    )
     named_cases['watchdog-alert-board-text-preset-unsuppressed-after-deadline-keeps'] = (
         evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_keeps_board_only_case
     )
     named_cases['watchdog-alert-board-text-preset-unsuppressed-after-deadline-keeps-board-only'] = (
         evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_keeps_board_only_case
+    )
+    named_cases['watchdog-alert-board-text-preset-unsuppressed-board-only'] = (
+        evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_board_only_case
     )
     named_cases['watchdog-alert-board-text-preset-unsuppressed-after-deadline-board-only'] = (
         evaluate_watchdog_alert_board_text_preset_unsuppressed_after_deadline_board_only_case
