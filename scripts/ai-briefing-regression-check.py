@@ -102037,6 +102037,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-full-registry-upper-middle-tredecet-boundary-aligned'] = (
         evaluate_list_cases_full_registry_upper_middle_tredecet_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-upper-middle-tredecet-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-full-registry-upper-middle-tredecet-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-reverse-full-registry-middle-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_middle_boundary_alignment_case
     )
@@ -102277,6 +102280,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-reverse-full-registry-upper-middle-tetravigint-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_upper_middle_tetravigint_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-reverse-upper-middle-tetravigint-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-reverse-full-registry-upper-middle-tetravigint-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-reverse-full-registry-high-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_high_boundary_alignment_case
     )
@@ -102424,6 +102430,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-reverse-full-registry-low-tetravigint-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_low_tetravigint_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-reverse-low-tetravigint-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-reverse-full-registry-low-tetravigint-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-reverse-full-registry-low-tredecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_low_tredecet_boundary_alignment_case
     )
