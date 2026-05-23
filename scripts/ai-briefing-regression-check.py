@@ -101653,6 +101653,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-full-registry-high-quattuordecet-boundary-aligned'] = (
         evaluate_list_cases_full_registry_high_quattuordecet_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-high-quattuordecet-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-full-registry-high-quattuordecet-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-full-registry-high-quindecet-boundary-aligned'] = (
         evaluate_list_cases_full_registry_high_quindecet_boundary_alignment_case
     )
@@ -102091,6 +102094,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-reverse-full-registry-middle-tredecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_middle_tredecet_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-reverse-middle-tredecet-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-reverse-full-registry-middle-tredecet-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-reverse-full-registry-middle-quattuordecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_middle_quattuordecet_boundary_alignment_case
     )
@@ -102172,6 +102178,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-reverse-full-registry-lower-middle-tredecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_lower_middle_tredecet_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-reverse-lower-middle-tredecet-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-reverse-full-registry-lower-middle-tredecet-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-reverse-full-registry-lower-middle-quattuordecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_lower_middle_quattuordecet_boundary_alignment_case
     )
@@ -102331,6 +102340,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-reverse-full-registry-high-quattuordecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_high_quattuordecet_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-reverse-high-quattuordecet-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-reverse-full-registry-high-quattuordecet-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-reverse-full-registry-high-quindecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_high_quindecet_boundary_alignment_case
     )
