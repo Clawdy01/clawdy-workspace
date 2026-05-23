@@ -101635,6 +101635,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['status-summary-audit-cli-keeps-top3-live-output-audit-mixed-regression'] = named_cases[
         'status-summary-audit-cli-keeps-live-output-mixed-audit'
     ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-audit-regression-mixed'] = named_cases[
+        'status-summary-audit-cli-keeps-live-output-mixed-audit'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-regression-mixed-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-live-output-mixed-audit'
+    ]
     named_cases['top3-live-output-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression'] = named_cases['top3-live-output-mixed-audit-sample']
@@ -102897,7 +102903,13 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-keeps'] = (
         evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_keeps_board_only_case
     )
+    named_cases['watchdog-alert-board-pair-bundle-unsuppressed-keep'] = (
+        evaluate_watchdog_alert_board_pair_bundle_unsuppressed_after_deadline_keeps_board_only_case
+    )
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-keeps-board-only'] = (
+        evaluate_watchdog_alert_board_pair_bundle_unsuppressed_keeps_board_only_case
+    )
+    named_cases['watchdog-alert-board-pair-bundle-unsuppressed-keep-board-only'] = (
         evaluate_watchdog_alert_board_pair_bundle_unsuppressed_keeps_board_only_case
     )
     named_cases['watchdog-alert-board-pair-bundle-unsuppressed-board-only'] = (
@@ -102918,7 +102930,13 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-board-pair-bundle-deadline-reached-keeps'] = (
         evaluate_watchdog_alert_board_pair_bundle_deadline_reached_keeps_board_only_case
     )
+    named_cases['watchdog-alert-board-pair-bundle-deadline-reached-keep'] = (
+        evaluate_watchdog_alert_board_pair_bundle_deadline_reached_keeps_board_only_case
+    )
     named_cases['watchdog-alert-board-pair-bundle-deadline-reached-keeps-board-only'] = (
+        evaluate_watchdog_alert_board_pair_bundle_deadline_reached_keeps_board_only_case
+    )
+    named_cases['watchdog-alert-board-pair-bundle-deadline-reached-keep-board-only'] = (
         evaluate_watchdog_alert_board_pair_bundle_deadline_reached_keeps_board_only_case
     )
     named_cases['watchdog-alert-board-pair-bundle-deadline-reached-board-only'] = (
