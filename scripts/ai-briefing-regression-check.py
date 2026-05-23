@@ -101587,6 +101587,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['status-summary-audit-cli-keeps-top3-primary-regression-audit'] = named_cases[
         'status-summary-audit-cli-keeps-top3-primary-fresh-regression-audit'
     ]
+    named_cases['status-summary-audit-cli-keeps-top3-primary-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-primary-fresh-regression-audit'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-primary-fresh-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-primary-fresh-regression-audit'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-primary-fresh'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-primary-fresh-regression-audit'
+    ]
     named_cases['top3-live-output-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression'] = named_cases['top3-live-output-mixed-audit-sample']
