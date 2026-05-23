@@ -101570,11 +101570,19 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['workspace-agents-sample'] = named_cases['workspace-agents-regression-sample']
     named_cases['workspace-agent-sample'] = named_cases['workspace-agents-regression-sample']
     named_cases['workspace-agent-regression-sample'] = named_cases['workspace-agents-regression-sample']
+    named_cases['workspace-agents'] = named_cases['workspace-agents-regression-sample']
+    named_cases['workspace-agent'] = named_cases['workspace-agents-regression-sample']
     named_cases['bronnenlijst-sample'] = named_cases['bronnenlijst-regression-sample']
+    named_cases['bronnenlijst'] = named_cases['bronnenlijst-regression-sample']
     named_cases['top3-primary-fresh-sample'] = named_cases['top3-primary-fresh-regression-sample']
+    named_cases['top3-primary-fresh'] = named_cases['top3-primary-fresh-regression-sample']
     named_cases['top3-primary-regression-sample'] = named_cases['top3-primary-fresh-regression-sample']
     named_cases['top3-primary-sample'] = named_cases['top3-primary-fresh-regression-sample']
+    named_cases['top3-primary'] = named_cases['top3-primary-fresh-regression-sample']
     named_cases['top3-live-output-sample'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-mixed-audit'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-audit'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     proof_recheck_module = load_proof_recheck_module()
@@ -102720,6 +102728,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-board-pair-bundle-board-only'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-pair-bundle-keep'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-pair-bundle-keeps'] = evaluate_watchdog_board_pair_bundle_case
+    named_cases['watchdog-board-pair-bundle-keep-board-only'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-pair-bundle-keeps-board-only'] = evaluate_watchdog_board_pair_bundle_case
     named_cases['watchdog-board-suite-bundle'] = evaluate_watchdog_board_suite_bundle_append_case
     named_cases['watchdog-board-suite-bundle-append'] = evaluate_watchdog_board_suite_bundle_append_case
