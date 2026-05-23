@@ -101572,6 +101572,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['workspace-agent-regression-sample'] = named_cases['workspace-agents-regression-sample']
     named_cases['bronnenlijst-sample'] = named_cases['bronnenlijst-regression-sample']
     named_cases['top3-primary-fresh-sample'] = named_cases['top3-primary-fresh-regression-sample']
+    named_cases['top3-primary-regression-sample'] = named_cases['top3-primary-fresh-regression-sample']
     named_cases['top3-live-output-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
@@ -101635,6 +101636,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-full-registry-high-boundary-aligned'] = (
         evaluate_list_cases_full_registry_high_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-high-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-full-registry-high-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-full-registry-high-quintet-boundary-aligned'] = (
         evaluate_list_cases_full_registry_high_quintet_boundary_alignment_case
     )
@@ -102199,6 +102203,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-list-cases-reverse-full-registry-lower-middle-quattuordecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_lower_middle_quattuordecet_boundary_alignment_case
     )
+    named_cases['registry-keeps-list-cases-reverse-lower-middle-quattuordecet-boundary-aligned'] = named_cases[
+        'registry-keeps-list-cases-reverse-full-registry-lower-middle-quattuordecet-boundary-aligned'
+    ]
     named_cases['registry-keeps-list-cases-reverse-full-registry-lower-middle-quindecet-boundary-aligned'] = (
         evaluate_list_cases_reverse_full_registry_lower_middle_quindecet_boundary_alignment_case
     )
