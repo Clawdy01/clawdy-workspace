@@ -371,6 +371,8 @@ DEFAULT_CASES = [
                 'source_domains': ['openai.com', 'platform.openai.com'],
                 'has_primary_source': True,
                 'primary_source_domains': ['openai.com', 'platform.openai.com'],
+                'primary_source_families': ['openai'],
+                'primary_source_family': 'openai',
                 'primary_fresh_issue': 'stale-date',
             },
             {
@@ -385,6 +387,8 @@ DEFAULT_CASES = [
                 'source_domains': ['blog.google', 'developers.googleblog.com'],
                 'has_primary_source': True,
                 'primary_source_domains': ['blog.google', 'developers.googleblog.com'],
+                'primary_source_families': ['google'],
+                'primary_source_family': 'google',
                 'primary_fresh_issue': 'stale-date',
             },
         ],
@@ -480,6 +484,8 @@ DEFAULT_CASES = [
                 'source_domains': ['anthropic.com', 'engadget.com'],
                 'has_primary_source': True,
                 'primary_source_domains': ['anthropic.com'],
+                'primary_source_families': ['anthropic'],
+                'primary_source_family': 'anthropic',
                 'primary_fresh_issue': 'stale-date',
             },
             {
@@ -494,6 +500,8 @@ DEFAULT_CASES = [
                 'source_domains': ['csoonline.com', 'microsoft.com'],
                 'has_primary_source': True,
                 'primary_source_domains': ['microsoft.com'],
+                'primary_source_families': ['microsoft'],
+                'primary_source_family': 'microsoft',
                 'primary_fresh_issue': 'stale-date',
             },
         ],
@@ -510,6 +518,8 @@ DEFAULT_CASES = [
                 'source_domains': ['anthropic.com', 'engadget.com'],
                 'has_primary_source': True,
                 'primary_source_domains': ['anthropic.com'],
+                'primary_source_families': ['anthropic'],
+                'primary_source_family': 'anthropic',
                 'primary_fresh_issue': 'stale-date',
             },
             {
@@ -524,6 +534,8 @@ DEFAULT_CASES = [
                 'source_domains': ['csoonline.com', 'microsoft.com'],
                 'has_primary_source': True,
                 'primary_source_domains': ['microsoft.com'],
+                'primary_source_families': ['microsoft'],
+                'primary_source_family': 'microsoft',
                 'primary_fresh_issue': 'stale-date',
             },
         ],
@@ -10691,6 +10703,21 @@ def load_watchdog_alert_module():
     return module
 
 
+def assert_output_audit_focus_aliases_from_status_payload(payload, failures, label):
+    last_run_summary = payload.get('last_run_summary') or {}
+    summary_output_audit = last_run_summary.get('summary_output_audit') or {}
+    if not summary_output_audit:
+        return
+
+    expected_focus = load_status_module().summarize_output_audit_focus(summary_output_audit)
+    for key, expected_value in expected_focus.items():
+        actual_value = payload.get(key)
+        if actual_value != expected_value:
+            failures.append(
+                f"{label} {key} verwacht alias-pariteit met summarize_output_audit_focus, kreeg {actual_value} versus {expected_value}"
+            )
+
+
 def collect_audit_expectation_failures(case, audit, failures):
     if 'expect_available' in case and audit.get('available') != case['expect_available']:
         failures.append(
@@ -11626,6 +11653,11 @@ def evaluate_status_stdout_case(case):
             'proof_recheck_schedule_kind_text verwacht proof-recheck-cronstatus: ok, kreeg '
             f"{payload.get('proof_recheck_schedule_kind_text')}"
         )
+    assert_output_audit_focus_aliases_from_status_payload(
+        payload,
+        failures,
+        'ai-briefing-status stdout-json',
+    )
     if payload.get('proof_freshness_text') != expected_status.get('proof_freshness_text'):
         failures.append(
             'proof_freshness_text verwacht '
@@ -12470,6 +12502,24 @@ def evaluate_proof_recheck_case(case):
             'last_run_config_relation_text verwacht '
             f"{expected_last_run_config_relation_text}, kreeg {payload.get('last_run_config_relation_text')}"
         )
+    status_payload = run_status_json(case['reference_ms'])
+    for key in [
+        'last_run_output_audit_ok',
+        'last_run_output_audit_text',
+        'last_run_output_audit_item_count',
+        'last_run_output_audit_multi_domain_top3_count',
+        'last_run_output_audit_fresh_top3_count',
+        'last_run_output_audit_primary_fresh_top3_count',
+        'last_run_output_audit_missing_recent_date_examples',
+        'last_run_output_audit_missing_fresh_examples',
+        'last_run_output_audit_missing_primary_fresh_examples',
+        'last_run_output_audit_missing_fresh_details',
+        'last_run_output_audit_missing_primary_fresh_details',
+    ]:
+        if payload.get(key) != status_payload.get(key):
+            failures.append(
+                f"proof-recheck-payload {key} verwacht pariteit met ai-briefing-status.py, kreeg {payload.get(key)} versus {status_payload.get(key)}"
+            )
     if payload.get('proof_progress_text') and not payload.get('last_run_timeout_text'):
         failures.append('last_run_timeout_text ontbreekt in proof-recheck-payload')
     if payload.get('proof_progress_text') and not payload.get('recent_run_duration_text'):

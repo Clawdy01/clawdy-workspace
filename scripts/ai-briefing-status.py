@@ -874,10 +874,18 @@ def build_top3_date_detail_examples(titles, date_lines, date_values, now_ms, *, 
                 domain for domain in domains
                 if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
             })
+            primary_families = sorted({
+                PRIMARY_SOURCE_FAMILIES[root]
+                for domain in primary_domains
+                for root in PRIMARY_SOURCE_DOMAINS
+                if domain == root or domain.endswith(f'.{root}')
+            })
             has_primary_source = bool(primary_domains)
             detail['source_domains'] = domains
             detail['has_primary_source'] = has_primary_source
             detail['primary_source_domains'] = primary_domains
+            detail['primary_source_families'] = primary_families
+            detail['primary_source_family'] = primary_families[0] if len(primary_families) == 1 else None
             if has_primary_source and is_fresh:
                 detail['primary_fresh_issue'] = None
             elif has_primary_source:
@@ -2470,18 +2478,23 @@ def summarize_output_audit_focus(summary_output_audit):
             'date_text': detail.get('date_text'),
             'freshness_issue': detail.get('freshness_issue'),
             'primary_fresh_issue': detail.get('primary_fresh_issue'),
+            'primary_source_family': detail.get('primary_source_family'),
+            'primary_source_families': detail.get('primary_source_families'),
         })
 
     missing_primary_fresh_details = []
     for detail in (summary_output_audit.get('top3_missing_primary_fresh_details') or [])[:3]:
         if not isinstance(detail, dict):
             continue
+        primary_domains = detail.get('primary_source_domains') or []
         missing_primary_fresh_details.append({
             'title': detail.get('title'),
             'date_text': detail.get('date_text'),
             'freshness_issue': detail.get('freshness_issue'),
             'primary_fresh_issue': detail.get('primary_fresh_issue'),
-            'primary_domain': detail.get('primary_domain'),
+            'primary_domain': primary_domains[0] if len(primary_domains) == 1 else None,
+            'primary_source_family': detail.get('primary_source_family'),
+            'primary_source_families': detail.get('primary_source_families'),
         })
 
     return {
