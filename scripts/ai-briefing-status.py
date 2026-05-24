@@ -53,8 +53,8 @@ REQUIRED_PROMPT_MARKERS = [
     'een recentere secundaire berichtdatum mag een oudere primaire bron nooit redden',
     'Als de Datum:-regel alleen een kalenderdatum zonder tijd noemt op de 48-uursgrens, behandel die datum conservatief als te oud',
     'Twijfelgevalregel: bij vaste run rond 09:00 CEST telt een kale datum van twee dagen geleden niet als vers bewijs zonder expliciete tijd',
-    'Als er weinig echt nieuws is, zeg dat eerlijk, maar blijf dan doorzoeken tot je 3 valide items met een echte 48-uurs datum hebt; lever nooit oudere items als opvulling',
-    'Als je na verbreden over de 7 categorieën nog steeds geen 3 valide verse items hebt, lever dan liever minder items of expliciet geen briefing dan oudere of twijfelachtige opvulling',
+    'Als er weinig echt nieuws is, zeg dat eerlijk en verbreed actief over alle 7 categorieën naar verse kandidaten',
+    'Als je daarna nog steeds geen 3 volledig valide verse items hebt, lever dan liever minder items of expliciet geen briefing dan oudere of twijfelachtige opvulling; lever nooit oudere items als opvulling',
     'zo niet, herschrijf of verwijder de foutieve items eerst',
     'Als één item faalt op labels, URL(s) of datumregel',
     'Relevant voor Christian',
@@ -1764,7 +1764,11 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(
             f"{len(missing_markers)} verplichte sectie(s) missen: {', '.join(missing_markers)}"
         )
-    if item_marker_min_count < 3:
+    explicit_no_briefing_mode = (
+        item_count == 0
+        and 'geen briefingitems vandaag' in normalized_text
+    )
+    if item_marker_min_count < 3 and not explicit_no_briefing_mode:
         reasons.append(
             'te weinig briefingitems met titel/nieuw/belangrijk-structuur '
             f"(min {item_marker_min_count}, verwacht minstens 3)"
@@ -1800,7 +1804,7 @@ def audit_summary_output(summary_text, reference_ms=None):
     if missing_nonredundant_alternative_groups:
         reasons.append(f"{len(missing_nonredundant_alternative_groups)} verplichte outputanker(s) missen")
     if 'Bronnenlijst' not in missing_markers:
-        if bronnenlijst_url_count == 0 and not bronnenlijst_invalid_lines:
+        if bronnenlijst_url_count == 0 and not bronnenlijst_invalid_lines and not explicit_no_briefing_mode:
             reasons.append('Bronnenlijst is leeg of mist kale URL-regels')
         if bronnenlijst_invalid_lines:
             reason = f'Bronnenlijst bevat niet-URL regels ({len(bronnenlijst_invalid_lines)})'
@@ -1821,7 +1825,7 @@ def audit_summary_output(summary_text, reference_ms=None):
             reason = f'Bronnenlijst bevat dubbele URLs ({len(bronnenlijst_duplicate_urls)})'
             reason += f": {', '.join(bronnenlijst_duplicate_urls[:3])}"
             reasons.append(reason)
-    if source_url_count < MIN_SOURCE_URLS:
+    if source_url_count < MIN_SOURCE_URLS and not explicit_no_briefing_mode:
         reasons.append(f'te weinig geldige bron-URLs op geldige Bron:-regels ({source_url_count})')
     if item_count and unique_source_url_count < item_count:
         reasons.append(
@@ -1953,11 +1957,30 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(
             f'verdachte toekomstige datums in briefing ({future_dated_item_count} item(s), tolerantie {FUTURE_DATE_TOLERANCE_DAYS} dag)'
         )
-    if category_theme_count < MIN_CATEGORY_THEME_COVERAGE:
+    if category_theme_count < MIN_CATEGORY_THEME_COVERAGE and not explicit_no_briefing_mode:
         reasons.append(f'te weinig briefingcategorieën zichtbaar ({category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)})')
 
+    if explicit_no_briefing_mode and bronnenlijst_invalid_lines:
+        reason = f'Bronnenlijst bevat niet-URL regels ({len(bronnenlijst_invalid_lines)})'
+        reason += f": {', '.join(bronnenlijst_invalid_lines[:3])}"
+        reasons.append(reason)
+
+    if explicit_no_briefing_mode and bronnenlijst_url_count:
+        reason = f'Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems ({bronnenlijst_url_count} URL(s))'
+        if bronnenlijst_urls:
+            reason += f": {', '.join(bronnenlijst_urls[:3])}"
+        reasons.append(reason)
+
+    if explicit_no_briefing_mode and source_url_count:
+        reasons.append(
+            f'expliciet geen briefingitems vandaag botst met item-bron-URLs ({source_url_count})'
+        )
+
     ok_text = (
-        f'briefing-output ok ({item_count} items, {source_url_count} geldige bron-URLs, {unique_source_url_count} uniek, '
+        'briefing-output ok zonder briefingitems '
+        '(0 items, expliciet geen briefingitems vandaag, lege Bronnenlijst toegestaan)'
+        if explicit_no_briefing_mode and not reasons
+        else f'briefing-output ok ({item_count} items, {source_url_count} geldige bron-URLs, {unique_source_url_count} uniek, '
         f'Bronnenlijst {bronnenlijst_unique_url_count}/{unique_source_url_count} unieke URLs, '
         f'titels {unique_item_title_count}/{item_count} uniek, items met juiste labelvolgorde {items_with_exact_field_order_count}/{item_count}, items met bron {items_with_source_count}/{item_count}, '
         f'geldige Bron:-regels {items_with_valid_source_line_count}/{item_count}, '
@@ -1992,6 +2015,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'item_marker_min_count': item_marker_min_count,
         'missing_alternative_groups': missing_alternative_groups,
         'missing_nonredundant_alternative_groups': missing_nonredundant_alternative_groups,
+        'explicit_no_briefing_mode': explicit_no_briefing_mode,
         'bronnenlijst_url_count': bronnenlijst_url_count,
         'bronnenlijst_unique_url_count': bronnenlijst_unique_url_count,
         'bronnenlijst_urls': bronnenlijst_urls,
