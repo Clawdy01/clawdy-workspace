@@ -101735,6 +101735,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-producer-quiet-falls-back-to-requested-outputs'] = (
         lambda producer_module=proof_recheck_producer_module: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)
     )
+    named_cases['proof-recheck-producer-quiet-fallback-to-requested-outputs'] = named_cases[
+        'proof-recheck-producer-quiet-falls-back-to-requested-outputs'
+    ]
+    named_cases['proof-recheck-producer-quiet-requested-outputs-fallback'] = named_cases[
+        'proof-recheck-producer-quiet-falls-back-to-requested-outputs'
+    ]
+    named_cases['proof-recheck-producer-quiet-requested-outputs-falls-back'] = named_cases[
+        'proof-recheck-producer-quiet-falls-back-to-requested-outputs'
+    ]
     named_cases['regression-check-list-cases-output'] = evaluate_list_cases_output_case
     named_cases['registry-keeps-list-cases-output'] = evaluate_list_cases_output_case
     named_cases['registry-keeps-list-cases-success-registry-aligned'] = (
