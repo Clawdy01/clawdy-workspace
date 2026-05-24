@@ -2457,6 +2457,48 @@ def summarize_output_examples(summary_output_audit):
     return examples[:3]
 
 
+def summarize_output_audit_focus(summary_output_audit):
+    if not isinstance(summary_output_audit, dict) or not summary_output_audit.get('available'):
+        return {}
+
+    missing_fresh_details = []
+    for detail in (summary_output_audit.get('top3_missing_fresh_details') or [])[:3]:
+        if not isinstance(detail, dict):
+            continue
+        missing_fresh_details.append({
+            'title': detail.get('title'),
+            'date_text': detail.get('date_text'),
+            'freshness_issue': detail.get('freshness_issue'),
+            'primary_fresh_issue': detail.get('primary_fresh_issue'),
+        })
+
+    missing_primary_fresh_details = []
+    for detail in (summary_output_audit.get('top3_missing_primary_fresh_details') or [])[:3]:
+        if not isinstance(detail, dict):
+            continue
+        missing_primary_fresh_details.append({
+            'title': detail.get('title'),
+            'date_text': detail.get('date_text'),
+            'freshness_issue': detail.get('freshness_issue'),
+            'primary_fresh_issue': detail.get('primary_fresh_issue'),
+            'primary_domain': detail.get('primary_domain'),
+        })
+
+    return {
+        'last_run_output_audit_ok': summary_output_audit.get('ok'),
+        'last_run_output_audit_text': summary_output_audit.get('text'),
+        'last_run_output_audit_item_count': summary_output_audit.get('item_count'),
+        'last_run_output_audit_multi_domain_top3_count': summary_output_audit.get('first3_items_with_multi_domain_sources_count'),
+        'last_run_output_audit_fresh_top3_count': summary_output_audit.get('fresh_dated_first3_count'),
+        'last_run_output_audit_primary_fresh_top3_count': summary_output_audit.get('first3_primary_fresh_item_count'),
+        'last_run_output_audit_missing_recent_date_examples': (summary_output_audit.get('top3_missing_recent_date_examples') or [])[:3],
+        'last_run_output_audit_missing_fresh_examples': (summary_output_audit.get('top3_missing_fresh_examples') or [])[:3],
+        'last_run_output_audit_missing_primary_fresh_examples': (summary_output_audit.get('top3_missing_primary_fresh_examples') or [])[:3],
+        'last_run_output_audit_missing_fresh_details': missing_fresh_details,
+        'last_run_output_audit_missing_primary_fresh_details': missing_primary_fresh_details,
+    }
+
+
 def audit_payload(job):
     payload = job.get('payload') or {}
     message = payload.get('message') or ''
@@ -2912,6 +2954,7 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
         'proof_freshness_text': proof_freshness.get('text') or None,
         'summary_output_examples': summarize_output_examples(last_run_output_audit),
         'expected_proof_freshness_wait': expected_proof_freshness_wait,
+        **summarize_output_audit_focus(last_run_output_audit),
         'state': state,
         'created_at': created_at,
         'created_at_text': fmt_ts(created_at, tz_name),
