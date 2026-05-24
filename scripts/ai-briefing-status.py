@@ -929,6 +929,70 @@ def extract_exact_heading_section_lines(text, heading):
     return [line.rstrip() for line in lines[heading_index + 1:]]
 
 
+def extract_narrative_section_lines(text):
+    if not isinstance(text, str):
+        return {}
+    lines = text.splitlines()
+    sections = {}
+
+    first_item_index = None
+    item_start_re = re.compile(r'(?im)^\s*(?:\d+[\.)]\s+)?titel:\s*')
+    category_heading_re = re.compile(r'^\s*\d+\)\s+')
+    for index, raw_line in enumerate(lines):
+        stripped = raw_line.strip()
+        if item_start_re.match(stripped) or category_heading_re.match(stripped):
+            first_item_index = index
+            break
+
+    if first_item_index is not None:
+        intro_lines = [line.rstrip() for line in lines[1:first_item_index] if line.strip()]
+        if intro_lines:
+            sections['intro'] = intro_lines
+
+    exact_heading_indexes = {}
+    for index, raw_line in enumerate(lines):
+        stripped = raw_line.strip()
+        if stripped in REQUIRED_OUTPUT_MARKERS:
+            exact_heading_indexes[stripped] = index
+
+    action_start = exact_heading_indexes.get('Wat moeten wij hiermee?')
+    priority_start = exact_heading_indexes.get('Wat ik vandaag het belangrijkst vind')
+    bronnen_start = exact_heading_indexes.get('Bronnenlijst')
+
+    if action_start is not None and priority_start is not None and action_start < priority_start:
+        action_lines = [line.rstrip() for line in lines[action_start + 1:priority_start] if line.strip()]
+        if action_lines:
+            sections['wat_moeten_wij_hiermee'] = action_lines
+
+    if priority_start is not None and bronnen_start is not None and priority_start < bronnen_start:
+        priority_lines = [line.rstrip() for line in lines[priority_start + 1:bronnen_start] if line.strip()]
+        if priority_lines:
+            sections['wat_ik_vandaag_het_belangrijkst_vind'] = priority_lines
+
+    return sections
+
+
+def analyze_narrative_section_issues(section_lines):
+    issues = []
+    for raw_line in section_lines or []:
+        stripped = raw_line.strip()
+        if not stripped:
+            continue
+        line_issues = []
+        if re.search(r'(?i)https?://\S+', stripped):
+            line_issues.append('url')
+        if any(stripped.startswith(prefix) for prefix in REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES):
+            line_issues.append('item-field-label')
+        if DATE_PATTERN.search(stripped):
+            line_issues.append('date')
+        if line_issues:
+            issues.append({
+                'line': stripped,
+                'issues': line_issues,
+            })
+    return issues
+
+
 def extract_bare_url_lines(lines):
     bare_urls = []
     invalid_lines = []
@@ -1770,6 +1834,20 @@ def audit_summary_output(summary_text, reference_ms=None):
         if any(keyword in normalized_text for keyword in keywords)
     ]
     category_theme_count = len(category_theme_hits)
+    narrative_section_lines = extract_narrative_section_lines(summary_text)
+    narrative_section_issue_details = {
+        name: analyze_narrative_section_issues(lines)
+        for name, lines in narrative_section_lines.items()
+    }
+    narrative_section_issue_details = {
+        name: issues
+        for name, issues in narrative_section_issue_details.items()
+        if issues
+    }
+    narrative_section_issue_counts = {
+        name: len(issues)
+        for name, issues in narrative_section_issue_details.items()
+    }
     reasons = []
     if missing_markers:
         reasons.append(
@@ -1968,6 +2046,24 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(
             f'verdachte toekomstige datums in briefing ({future_dated_item_count} item(s), tolerantie {FUTURE_DATE_TOLERANCE_DAYS} dag)'
         )
+    if narrative_section_issue_details:
+        section_labels = {
+            'intro': 'intro',
+            'wat_moeten_wij_hiermee': 'sectie Wat moeten wij hiermee?',
+            'wat_ik_vandaag_het_belangrijkst_vind': 'sectie Wat ik vandaag het belangrijkst vind',
+        }
+        examples = []
+        for name, issues in narrative_section_issue_details.items():
+            label = section_labels.get(name, name)
+            for issue in issues[:2]:
+                examples.append(f"{label} -> {issue['line']}")
+        reason = (
+            'narratieve secties bevatten itembewijs buiten de itemblokken '
+            f"({sum(narrative_section_issue_counts.values())} regel(s))"
+        )
+        if examples:
+            reason += f": {', '.join(examples[:3])}"
+        reasons.append(reason)
     if category_theme_count < MIN_CATEGORY_THEME_COVERAGE and not explicit_no_briefing_mode:
         reasons.append(f'te weinig briefingcategorieën zichtbaar ({category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)})')
 
@@ -2104,6 +2200,8 @@ def audit_summary_output(summary_text, reference_ms=None):
         'future_dated_first3_count': future_dated_first3_count,
         'explicit_future_dated_item_count': explicit_future_dated_item_count,
         'explicit_future_dated_first3_count': explicit_future_dated_first3_count,
+        'narrative_section_issue_counts': narrative_section_issue_counts,
+        'narrative_section_issue_details': narrative_section_issue_details,
         'first3_evidenced_item_count': first3_evidenced_item_count,
         'first3_primary_fresh_item_count': first3_primary_fresh_item_count,
         'top3_missing_primary_fresh_examples': top3_missing_primary_fresh_examples,
