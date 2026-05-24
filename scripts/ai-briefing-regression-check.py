@@ -9980,6 +9980,7 @@ PROOF_RECHECK_CASES = [
         'expect_proof_wait_until_at': STATUS_BEFORE_SLOT_TOMORROW.get('proof_wait_until_at'),
         'expect_proof_wait_until_text': STATUS_BEFORE_SLOT_TOMORROW.get('proof_wait_until_text'),
         'expect_proof_wait_until_reason_text': STATUS_BEFORE_SLOT_TOMORROW.get('proof_wait_until_reason_text'),
+        'expect_proof_today_block_text': STATUS_BEFORE_SLOT_TOMORROW.get('proof_today_block_text'),
         'expect_proof_recheck_after_at': STATUS_BEFORE_SLOT_TOMORROW.get('proof_recheck_after_at'),
         'expect_proof_wait_until_remaining_ms': STATUS_BEFORE_SLOT_TOMORROW.get('proof_wait_until_remaining_ms'),
         'expect_proof_next_qualifying_slot_at': STATUS_BEFORE_SLOT_TOMORROW.get('proof_next_qualifying_slot_at'),
@@ -10022,6 +10023,7 @@ PROOF_RECHECK_CASES = [
         'expect_proof_wait_until_at': STATUS_CURRENT_SLOT_GRACE.get('proof_wait_until_at'),
         'expect_proof_wait_until_text': STATUS_CURRENT_SLOT_GRACE.get('proof_wait_until_text'),
         'expect_proof_wait_until_reason_text': STATUS_CURRENT_SLOT_GRACE.get('proof_wait_until_reason_text'),
+        'expect_proof_today_block_text': STATUS_CURRENT_SLOT_GRACE.get('proof_today_block_text'),
         'expect_proof_recheck_after_at': STATUS_CURRENT_SLOT_GRACE.get('proof_recheck_after_at'),
         'expect_proof_wait_until_remaining_ms': STATUS_CURRENT_SLOT_GRACE.get('proof_wait_until_remaining_ms'),
         'expect_proof_next_qualifying_slot_at': STATUS_CURRENT_SLOT_GRACE.get('proof_next_qualifying_slot_at'),
@@ -10064,6 +10066,7 @@ PROOF_RECHECK_CASES = [
         'expect_proof_wait_until_at': None,
         'expect_proof_wait_until_text': None,
         'expect_proof_wait_until_reason_text': None,
+        'expect_proof_today_block_text': STATUS_RECHECK_WINDOW_OPEN.get('proof_today_block_text'),
         'expect_proof_recheck_after_at': STATUS_RECHECK_WINDOW_OPEN.get('proof_recheck_after_at'),
         'expect_proof_wait_until_remaining_ms': None,
         'expect_proof_next_qualifying_slot_at': STATUS_RECHECK_WINDOW_OPEN.get('proof_next_qualifying_slot_at'),
@@ -10112,6 +10115,7 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_wait_until_at': STATUS_BEFORE_SLOT_TOMORROW.get('proof_wait_until_at'),
         'expect_proof_wait_until_text': STATUS_BEFORE_SLOT_TOMORROW.get('proof_wait_until_text'),
         'expect_proof_wait_until_reason_text': STATUS_BEFORE_SLOT_TOMORROW.get('proof_wait_until_reason_text'),
+        'expect_proof_today_block_text': STATUS_BEFORE_SLOT_TOMORROW.get('proof_today_block_text'),
         'expect_proof_recheck_after_at': STATUS_BEFORE_SLOT_TOMORROW.get('proof_recheck_after_at'),
         'expect_proof_wait_until_remaining_ms': STATUS_BEFORE_SLOT_TOMORROW.get('proof_wait_until_remaining_ms'),
         'expect_proof_next_qualifying_slot_at': STATUS_BEFORE_SLOT_TOMORROW.get('proof_next_qualifying_slot_at'),
@@ -10163,8 +10167,8 @@ PROOF_RECHECK_PRODUCER_CASES = [
         'expect_proof_wait_until_at': None,
         'expect_proof_wait_until_text': None,
         'expect_proof_wait_until_reason_text': None,
-        'expect_proof_recheck_after_at': STATUS_RECHECK_WINDOW_OPEN.get('proof_recheck_after_at'),
-        'expect_proof_wait_until_remaining_ms': None,
+        'expect_proof_today_block_text': STATUS_RECHECK_WINDOW_OPEN.get('proof_today_block_text'),
+        'expect_proof_recheck_after_at': STATUS_RECHECK_WINDOW_OPEN.get('proof_recheck_after_at'),        'expect_proof_wait_until_remaining_ms': None,
         'expect_proof_next_qualifying_slot_at': STATUS_RECHECK_WINDOW_OPEN.get('proof_next_qualifying_slot_at'),
         'expect_proof_next_qualifying_slot_remaining_ms': STATUS_RECHECK_WINDOW_OPEN.get('proof_next_qualifying_slot_remaining_ms'),
         'expect_proof_target_due_at': STATUS_RECHECK_WINDOW_OPEN.get('proof_target_due_at'),
@@ -12335,6 +12339,11 @@ def evaluate_proof_recheck_case(case):
             'proof_wait_until_reason_text verwacht '
             f"{case.get('expect_proof_wait_until_reason_text')}, kreeg {payload.get('proof_wait_until_reason_text')}"
         )
+    if payload.get('proof_today_block_text') != case.get('expect_proof_today_block_text'):
+        failures.append(
+            'proof_today_block_text verwacht '
+            f"{case.get('expect_proof_today_block_text')}, kreeg {payload.get('proof_today_block_text')}"
+        )
     if payload.get('proof_recheck_after_at') != case.get('expect_proof_recheck_after_at'):
         failures.append(
             f"proof_recheck_after_at verwacht {case.get('expect_proof_recheck_after_at')}, kreeg {payload.get('proof_recheck_after_at')}"
@@ -12826,6 +12835,11 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'overall.proof_wait_until_reason_text verwacht '
                 f"{case.get('expect_proof_wait_until_reason_text')}, kreeg {overall.get('proof_wait_until_reason_text')}"
+            )
+        if overall.get('proof_today_block_text') != case.get('expect_proof_today_block_text'):
+            failures.append(
+                'overall.proof_today_block_text verwacht '
+                f"{case.get('expect_proof_today_block_text')}, kreeg {overall.get('proof_today_block_text')}"
             )
         if overall.get('proof_recheck_after_at') != case.get('expect_proof_recheck_after_at'):
             failures.append(
