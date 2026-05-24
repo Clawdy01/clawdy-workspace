@@ -86,7 +86,7 @@ REQUIRED_FORMAT_MARKERS = [
     "- Relevant voor Christian",
     "geen bulletlabels als '- Wat is er nieuw'",
     'Gebruik geen alternatieve labels, geen genummerde itemkoppen, geen bullet-only itemstructuur',
-    "De briefing is mislukt als je minder dan 3 items met letterlijk 'Titel:' oplevert.",
+    'Als 3 volledig valide verse items niet haalbaar zijn, lever dan liever minder items of expliciet geen briefing dan oudere of twijfelachtige opvulling.',
     'Verplicht zelfcheck-blok vóór versturen:',
     'Verplicht top-3 zelfcheck:',
     'Publiceer nooit een half-geldig item.',
@@ -854,6 +854,7 @@ def fmt_date_ymd(ms):
 def build_top3_date_detail_examples(titles, date_lines, date_values, now_ms, *, fresh_cutoff_ms, source_domains=None):
     details = []
     for index, (title, date_line, date_value) in enumerate(zip(titles[:3], date_lines[:3], date_values[:3])):
+        is_fresh = bool(date_value is not None and date_value > fresh_cutoff_ms)
         detail = {
             'title': title,
             'position': index + 1,
@@ -861,17 +862,30 @@ def build_top3_date_detail_examples(titles, date_lines, date_values, now_ms, *, 
             'date_text': normalize_date_line_value(date_line),
             'date_value_text': fmt_date_ymd(date_value),
             'has_date': date_value is not None,
-            'is_fresh': bool(date_value is not None and date_value > fresh_cutoff_ms),
+            'is_fresh': is_fresh,
         }
+        if not detail['has_date']:
+            detail['freshness_issue'] = 'missing-date'
+        elif not is_fresh:
+            detail['freshness_issue'] = 'stale-date'
         if source_domains is not None:
             domains = sorted(set(source_domains[index] or []))
             primary_domains = sorted({
                 domain for domain in domains
                 if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
             })
+            has_primary_source = bool(primary_domains)
             detail['source_domains'] = domains
-            detail['has_primary_source'] = bool(primary_domains)
+            detail['has_primary_source'] = has_primary_source
             detail['primary_source_domains'] = primary_domains
+            if has_primary_source and is_fresh:
+                detail['primary_fresh_issue'] = None
+            elif has_primary_source:
+                detail['primary_fresh_issue'] = 'stale-date'
+            elif is_fresh:
+                detail['primary_fresh_issue'] = 'missing-primary-source'
+            else:
+                detail['primary_fresh_issue'] = 'missing-primary-source-and-fresh-date'
         details.append(detail)
     return details
 
