@@ -101620,6 +101620,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['status-summary-audit-cli-keeps-top3-live-output-mixed'] = named_cases[
         'status-summary-audit-cli-keeps-live-output-mixed-audit'
     ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-audit-mixed'] = named_cases[
+        'status-summary-audit-cli-keeps-live-output-mixed-audit'
+    ]
     named_cases['status-summary-audit-cli-keeps-top3-live-output-mixed-regression'] = named_cases[
         'status-summary-audit-cli-keeps-live-output-mixed-audit'
     ]
@@ -101650,21 +101653,30 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['top3-live-output-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-mixed'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-mixed-audit'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-mixed-audit-regression'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-mixed-audit-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-mixed-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-mixed-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-mixed-regression'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-mixed-regression-audit'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-mixed-regression-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-mixed-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-regression'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-audit-regression-mixed'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-audit-regression-mixed-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-audit-mixed'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-mixed-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-mixed-regression'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-audit-mixed-regression-audit'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-mixed-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-audit'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-regression-audit-mixed'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-regression-audit-mixed-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-mixed'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-mixed-audit'] = named_cases['top3-live-output-mixed-audit-sample']
