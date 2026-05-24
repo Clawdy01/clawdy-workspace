@@ -116,6 +116,11 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         result_kind = 'proof-target-met'
         result_text = 'hercheck bevestigt dat het bewijsdoel gehaald is'
 
+    result_evidence_text = None
+    if summary_output_examples and not (proof_target_met and watchdog_ok):
+        result_evidence_text = 'inhoudelijke blockers: ' + '; '.join(str(example) for example in summary_output_examples[:2])
+        result_text = f'{result_text}; {result_evidence_text}'
+
     summary_bits = [
         status_data.get('summary') or status_data.get('status_text'),
         watchdog_data.get('proof_progress_text'),
@@ -129,6 +134,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'exit_code': exit_code,
         'result_kind': result_kind,
         'result_text': result_text,
+        'result_evidence_text': result_evidence_text,
         'summary': summary,
         'reference_now_text': first_non_null(status_data.get('reference_now_text'), watchdog_data.get('reference_now_text')),
         'reference_context_text': first_non_null(status_data.get('reference_context_text'), watchdog_data.get('reference_context_text')),
