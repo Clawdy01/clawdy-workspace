@@ -1,0 +1,44 @@
+Dagelijkse AI-update, zondag 24 mei 2026
+
+Korte intro: dit sample legt de actuele live roodstand vast waarbij alle top-3 items wel multi-domein bronregels hebben, maar slechts één item binnen 48 uur vers blijft en daardoor ook maar één item de primaire+verse combocheck haalt.
+
+1) belangrijke researchdoorbraken of capabilities
+Titel: Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview
+Bron: https://www.anthropic.com/research/glasswing-initial-update https://www.engadget.com/2180028/anthropic-claude-mythos-preview-project-glasswing-update/
+Datum: 2026-05-22
+Wat is er nieuw: Anthropic meldt een eerste publieke update over Project Glasswing en Claude Mythos Preview met concrete vulnerability-discovery-resultaten bij partners en open-source projecten.
+Waarom is dit belangrijk: Dit is inhoudelijk sterk en multi-domein onderbouwd, maar hoort buiten het 48-uursvenster alsnog als niet vers te tellen.
+Relevant voor Christian: Goed regressieanker voor een sterk item dat toch rood moet blijven op versheid.
+
+2) open-source tooling en agents
+Titel: Tencent open-sourcet TencentDB Agent Memory voor long-horizon agents
+Bron: https://github.com/Tencent/TencentDB-Agent-Memory https://www.marktechpost.com/2026/05/23/tencent-open-sources-tencentdb-agent-memory-a-4-tier-local-memory-pipeline-for-ai-agents/
+Datum: 2026-05-23
+Wat is er nieuw: Tencent zet TencentDB Agent Memory open als MIT-project met een meerlagige geheugenstack voor AI-agents.
+Waarom is dit belangrijk: Dit item hoort juist als het enige verse top-3 item binnen 48 uur groen te blijven.
+Relevant voor Christian: Referentiepunt voor de enige top-3 kandidaat die tegelijk primair en vers genoeg is.
+
+3) enterprise security en agent safety
+Titel: Microsoft zet agent safety meer om in tooling met RAMPART en Clarity
+Bron: https://www.microsoft.com/en-us/security/blog/2026/05/20/introducing-rampart-and-clarity-open-source-tools-to-bring-safety-into-agent-development-workflow/ https://www.csoonline.com/article/4175592/microsoft-releases-open-source-tools-to-operationalize-ai-agent-safety-2.html
+Datum: 2026-05-20
+Wat is er nieuw: Microsoft brengt RAMPART en Clarity naar voren als open tooling om agent safety in ontwikkelworkflows te operationaliseren, met onafhankelijke verslaggeving van CSO Online.
+Waarom is dit belangrijk: Dit item is inhoudelijk relevant en goed onderbouwd, maar de primaire Microsoft-post valt buiten het 48-uursvenster en moet daarom niet als vers meetellen.
+Relevant voor Christian: Houdt de audit scherp op het verschil tussen inhoudelijke relevantie en verse primaire onderbouwing.
+
+Wat moeten wij hiermee?
+- Bewaak dat sterke maar oudere primaire posts niet stil als vers top-3 bewijs meetellen.
+- Bewaak dat de live briefing rood blijft zolang slechts één top-3 item zowel primair als vers is.
+
+Wat ik vandaag het belangrijkst vind
+- Alle drie top-3 items hebben multi-domein bronregels.
+- Alleen Tencent blijft vers binnen 48 uur.
+- Alleen Tencent combineert primaire bron en verse datum.
+
+Bronnenlijst
+https://www.anthropic.com/research/glasswing-initial-update
+https://www.engadget.com/2180028/anthropic-claude-mythos-preview-project-glasswing-update/
+https://github.com/Tencent/TencentDB-Agent-Memory
+https://www.marktechpost.com/2026/05/23/tencent-open-sources-tencentdb-agent-memory-a-4-tier-local-memory-pipeline-for-ai-agents/
+https://www.microsoft.com/en-us/security/blog/2026/05/20/introducing-rampart-and-clarity-open-source-tools-to-bring-safety-into-agent-development-workflow/
+https://www.csoonline.com/article/4175592/microsoft-releases-open-source-tools-to-operationalize-ai-agent-safety-2.html

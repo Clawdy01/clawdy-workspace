@@ -298,6 +298,47 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'top3-live-output-freshness-blocker-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-live-output-freshness-blocker-sample.txt',
+        'reference_ms': 1779610500000,
+        'expect_ok': False,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_multiple_sources_count': 3,
+        'expect_items_with_multi_domain_sources_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_multi_domain_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 3,
+        'expect_first3_primary_fresh_item_count': 1,
+        'expect_fresh_dated_first3_count': 1,
+        'expect_source_url_count': 6,
+        'expect_unique_source_url_count': 6,
+        'expect_source_domain_count': 6,
+        'expect_first3_unique_source_url_count': 6,
+        'expect_first3_source_domain_count': 6,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_reason_substrings': [
+            'te weinig verse items in top 3 (1/3 binnen 48 uur)',
+            'te weinig top-3 items met primaire bron én verse datum (1/3 binnen 48 uur)',
+            'Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview',
+            'Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
+        ],
+    },
+    {
         'name': 'top3-trailing-slash-duplicate-source-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-top3-trailing-slash-duplicate-source-sample.txt',
         'expect_ok': False,
@@ -8446,6 +8487,18 @@ STATUS_SUMMARY_AUDIT_CASES = [
             'top3 zonder verse datum OpenAI zet GPT-5.5 Instant live als nieuwe standaard in ChatGPT, OpenAI publiceert MRC, een nieuwe netwerklaag voor training van grote AI-clusters',
             'top3 zonder primaire+verse combo OpenAI zet GPT-5.5 Instant live als nieuwe standaard in ChatGPT, OpenAI publiceert MRC, een nieuwe netwerklaag voor training van grote AI-clusters',
             'top3 met multi-domein bronregels 2/3',
+            'vers top3 1/3 (48u)',
+            'top3 met primaire bron+verse datum 1/3',
+        ],
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-top3-live-output-freshness-blocker',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-live-output-freshness-blocker-sample.txt',
+        'reference_ms': 1779610500000,
+        'expect_rendered_text_substrings': [
+            'top3 zonder verse datum Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview, Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
+            'top3 zonder primaire+verse combo Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview, Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
+            'top3 met multi-domein bronregels 3/3',
             'vers top3 1/3 (48u)',
             'top3 met primaire bron+verse datum 1/3',
         ],
@@ -101683,6 +101736,21 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['top3-live-output-regression-mixed-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-mixed-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-freshness'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-live-output-freshness-blocker'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-freshness-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-live-output-freshness-blocker'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-freshness-blocker-sample'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-live-output-freshness-blocker'
+    ]
+    named_cases['top3-live-output-freshness'] = named_cases['top3-live-output-freshness-blocker-sample']
+    named_cases['top3-live-output-freshness-audit'] = named_cases['top3-live-output-freshness-blocker-sample']
+    named_cases['top3-live-output-freshness-blocker'] = named_cases['top3-live-output-freshness-blocker-sample']
+    named_cases['top3-live-output-freshness-blocker-regression'] = named_cases[
+        'top3-live-output-freshness-blocker-sample'
+    ]
     proof_recheck_module = load_proof_recheck_module()
     named_cases['proof-recheck-deduplicates-wait-until-recheck-after-text'] = (
         lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_wait_until_dedup_case(proof_recheck_module)
