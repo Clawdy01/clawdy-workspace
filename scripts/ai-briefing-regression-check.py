@@ -101638,7 +101638,13 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['status-summary-audit-cli-keeps-top3-live-output-audit-regression-mixed'] = named_cases[
         'status-summary-audit-cli-keeps-live-output-mixed-audit'
     ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-regression-audit-mixed'] = named_cases[
+        'status-summary-audit-cli-keeps-live-output-mixed-audit'
+    ]
     named_cases['status-summary-audit-cli-keeps-top3-live-output-regression-mixed-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-live-output-mixed-audit'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-regression-mixed'] = named_cases[
         'status-summary-audit-cli-keeps-live-output-mixed-audit'
     ]
     named_cases['top3-live-output-sample'] = named_cases['top3-live-output-mixed-audit-sample']
@@ -101656,6 +101662,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['top3-live-output-audit'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-mixed-sample'] = named_cases['top3-live-output-mixed-audit-sample']
+    named_cases['top3-live-output-audit-mixed-regression'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-audit-mixed-regression-sample'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-audit'] = named_cases['top3-live-output-mixed-audit-sample']
     named_cases['top3-live-output-regression-audit-sample'] = named_cases['top3-live-output-mixed-audit-sample']
