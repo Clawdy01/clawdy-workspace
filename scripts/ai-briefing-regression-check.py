@@ -337,6 +337,58 @@ DEFAULT_CASES = [
             'Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview',
             'Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
         ],
+        'expect_top3_missing_fresh_details': [
+            {
+                'title': 'Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview',
+                'position': 1,
+                'date_line': 'Datum: 2026-05-22',
+                'date_text': '2026-05-22',
+                'date_value_text': '2026-05-22',
+                'has_date': True,
+                'is_fresh': False,
+                'source_domains': ['anthropic.com', 'engadget.com'],
+                'has_primary_source': True,
+                'primary_source_domains': ['anthropic.com'],
+            },
+            {
+                'title': 'Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
+                'position': 3,
+                'date_line': 'Datum: 2026-05-20',
+                'date_text': '2026-05-20',
+                'date_value_text': '2026-05-20',
+                'has_date': True,
+                'is_fresh': False,
+                'source_domains': ['csoonline.com', 'microsoft.com'],
+                'has_primary_source': True,
+                'primary_source_domains': ['microsoft.com'],
+            },
+        ],
+        'expect_top3_missing_primary_fresh_details': [
+            {
+                'title': 'Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview',
+                'position': 1,
+                'date_line': 'Datum: 2026-05-22',
+                'date_text': '2026-05-22',
+                'date_value_text': '2026-05-22',
+                'has_date': True,
+                'is_fresh': False,
+                'source_domains': ['anthropic.com', 'engadget.com'],
+                'has_primary_source': True,
+                'primary_source_domains': ['anthropic.com'],
+            },
+            {
+                'title': 'Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
+                'position': 3,
+                'date_line': 'Datum: 2026-05-20',
+                'date_text': '2026-05-20',
+                'date_value_text': '2026-05-20',
+                'has_date': True,
+                'is_fresh': False,
+                'source_domains': ['csoonline.com', 'microsoft.com'],
+                'has_primary_source': True,
+                'primary_source_domains': ['microsoft.com'],
+            },
+        ],
     },
     {
         'name': 'top3-trailing-slash-duplicate-source-sample',
@@ -8497,6 +8549,7 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'reference_ms': 1779610500000,
         'expect_rendered_text_substrings': [
             'top3 zonder verse datum Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview, Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
+            'top3 verse-datum details Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview (2026-05-22), Microsoft zet agent safety meer om in tooling met RAMPART en Clarity (2026-05-20)',
             'top3 zonder primaire+verse combo Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview, Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
             'top3 met multi-domein bronregels 3/3',
             'vers top3 1/3 (48u)',
@@ -11134,12 +11187,28 @@ def collect_audit_expectation_failures(case, audit, failures):
             f"{case['expect_top3_missing_primary_source_examples']}, kreeg {audit.get('top3_missing_primary_source_examples')}"
         )
     if (
+        'expect_top3_missing_fresh_details' in case
+        and audit.get('top3_missing_fresh_details') != case['expect_top3_missing_fresh_details']
+    ):
+        failures.append(
+            'top3_missing_fresh_details verwacht '
+            f"{case['expect_top3_missing_fresh_details']}, kreeg {audit.get('top3_missing_fresh_details')}"
+        )
+    if (
         'expect_top3_missing_primary_fresh_examples' in case
         and audit.get('top3_missing_primary_fresh_examples') != case['expect_top3_missing_primary_fresh_examples']
     ):
         failures.append(
             'top3_missing_primary_fresh_examples verwacht '
             f"{case['expect_top3_missing_primary_fresh_examples']}, kreeg {audit.get('top3_missing_primary_fresh_examples')}"
+        )
+    if (
+        'expect_top3_missing_primary_fresh_details' in case
+        and audit.get('top3_missing_primary_fresh_details') != case['expect_top3_missing_primary_fresh_details']
+    ):
+        failures.append(
+            'top3_missing_primary_fresh_details verwacht '
+            f"{case['expect_top3_missing_primary_fresh_details']}, kreeg {audit.get('top3_missing_primary_fresh_details')}"
         )
     if 'expect_invalid_source_line_example_titles' in case:
         example_titles = [

@@ -832,6 +832,44 @@ def has_explicit_date_line_value(line):
     return bool(re.sub(r'(?i)^datum:\s*', '', line).strip())
 
 
+def normalize_date_line_value(line):
+    if not isinstance(line, str):
+        return None
+    value = re.sub(r'(?i)^datum:\s*', '', line).strip()
+    return value or None
+
+
+def fmt_date_ymd(ms):
+    if ms is None:
+        return None
+    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc).strftime('%Y-%m-%d')
+
+
+def build_top3_date_detail_examples(titles, date_lines, date_values, now_ms, *, fresh_cutoff_ms, source_domains=None):
+    details = []
+    for index, (title, date_line, date_value) in enumerate(zip(titles[:3], date_lines[:3], date_values[:3])):
+        detail = {
+            'title': title,
+            'position': index + 1,
+            'date_line': date_line,
+            'date_text': normalize_date_line_value(date_line),
+            'date_value_text': fmt_date_ymd(date_value),
+            'has_date': date_value is not None,
+            'is_fresh': bool(date_value is not None and date_value >= fresh_cutoff_ms),
+        }
+        if source_domains is not None:
+            domains = sorted(set(source_domains[index] or []))
+            primary_domains = sorted({
+                domain for domain in domains
+                if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
+            })
+            detail['source_domains'] = domains
+            detail['has_primary_source'] = bool(primary_domains)
+            detail['primary_source_domains'] = primary_domains
+        details.append(detail)
+    return details
+
+
 def split_source_line_tokens(line):
     if not isinstance(line, str):
         return []
@@ -1653,6 +1691,18 @@ def audit_summary_output(summary_text, reference_ms=None):
         for title, date_value in zip(block_titles[:3], block_date_line_values[:3])
         if date_value is None or date_value < fresh_cutoff_ms
     ][:3]
+    top3_date_detail_examples = build_top3_date_detail_examples(
+        block_titles,
+        block_date_lines,
+        block_date_line_values,
+        now_ms,
+        fresh_cutoff_ms=fresh_cutoff_ms,
+        source_domains=block_source_domains,
+    )
+    top3_missing_fresh_details = [
+        detail for detail in top3_date_detail_examples
+        if not detail.get('is_fresh')
+    ][:3]
     top3_missing_primary_fresh_examples = [
         title
         for title, domains, date_value in zip(block_titles[:3], block_source_domains[:3], block_date_line_values[:3])
@@ -1665,6 +1715,10 @@ def audit_summary_output(summary_text, reference_ms=None):
                 for root in PRIMARY_SOURCE_DOMAINS
             )
         )
+    ][:3]
+    top3_missing_primary_fresh_details = [
+        detail for detail in top3_date_detail_examples
+        if not (detail.get('is_fresh') and detail.get('has_primary_source'))
     ][:3]
     first3_primary_fresh_item_count = sum(
         1
@@ -1986,6 +2040,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'explicit_recent_dated_first3_count': explicit_recent_dated_first3_count,
         'top3_missing_recent_date_examples': top3_missing_recent_date_examples,
         'top3_missing_fresh_examples': top3_missing_fresh_examples,
+        'top3_missing_fresh_details': top3_missing_fresh_details,
         'fresh_dated_item_count': fresh_dated_item_count,
         'fresh_dated_first3_count': fresh_dated_first3_count,
         'explicit_fresh_dated_item_count': explicit_fresh_dated_item_count,
@@ -1997,6 +2052,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'first3_evidenced_item_count': first3_evidenced_item_count,
         'first3_primary_fresh_item_count': first3_primary_fresh_item_count,
         'top3_missing_primary_fresh_examples': top3_missing_primary_fresh_examples,
+        'top3_missing_primary_fresh_details': top3_missing_primary_fresh_details,
         'recent_item_max_age_days': RECENT_ITEM_MAX_AGE_DAYS,
         'fresh_item_max_age_hours': FRESH_ITEM_MAX_AGE_HOURS,
         'future_date_tolerance_days': FUTURE_DATE_TOLERANCE_DAYS,
@@ -2317,6 +2373,14 @@ def summarize_output_examples(summary_output_audit):
     top3_missing_fresh_examples = summary_output_audit.get('top3_missing_fresh_examples') or []
     if top3_missing_fresh_examples:
         examples.append('top3 zonder verse datum: ' + ', '.join(top3_missing_fresh_examples[:3]))
+    top3_missing_fresh_details = summary_output_audit.get('top3_missing_fresh_details') or []
+    if top3_missing_fresh_details:
+        rendered = ', '.join(
+            f"{detail.get('title', 'onbekend')} ({detail.get('date_text') or 'geen Datum:-waarde'})"
+            for detail in top3_missing_fresh_details[:3]
+        )
+        if rendered:
+            examples.append('top3 verse-datum details: ' + rendered)
 
     top3_missing_primary_fresh_examples = summary_output_audit.get('top3_missing_primary_fresh_examples') or []
     if top3_missing_primary_fresh_examples:
@@ -3346,6 +3410,14 @@ def render_summary_audit_text(data):
     top3_missing_fresh_examples = data.get('top3_missing_fresh_examples') or []
     if top3_missing_fresh_examples:
         parts.append('top3 zonder verse datum ' + ', '.join(top3_missing_fresh_examples[:3]))
+    top3_missing_fresh_details = data.get('top3_missing_fresh_details') or []
+    if top3_missing_fresh_details:
+        rendered = ', '.join(
+            f"{detail.get('title', 'onbekend')} ({detail.get('date_text') or 'geen Datum:-waarde'})"
+            for detail in top3_missing_fresh_details[:3]
+        )
+        if rendered:
+            parts.append('top3 verse-datum details ' + rendered)
     top3_missing_primary_fresh_examples = data.get('top3_missing_primary_fresh_examples') or []
     if top3_missing_primary_fresh_examples:
         parts.append('top3 zonder primaire+verse combo ' + ', '.join(top3_missing_primary_fresh_examples[:3]))

@@ -275,6 +275,14 @@ def summarize_output_examples(status: dict) -> list[str]:
     top3_missing_fresh_examples = summary_output_audit.get('top3_missing_fresh_examples') or []
     if top3_missing_fresh_examples:
         examples.append('top3 zonder verse datum: ' + ', '.join(top3_missing_fresh_examples[:3]))
+    top3_missing_fresh_details = summary_output_audit.get('top3_missing_fresh_details') or []
+    if top3_missing_fresh_details:
+        rendered = ', '.join(
+            f"{detail.get('title', 'onbekend')} ({detail.get('date_text') or 'geen Datum:-waarde'})"
+            for detail in top3_missing_fresh_details[:3]
+        )
+        if rendered:
+            examples.append('top3 verse-datum details: ' + rendered)
 
     top3_missing_primary_fresh_examples = summary_output_audit.get('top3_missing_primary_fresh_examples') or []
     if top3_missing_primary_fresh_examples:
