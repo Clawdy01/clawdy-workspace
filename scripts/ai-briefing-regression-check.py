@@ -101812,6 +101812,17 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-producer-quiet-recheck-after-deduplicates'] = (
         named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
     )
+    named_cases['proof-recheck-plain-before-slot'] = named_cases['proof-recheck-before-slot-too-early']
+    named_cases['proof-recheck-plain-grace-window'] = named_cases['proof-recheck-grace-window-too-early']
+    named_cases['proof-recheck-plain-open-window'] = named_cases['proof-recheck-open-window-needs-attention']
+    named_cases['proof-recheck-plain-wait-until-dedup'] = named_cases[
+        'proof-recheck-plain-deduplicates-wait-until-recheck-after-text'
+    ]
+    named_cases['proof-recheck-producer-before-slot'] = named_cases['proof-recheck-producer-before-slot-too-early']
+    named_cases['proof-recheck-producer-open-window'] = named_cases['proof-recheck-producer-open-window-needs-attention']
+    named_cases['proof-recheck-producer-wait-until-dedup'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'
+    ]
     named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text'] = (
         lambda status_module=module: run_brief_consumer_wait_until_dedup_case(status_module)
     )
