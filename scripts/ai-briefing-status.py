@@ -55,6 +55,9 @@ REQUIRED_PROMPT_MARKERS = [
     'Twijfelgevalregel: bij vaste run rond 09:00 CEST telt een kale datum van twee dagen geleden niet als vers bewijs zonder expliciete tijd',
     'Als er weinig echt nieuws is, zeg dat eerlijk en verbreed actief over alle 7 categorieën naar verse kandidaten',
     'Als je daarna nog steeds geen 3 volledig valide verse items hebt, lever dan liever minder items of expliciet geen briefing dan oudere of twijfelachtige opvulling; lever nooit oudere items als opvulling',
+    'Als een item op de shortlist strandt op primary-source-freshness, noem het nergens in intro, tussenkoppen, eindweging of itemlijst',
+    'Verboden: in de inleiding of slotafweging een te oud item alsnog rechtpraten',
+    'controleer vlak voor versturen nog één keer expliciet dat elk genoemd item ook echt door zijn primaire bron binnen 48 uur wordt gedragen',
     'zo niet, herschrijf of verwijder de foutieve items eerst',
     'Als één item faalt op labels, URL(s) of datumregel',
     'Relevant voor Christian',
@@ -2391,6 +2394,21 @@ def is_expected_proof_freshness_wait(proof_freshness, updated_at, next_run_at, n
     return True
 
 
+def render_top3_missing_fresh_detail(detail):
+    if not isinstance(detail, dict):
+        return None
+    title = detail.get('title') or 'onbekend'
+    date_text = detail.get('date_text') or 'geen Datum:-waarde'
+    families = [str(family).strip() for family in (detail.get('primary_source_families') or []) if str(family).strip()]
+    issue = str(detail.get('primary_fresh_issue') or detail.get('freshness_issue') or '').strip()
+    qualifiers = [date_text]
+    if families:
+        qualifiers.append('/'.join(families))
+    if issue:
+        qualifiers.append(issue)
+    return f"{title} ({'; '.join(qualifiers)})"
+
+
 def summarize_output_examples(summary_output_audit):
     if not isinstance(summary_output_audit, dict) or not summary_output_audit.get('available'):
         return []
@@ -2428,8 +2446,12 @@ def summarize_output_examples(summary_output_audit):
     top3_missing_fresh_details = summary_output_audit.get('top3_missing_fresh_details') or []
     if top3_missing_fresh_details:
         rendered = ', '.join(
-            f"{detail.get('title', 'onbekend')} ({detail.get('date_text') or 'geen Datum:-waarde'})"
-            for detail in top3_missing_fresh_details[:3]
+            rendered_detail
+            for rendered_detail in (
+                render_top3_missing_fresh_detail(detail)
+                for detail in top3_missing_fresh_details[:3]
+            )
+            if rendered_detail
         )
         if rendered:
             examples.append('top3 verse-datum details: ' + rendered)
@@ -2546,6 +2568,12 @@ def audit_payload(job):
         reasons.append('exacte Bronnenlijst-afsluiter ontbreekt')
     if 'Als er weinig echt nieuws is, zeg dat eerlijk' not in message:
         reasons.append('eerlijke low-news instructie ontbreekt')
+    if 'Als een item op de shortlist strandt op primary-source-freshness, noem het nergens in intro, tussenkoppen, eindweging of itemlijst' not in message:
+        reasons.append('shortlist-freshness-schrappen instructie ontbreekt')
+    if 'Verboden: in de inleiding of slotafweging een te oud item alsnog rechtpraten' not in message:
+        reasons.append('intro/slot stale-date verbod ontbreekt')
+    if 'controleer vlak voor versturen nog één keer expliciet dat elk genoemd item ook echt door zijn primaire bron binnen 48 uur wordt gedragen' not in message:
+        reasons.append('laatste primary-freshness eindcheck ontbreekt')
     if not light_context:
         reasons.append('lightContext staat uit')
 
@@ -3513,8 +3541,12 @@ def render_summary_audit_text(data):
     top3_missing_fresh_details = data.get('top3_missing_fresh_details') or []
     if top3_missing_fresh_details:
         rendered = ', '.join(
-            f"{detail.get('title', 'onbekend')} ({detail.get('date_text') or 'geen Datum:-waarde'})"
-            for detail in top3_missing_fresh_details[:3]
+            rendered_detail
+            for rendered_detail in (
+                render_top3_missing_fresh_detail(detail)
+                for detail in top3_missing_fresh_details[:3]
+            )
+            if rendered_detail
         )
         if rendered:
             parts.append('top3 verse-datum details ' + rendered)

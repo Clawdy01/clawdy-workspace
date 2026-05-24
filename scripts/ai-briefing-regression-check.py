@@ -8699,7 +8699,7 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'reference_ms': 1779610500000,
         'expect_rendered_text_substrings': [
             'top3 zonder verse datum Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview, Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
-            'top3 verse-datum details Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview (2026-05-22), Microsoft zet agent safety meer om in tooling met RAMPART en Clarity (2026-05-20)',
+            'top3 verse-datum details Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview (2026-05-22; anthropic; stale-date), Microsoft zet agent safety meer om in tooling met RAMPART en Clarity (2026-05-20; microsoft; stale-date)',
             'top3 zonder primaire+verse combo Anthropic geeft eerste harde update over Project Glasswing en Claude Mythos Preview, Microsoft zet agent safety meer om in tooling met RAMPART en Clarity',
             'top3 met multi-domein bronregels 3/3',
             'vers top3 1/3 (48u)',

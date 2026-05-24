@@ -240,6 +240,21 @@ def emit_output_with_bundle(*, text: str, payload: dict, stdout_format: str, std
         write_output(rendered, output_path=str(preset['path']), append=preset['append'])
 
 
+def render_top3_missing_fresh_detail(detail: dict) -> str | None:
+    if not isinstance(detail, dict):
+        return None
+    title = detail.get('title') or 'onbekend'
+    date_text = detail.get('date_text') or 'geen Datum:-waarde'
+    families = [str(family).strip() for family in (detail.get('primary_source_families') or []) if str(family).strip()]
+    issue = str(detail.get('primary_fresh_issue') or detail.get('freshness_issue') or '').strip()
+    qualifiers = [date_text]
+    if families:
+        qualifiers.append('/'.join(families))
+    if issue:
+        qualifiers.append(issue)
+    return f"{title} ({'; '.join(qualifiers)})"
+
+
 def summarize_output_examples(status: dict) -> list[str]:
     summary_output_audit = ((status.get('last_run_summary') or {}).get('summary_output_audit') or {})
     if not summary_output_audit.get('available'):
@@ -278,8 +293,12 @@ def summarize_output_examples(status: dict) -> list[str]:
     top3_missing_fresh_details = summary_output_audit.get('top3_missing_fresh_details') or []
     if top3_missing_fresh_details:
         rendered = ', '.join(
-            f"{detail.get('title', 'onbekend')} ({detail.get('date_text') or 'geen Datum:-waarde'})"
-            for detail in top3_missing_fresh_details[:3]
+            rendered_detail
+            for rendered_detail in (
+                render_top3_missing_fresh_detail(detail)
+                for detail in top3_missing_fresh_details[:3]
+            )
+            if rendered_detail
         )
         if rendered:
             examples.append('top3 verse-datum details: ' + rendered)
