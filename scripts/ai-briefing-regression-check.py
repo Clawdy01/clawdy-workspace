@@ -101742,12 +101742,27 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['status-summary-audit-cli-keeps-top3-live-output-freshness-audit'] = named_cases[
         'status-summary-audit-cli-keeps-top3-live-output-freshness-blocker'
     ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-freshness-regression'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-live-output-freshness-blocker'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-freshness-regression-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-live-output-freshness-blocker'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-live-output-freshness-blocker-regression'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-live-output-freshness-blocker'
+    ]
     named_cases['status-summary-audit-cli-keeps-top3-live-output-freshness-blocker-sample'] = named_cases[
         'status-summary-audit-cli-keeps-top3-live-output-freshness-blocker'
     ]
     named_cases['top3-live-output-freshness'] = named_cases['top3-live-output-freshness-blocker-sample']
     named_cases['top3-live-output-freshness-audit'] = named_cases['top3-live-output-freshness-blocker-sample']
+    named_cases['top3-live-output-freshness-sample'] = named_cases['top3-live-output-freshness-blocker-sample']
+    named_cases['top3-live-output-freshness-regression'] = named_cases['top3-live-output-freshness-blocker-sample']
+    named_cases['top3-live-output-freshness-regression-sample'] = named_cases[
+        'top3-live-output-freshness-blocker-sample'
+    ]
     named_cases['top3-live-output-freshness-blocker'] = named_cases['top3-live-output-freshness-blocker-sample']
+    named_cases['top3-live-output-freshness-blocker-audit'] = named_cases['top3-live-output-freshness-blocker-sample']
     named_cases['top3-live-output-freshness-blocker-regression'] = named_cases[
         'top3-live-output-freshness-blocker-sample'
     ]
@@ -101783,6 +101798,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module)
     )
     named_cases['proof-recheck-producer-quiet-deduplicate-wait-until-recheck-after-text'] = (
+        named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
+    )
+    named_cases['proof-recheck-producer-quiet-wait-until-deduplicate'] = (
+        named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
+    )
+    named_cases['proof-recheck-producer-quiet-wait-until-deduplicates'] = (
+        named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
+    )
+    named_cases['proof-recheck-producer-quiet-recheck-after-deduplicate'] = (
+        named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
+    )
+    named_cases['proof-recheck-producer-quiet-recheck-after-deduplicates'] = (
         named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
     )
     named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text'] = (
