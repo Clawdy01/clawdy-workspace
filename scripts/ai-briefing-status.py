@@ -49,6 +49,12 @@ REQUIRED_PROMPT_MARKERS = [
     'marketing zonder echte verandering',
     'focus op echt nieuwe ontwikkelingen uit de afgelopen 48 uur',
     'Noem per item ook de bron plus publicatiedatum of update-datum als die vindbaar is',
+    'Als een item een primaire bron heeft, moet de Datum:-regel de expliciete publicatie- of update-datum van die primaire bron volgen',
+    'een recentere secundaire berichtdatum mag een oudere primaire bron nooit redden',
+    'Als de Datum:-regel alleen een kalenderdatum zonder tijd noemt op de 48-uursgrens, behandel die datum conservatief als te oud',
+    'Twijfelgevalregel: bij vaste run rond 09:00 CEST telt een kale datum van twee dagen geleden niet als vers bewijs zonder expliciete tijd',
+    'Als er weinig echt nieuws is, zeg dat eerlijk, maar blijf dan doorzoeken tot je 3 valide items met een echte 48-uurs datum hebt; lever nooit oudere items als opvulling',
+    'Als je na verbreden over de 7 categorieën nog steeds geen 3 valide verse items hebt, lever dan liever minder items of expliciet geen briefing dan oudere of twijfelachtige opvulling',
     'zo niet, herschrijf of verwijder de foutieve items eerst',
     'Als één item faalt op labels, URL(s) of datumregel',
     'Relevant voor Christian',
@@ -855,7 +861,7 @@ def build_top3_date_detail_examples(titles, date_lines, date_values, now_ms, *, 
             'date_text': normalize_date_line_value(date_line),
             'date_value_text': fmt_date_ymd(date_value),
             'has_date': date_value is not None,
-            'is_fresh': bool(date_value is not None and date_value >= fresh_cutoff_ms),
+            'is_fresh': bool(date_value is not None and date_value > fresh_cutoff_ms),
         }
         if source_domains is not None:
             domains = sorted(set(source_domains[index] or []))
@@ -1587,15 +1593,15 @@ def audit_summary_output(summary_text, reference_ms=None):
     explicit_recent_dated_first3_count = sum(
         1 for value in block_date_line_values[:3] if value is not None and value >= recent_cutoff_ms
     )
-    fresh_dated_item_count = sum(1 for value in block_date_values if value is not None and value >= fresh_cutoff_ms)
+    fresh_dated_item_count = sum(1 for value in block_date_values if value is not None and value > fresh_cutoff_ms)
     fresh_dated_first3_count = sum(
-        1 for value in block_date_values[:3] if value is not None and value >= fresh_cutoff_ms
+        1 for value in block_date_values[:3] if value is not None and value > fresh_cutoff_ms
     )
     explicit_fresh_dated_item_count = sum(
-        1 for value in block_date_line_values if value is not None and value >= fresh_cutoff_ms
+        1 for value in block_date_line_values if value is not None and value > fresh_cutoff_ms
     )
     explicit_fresh_dated_first3_count = sum(
-        1 for value in block_date_line_values[:3] if value is not None and value >= fresh_cutoff_ms
+        1 for value in block_date_line_values[:3] if value is not None and value > fresh_cutoff_ms
     )
     future_signal_date_values = [
         explicit_value if explicit_value is not None else block_value
@@ -1689,7 +1695,7 @@ def audit_summary_output(summary_text, reference_ms=None):
     top3_missing_fresh_examples = [
         title
         for title, date_value in zip(block_titles[:3], block_date_line_values[:3])
-        if date_value is None or date_value < fresh_cutoff_ms
+        if date_value is None or date_value <= fresh_cutoff_ms
     ][:3]
     top3_date_detail_examples = build_top3_date_detail_examples(
         block_titles,
@@ -1708,7 +1714,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         for title, domains, date_value in zip(block_titles[:3], block_source_domains[:3], block_date_line_values[:3])
         if not (
             date_value is not None
-            and date_value >= fresh_cutoff_ms
+            and date_value > fresh_cutoff_ms
             and any(
                 domain == root or domain.endswith(f'.{root}')
                 for domain in domains
@@ -1725,7 +1731,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         for domains, date_value in zip(block_source_domains[:3], block_date_line_values[:3])
         if (
             date_value is not None
-            and date_value >= fresh_cutoff_ms
+            and date_value > fresh_cutoff_ms
             and any(
                 domain == root or domain.endswith(f'.{root}')
                 for domain in domains

@@ -1,0 +1,43 @@
+Dagelijkse AI-update, vrijdag 1 mei 2026
+
+Korte intro: dit sample legt vast dat een kale kalenderdatum precies op de 48-uursgrens conservatief als te oud telt, terwijl een recentere datum wel vers blijft.
+
+1) frontier modelreleases en modelupdates
+Titel: OpenAI zet realtime vision controls breder open voor developer previews
+Bron: https://openai.com/index/new-tools-and-features-in-the-responses-api/ https://platform.openai.com/docs/changelog
+Datum: 2026-04-29
+Wat is er nieuw: OpenAI zet extra realtime en vision-gerichte controls breder open in zijn developerstack.
+Waarom is dit belangrijk: Dit item staat precies op de 48-uursgrens en moet zonder expliciete tijd conservatief als niet vers blijven tellen.
+Relevant voor Christian: Belangrijk als regressiecheck voor de freshness-audit rond kale datumregels.
+
+2) agents/automation/coding workflows
+Titel: Google laat Gemini CLI agents meer repo-taken automatiseren
+Bron: https://blog.google/technology/developers/gemini-cli-updates/ https://developers.googleblog.com/en/gemini-cli-agent-workflows/
+Datum: 2026-04-28
+Wat is er nieuw: Google beschrijft extra repo- en workflowstappen die Gemini CLI agents nu directer kunnen uitvoeren.
+Waarom is dit belangrijk: Dit item blijft duidelijk te oud en bewaakt dat de audit niet per ongeluk meerdere stale items groen telt.
+Relevant voor Christian: Houdt de coding-agent categorie afgedekt terwijl de versheidsregel streng blijft.
+
+3) frontier modelreleases en modelupdates
+Titel: Anthropic breidt Claude Code hooks uit voor team- en CI-omgevingen
+Bron: https://www.anthropic.com/news/claude-code-best-practices https://docs.anthropic.com/en/docs/claude-code/hooks
+Datum: 2026-04-30
+Wat is er nieuw: Anthropic documenteert bredere hook- en teamworkflows rond Claude Code.
+Waarom is dit belangrijk: Dit is het enige top-3 item dat binnen 48 uur vers hoort te blijven.
+Relevant voor Christian: Nuttig als verse referentie voor teamworkflow- en coding-agentgebruik.
+
+Wat moeten wij hiermee?
+- Bewaak dat een kale datum op exact de 48-uursgrens niet als vers telt.
+- Houd tegelijk vast dat een expliciet recent item wel de enige groene top-3 freshness-hit blijft.
+
+Wat ik vandaag het belangrijkst vind
+- Alleen Anthropic hoort vers binnen 48 uur te blijven.
+- OpenAI op 2026-04-29 hoort zonder expliciete tijd net niet vers te tellen.
+
+Bronnenlijst
+https://openai.com/index/new-tools-and-features-in-the-responses-api/
+https://platform.openai.com/docs/changelog
+https://blog.google/technology/developers/gemini-cli-updates/
+https://developers.googleblog.com/en/gemini-cli-agent-workflows/
+https://www.anthropic.com/news/claude-code-best-practices
+https://docs.anthropic.com/en/docs/claude-code/hooks
