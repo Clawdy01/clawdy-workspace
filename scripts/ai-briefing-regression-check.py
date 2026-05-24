@@ -101771,6 +101771,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-producer-quiet-falls-back-to-requested-output'] = named_cases[
         'proof-recheck-producer-quiet-falls-back-to-requested-outputs'
     ]
+    named_cases['proof-recheck-producer-quiet-requested-outputs-fallback-to'] = named_cases[
+        'proof-recheck-producer-quiet-falls-back-to-requested-outputs'
+    ]
+    named_cases['proof-recheck-producer-quiet-requested-output-fallback-to'] = named_cases[
+        'proof-recheck-producer-quiet-falls-back-to-requested-outputs'
+    ]
+    named_cases['proof-recheck-producer-quiet-requested-outputs-falls-back-to'] = named_cases[
+        'proof-recheck-producer-quiet-falls-back-to-requested-outputs'
+    ]
+    named_cases['proof-recheck-producer-quiet-requested-output-falls-back-to'] = named_cases[
+        'proof-recheck-producer-quiet-falls-back-to-requested-outputs'
+    ]
     named_cases['regression-check-list-cases-output'] = evaluate_list_cases_output_case
     named_cases['registry-keeps-list-cases-output'] = evaluate_list_cases_output_case
     named_cases['registry-keeps-list-cases-success-registry-aligned'] = (
