@@ -440,8 +440,10 @@ DEFAULT_CASES = [
             'https://news.example.net/context',
         ],
         'expect_reason_substrings': [
-            'Bronnenlijst bevat ongebruikte URLs (3)',
             'Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (3 URL(s))',
+        ],
+        'reject_text_substrings': [
+            'Bronnenlijst bevat ongebruikte URLs (3)',
         ],
     },
     {
@@ -8928,9 +8930,11 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'name': 'status-summary-audit-cli-keeps-explicit-no-briefingitems-with-bronnenlijst-urls-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-explicit-no-briefingitems-with-bronnenlijst-urls-sample.txt',
         'expect_rendered_text_substrings': [
-            'Bronnenlijst bevat ongebruikte URLs (3)',
             'Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (3 URL(s))',
             'bron-URLs 0',
+        ],
+        'reject_rendered_text_substrings': [
+            'Bronnenlijst bevat ongebruikte URLs (3)',
         ],
     },
     {
@@ -16757,6 +16761,66 @@ def run_proof_recheck_producer_quiet_reasons_dedup_case(producer_module):
         'items_with_field_order_mismatch_count': None,
         'numbered_title_heading_count': None,
     }
+
+
+def run_proof_recheck_producer_overall_passthrough_case(producer_module):
+    failures = []
+    overall = producer_module.build_overall_item([
+        {
+            'payload': {
+                'exit_code': 3,
+                'summary': 'synthetische proof-recheck-producer overall',
+                'ok': False,
+                'state': 'attention',
+                'result_kind': 'attention-needed',
+                'result_text': 'hercheckvenster is open, maar bewijsdoel is nog niet gehaald; inhoudelijke blockers: blocker A; blocker B',
+                'result_evidence_text': 'inhoudelijke blockers: blocker A; blocker B',
+                'proof_text': 'bewijsdoel open',
+                'proof_due_at': '2026-05-28T07:15:00+00:00',
+                'proof_due_at_text': '2026-05-28 09:15 CEST',
+                'proof_due_hint': 'over 2 d 8 u',
+            },
+            'returncode': 3,
+            'summary': 'synthetische proof-recheck-producer overall',
+        }
+    ])
+    for key, expected in {
+        'result_evidence_text': 'inhoudelijke blockers: blocker A; blocker B',
+        'proof_due_at': '2026-05-28T07:15:00+00:00',
+        'proof_due_at_text': '2026-05-28 09:15 CEST',
+        'proof_due_hint': 'over 2 d 8 u',
+    }.items():
+        if overall.get(key) != expected:
+            failures.append(f'proof-recheck-producer overall mist passthrough voor {key}: {overall.get(key)} versus {expected}')
+
+    return {
+        'name': 'proof-recheck-producer-overall-keeps-result-evidence-and-proof-due-fields',
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': overall.get('result_text'),
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
 
 
 def run_brief_consumer_wait_until_dedup_case(status_module):
@@ -104396,6 +104460,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         )
     )
     named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
+    named_cases['proof-recheck-producer-overall-keeps-result-evidence-and-proof-due-fields'] = (
+        lambda: run_proof_recheck_producer_overall_passthrough_case(load_proof_recheck_producer_module())
+    )
     named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
     named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case
     named_cases['watchdog-eventlog-preset-append'] = evaluate_watchdog_eventlog_preset_append_case

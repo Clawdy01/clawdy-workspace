@@ -1926,7 +1926,7 @@ def audit_summary_output(summary_text, reference_ms=None):
             )
             reason += f": {', '.join(bronnenlijst_missing_used_urls[:3])}"
             reasons.append(reason)
-        if bronnenlijst_unused_urls:
+        if bronnenlijst_unused_urls and not explicit_no_briefing_mode:
             reason = f'Bronnenlijst bevat ongebruikte URLs ({len(bronnenlijst_unused_urls)})'
             reason += f": {', '.join(bronnenlijst_unused_urls[:3])}"
             reasons.append(reason)
