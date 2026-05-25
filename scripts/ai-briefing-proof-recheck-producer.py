@@ -47,7 +47,7 @@ def compact_reasons(reasons: list[str]) -> list[str]:
     compact: list[str] = []
     for reason in reasons or []:
         cleaned = ' '.join(str(reason or '').split())
-        if not cleaned or cleaned in compact:
+        if not cleaned or cleaned == 'status not ok' or cleaned in compact:
             continue
         compact.append(cleaned)
     return compact

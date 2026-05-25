@@ -14184,6 +14184,7 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
         'consumer_outputs_status_text': 'consumer-output-audit mismatch (ontbreekt: board-json: /tmp/expected.json; board-text: /tmp/expected.txt)',
         'consumer_effective_outputs_missing_text': None,
         'consumer_effective_outputs_unexpected_text': None,
+        'reasons': ['consumer-write mismatch gedetecteerd'],
         'result_kind': 'attention-needed',
     }
 
@@ -14209,12 +14210,18 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
         'consumer-effectieve-output-kanalen: board-json, board-text',
         'consumer-effectieve-output-telling gevraagd=2, effectief=2, ontbrekend=0, onverwacht=0',
         'consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via requested-fallback)',
+        'redenen: consumer-write mismatch gedetecteerd',
         'resultaat: attention-needed',
     ]
     if extracted_payload and extracted_payload.get('consumer_effective_output_source') != 'requested-fallback':
         failures.append(
             'build_quiet_summary payload consumer_effective_output_source verwacht requested-fallback, kreeg '
             f"{extracted_payload.get('consumer_effective_output_source')}"
+        )
+    if extracted_payload and extracted_payload.get('reasons') != ['consumer-write mismatch gedetecteerd']:
+        failures.append(
+            'build_quiet_summary payload reasons verwacht [\'consumer-write mismatch gedetecteerd\'], kreeg '
+            f"{extracted_payload.get('reasons')}"
         )
     for snippet in expected_snippets:
         if snippet not in quiet_summary:
@@ -14309,6 +14316,7 @@ def evaluate_watchdog_producer_quiet_requested_outputs_fallback_case(producer_mo
         'bewijs nog niet rond',
         'proof-state: waiting-next-scheduled-run',
         'wacht op eerstvolgende geplande kwalificatierun',
+        'redenen: consumer-write mismatch gedetecteerd',
         'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
         'consumer-output-aanvraag-kanalen: board-json, board-text',
         'consumer-output-telling gevraagd=2, geschreven=0, ontbrekend=2, onverwacht=0',
@@ -16384,6 +16392,51 @@ def run_watchdog_alert_wait_until_dedup_case(watchdog_alert_module):
     }
 
 
+def run_watchdog_alert_reasons_dedup_case(watchdog_alert_module):
+    failures = []
+    payload = {
+        'summary': 'synthetische watchdog-alert payload',
+        'reasons': ['status not ok', 'consumer-write mismatch gedetecteerd', 'consumer-write mismatch gedetecteerd'],
+    }
+    alert_text = watchdog_alert_module.build_alert(payload, 'proof-check', 3)
+    expected = 'redenen: consumer-write mismatch gedetecteerd'
+    if expected not in alert_text:
+        failures.append('watchdog-alert mist deduped redenenregel voor synthetische payload')
+    if alert_text.count('consumer-write mismatch gedetecteerd') != 1:
+        failures.append(
+            'watchdog-alert toont gededupliceerde reason niet exact één keer: '
+            f"{alert_text.count('consumer-write mismatch gedetecteerd')}"
+        )
+
+    return {
+        'name': 'watchdog-alert-deduplicates-reasons',
+        'path': str(WATCHDOG_ALERT_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': alert_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_watchdog_producer_quiet_wait_until_dedup_case(producer_module):
     failures = []
     repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
@@ -16415,6 +16468,58 @@ def run_watchdog_producer_quiet_wait_until_dedup_case(producer_module):
 
     return {
         'name': 'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_watchdog_producer_quiet_reasons_dedup_case(producer_module):
+    failures = []
+    payload = {
+        'summary': 'synthetische watchdog-producer payload',
+        'reasons': ['status not ok', 'consumer-write mismatch gedetecteerd', 'consumer-write mismatch gedetecteerd'],
+    }
+    quiet_summary = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if not quiet_summary:
+        failures.append('watchdog-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische reasons-payload')
+        quiet_summary = ''
+    expected = 'redenen: consumer-write mismatch gedetecteerd'
+    if expected not in quiet_summary:
+        failures.append('watchdog-producer mist deduped redenenregel voor synthetische payload')
+    if quiet_summary.count('consumer-write mismatch gedetecteerd') != 1:
+        failures.append(
+            'watchdog-producer toont gededupliceerde reason niet exact één keer: '
+            f"{quiet_summary.count('consumer-write mismatch gedetecteerd')}"
+        )
+
+    return {
+        'name': 'watchdog-producer-quiet-deduplicates-reasons',
         'path': str(WATCHDOG_PRODUCER_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -16494,6 +16599,52 @@ def run_proof_recheck_plain_wait_until_dedup_case(proof_recheck_module):
     }
 
 
+def run_proof_recheck_plain_reasons_dedup_case(proof_recheck_module):
+    failures = []
+    payload = {
+        'summary': 'synthetische proof-recheck payload',
+        'result_text': 'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+        'reasons': ['status not ok', 'consumer-write mismatch gedetecteerd', 'consumer-write mismatch gedetecteerd'],
+    }
+    text_output = proof_recheck_module.build_text(payload)
+    expected = 'redenen: consumer-write mismatch gedetecteerd'
+    if expected not in text_output:
+        failures.append('proof-recheck plain-text mist deduped redenenregel voor synthetische payload')
+    if text_output.count('consumer-write mismatch gedetecteerd') != 1:
+        failures.append(
+            'proof-recheck plain-text toont gededupliceerde reason niet exact één keer: '
+            f"{text_output.count('consumer-write mismatch gedetecteerd')}"
+        )
+
+    return {
+        'name': 'proof-recheck-plain-deduplicates-reasons',
+        'path': str(PROOF_RECHECK_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': text_output,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module):
     failures = []
     repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
@@ -16527,6 +16678,60 @@ def run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module):
 
     return {
         'name': 'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_proof_recheck_producer_quiet_reasons_dedup_case(producer_module):
+    failures = []
+    payload = {
+        'summary': 'synthetische proof-recheck-producer payload',
+        'reasons': ['status not ok', 'consumer-write mismatch gedetecteerd', 'consumer-write mismatch gedetecteerd'],
+    }
+    quiet_summary, extracted_payload = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if extracted_payload != payload:
+        failures.append('proof-recheck-producer build_quiet_summary gaf niet dezelfde payload terug voor synthetische reasons-payload')
+    if not quiet_summary:
+        failures.append('proof-recheck-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische reasons-payload')
+        quiet_summary = ''
+    expected = 'redenen: consumer-write mismatch gedetecteerd'
+    if expected not in quiet_summary:
+        failures.append('proof-recheck-producer quiet-summary mist deduped redenenregel voor synthetische payload')
+    if quiet_summary.count('consumer-write mismatch gedetecteerd') != 1:
+        failures.append(
+            'proof-recheck-producer quiet-summary toont gededupliceerde reason niet exact één keer: '
+            f"{quiet_summary.count('consumer-write mismatch gedetecteerd')}"
+        )
+
+    return {
+        'name': 'proof-recheck-producer-quiet-deduplicates-reasons',
         'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -21454,9 +21659,11 @@ PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'proof-recheck-grace-window-too-early',
     'proof-recheck-open-window-needs-attention',
     'proof-recheck-plain-deduplicates-wait-until-recheck-after-text',
+    'proof-recheck-plain-deduplicates-reasons',
     'proof-recheck-producer-before-slot-too-early',
     'proof-recheck-producer-open-window-needs-attention',
     'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
+    'proof-recheck-producer-quiet-deduplicates-reasons',
 ]
 
 PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
@@ -21472,6 +21679,9 @@ PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     'proof-recheck-plain-wait-until-dedup': [
         'proof-recheck-plain-deduplicates-wait-until-recheck-after-text',
     ],
+    'proof-recheck-plain-reasons-dedup': [
+        'proof-recheck-plain-deduplicates-reasons',
+    ],
     'proof-recheck-producer-before-slot': [
         'proof-recheck-producer-before-slot-too-early',
     ],
@@ -21480,6 +21690,9 @@ PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'proof-recheck-producer-wait-until-dedup': [
         'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
+    ],
+    'proof-recheck-producer-reasons-dedup': [
+        'proof-recheck-producer-quiet-deduplicates-reasons',
     ],
 }
 
@@ -21662,9 +21875,11 @@ WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-alert-deduplicates-wait-until-recheck-after-text',
+    'watchdog-alert-deduplicates-reasons',
     'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
+    'watchdog-producer-quiet-deduplicates-reasons',
     'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-board-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-eventlog-before-slot-keeps-proof-recheck-cronstatus',
@@ -21681,11 +21896,13 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
         'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
         'watchdog-alert-deduplicates-wait-until-recheck-after-text',
+        'watchdog-alert-deduplicates-reasons',
     ],
     'watchdog-producer': [
         'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
         'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
         'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
+        'watchdog-producer-quiet-deduplicates-reasons',
     ],
     'watchdog-producer-proof-board': [
         'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
@@ -102970,24 +103187,40 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-plain-deduplicate-wait-until-recheck-after-text'] = (
         named_cases['proof-recheck-plain-deduplicates-wait-until-recheck-after-text']
     )
+    named_cases['proof-recheck-plain-deduplicates-reasons'] = (
+        lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_reasons_dedup_case(proof_recheck_module)
+    )
+    named_cases['proof-recheck-plain-deduplicate-reasons'] = named_cases['proof-recheck-plain-deduplicates-reasons']
     named_cases['watchdog-alert-deduplicates-wait-until-recheck-after-text'] = (
         lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_wait_until_dedup_case(watchdog_alert_module)
     )
     named_cases['watchdog-alert-deduplicate-wait-until-recheck-after-text'] = (
         named_cases['watchdog-alert-deduplicates-wait-until-recheck-after-text']
     )
+    named_cases['watchdog-alert-deduplicates-reasons'] = (
+        lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_reasons_dedup_case(watchdog_alert_module)
+    )
+    named_cases['watchdog-alert-deduplicate-reasons'] = named_cases['watchdog-alert-deduplicates-reasons']
     named_cases['watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_wait_until_dedup_case(producer_module)
     )
     named_cases['watchdog-producer-quiet-deduplicate-wait-until-recheck-after-text'] = (
         named_cases['watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text']
     )
+    named_cases['watchdog-producer-quiet-deduplicates-reasons'] = (
+        lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_reasons_dedup_case(producer_module)
+    )
+    named_cases['watchdog-producer-quiet-deduplicate-reasons'] = named_cases['watchdog-producer-quiet-deduplicates-reasons']
     named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module)
     )
     named_cases['proof-recheck-producer-quiet-deduplicate-wait-until-recheck-after-text'] = (
         named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
     )
+    named_cases['proof-recheck-producer-quiet-deduplicates-reasons'] = (
+        lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_reasons_dedup_case(producer_module)
+    )
+    named_cases['proof-recheck-producer-quiet-deduplicate-reasons'] = named_cases['proof-recheck-producer-quiet-deduplicates-reasons']
     named_cases['proof-recheck-producer-quiet-wait-until-deduplicate'] = (
         named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
     )
@@ -103006,11 +103239,13 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-plain-wait-until-dedup'] = named_cases[
         'proof-recheck-plain-deduplicates-wait-until-recheck-after-text'
     ]
+    named_cases['proof-recheck-plain-reasons-dedup'] = named_cases['proof-recheck-plain-deduplicates-reasons']
     named_cases['proof-recheck-producer-before-slot'] = named_cases['proof-recheck-producer-before-slot-too-early']
     named_cases['proof-recheck-producer-open-window'] = named_cases['proof-recheck-producer-open-window-needs-attention']
     named_cases['proof-recheck-producer-wait-until-dedup'] = named_cases[
         'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'
     ]
+    named_cases['proof-recheck-producer-reasons-dedup'] = named_cases['proof-recheck-producer-quiet-deduplicates-reasons']
     named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text'] = (
         lambda status_module=module: run_brief_consumer_wait_until_dedup_case(status_module)
     )
