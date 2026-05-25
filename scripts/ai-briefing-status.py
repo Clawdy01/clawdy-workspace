@@ -2087,11 +2087,6 @@ def audit_summary_output(summary_text, reference_ms=None):
     if category_theme_count < MIN_CATEGORY_THEME_COVERAGE and not explicit_no_briefing_mode:
         reasons.append(f'te weinig briefingcategorieën zichtbaar ({category_theme_count}/{len(CATEGORY_THEME_KEYWORDS)})')
 
-    if explicit_no_briefing_mode and bronnenlijst_invalid_lines:
-        reason = f'Bronnenlijst bevat niet-URL regels ({len(bronnenlijst_invalid_lines)})'
-        reason += f": {', '.join(bronnenlijst_invalid_lines[:3])}"
-        reasons.append(reason)
-
     if explicit_no_briefing_mode and bronnenlijst_url_count:
         reason = f'Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems ({bronnenlijst_url_count} URL(s))'
         if bronnenlijst_urls:

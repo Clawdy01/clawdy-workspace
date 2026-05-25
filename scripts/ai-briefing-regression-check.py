@@ -445,6 +445,48 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'explicit-no-briefingitems-with-invalid-bronnenlijst-line-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-explicit-no-briefingitems-with-invalid-bronnenlijst-line-sample.txt',
+        'expect_ok': False,
+        'expect_item_count': 0,
+        'expect_items_with_source_count': 0,
+        'expect_items_with_valid_source_line_count': 0,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 0,
+        'expect_first3_items_with_valid_source_line_count': 0,
+        'expect_first3_items_with_multiple_sources_count': 0,
+        'expect_first3_items_with_primary_source_count': 0,
+        'expect_first3_evidenced_item_count': 0,
+        'expect_source_url_count': 0,
+        'expect_unique_source_url_count': 0,
+        'expect_source_domain_count': 0,
+        'expect_first3_unique_source_url_count': 0,
+        'expect_first3_source_domain_count': 0,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 0,
+            'Bron:': 0,
+            'Datum:': 0,
+            'Wat is er nieuw:': 0,
+            'Waarom is dit belangrijk:': 0,
+            'Relevant voor Christian:': 0,
+        },
+        'expect_bronnenlijst_url_count': 0,
+        'expect_bronnenlijst_unique_url_count': 0,
+        'expect_bronnenlijst_duplicate_urls': [],
+        'expect_bronnenlijst_invalid_lines': [
+            'not-a-bare-url.example.com/bad-line',
+        ],
+        'expect_bronnenlijst_missing_used_urls': [],
+        'expect_bronnenlijst_unused_urls': [],
+        'expect_reason_substrings': [
+            'Bronnenlijst bevat niet-URL regels (1): not-a-bare-url.example.com/bad-line',
+        ],
+        'reject_text_substrings': [
+            'Bronnenlijst bevat niet-URL regels (1): not-a-bare-url.example.com/bad-line; Bronnenlijst bevat niet-URL regels (1): not-a-bare-url.example.com/bad-line',
+        ],
+    },
+    {
         'name': 'explicit-no-briefingitems-with-summary-evidence-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-explicit-no-briefingitems-with-summary-evidence-sample.txt',
         'expect_ok': False,
@@ -8892,6 +8934,17 @@ STATUS_SUMMARY_AUDIT_CASES = [
         ],
     },
     {
+        'name': 'status-summary-audit-cli-keeps-explicit-no-briefingitems-with-invalid-bronnenlijst-line-audit',
+        'path': ROOT / 'tmp' / 'ai-briefing-explicit-no-briefingitems-with-invalid-bronnenlijst-line-sample.txt',
+        'expect_rendered_text_substrings': [
+            'Bronnenlijst bevat niet-URL regels (1): not-a-bare-url.example.com/bad-line',
+            'bron-URLs 0',
+        ],
+        'reject_rendered_text_substrings': [
+            'Bronnenlijst bevat niet-URL regels (1): not-a-bare-url.example.com/bad-line | Bronnenlijst bevat niet-URL regels (1): not-a-bare-url.example.com/bad-line',
+        ],
+    },
+    {
         'name': 'status-summary-audit-cli-keeps-explicit-no-briefingitems-summary-evidence-audit',
         'path': ROOT / 'tmp' / 'ai-briefing-explicit-no-briefingitems-with-summary-evidence-sample.txt',
         'expect_rendered_text_substrings': [
@@ -12530,6 +12583,9 @@ def evaluate_status_summary_audit_case(module, case):
     for snippet in case.get('expect_rendered_text_substrings', []):
         if snippet not in expected_text:
             failures.append(f"verwachte render_summary_audit_text-tekst ontbreekt: {snippet}")
+    for snippet in case.get('reject_rendered_text_substrings', []):
+        if snippet in expected_text:
+            failures.append(f"ongewenste render_summary_audit_text-tekst aanwezig: {snippet}")
 
     comparable_json_file_payload = None
     if json_file_payload:
@@ -13209,7 +13265,10 @@ def evaluate_proof_recheck_producer_case(case):
             'proof_target_run_slots_text',
             'proof_freshness_text',
             'proof_plan_text',
+            'next_run_at',
+            'previous_run_slot_at',
             'last_run_timeout_text',
+            'recent_run_duration_audit',
             'recent_run_duration_text',
             *LAST_RUN_OUTPUT_AUDIT_FOCUS_KEYS,
             'summary_output_examples',
@@ -15050,7 +15109,9 @@ def evaluate_watchdog_alert_case(case):
         'proof_target_due_at_if_next_slot_missed_remaining_ms',
         'proof_target_due_at_if_next_slot_missed_remaining_hours',
         'proof_freshness',
+        'next_run_at',
         'next_run_at_text',
+        'previous_run_slot_at',
         'previous_run_slot_at_text',
         'last_proof_qualified_run_at_text',
         'has_run_proof',
@@ -15068,6 +15129,7 @@ def evaluate_watchdog_alert_case(case):
         'proof_requirement_met',
         'proof_recheck_schedule_audit',
         'proof_recheck_grace_ms',
+        'recent_run_duration_audit',
         'recent_run_duration_near_timeout',
         'recent_run_duration_timed_out',
         'required_qualified_runs',
@@ -16655,7 +16717,9 @@ def evaluate_watchdog_producer_case(case):
         'proof_no_more_qualifying_runs_today',
         'config_newer_than_last_run',
         'proof_recheck_grace_ms',
+        'next_run_at',
         'next_run_at_text',
+        'previous_run_slot_at',
         'previous_run_slot_at_text',
         'last_proof_qualified_run_at_text',
         'has_run_proof',
@@ -16665,6 +16729,7 @@ def evaluate_watchdog_producer_case(case):
         'last_run_timeout_text',
         'last_run_timeout_near_timeout',
         'last_run_timeout_timed_out',
+        'recent_run_duration_audit',
         'recent_run_duration_text',
         'recent_run_duration_near_timeout',
         'recent_run_duration_timed_out',
@@ -16741,13 +16806,16 @@ def evaluate_watchdog_producer_case(case):
         'last_run_timeout_audit',
         'last_run_timeout_near_timeout',
         'last_run_timeout_timed_out',
+        'next_run_at',
         'next_run_at_text',
+        'previous_run_slot_at',
         'previous_run_slot_at_text',
         'last_proof_qualified_run_at_text',
         'has_run_proof',
         'attention_needed',
         'expected_proof_freshness_wait',
         'job_name',
+        'recent_run_duration_audit',
         'recent_run_duration_near_timeout',
         'recent_run_duration_timed_out',
         'required_qualified_runs',
