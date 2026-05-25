@@ -12820,6 +12820,12 @@ def evaluate_proof_recheck_case(case):
             'proof-recheck-plain-tekst mist proof_target_check_gate_text uit stdout-json: '
             f"{payload.get('proof_target_check_gate_text')}"
         )
+    proof_target_run_slots_text = payload.get('proof_target_run_slots_context_text') or payload.get('proof_target_run_slots_text')
+    if proof_target_run_slots_text and not payload.get('proof_countdown_text') and f'kwalificatie-slots {proof_target_run_slots_text}' not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist kwalificatie-slots uit stdout-json: '
+            f"kwalificatie-slots {proof_target_run_slots_text}"
+        )
 
     for snippet in case.get('expect_plain_not_substrings', []):
         if snippet and snippet in text_output:
@@ -13008,6 +13014,22 @@ def evaluate_proof_recheck_producer_case(case):
             'proof_config_identity_text',
             'last_run_config_relation_text',
             'proof_today_block_text',
+            'proof_text',
+            'proof_due_at',
+            'proof_due_at_text',
+            'proof_due_hint',
+            'last_run_at',
+            'last_run_at_text',
+            'last_run_hint',
+            'last_run_status',
+            'last_run_timeout_audit',
+            'proof_target_run_slots',
+            'proof_target_run_slot_texts',
+            'proof_target_run_slot_hints',
+            'proof_target_run_slot_context_texts',
+            'proof_target_run_slot_day_labels',
+            'proof_target_run_slots_context_text',
+            'proof_target_run_slots_text',
             'proof_freshness_text',
             'proof_plan_text',
             'last_run_timeout_text',
@@ -13184,6 +13206,16 @@ def evaluate_proof_recheck_producer_case(case):
             failures.append(
                 'producer-quiet-tekst mist proof_target_check_gate_text uit overall/stdout-json: '
                 f"{overall.get('proof_target_check_gate_text')}"
+            )
+        overall_proof_target_run_slots_text = overall.get('proof_target_run_slots_context_text') or overall.get('proof_target_run_slots_text')
+        if (
+            overall_proof_target_run_slots_text
+            and not overall.get('proof_countdown_text')
+            and f'kwalificatie-slots {overall_proof_target_run_slots_text}' not in quiet_text
+        ):
+            failures.append(
+                'producer-quiet-tekst mist kwalificatie-slots uit overall/stdout-json: '
+                f"kwalificatie-slots {overall_proof_target_run_slots_text}"
             )
         if overall.get('proof_today_block_text') and overall['proof_today_block_text'] not in quiet_text:
             failures.append(
@@ -16321,6 +16353,15 @@ def evaluate_watchdog_producer_case(case):
         'last_run_config_relation',
         'last_run_config_relation_text',
         'proof_today_block_text',
+        'proof_text',
+        'proof_due_at',
+        'proof_due_at_text',
+        'proof_due_hint',
+        'last_run_at',
+        'last_run_at_text',
+        'last_run_hint',
+        'last_run_status',
+        'last_run_timeout_audit',
         'proof_next_action_text',
         'proof_next_action_window_text',
         'proof_recheck_commands_text',
@@ -16342,6 +16383,11 @@ def evaluate_watchdog_producer_case(case):
         'proof_countdown_text',
         'proof_target_check_gate',
         'proof_target_check_gate_text',
+        'proof_target_run_slots',
+        'proof_target_run_slot_texts',
+        'proof_target_run_slot_hints',
+        'proof_target_run_slot_context_texts',
+        'proof_target_run_slot_day_labels',
         'proof_target_run_slots_context_text',
         'proof_target_run_slots_text',
         'proof_freshness_text',

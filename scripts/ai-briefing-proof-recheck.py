@@ -171,6 +171,14 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_recheck_commands': status_data.get('proof_recheck_commands') or watchdog_data.get('proof_recheck_commands') or [],
         'proof_recheck_commands_text': first_non_null(status_data.get('proof_recheck_commands_text'), watchdog_data.get('proof_recheck_commands_text')),
         'proof_blocker_kind': first_non_null(status_data.get('proof_blocker_kind'), watchdog_data.get('proof_blocker_kind')),
+        'proof_text': first_non_null(status_data.get('proof_text'), watchdog_data.get('proof_text')),
+        'proof_due_at': first_non_null(status_data.get('proof_due_at'), watchdog_data.get('proof_due_at')),
+        'proof_due_at_text': first_non_null(status_data.get('proof_due_at_text'), watchdog_data.get('proof_due_at_text')),
+        'proof_due_hint': first_non_null(status_data.get('proof_due_hint'), watchdog_data.get('proof_due_hint')),
+        'last_run_at': first_non_null(status_data.get('last_run_at'), watchdog_data.get('last_run_at')),
+        'last_run_at_text': first_non_null(status_data.get('last_run_at_text'), watchdog_data.get('last_run_at_text')),
+        'last_run_hint': first_non_null(status_data.get('last_run_hint'), watchdog_data.get('last_run_hint')),
+        'last_run_status': first_non_null(status_data.get('last_run_status'), watchdog_data.get('last_run_status')),
         'proof_blocker_text': first_non_null(status_data.get('proof_blocker_text'), watchdog_data.get('proof_blocker_text')),
         'proof_today_block_text': first_non_null(status_data.get('proof_today_block_text'), watchdog_data.get('proof_today_block_text')),
         'proof_freshness_text': first_non_null((status_data.get('proof_freshness') or {}).get('text'), watchdog_data.get('proof_freshness_text')),
@@ -192,6 +200,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'last_run_output_audit_missing_primary_fresh_examples': first_non_null(status_data.get('last_run_output_audit_missing_primary_fresh_examples'), watchdog_data.get('last_run_output_audit_missing_primary_fresh_examples')),
         'last_run_output_audit_missing_fresh_details': first_non_null(status_data.get('last_run_output_audit_missing_fresh_details'), watchdog_data.get('last_run_output_audit_missing_fresh_details')),
         'last_run_output_audit_missing_primary_fresh_details': first_non_null(status_data.get('last_run_output_audit_missing_primary_fresh_details'), watchdog_data.get('last_run_output_audit_missing_primary_fresh_details')),
+        'last_run_timeout_audit': first_non_null(status_data.get('last_run_timeout_audit'), watchdog_data.get('last_run_timeout_audit')),
         'proof_countdown_text': first_non_null(status_data.get('proof_countdown_text'), watchdog_data.get('proof_countdown_text')),
         'proof_schedule_risk_text': first_non_null(status_data.get('proof_schedule_risk_text'), watchdog_data.get('proof_schedule_risk_text')),
         'proof_next_qualifying_slot_at': first_non_null(status_data.get('proof_next_qualifying_slot_at'), watchdog_data.get('proof_next_qualifying_slot_at')),
@@ -211,6 +220,13 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_schedule_slip_hours': first_non_null(status_data.get('proof_schedule_slip_hours'), watchdog_data.get('proof_schedule_slip_hours')),
         'proof_target_check_gate': first_non_null(status_data.get('proof_target_check_gate'), watchdog_data.get('proof_target_check_gate')),
         'proof_target_check_gate_text': first_non_null(status_data.get('proof_target_check_gate_text'), watchdog_data.get('proof_target_check_gate_text')),
+        'proof_target_run_slots': first_non_null(status_data.get('proof_target_run_slots'), watchdog_data.get('proof_target_run_slots')),
+        'proof_target_run_slot_texts': first_non_null(status_data.get('proof_target_run_slot_texts'), watchdog_data.get('proof_target_run_slot_texts')),
+        'proof_target_run_slot_hints': first_non_null(status_data.get('proof_target_run_slot_hints'), watchdog_data.get('proof_target_run_slot_hints')),
+        'proof_target_run_slot_context_texts': first_non_null(status_data.get('proof_target_run_slot_context_texts'), watchdog_data.get('proof_target_run_slot_context_texts')),
+        'proof_target_run_slot_day_labels': first_non_null(status_data.get('proof_target_run_slot_day_labels'), watchdog_data.get('proof_target_run_slot_day_labels')),
+        'proof_target_run_slots_text': first_non_null(status_data.get('proof_target_run_slots_text'), watchdog_data.get('proof_target_run_slots_text')),
+        'proof_target_run_slots_context_text': first_non_null(status_data.get('proof_target_run_slots_context_text'), watchdog_data.get('proof_target_run_slots_context_text')),
         'proof_config_hash': first_non_null(status_data.get('proof_config_hash'), watchdog_data.get('proof_config_hash')),
         'proof_config_identity_text': first_non_null(status_data.get('proof_config_identity_text'), watchdog_data.get('proof_config_identity_text')),
         'last_run_config_relation': first_non_null(status_data.get('last_run_config_relation'), watchdog_data.get('last_run_config_relation')),
@@ -470,6 +486,7 @@ def build_text(payload: dict) -> str:
         if bit
     )
     proof_recheck_after_text_compact = payload.get('proof_recheck_after_text_compact')
+    proof_target_run_slots_text = payload.get('proof_target_run_slots_context_text') or payload.get('proof_target_run_slots_text')
     bits = [
         f"AI-briefing proof-recheck: {payload.get('summary')}",
         payload.get('result_text'),
@@ -510,6 +527,7 @@ def build_text(payload: dict) -> str:
         ),
         payload.get('proof_target_check_gate_text'),
         payload.get('proof_countdown_text'),
+        (f"kwalificatie-slots {proof_target_run_slots_text}" if proof_target_run_slots_text and not payload.get('proof_countdown_text') else None),
         payload.get('proof_recheck_commands_text'),
         payload.get('consumer_requested_output_count_text'),
         payload.get('consumer_requested_output_channel_count_text'),

@@ -160,6 +160,9 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_target_check_gate_text']))
     if payload.get('proof_countdown_text'):
         bits.append(str(payload['proof_countdown_text']))
+    proof_target_run_slots_text = payload.get('proof_target_run_slots_context_text') or payload.get('proof_target_run_slots_text')
+    if proof_target_run_slots_text and not payload.get('proof_countdown_text'):
+        bits.append(f"kwalificatie-slots {proof_target_run_slots_text}")
     if payload.get('consumer_effective_outputs_text'):
         bits.append(str(payload['consumer_effective_outputs_text']))
     elif payload.get('consumer_effective_outputs'):
@@ -294,6 +297,8 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_schedule_slip_hours': payload.get('proof_schedule_slip_hours'),
         'proof_target_check_gate': payload.get('proof_target_check_gate'),
         'proof_target_check_gate_text': payload.get('proof_target_check_gate_text'),
+        'proof_target_run_slots_context_text': payload.get('proof_target_run_slots_context_text'),
+        'proof_target_run_slots_text': payload.get('proof_target_run_slots_text'),
         'proof_config_hash': payload.get('proof_config_hash'),
         'proof_config_identity_text': payload.get('proof_config_identity_text'),
         'last_run_config_relation': payload.get('last_run_config_relation'),
