@@ -14902,6 +14902,37 @@ def evaluate_watchdog_alert_case(case):
             'last_run_output_audit_missing_primary_fresh_details verwacht passthrough uit watchdog-json, kreeg '
             f"{payload.get('last_run_output_audit_missing_primary_fresh_details')} versus {watchdog_payload.get('last_run_output_audit_missing_primary_fresh_details')}"
         )
+    for passthrough_key in [
+        'proof_text',
+        'proof_due_at',
+        'proof_due_at_text',
+        'proof_due_hint',
+        'proof_target_runs',
+        'proof_qualified_runs',
+        'proof_target_run_slots',
+        'proof_target_run_slot_texts',
+        'proof_target_run_slot_hints',
+        'proof_target_run_slot_context_texts',
+        'proof_target_run_slot_day_labels',
+        'proof_target_run_slots_context_text',
+        'proof_target_run_slots_text',
+        'proof_target_due_remaining_ms',
+        'proof_target_due_remaining_hours',
+        'proof_target_due_at_if_next_slot_missed_remaining_ms',
+        'proof_target_due_at_if_next_slot_missed_remaining_hours',
+        'proof_freshness',
+        'last_run_at',
+        'last_run_at_text',
+        'last_run_hint',
+        'last_run_status',
+        'last_run_timeout_audit',
+        'last_run_summary',
+    ]:
+        if payload.get(passthrough_key) != watchdog_payload.get(passthrough_key):
+            failures.append(
+                f'{passthrough_key} verwacht passthrough uit watchdog-json, kreeg '
+                f"{payload.get(passthrough_key)} versus {watchdog_payload.get(passthrough_key)}"
+            )
     if not consumer_bundle and not consumer_preset:
         if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=0, kanalen=0':
             failures.append(
