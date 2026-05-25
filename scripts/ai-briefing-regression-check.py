@@ -12067,6 +12067,7 @@ def evaluate_watchdog_stdout_case(case):
             f"{type(payload.get('summary_output_examples')).__name__}"
         )
     for key in [
+        'last_run_summary',
         'last_run_output_audit_ok',
         'last_run_output_audit_text',
         'last_run_output_audit_item_count',
@@ -12083,6 +12084,9 @@ def evaluate_watchdog_stdout_case(case):
         'last_run_output_audit_missing_primary_fresh_examples',
         'last_run_output_audit_missing_fresh_details',
         'last_run_output_audit_missing_primary_fresh_details',
+        'proof_freshness',
+        'proof_target_due_hint',
+        'proof_target_due_at_if_next_slot_missed_hint',
     ]:
         if payload.get(key) != expected_status.get(key):
             failures.append(
@@ -12569,6 +12573,7 @@ def evaluate_proof_recheck_case(case):
         )
     status_payload = run_status_json(case['reference_ms'])
     for key in [
+        'last_run_summary',
         'last_run_output_audit_ok',
         'last_run_output_audit_text',
         'last_run_output_audit_item_count',
@@ -12585,6 +12590,13 @@ def evaluate_proof_recheck_case(case):
         'last_run_output_audit_missing_primary_fresh_examples',
         'last_run_output_audit_missing_fresh_details',
         'last_run_output_audit_missing_primary_fresh_details',
+        'proof_freshness',
+        'proof_target_runs',
+        'proof_qualified_runs',
+        'proof_target_due_hint',
+        'proof_target_due_at_if_next_slot_missed_hint',
+        'proof_next_qualifying_slot_day_label',
+        'proof_no_more_qualifying_runs_today',
     ]:
         if payload.get(key) != status_payload.get(key):
             failures.append(
