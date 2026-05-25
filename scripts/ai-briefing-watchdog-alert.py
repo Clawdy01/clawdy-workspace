@@ -337,10 +337,14 @@ def build_json_payload(
     run_metadata: dict | None = None,
 ) -> dict:
     requested_channels: list[str] = []
+    requested_paths: list[str] = []
     for item in consumer_requested_outputs:
         channel = str(item.get('channel') or '').strip()
+        path = str(item.get('path') or '').strip()
         if channel and channel not in requested_channels:
             requested_channels.append(channel)
+        if path:
+            requested_paths.append(path)
     return {
         'ok': bool(data.get('ok')),
         'mode': mode,
@@ -488,6 +492,8 @@ def build_json_payload(
         'recent_run_duration_timed_out': data.get('recent_run_duration_timed_out'),
         'required_qualified_runs': data.get('required_qualified_runs'),
         'consumer_requested_outputs': consumer_requested_outputs,
+        'consumer_requested_output_paths': requested_paths,
+        'consumer_requested_output_channels': requested_channels,
         'consumer_requested_output_count': len(consumer_requested_outputs),
         'consumer_requested_output_channel_count': len(requested_channels),
         'consumer_requested_output_count_text': (
@@ -511,6 +517,52 @@ def build_json_payload(
             else 'consumer-output-aanvraag leeg (geen artifact-output gevraagd)'
         ),
         'consumer_requested_outputs_text': format_consumer_outputs(consumer_requested_outputs),
+        'consumer_outputs': data.get('consumer_outputs') or [],
+        'consumer_output_paths': data.get('consumer_output_paths') or [],
+        'consumer_output_channels': data.get('consumer_output_channels') or [],
+        'consumer_output_count': data.get('consumer_output_count'),
+        'consumer_output_channel_count': data.get('consumer_output_channel_count'),
+        'consumer_output_channel_count_text': data.get('consumer_output_channel_count_text'),
+        'consumer_output_channels_text': data.get('consumer_output_channels_text'),
+        'consumer_outputs_text': data.get('consumer_outputs_text'),
+        'consumer_outputs_match_requested': data.get('consumer_outputs_match_requested'),
+        'consumer_outputs_count_text': data.get('consumer_outputs_count_text'),
+        'consumer_outputs_status_kind': data.get('consumer_outputs_status_kind'),
+        'consumer_outputs_status_text': data.get('consumer_outputs_status_text'),
+        'consumer_outputs_missing_count': data.get('consumer_outputs_missing_count'),
+        'consumer_outputs_missing': data.get('consumer_outputs_missing') or [],
+        'consumer_outputs_missing_paths': data.get('consumer_outputs_missing_paths') or [],
+        'consumer_outputs_missing_channels': data.get('consumer_outputs_missing_channels') or [],
+        'consumer_outputs_missing_text': data.get('consumer_outputs_missing_text'),
+        'consumer_outputs_unexpected_count': data.get('consumer_outputs_unexpected_count'),
+        'consumer_outputs_unexpected': data.get('consumer_outputs_unexpected') or [],
+        'consumer_outputs_unexpected_paths': data.get('consumer_outputs_unexpected_paths') or [],
+        'consumer_outputs_unexpected_channels': data.get('consumer_outputs_unexpected_channels') or [],
+        'consumer_outputs_unexpected_text': data.get('consumer_outputs_unexpected_text'),
+        'consumer_effective_output_source': data.get('consumer_effective_output_source'),
+        'consumer_effective_output_source_text': data.get('consumer_effective_output_source_text'),
+        'consumer_effective_outputs': data.get('consumer_effective_outputs') or [],
+        'consumer_effective_output_count': data.get('consumer_effective_output_count'),
+        'consumer_effective_output_channel_count': data.get('consumer_effective_output_channel_count'),
+        'consumer_effective_output_channel_count_text': data.get('consumer_effective_output_channel_count_text'),
+        'consumer_effective_output_paths': data.get('consumer_effective_output_paths') or [],
+        'consumer_effective_output_channels': data.get('consumer_effective_output_channels') or [],
+        'consumer_effective_output_channels_text': data.get('consumer_effective_output_channels_text'),
+        'consumer_effective_outputs_text': data.get('consumer_effective_outputs_text'),
+        'consumer_effective_outputs_match_requested': data.get('consumer_effective_outputs_match_requested'),
+        'consumer_effective_outputs_missing_count': data.get('consumer_effective_outputs_missing_count'),
+        'consumer_effective_outputs_missing': data.get('consumer_effective_outputs_missing') or [],
+        'consumer_effective_outputs_missing_paths': data.get('consumer_effective_outputs_missing_paths') or [],
+        'consumer_effective_outputs_missing_channels': data.get('consumer_effective_outputs_missing_channels') or [],
+        'consumer_effective_outputs_missing_text': data.get('consumer_effective_outputs_missing_text'),
+        'consumer_effective_outputs_unexpected_count': data.get('consumer_effective_outputs_unexpected_count'),
+        'consumer_effective_outputs_unexpected': data.get('consumer_effective_outputs_unexpected') or [],
+        'consumer_effective_outputs_unexpected_paths': data.get('consumer_effective_outputs_unexpected_paths') or [],
+        'consumer_effective_outputs_unexpected_channels': data.get('consumer_effective_outputs_unexpected_channels') or [],
+        'consumer_effective_outputs_unexpected_text': data.get('consumer_effective_outputs_unexpected_text'),
+        'consumer_effective_outputs_count_text': data.get('consumer_effective_outputs_count_text'),
+        'consumer_effective_outputs_status_kind': data.get('consumer_effective_outputs_status_kind'),
+        'consumer_effective_outputs_status_text': data.get('consumer_effective_outputs_status_text'),
         'reasons': data.get('reasons') or [],
         'summary_output_examples': data.get('summary_output_examples') or [],
         **(run_metadata or {}),

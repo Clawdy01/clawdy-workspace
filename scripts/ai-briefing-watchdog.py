@@ -197,6 +197,186 @@ def format_channel_summary(prefix: str, channels: list[str]) -> str:
     return f"{prefix}: {', '.join(cleaned)}"
 
 
+def output_signature(item: dict) -> tuple[str, str, str, bool]:
+    return (
+        str(item.get('channel') or ''),
+        str(item.get('path') or ''),
+        str(item.get('format') or ''),
+        bool(item.get('append')),
+    )
+
+
+def update_effective_consumer_outputs(payload: dict) -> None:
+    written_outputs = payload.get('consumer_outputs') or []
+    requested_outputs = payload.get('consumer_requested_outputs') or []
+    effective_outputs = written_outputs or requested_outputs
+    if written_outputs:
+        source = 'written'
+    elif requested_outputs:
+        source = 'requested-fallback'
+    else:
+        source = 'none'
+
+    payload['consumer_effective_output_source'] = source
+    payload['consumer_effective_output_source_text'] = {
+        'written': 'consumer-effectieve-outputbron: geschreven artifacts',
+        'requested-fallback': 'consumer-effectieve-outputbron: aangevraagde artifacts als fallback',
+        'none': 'consumer-effectieve-outputbron: geen artifacts',
+    }.get(source, f'consumer-effectieve-outputbron: {source}')
+    effective_channels = sorted({item.get('channel') for item in effective_outputs if item.get('channel')})
+    payload['consumer_effective_outputs'] = effective_outputs
+    payload['consumer_effective_output_count'] = len(effective_outputs)
+    payload['consumer_effective_output_paths'] = [item['path'] for item in effective_outputs]
+    payload['consumer_effective_output_channels'] = [item['channel'] for item in effective_outputs]
+    payload['consumer_effective_output_channel_count'] = len(effective_channels)
+    payload['consumer_effective_output_channel_count_text'] = (
+        'consumer-effectieve-output-kanalen '
+        f"effectief={payload['consumer_effective_output_count']}, "
+        f"kanalen={payload['consumer_effective_output_channel_count']}"
+    )
+    payload['consumer_effective_output_channels_text'] = format_channel_summary(
+        'consumer-effectieve-output-kanalen',
+        effective_channels,
+    )
+    payload['consumer_effective_outputs_text'] = format_consumer_outputs(effective_outputs)
+
+    requested_signatures = {output_signature(item) for item in requested_outputs}
+    effective_signatures = {output_signature(item) for item in effective_outputs}
+    missing_outputs = [item for item in requested_outputs if output_signature(item) not in effective_signatures]
+    unexpected_outputs = [item for item in effective_outputs if output_signature(item) not in requested_signatures]
+
+    payload['consumer_effective_outputs_match_requested'] = not missing_outputs and not unexpected_outputs
+    payload['consumer_effective_outputs_missing_count'] = len(missing_outputs)
+    payload['consumer_effective_outputs_missing'] = missing_outputs
+    payload['consumer_effective_outputs_missing_paths'] = [item['path'] for item in missing_outputs]
+    payload['consumer_effective_outputs_missing_channels'] = [item['channel'] for item in missing_outputs]
+    payload['consumer_effective_outputs_missing_text'] = format_consumer_outputs(missing_outputs)
+    payload['consumer_effective_outputs_unexpected_count'] = len(unexpected_outputs)
+    payload['consumer_effective_outputs_unexpected'] = unexpected_outputs
+    payload['consumer_effective_outputs_unexpected_paths'] = [item['path'] for item in unexpected_outputs]
+    payload['consumer_effective_outputs_unexpected_channels'] = [item['channel'] for item in unexpected_outputs]
+    payload['consumer_effective_outputs_unexpected_text'] = format_consumer_outputs(unexpected_outputs)
+    payload['consumer_effective_outputs_count_text'] = (
+        'consumer-effectieve-output-telling '
+        f"gevraagd={len(requested_outputs)}, "
+        f"effectief={len(effective_outputs)}, "
+        f"ontbrekend={len(missing_outputs)}, "
+        f"onverwacht={len(unexpected_outputs)}"
+    )
+    if payload['consumer_effective_outputs_match_requested']:
+        requested_count = len(requested_outputs)
+        if requested_count:
+            payload['consumer_effective_outputs_status_kind'] = 'ok'
+            payload['consumer_effective_outputs_status_text'] = (
+                f'consumer-effectieve-output-audit ok ({requested_count}/{requested_count} gevraagde artifacts gedekt via {source})'
+            )
+        else:
+            payload['consumer_effective_outputs_status_kind'] = 'none-requested'
+            payload['consumer_effective_outputs_status_text'] = 'consumer-effectieve-output-audit ok (geen artifact-output gevraagd)'
+        return
+
+    parts: list[str] = []
+    missing_text = payload.get('consumer_effective_outputs_missing_text')
+    unexpected_text = payload.get('consumer_effective_outputs_unexpected_text')
+    if missing_text:
+        parts.append('ontbreekt: ' + missing_text.removeprefix('consumer-artifacts: '))
+    if unexpected_text:
+        parts.append('onverwacht: ' + unexpected_text.removeprefix('consumer-artifacts: '))
+    payload['consumer_effective_outputs_status_kind'] = 'mismatch'
+    payload['consumer_effective_outputs_status_text'] = (
+        f'consumer-effectieve-output-audit mismatch via {source} (' + '; '.join(parts) + ')'
+    )
+
+
+def update_consumer_output_audit(payload: dict) -> None:
+    requested_outputs = payload.get('consumer_requested_outputs') or []
+    written_outputs = payload.get('consumer_outputs') or []
+    requested_signatures = {output_signature(item) for item in requested_outputs}
+    written_signatures = {output_signature(item) for item in written_outputs}
+
+    missing_outputs = [item for item in requested_outputs if output_signature(item) not in written_signatures]
+    unexpected_outputs = [item for item in written_outputs if output_signature(item) not in requested_signatures]
+
+    requested_channels = sorted({item.get('channel') for item in requested_outputs if item.get('channel')})
+    payload['consumer_requested_output_count'] = len(requested_outputs)
+    payload['consumer_requested_output_channel_count'] = len(requested_channels)
+    payload['consumer_requested_output_channel_count_text'] = (
+        'consumer-output-aanvraag-kanalen '
+        f"gevraagd={payload['consumer_requested_output_count']}, "
+        f"kanalen={payload['consumer_requested_output_channel_count']}"
+    )
+    payload['consumer_requested_output_channels_text'] = format_channel_summary(
+        'consumer-output-aanvraag-kanalen',
+        requested_channels,
+    )
+    payload['consumer_requested_output_count_text'] = (
+        'consumer-output-aanvraag '
+        f"gevraagd={payload['consumer_requested_output_count']}, "
+        f"kanalen={payload['consumer_requested_output_channel_count']}"
+    )
+    if requested_outputs:
+        payload['consumer_requested_outputs_status_kind'] = 'requested'
+        payload['consumer_requested_outputs_status_text'] = (
+            f"consumer-output-aanvraag vastgelegd voor {payload['consumer_requested_output_count']} artifact(s)"
+        )
+    else:
+        payload['consumer_requested_outputs_status_kind'] = 'none-requested'
+        payload['consumer_requested_outputs_status_text'] = 'consumer-output-aanvraag leeg (geen artifact-output gevraagd)'
+    output_channels = sorted({item.get('channel') for item in written_outputs if item.get('channel')})
+    payload['consumer_output_count'] = len(written_outputs)
+    payload['consumer_output_channel_count'] = len(output_channels)
+    payload['consumer_output_channel_count_text'] = (
+        'consumer-output-kanalen '
+        f"geschreven={payload['consumer_output_count']}, "
+        f"kanalen={payload['consumer_output_channel_count']}"
+    )
+    payload['consumer_output_channels_text'] = format_channel_summary(
+        'consumer-output-kanalen',
+        output_channels,
+    )
+    payload['consumer_outputs_missing_count'] = len(missing_outputs)
+    payload['consumer_outputs_missing_text'] = format_consumer_outputs(missing_outputs)
+    payload['consumer_outputs_unexpected_count'] = len(unexpected_outputs)
+    payload['consumer_outputs_unexpected_text'] = format_consumer_outputs(unexpected_outputs)
+    payload['consumer_outputs_count_text'] = (
+        'consumer-output-telling '
+        f"gevraagd={payload['consumer_requested_output_count']}, "
+        f"geschreven={payload['consumer_output_count']}, "
+        f"ontbrekend={payload['consumer_outputs_missing_count']}, "
+        f"onverwacht={payload['consumer_outputs_unexpected_count']}"
+    )
+    payload['consumer_outputs_match_requested'] = not missing_outputs and not unexpected_outputs
+    payload['consumer_outputs_missing'] = missing_outputs
+    payload['consumer_outputs_missing_paths'] = [item['path'] for item in missing_outputs]
+    payload['consumer_outputs_missing_channels'] = [item['channel'] for item in missing_outputs]
+    payload['consumer_outputs_unexpected'] = unexpected_outputs
+    payload['consumer_outputs_unexpected_paths'] = [item['path'] for item in unexpected_outputs]
+    payload['consumer_outputs_unexpected_channels'] = [item['channel'] for item in unexpected_outputs]
+    update_effective_consumer_outputs(payload)
+
+    if payload['consumer_outputs_match_requested']:
+        requested_count = len(requested_outputs)
+        if requested_count:
+            payload['consumer_outputs_status_kind'] = 'ok'
+            payload['consumer_outputs_status_text'] = (
+                f'consumer-output-audit ok ({requested_count}/{requested_count} gevraagde artifacts geschreven)'
+            )
+        else:
+            payload['consumer_outputs_status_kind'] = 'none-requested'
+            payload['consumer_outputs_status_text'] = 'consumer-output-audit ok (geen artifact-output gevraagd)'
+        return
+
+    parts: list[str] = []
+    missing_text = payload.get('consumer_outputs_missing_text')
+    unexpected_text = payload.get('consumer_outputs_unexpected_text')
+    if missing_text:
+        parts.append('ontbreekt: ' + missing_text.removeprefix('consumer-artifacts: '))
+    if unexpected_text:
+        parts.append('onverwacht: ' + unexpected_text.removeprefix('consumer-artifacts: '))
+    payload['consumer_outputs_status_kind'] = 'mismatch'
+    payload['consumer_outputs_status_text'] = 'consumer-output-audit mismatch (' + '; '.join(parts) + ')'
+
+
 def render_output(*, text: str, payload: dict, output_format: str) -> str:
     if output_format == 'json':
         return json.dumps(payload, ensure_ascii=False, indent=2) + '\n'
@@ -740,37 +920,17 @@ def main() -> int:
         consumer_bundle=args.consumer_bundle,
         consumer_presets=consumer_presets,
     )
-    requested_channels: list[str] = []
-    for item in consumer_requested_outputs:
-        channel = str(item.get('channel') or '').strip()
-        if channel and channel not in requested_channels:
-            requested_channels.append(channel)
     result.update({
         'consumer_requested_outputs': consumer_requested_outputs,
-        'consumer_requested_output_count': len(consumer_requested_outputs),
-        'consumer_requested_output_channel_count': len(requested_channels),
-        'consumer_requested_output_count_text': (
-            'consumer-output-aanvraag '
-            f'gevraagd={len(consumer_requested_outputs)}, kanalen={len(requested_channels)}'
-        ),
-        'consumer_requested_output_channel_count_text': (
-            'consumer-output-aanvraag-kanalen '
-            f'gevraagd={len(consumer_requested_outputs)}, kanalen={len(requested_channels)}'
-        ),
-        'consumer_requested_output_channels_text': format_channel_summary(
-            'consumer-output-aanvraag-kanalen',
-            requested_channels,
-        ),
-        'consumer_requested_outputs_status_kind': (
-            'requested' if consumer_requested_outputs else 'none-requested'
-        ),
-        'consumer_requested_outputs_status_text': (
-            f'consumer-output-aanvraag vastgelegd voor {len(consumer_requested_outputs)} artifact(s)'
-            if consumer_requested_outputs
-            else 'consumer-output-aanvraag leeg (geen artifact-output gevraagd)'
-        ),
+        'consumer_requested_output_paths': [item['path'] for item in consumer_requested_outputs],
+        'consumer_requested_output_channels': [item['channel'] for item in consumer_requested_outputs],
         'consumer_requested_outputs_text': format_consumer_outputs(consumer_requested_outputs),
+        'consumer_outputs': consumer_requested_outputs,
+        'consumer_output_paths': [item['path'] for item in consumer_requested_outputs],
+        'consumer_output_channels': [item['channel'] for item in consumer_requested_outputs],
+        'consumer_outputs_text': format_consumer_outputs(consumer_requested_outputs),
     })
+    update_consumer_output_audit(result)
     result.update(
         build_run_metadata(
             started_at=started_at,

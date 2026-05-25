@@ -1,37 +1,30 @@
-ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 40/42 runs ok, 40 afgeleverd, streak 37, laatste duur 2m 46s, laatste zojuist
+ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 40/42 runs ok, 40 afgeleverd, streak 37, laatste duur 2m 46s, laatste 10 uur geleden
 proof state: bewijs wacht tijdsgebonden op het eerstvolgende kwalificatieslot van morgen (waiting-next-scheduled-run-tomorrow)
-proof blocker: tijdslotblokker: huidige config wacht op geplande kwalificatierun 2026-05-26 09:00 CEST (over 1 d) (time-gated-next-slot)
+proof blocker: tijdslotblokker: huidige config wacht op geplande kwalificatierun 2026-05-26 09:00 CEST (over 13u 12m) (time-gated-next-slot)
 reasons:
-- status not ok
-- next run slot wijkt 24u 0m af van verwacht 2026-05-25 09:00 CEST
-- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-25 09:02 CEST > 2026-05-25 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
-- next run: next run slot wijkt 24u 0m af van verwacht 2026-05-25 09:00 CEST; briefing-output: Bronnenlijst bevat ongebruikte URLs (21): https://anthropic.com/news, https://aws.amazon.com/blogs/machine-learning/feed, https://blog.google/rss; Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news
-- onvoldoende gekwalificeerde runs voor huidige config (0/3)
-- geen gekwalificeerde run sinds verwacht dagslot 2026-05-25 09:00 CEST
+- briefing-output: Bronnenlijst bevat ongebruikte URLs (21): https://anthropic.com/news, https://aws.amazon.com/blogs/machine-learning/feed, https://blog.google/rss; Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news
 readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan; tijdsgebonden wachtstatus tot het eerstvolgende kwalificatieslot van morgen
-reference: referentietijd 2026-05-25 08:58 CEST
-proof config: bewijsconfig 64279ac06074, gewijzigd 2026-05-25 09:02 CEST (zojuist)
+reference: live referentietijd 2026-05-25 19:47 CEST
+proof config: bewijsconfig 64279ac06074, gewijzigd 2026-05-25 09:02 CEST (10 uur geleden)
 last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-05-25 09:02 CEST nog op eerste run
 proof recheck schedule kind: proof-recheck-cronstatus: ok
 proof recheck schedule: proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)
 proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan
 proof wait state: wacht op eerstvolgende geplande kwalificatierun
-proof requirement: 0/3 gekwalificeerde runs
-proof remaining: nog 3 te gaan
 next run: 2026-05-26 09:00 CEST
 proof target due: 2026-05-28 09:15 CEST
 proof target due if next slot missed: 2026-05-29 09:15 CEST
-proof plan: geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-26 09:00 CEST (over 1 d), doel 2026-05-28 09:15 CEST
+proof plan: geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-26 09:00 CEST (over 13u 12m), doel 2026-05-28 09:15 CEST
 proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-25 09:02 CEST > 2026-05-25 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
-proof next action window: wacht op geplande kwalificatierun 2026-05-26 09:00 CEST (over 1 d); hercheck vanaf 2026-05-26 09:15 CEST (over 1 d)
-proof recheck window: hercheckvenster opent 2026-05-26 09:15 CEST (over 1 d)
+proof next action window: wacht op geplande kwalificatierun 2026-05-26 09:00 CEST (over 13u 12m); hercheck vanaf 2026-05-26 09:15 CEST (over 13u 27m)
+proof recheck window: hercheckvenster opent 2026-05-26 09:15 CEST (over 13u 27m)
 proof recheck commands: daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3
-proof today block: geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-26 09:00 CEST (over 1 d)
+proof today block: geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-26 09:00 CEST (over 13u 12m)
 proof schedule risk: als slot 2026-05-26 09:00 CEST mist, schuift bewijsdoel naar 2026-05-29 09:15 CEST
-proof wait until: 2026-05-26 09:00 CEST (over 1 d) [T+24u] - bewijs blijft tijdsgebonden wachten tot het eerstvolgende kwalificatieslot van morgen
-next qualifying run: 2026-05-26 09:00 CEST (over 1 d) [T+24u] [morgen]
-proof countdown: wachtvenster tot 2026-05-26 09:00 CEST (over 1 d); bewijsdoel 2026-05-28 09:15 CEST (over 3 d); mist volgend slot => 2026-05-29 09:15 CEST (slip +24u)
-proof target check gate: proof-target-check blijft stil tot 2026-05-28 09:15 CEST (over 3 d) (suppressed-until-deadline)
-qualifying run slots: 2026-05-26 09:00 CEST (over 1 d | morgen), 2026-05-27 09:00 CEST (over 2 d | over 2 d), 2026-05-28 09:00 CEST (over 3 d | over 3 d)
+proof wait until: 2026-05-26 09:00 CEST (over 13u 12m) [T+13.2u] - bewijs blijft tijdsgebonden wachten tot het eerstvolgende kwalificatieslot van morgen
+next qualifying run: 2026-05-26 09:00 CEST (over 13u 12m) [T+13.2u] [morgen]
+proof countdown: wachtvenster tot 2026-05-26 09:00 CEST (over 13u 12m); bewijsdoel 2026-05-28 09:15 CEST (over 2 d 13 u); mist volgend slot => 2026-05-29 09:15 CEST (slip +24u)
+proof target check gate: proof-target-check blijft stil tot 2026-05-28 09:15 CEST (over 2 d 13 u) (suppressed-until-deadline)
+qualifying run slots: 2026-05-26 09:00 CEST (over 13u 12m | morgen), 2026-05-27 09:00 CEST (over 1 d 13 u | over 2 d), 2026-05-28 09:00 CEST (over 2 d 13 u | over 3 d)
 last run timeout audit: laatste run had 9m 13s timeout-speling (2m 46s op limiet 12m 0s)
 recent run duration audit: recente duurtrend 2m 46s tot 7m 33s, gemiddeld 5m 8s, onder huidige limiet 12m 0s
