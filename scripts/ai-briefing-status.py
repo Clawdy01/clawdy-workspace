@@ -116,6 +116,11 @@ REQUIRED_OUTPUT_EXACT_FIELD_PREFIXES = [
 REQUIRED_OUTPUT_MARKER_ALTERNATIVES = [
     ('Bronnenlijst',),
 ]
+EXPLICIT_NO_BRIEFING_PATTERNS = [
+    re.compile(r'\bgeen briefingitems vandaag\b', re.IGNORECASE),
+    re.compile(r'\bvandaag\s+publiceer\s+ik\s+geen briefingitems\b', re.IGNORECASE),
+    re.compile(r'\bik\s+publiceer\s+vandaag\s+geen briefingitems\b', re.IGNORECASE),
+]
 MIN_SOURCE_URLS = 3
 MIN_DATED_ITEMS_FOR_STRONG_SIGNAL = 2
 PRIMARY_SOURCE_DOMAINS = {
@@ -1870,7 +1875,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         )
     explicit_no_briefing_mode = (
         item_count == 0
-        and 'geen briefingitems vandaag' in normalized_text
+        and any(pattern.search(normalized_text) for pattern in EXPLICIT_NO_BRIEFING_PATTERNS)
     )
     if item_marker_min_count < 3 and not explicit_no_briefing_mode:
         reasons.append(
