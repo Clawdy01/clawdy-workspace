@@ -14798,6 +14798,21 @@ def evaluate_watchdog_alert_case(case):
             'proof_next_qualifying_slot_remaining_hours verwacht '
             f"{expected_status.get('proof_next_qualifying_slot_remaining_hours')}, kreeg {payload.get('proof_next_qualifying_slot_remaining_hours')}"
         )
+    if payload.get('proof_next_qualifying_slot_day_label') != expected_status.get('proof_next_qualifying_slot_day_label'):
+        failures.append(
+            'proof_next_qualifying_slot_day_label verwacht '
+            f"{expected_status.get('proof_next_qualifying_slot_day_label')}, kreeg {payload.get('proof_next_qualifying_slot_day_label')}"
+        )
+    if payload.get('proof_no_more_qualifying_runs_today') != expected_status.get('proof_no_more_qualifying_runs_today'):
+        failures.append(
+            'proof_no_more_qualifying_runs_today verwacht '
+            f"{expected_status.get('proof_no_more_qualifying_runs_today')}, kreeg {payload.get('proof_no_more_qualifying_runs_today')}"
+        )
+    if payload.get('proof_today_block_text') != expected_status.get('proof_today_block_text'):
+        failures.append(
+            'proof_today_block_text verwacht '
+            f"{expected_status.get('proof_today_block_text')}, kreeg {payload.get('proof_today_block_text')}"
+        )
     if payload.get('proof_recheck_after_hint') != expected_status.get('proof_recheck_after_hint'):
         failures.append(
             'proof_recheck_after_hint verwacht '
@@ -14881,6 +14896,11 @@ def evaluate_watchdog_alert_case(case):
         failures.append(
             'summary_output_examples verwacht passthrough uit watchdog-json, kreeg '
             f"{payload.get('summary_output_examples')} versus {watchdog_payload.get('summary_output_examples')}"
+        )
+    if payload.get('last_run_output_audit_missing_primary_fresh_details') != watchdog_payload.get('last_run_output_audit_missing_primary_fresh_details'):
+        failures.append(
+            'last_run_output_audit_missing_primary_fresh_details verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('last_run_output_audit_missing_primary_fresh_details')} versus {watchdog_payload.get('last_run_output_audit_missing_primary_fresh_details')}"
         )
     if not consumer_bundle and not consumer_preset:
         if payload.get('consumer_requested_output_count_text') != 'consumer-output-aanvraag gevraagd=0, kanalen=0':
