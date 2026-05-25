@@ -369,6 +369,7 @@ def build_json_payload(
         'proof_waiting_for_next_scheduled_run': data.get('proof_waiting_for_next_scheduled_run'),
         'proof_config_hash': data.get('proof_config_hash'),
         'proof_config_identity_text': data.get('proof_config_identity_text'),
+        'config_newer_than_last_run': data.get('config_newer_than_last_run'),
         'last_run_config_relation': data.get('last_run_config_relation'),
         'last_run_config_relation_text': data.get('last_run_config_relation_text'),
         'proof_recheck_schedule_audit': data.get('proof_recheck_schedule_audit'),

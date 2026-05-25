@@ -3286,6 +3286,7 @@ def build_status(job_name=TARGET_JOB_NAME, reference_ms=None):
     summary['proof_today_block_text'] = proof_today_block_text
 
     config_newer_than_last_run = bool(updated_at and last_run_at and updated_at > last_run_at)
+    summary['config_newer_than_last_run'] = config_newer_than_last_run
 
     proof_config_hash = payload_audit.get('message_sha256_short')
     proof_config_identity_text = None

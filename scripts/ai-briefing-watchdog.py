@@ -489,6 +489,7 @@ def main() -> int:
         'proof_blocker_text': status.get('proof_blocker_text'),
         'proof_config_hash': status.get('proof_config_hash'),
         'proof_config_identity_text': status.get('proof_config_identity_text'),
+        'config_newer_than_last_run': status.get('config_newer_than_last_run'),
         'last_run_config_relation': status.get('last_run_config_relation'),
         'last_run_config_relation_text': status.get('last_run_config_relation_text'),
         'proof_recheck_schedule_audit': proof_recheck_schedule_audit,

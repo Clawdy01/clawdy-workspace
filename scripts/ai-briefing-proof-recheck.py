@@ -242,6 +242,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'proof_target_run_slots_context_text': first_non_null(status_data.get('proof_target_run_slots_context_text'), watchdog_data.get('proof_target_run_slots_context_text')),
         'proof_config_hash': first_non_null(status_data.get('proof_config_hash'), watchdog_data.get('proof_config_hash')),
         'proof_config_identity_text': first_non_null(status_data.get('proof_config_identity_text'), watchdog_data.get('proof_config_identity_text')),
+        'config_newer_than_last_run': first_non_null(status_data.get('config_newer_than_last_run'), watchdog_data.get('config_newer_than_last_run')),
         'last_run_config_relation': first_non_null(status_data.get('last_run_config_relation'), watchdog_data.get('last_run_config_relation')),
         'last_run_config_relation_text': first_non_null(status_data.get('last_run_config_relation_text'), watchdog_data.get('last_run_config_relation_text')),
         'proof_recheck_schedule_audit': schedule_audit,

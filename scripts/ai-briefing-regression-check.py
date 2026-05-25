@@ -11876,6 +11876,11 @@ def evaluate_status_stdout_case(case):
             'last_run_config_relation ontbreekt in status-stdout-json terwijl '
             'last_run_config_relation_text wel gezet is'
         )
+    if payload.get('config_newer_than_last_run') != expected_status.get('config_newer_than_last_run'):
+        failures.append(
+            'config_newer_than_last_run verwacht '
+            f"{expected_status.get('config_newer_than_last_run')}, kreeg {payload.get('config_newer_than_last_run')}"
+        )
     if payload.get('proof_freshness_text') != ((payload.get('proof_freshness') or {}).get('text')):
         failures.append(
             'proof_freshness_text verwacht alias-pariteit met proof_freshness.text, kreeg '
@@ -12184,6 +12189,11 @@ def evaluate_watchdog_stdout_case(case):
         failures.append(
             'last_run_config_relation ontbreekt in watchdog-stdout-json terwijl '
             'last_run_config_relation_text wel gezet is'
+        )
+    if payload.get('config_newer_than_last_run') != expected_status.get('config_newer_than_last_run'):
+        failures.append(
+            'config_newer_than_last_run verwacht '
+            f"{expected_status.get('config_newer_than_last_run')}, kreeg {payload.get('config_newer_than_last_run')}"
         )
     expected_proof_waiting = case.get(
         'expect_proof_waiting_for_next_scheduled_run',
@@ -12720,6 +12730,7 @@ def evaluate_proof_recheck_case(case):
         'reference_mode',
         'readiness_phase',
         'readiness_text',
+        'config_newer_than_last_run',
         'last_run_summary',
         *LAST_RUN_OUTPUT_AUDIT_FOCUS_KEYS,
         'proof_freshness',
@@ -13175,6 +13186,7 @@ def evaluate_proof_recheck_producer_case(case):
             'reference_mode',
             'readiness_phase',
             'readiness_text',
+            'config_newer_than_last_run',
             'proof_waiting_for_next_scheduled_run',
             'proof_config_identity_text',
             'last_run_config_relation_text',
@@ -13853,6 +13865,11 @@ def evaluate_proof_recheck_producer_case(case):
                     failures.append(
                         f'{label} proof_config_identity_text verwacht pariteit met overall/stdout-json {overall.get("proof_config_identity_text")}, kreeg '
                         f"{artifact_payload.get('proof_config_identity_text')}"
+                    )
+                if artifact_payload.get('config_newer_than_last_run') != overall.get('config_newer_than_last_run'):
+                    failures.append(
+                        f'{label} config_newer_than_last_run verwacht pariteit met overall/stdout-json {overall.get("config_newer_than_last_run")}, kreeg '
+                        f"{artifact_payload.get('config_newer_than_last_run')}"
                     )
                 if artifact_payload.get('last_run_config_relation_text') != overall.get('last_run_config_relation_text'):
                     failures.append(
@@ -14972,6 +14989,11 @@ def evaluate_watchdog_alert_case(case):
         failures.append(
             'proof_config_identity_text verwacht passthrough uit watchdog-json, kreeg '
             f"{payload.get('proof_config_identity_text')} versus {watchdog_payload.get('proof_config_identity_text')}"
+        )
+    if payload.get('config_newer_than_last_run') != watchdog_payload.get('config_newer_than_last_run'):
+        failures.append(
+            'config_newer_than_last_run verwacht passthrough uit watchdog-json, kreeg '
+            f"{payload.get('config_newer_than_last_run')} versus {watchdog_payload.get('config_newer_than_last_run')}"
         )
     if payload.get('last_run_config_relation_text') != watchdog_payload.get('last_run_config_relation_text'):
         failures.append(
@@ -16591,6 +16613,7 @@ def evaluate_watchdog_producer_case(case):
     for expected_status_key in [
         'reference_context_text',
         'proof_config_identity_text',
+        'config_newer_than_last_run',
         'last_run_config_relation',
         'last_run_config_relation_text',
         'proof_wait_until_text',
@@ -16630,6 +16653,7 @@ def evaluate_watchdog_producer_case(case):
         'proof_target_due_at_if_next_slot_missed_hint',
         'proof_next_qualifying_slot_day_label',
         'proof_no_more_qualifying_runs_today',
+        'config_newer_than_last_run',
         'proof_recheck_grace_ms',
         'next_run_at_text',
         'previous_run_slot_at_text',

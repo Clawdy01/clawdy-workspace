@@ -353,6 +353,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'proof_target_run_slots_text': payload.get('proof_target_run_slots_text'),
         'proof_config_hash': payload.get('proof_config_hash'),
         'proof_config_identity_text': payload.get('proof_config_identity_text'),
+        'config_newer_than_last_run': payload.get('config_newer_than_last_run'),
         'last_run_config_relation': payload.get('last_run_config_relation'),
         'last_run_config_relation_text': payload.get('last_run_config_relation_text'),
         'proof_recheck_schedule_audit': payload.get('proof_recheck_schedule_audit') or {},
