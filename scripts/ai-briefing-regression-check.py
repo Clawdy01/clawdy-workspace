@@ -14158,6 +14158,10 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
             {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
         ],
         'consumer_outputs': [],
+        'consumer_outputs_missing': [
+            {'channel': 'board-json', 'path': '/tmp/expected.json', 'format': 'json', 'append': False},
+            {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
+        ],
         'consumer_outputs_text': None,
         'consumer_output_channels_text': 'consumer-output-kanalen: geen',
         'consumer_effective_output_source': 'requested-fallback',
@@ -14167,12 +14171,15 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
             {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
         ],
         'consumer_effective_outputs_text': 'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer_effective_outputs_missing': [],
+        'consumer_effective_outputs_unexpected': [],
         'consumer_effective_output_channels_text': 'consumer-effectieve-output-kanalen: board-json, board-text',
         'consumer_effective_outputs_match_requested': True,
         'consumer_effective_outputs_count_text': 'consumer-effectieve-output-telling gevraagd=2, effectief=2, ontbrekend=0, onverwacht=0',
         'consumer_effective_outputs_status_text': 'consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via requested-fallback)',
         'consumer_outputs_count_text': 'consumer-output-telling gevraagd=2, geschreven=0, ontbrekend=2, onverwacht=0',
-        'consumer_outputs_missing_text': 'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer_outputs_missing_text': None,
+        'consumer_outputs_unexpected': [],
         'consumer_outputs_unexpected_text': None,
         'consumer_outputs_status_text': 'consumer-output-audit mismatch (ontbreekt: board-json: /tmp/expected.json; board-text: /tmp/expected.txt)',
         'consumer_effective_outputs_missing_text': None,
@@ -14216,6 +14223,107 @@ def evaluate_producer_quiet_requested_outputs_fallback_case(producer_module):
     return {
         'name': 'proof-recheck-producer-quiet-falls-back-to-requested-outputs',
         'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def evaluate_watchdog_producer_quiet_requested_outputs_fallback_case(producer_module):
+    failures = []
+    payload = {
+        'summary': 'synthetische producer-mismatch',
+        'readiness_text': 'bewijs nog niet rond',
+        'proof_state_text': 'proof-state: waiting-next-scheduled-run',
+        'proof_blocker_text': 'wacht op eerstvolgende geplande kwalificatierun',
+        'consumer_requested_outputs_text': 'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer_requested_output_count_text': 'consumer-output-aanvraag gevraagd=2 artifact(s)',
+        'consumer_requested_output_channel_count_text': 'consumer-output-aanvraag-kanalen gevraagd=2, kanalen=2',
+        'consumer_requested_output_channels_text': 'consumer-output-aanvraag-kanalen: board-json, board-text',
+        'consumer_requested_outputs_status_text': 'consumer-output-aanvraag vastgelegd voor 2 artifact(s)',
+        'consumer_requested_outputs': [
+            {'channel': 'board-json', 'path': '/tmp/expected.json', 'format': 'json', 'append': False},
+            {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
+        ],
+        'consumer_outputs': [],
+        'consumer_outputs_missing': [
+            {'channel': 'board-json', 'path': '/tmp/expected.json', 'format': 'json', 'append': False},
+            {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
+        ],
+        'consumer_outputs_text': None,
+        'consumer_output_channel_count_text': 'consumer-output-kanalen geschreven=0, kanalen=0',
+        'consumer_output_channels_text': 'consumer-output-kanalen: geen',
+        'consumer_outputs_count_text': 'consumer-output-telling gevraagd=2, geschreven=0, ontbrekend=2, onverwacht=0',
+        'consumer_outputs_status_text': 'consumer-output-audit mismatch (ontbreekt: board-json: /tmp/expected.json; board-text: /tmp/expected.txt)',
+        'consumer_outputs_missing_text': None,
+        'consumer_outputs_unexpected': [],
+        'consumer_outputs_unexpected_text': None,
+        'consumer_effective_output_source': 'requested-fallback',
+        'consumer_effective_output_source_text': 'consumer-effectieve-outputbron: aangevraagde artifacts als fallback',
+        'consumer_effective_outputs': [
+            {'channel': 'board-json', 'path': '/tmp/expected.json', 'format': 'json', 'append': False},
+            {'channel': 'board-text', 'path': '/tmp/expected.txt', 'format': 'text', 'append': False},
+        ],
+        'consumer_effective_output_channel_count_text': 'consumer-effectieve-output-kanalen effectief=2, kanalen=2',
+        'consumer_effective_output_channels_text': 'consumer-effectieve-output-kanalen: board-json, board-text',
+        'consumer_effective_outputs_text': 'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer_effective_outputs_count_text': 'consumer-effectieve-output-telling gevraagd=2, effectief=2, ontbrekend=0, onverwacht=0',
+        'consumer_effective_outputs_status_text': 'consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via requested-fallback)',
+        'consumer_effective_outputs_missing': [],
+        'consumer_effective_outputs_missing_text': None,
+        'consumer_effective_outputs_unexpected': [],
+        'consumer_effective_outputs_unexpected_text': None,
+        'reasons': ['consumer-write mismatch gedetecteerd'],
+    }
+
+    quiet_summary = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        3,
+    )
+    if not quiet_summary:
+        failures.append('watchdog-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische mismatchpayload')
+        quiet_summary = ''
+    expected_snippets = [
+        'synthetische producer-mismatch',
+        'bewijs nog niet rond',
+        'proof-state: waiting-next-scheduled-run',
+        'wacht op eerstvolgende geplande kwalificatierun',
+        'consumer-artifacts: board-json: /tmp/expected.json; board-text: /tmp/expected.txt',
+        'consumer-output-aanvraag-kanalen: board-json, board-text',
+        'consumer-output-telling gevraagd=2, geschreven=0, ontbrekend=2, onverwacht=0',
+        'consumer-output-audit mismatch',
+        'consumer-effectieve-outputbron: aangevraagde artifacts als fallback',
+        'consumer-effectieve-output-telling gevraagd=2, effectief=2, ontbrekend=0, onverwacht=0',
+        'consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via requested-fallback)',
+    ]
+    for snippet in expected_snippets:
+        if snippet not in quiet_summary:
+            failures.append(f'watchdog-producer quiet-summary mist fallback-fragment: {snippet}')
+
+    return {
+        'name': 'watchdog-producer-quiet-falls-back-to-requested-outputs',
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
         'ok': not failures,
         'failures': failures,
         'audit_ok': not failures,
@@ -16909,7 +17017,11 @@ def evaluate_watchdog_producer_case(case):
         'proof_due_at_text',
         'proof_due_hint',
         'proof_target_due_hint',
+        'proof_target_due_remaining_ms',
+        'proof_target_due_remaining_hours',
         'proof_target_due_at_if_next_slot_missed_hint',
+        'proof_target_due_at_if_next_slot_missed_remaining_ms',
+        'proof_target_due_at_if_next_slot_missed_remaining_hours',
         'last_run_at',
         'last_run_at_text',
         'last_run_hint',
@@ -16951,6 +17063,7 @@ def evaluate_watchdog_producer_case(case):
         'proof_target_due_at_if_next_slot_missed',
         'proof_target_due_at_if_next_slot_missed_text',
         'proof_schedule_slip_ms',
+        'proof_schedule_slip_hours',
         'proof_schedule_risk_text',
         'proof_countdown_text',
         'proof_target_check_gate',
@@ -102913,6 +103026,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-stdout-deduplicate-wait-until-recheck-after-text'] = (
         named_cases['watchdog-stdout-deduplicates-wait-until-recheck-after-text']
     )
+    named_cases['watchdog-producer-quiet-falls-back-to-requested-outputs'] = (
+        lambda producer_module=watchdog_producer_module: evaluate_watchdog_producer_quiet_requested_outputs_fallback_case(producer_module)
+    )
+    named_cases['watchdog-producer-quiet-fallback-to-requested-outputs'] = named_cases[
+        'watchdog-producer-quiet-falls-back-to-requested-outputs'
+    ]
     named_cases['proof-recheck-producer-quiet-falls-back-to-requested-outputs'] = (
         lambda producer_module=proof_recheck_producer_module: evaluate_producer_quiet_requested_outputs_fallback_case(producer_module)
     )

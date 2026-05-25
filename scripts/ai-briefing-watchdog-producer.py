@@ -89,6 +89,20 @@ def extract_json_document(text: str):
     raise json.JSONDecodeError('Expecting value', text, 0)
 
 
+def format_consumer_outputs(outputs: list[dict]) -> str | None:
+    bits: list[str] = []
+    for item in outputs or []:
+        channel = str(item.get('channel') or '').strip()
+        path = str(item.get('path') or '').strip()
+        if channel and path:
+            bits.append(f'{channel}: {path}')
+        elif path:
+            bits.append(path)
+    if not bits:
+        return None
+    return 'consumer-artifacts: ' + '; '.join(bits)
+
+
 def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None:
     payload_text = (stdout or '').strip() or (stderr or '').strip()
     if not payload_text:
@@ -183,6 +197,62 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['last_run_timeout_text']))
     if payload.get('recent_run_duration_text'):
         bits.append(str(payload['recent_run_duration_text']))
+    if payload.get('consumer_effective_outputs_text'):
+        bits.append(str(payload['consumer_effective_outputs_text']))
+    elif payload.get('consumer_effective_outputs'):
+        effective_outputs_text = format_consumer_outputs(payload.get('consumer_effective_outputs') or [])
+        if effective_outputs_text:
+            bits.append(effective_outputs_text)
+    elif payload.get('consumer_outputs_text'):
+        bits.append(str(payload['consumer_outputs_text']))
+    elif payload.get('consumer_outputs'):
+        consumer_outputs_text = format_consumer_outputs(payload.get('consumer_outputs') or [])
+        if consumer_outputs_text:
+            bits.append(consumer_outputs_text)
+    elif payload.get('consumer_requested_outputs_text'):
+        bits.append(str(payload['consumer_requested_outputs_text']))
+    elif payload.get('consumer_requested_outputs'):
+        requested_outputs_text = format_consumer_outputs(payload.get('consumer_requested_outputs') or [])
+        if requested_outputs_text:
+            bits.append(requested_outputs_text)
+    if payload.get('consumer_requested_output_count_text'):
+        bits.append(str(payload['consumer_requested_output_count_text']))
+    if payload.get('consumer_requested_output_channel_count_text'):
+        bits.append(str(payload['consumer_requested_output_channel_count_text']))
+    if payload.get('consumer_requested_output_channels_text'):
+        bits.append(str(payload['consumer_requested_output_channels_text']))
+    if payload.get('consumer_requested_outputs_status_text'):
+        bits.append(str(payload['consumer_requested_outputs_status_text']))
+    if payload.get('consumer_outputs_count_text'):
+        bits.append(str(payload['consumer_outputs_count_text']))
+    if payload.get('consumer_output_channel_count_text'):
+        bits.append(str(payload['consumer_output_channel_count_text']))
+    if payload.get('consumer_output_channels_text'):
+        bits.append(str(payload['consumer_output_channels_text']))
+    if payload.get('consumer_outputs_status_text'):
+        bits.append(str(payload['consumer_outputs_status_text']))
+    consumer_outputs_missing_text = payload.get('consumer_outputs_missing_text') or format_consumer_outputs(payload.get('consumer_outputs_missing') or [])
+    if consumer_outputs_missing_text:
+        bits.append(str(consumer_outputs_missing_text))
+    consumer_outputs_unexpected_text = payload.get('consumer_outputs_unexpected_text') or format_consumer_outputs(payload.get('consumer_outputs_unexpected') or [])
+    if consumer_outputs_unexpected_text:
+        bits.append(str(consumer_outputs_unexpected_text))
+    if payload.get('consumer_effective_output_source_text'):
+        bits.append(str(payload['consumer_effective_output_source_text']))
+    if payload.get('consumer_effective_outputs_count_text'):
+        bits.append(str(payload['consumer_effective_outputs_count_text']))
+    if payload.get('consumer_effective_output_channel_count_text'):
+        bits.append(str(payload['consumer_effective_output_channel_count_text']))
+    if payload.get('consumer_effective_output_channels_text'):
+        bits.append(str(payload['consumer_effective_output_channels_text']))
+    if payload.get('consumer_effective_outputs_status_text'):
+        bits.append(str(payload['consumer_effective_outputs_status_text']))
+    consumer_effective_outputs_missing_text = payload.get('consumer_effective_outputs_missing_text') or format_consumer_outputs(payload.get('consumer_effective_outputs_missing') or [])
+    if consumer_effective_outputs_missing_text:
+        bits.append(str(consumer_effective_outputs_missing_text))
+    consumer_effective_outputs_unexpected_text = payload.get('consumer_effective_outputs_unexpected_text') or format_consumer_outputs(payload.get('consumer_effective_outputs_unexpected') or [])
+    if consumer_effective_outputs_unexpected_text:
+        bits.append(str(consumer_effective_outputs_unexpected_text))
     summary_output_examples = [example for example in (payload.get('summary_output_examples') or []) if example]
     if summary_output_examples:
         bits.append('bewijs: ' + ' | '.join(summary_output_examples[:3]))
@@ -275,10 +345,15 @@ def build_overall_summary(payload: dict, returncode: int) -> dict:
         'proof_target_due_at': payload.get('proof_target_due_at'),
         'proof_target_due_at_text': payload.get('proof_target_due_at_text'),
         'proof_target_due_hint': payload.get('proof_target_due_hint'),
+        'proof_target_due_remaining_ms': payload.get('proof_target_due_remaining_ms'),
+        'proof_target_due_remaining_hours': payload.get('proof_target_due_remaining_hours'),
         'proof_target_due_at_if_next_slot_missed': payload.get('proof_target_due_at_if_next_slot_missed'),
         'proof_target_due_at_if_next_slot_missed_text': payload.get('proof_target_due_at_if_next_slot_missed_text'),
         'proof_target_due_at_if_next_slot_missed_hint': payload.get('proof_target_due_at_if_next_slot_missed_hint'),
+        'proof_target_due_at_if_next_slot_missed_remaining_ms': payload.get('proof_target_due_at_if_next_slot_missed_remaining_ms'),
+        'proof_target_due_at_if_next_slot_missed_remaining_hours': payload.get('proof_target_due_at_if_next_slot_missed_remaining_hours'),
         'proof_schedule_slip_ms': payload.get('proof_schedule_slip_ms'),
+        'proof_schedule_slip_hours': payload.get('proof_schedule_slip_hours'),
         'proof_schedule_risk_text': payload.get('proof_schedule_risk_text'),
         'proof_countdown_text': payload.get('proof_countdown_text'),
         'proof_target_check_gate': payload.get('proof_target_check_gate'),
@@ -355,12 +430,12 @@ def build_overall_summary(payload: dict, returncode: int) -> dict:
         'consumer_outputs_missing': payload.get('consumer_outputs_missing') or [],
         'consumer_outputs_missing_paths': payload.get('consumer_outputs_missing_paths') or [],
         'consumer_outputs_missing_channels': payload.get('consumer_outputs_missing_channels') or [],
-        'consumer_outputs_missing_text': payload.get('consumer_outputs_missing_text'),
+        'consumer_outputs_missing_text': payload.get('consumer_outputs_missing_text') or format_consumer_outputs(payload.get('consumer_outputs_missing') or []),
         'consumer_outputs_unexpected_count': payload.get('consumer_outputs_unexpected_count'),
         'consumer_outputs_unexpected': payload.get('consumer_outputs_unexpected') or [],
         'consumer_outputs_unexpected_paths': payload.get('consumer_outputs_unexpected_paths') or [],
         'consumer_outputs_unexpected_channels': payload.get('consumer_outputs_unexpected_channels') or [],
-        'consumer_outputs_unexpected_text': payload.get('consumer_outputs_unexpected_text'),
+        'consumer_outputs_unexpected_text': payload.get('consumer_outputs_unexpected_text') or format_consumer_outputs(payload.get('consumer_outputs_unexpected') or []),
         'consumer_outputs': payload.get('consumer_outputs') or [],
         'consumer_output_paths': payload.get('consumer_output_paths') or [],
         'consumer_output_channels': payload.get('consumer_output_channels') or [],
@@ -381,12 +456,12 @@ def build_overall_summary(payload: dict, returncode: int) -> dict:
         'consumer_effective_outputs_missing': payload.get('consumer_effective_outputs_missing') or [],
         'consumer_effective_outputs_missing_paths': payload.get('consumer_effective_outputs_missing_paths') or [],
         'consumer_effective_outputs_missing_channels': payload.get('consumer_effective_outputs_missing_channels') or [],
-        'consumer_effective_outputs_missing_text': payload.get('consumer_effective_outputs_missing_text'),
+        'consumer_effective_outputs_missing_text': payload.get('consumer_effective_outputs_missing_text') or format_consumer_outputs(payload.get('consumer_effective_outputs_missing') or []),
         'consumer_effective_outputs_unexpected_count': payload.get('consumer_effective_outputs_unexpected_count'),
         'consumer_effective_outputs_unexpected': payload.get('consumer_effective_outputs_unexpected') or [],
         'consumer_effective_outputs_unexpected_paths': payload.get('consumer_effective_outputs_unexpected_paths') or [],
         'consumer_effective_outputs_unexpected_channels': payload.get('consumer_effective_outputs_unexpected_channels') or [],
-        'consumer_effective_outputs_unexpected_text': payload.get('consumer_effective_outputs_unexpected_text'),
+        'consumer_effective_outputs_unexpected_text': payload.get('consumer_effective_outputs_unexpected_text') or format_consumer_outputs(payload.get('consumer_effective_outputs_unexpected') or []),
         'consumer_effective_outputs_count_text': payload.get('consumer_effective_outputs_count_text'),
         'consumer_effective_outputs_status_kind': payload.get('consumer_effective_outputs_status_kind'),
         'consumer_effective_outputs_status_text': payload.get('consumer_effective_outputs_status_text'),
