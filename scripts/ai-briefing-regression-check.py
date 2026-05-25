@@ -12066,6 +12066,28 @@ def evaluate_watchdog_stdout_case(case):
             'summary_output_examples verwacht list, kreeg '
             f"{type(payload.get('summary_output_examples')).__name__}"
         )
+    for key in [
+        'last_run_output_audit_ok',
+        'last_run_output_audit_text',
+        'last_run_output_audit_item_count',
+        'last_run_output_audit_multi_domain_top3_count',
+        'last_run_output_audit_fresh_top3_count',
+        'last_run_output_audit_primary_fresh_top3_count',
+        'last_run_output_audit_missing_source_examples',
+        'last_run_output_audit_missing_multi_source_examples',
+        'last_run_output_audit_missing_multi_domain_examples',
+        'last_run_output_audit_missing_multi_domain_details',
+        'last_run_output_audit_missing_primary_source_examples',
+        'last_run_output_audit_missing_recent_date_examples',
+        'last_run_output_audit_missing_fresh_examples',
+        'last_run_output_audit_missing_primary_fresh_examples',
+        'last_run_output_audit_missing_fresh_details',
+        'last_run_output_audit_missing_primary_fresh_details',
+    ]:
+        if payload.get(key) != expected_status.get(key):
+            failures.append(
+                f"watchdog-stdout-json {key} verwacht pariteit met ai-briefing-status.py, kreeg {payload.get(key)} versus {expected_status.get(key)}"
+            )
     if payload.get('proof_recheck_schedule_text') != expected_status.get('proof_recheck_schedule_text'):
         failures.append(
             'proof_recheck_schedule_text verwacht '
@@ -12635,6 +12657,18 @@ def evaluate_proof_recheck_case(case):
                 'proof_recheck_schedule_same_day_after_target verwacht True, kreeg '
                 f"{payload.get('proof_recheck_schedule_same_day_after_target')}"
             )
+    if payload.get('schedule') != status_payload.get('schedule'):
+        failures.append(
+            f"schedule verwacht {status_payload.get('schedule')}, kreeg {payload.get('schedule')}"
+        )
+    if payload.get('schedule_expr') != status_payload.get('schedule_expr'):
+        failures.append(
+            f"schedule_expr verwacht {status_payload.get('schedule_expr')}, kreeg {payload.get('schedule_expr')}"
+        )
+    if payload.get('schedule_tz') != status_payload.get('schedule_tz'):
+        failures.append(
+            f"schedule_tz verwacht {status_payload.get('schedule_tz')}, kreeg {payload.get('schedule_tz')}"
+        )
 
     expected_requested_status_kind = 'requested' if payload.get('consumer_requested_output_count') else 'none-requested'
     if payload.get('consumer_requested_outputs_status_kind') != expected_requested_status_kind:
@@ -14573,6 +14607,18 @@ def evaluate_watchdog_alert_case(case):
             'proof_recheck_schedule_tz verwacht '
             f"{EXPECTED_PROOF_RECHECK_SCHEDULE_TZ}, kreeg {payload.get('proof_recheck_schedule_tz')}"
         )
+    if payload.get('schedule') != expected_status.get('schedule'):
+        failures.append(
+            f"schedule verwacht {expected_status.get('schedule')}, kreeg {payload.get('schedule')}"
+        )
+    if payload.get('schedule_expr') != expected_status.get('schedule_expr'):
+        failures.append(
+            f"schedule_expr verwacht {expected_status.get('schedule_expr')}, kreeg {payload.get('schedule_expr')}"
+        )
+    if payload.get('schedule_tz') != expected_status.get('schedule_tz'):
+        failures.append(
+            f"schedule_tz verwacht {expected_status.get('schedule_tz')}, kreeg {payload.get('schedule_tz')}"
+        )
     if payload.get('proof_state') != case['expect_proof_state']:
         failures.append(
             f"proof_state verwacht {case['expect_proof_state']}, kreeg {payload.get('proof_state')}"
@@ -16142,6 +16188,18 @@ def evaluate_watchdog_producer_case(case):
         failures.append(
             'overall.proof_recheck_schedule_delta_minutes verwacht '
             f"{EXPECTED_PROOF_RECHECK_SCHEDULE_EXPECTED_GAP_MINUTES}, kreeg {overall.get('proof_recheck_schedule_delta_minutes')}"
+        )
+    if overall.get('schedule') != expected_status.get('schedule'):
+        failures.append(
+            f"overall.schedule verwacht {expected_status.get('schedule')}, kreeg {overall.get('schedule')}"
+        )
+    if overall.get('schedule_expr') != expected_status.get('schedule_expr'):
+        failures.append(
+            f"overall.schedule_expr verwacht {expected_status.get('schedule_expr')}, kreeg {overall.get('schedule_expr')}"
+        )
+    if overall.get('schedule_tz') != expected_status.get('schedule_tz'):
+        failures.append(
+            f"overall.schedule_tz verwacht {expected_status.get('schedule_tz')}, kreeg {overall.get('schedule_tz')}"
         )
     if overall.get('proof_config_hash') != expected_status.get('proof_config_hash'):
         failures.append(
