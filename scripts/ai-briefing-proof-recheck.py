@@ -266,6 +266,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'status_returncode': status_data.get('_returncode'),
         'watchdog_ok': watchdog_ok,
         'watchdog_returncode': watchdog_data.get('_returncode'),
+        'reasons': compact_reasons(watchdog_data.get('reasons') or []),
     }
 
 
@@ -489,6 +490,16 @@ def unique_bits(bits: list[str]) -> list[str]:
     return unique
 
 
+def compact_reasons(reasons: list[str]) -> list[str]:
+    compact: list[str] = []
+    for reason in reasons or []:
+        cleaned = ' '.join(str(reason or '').split())
+        if not cleaned or cleaned in compact:
+            continue
+        compact.append(cleaned)
+    return compact
+
+
 def build_text(payload: dict) -> str:
     summary_output_examples = payload.get('summary_output_examples') or []
     proof_target_due_text = payload.get('proof_target_due_at_text')
@@ -504,11 +515,13 @@ def build_text(payload: dict) -> str:
     )
     proof_recheck_after_text_compact = payload.get('proof_recheck_after_text_compact')
     proof_target_run_slots_text = payload.get('proof_target_run_slots_context_text') or payload.get('proof_target_run_slots_text')
+    reasons = compact_reasons(payload.get('reasons') or [])
     bits = [
         f"AI-briefing proof-recheck: {payload.get('summary')}",
         payload.get('result_text'),
         payload.get('reference_context_text'),
         payload.get('proof_state_text'),
+        ('redenen: ' + '; '.join(reasons[:2])) if reasons else None,
         payload.get('proof_config_identity_text'),
         payload.get('last_run_config_relation_text'),
         payload.get('last_run_timeout_text'),

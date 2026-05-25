@@ -43,6 +43,16 @@ def unique_bits(bits: list[str]) -> list[str]:
     return unique
 
 
+def compact_reasons(reasons: list[str]) -> list[str]:
+    compact: list[str] = []
+    for reason in reasons or []:
+        cleaned = ' '.join(str(reason or '').split())
+        if not cleaned or cleaned in compact:
+            continue
+        compact.append(cleaned)
+    return compact
+
+
 def run_one(args):
     cmd = ['python3', str(PROOF_RECHECK), *args]
     return subprocess.run(cmd, cwd=WORKSPACE, text=True, capture_output=True)
@@ -116,6 +126,9 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> tuple[str 
         bits.append(str(payload['proof_state_text']))
     if payload.get('proof_blocker_text'):
         bits.append(str(payload['proof_blocker_text']))
+    reasons = compact_reasons(payload.get('reasons') or [])
+    if reasons:
+        bits.append('redenen: ' + '; '.join(reasons[:2]))
     if payload.get('proof_wait_until_text'):
         bits.append(str(payload['proof_wait_until_text']))
     if payload.get('proof_wait_until_reason_text'):
@@ -389,6 +402,7 @@ def build_overall_item(producer_items: list[dict]) -> dict:
         'status_returncode': payload.get('status_returncode'),
         'watchdog_ok': payload.get('watchdog_ok'),
         'watchdog_returncode': payload.get('watchdog_returncode'),
+        'reasons': payload.get('reasons') or [],
         'consumer_requested_outputs': payload.get('consumer_requested_outputs') or [],
         'consumer_requested_output_paths': payload.get('consumer_requested_output_paths') or [],
         'consumer_requested_output_channels': payload.get('consumer_requested_output_channels') or [],
