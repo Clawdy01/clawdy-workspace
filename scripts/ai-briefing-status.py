@@ -1761,6 +1761,21 @@ def audit_summary_output(summary_text, reference_ms=None):
         for title, unique_domain_count in zip(block_titles[:3], block_unique_source_domain_counts[:3])
         if unique_domain_count < 2
     ][:3]
+    top3_missing_multi_domain_source_details = [
+        {
+            'title': title,
+            'unique_source_domain_count': unique_domain_count,
+            'source_domains': domains,
+            'unique_source_url_count': unique_source_url_count,
+        }
+        for title, unique_domain_count, domains, unique_source_url_count in zip(
+            block_titles[:3],
+            block_unique_source_domain_counts[:3],
+            block_source_domains[:3],
+            block_unique_source_url_counts[:3],
+        )
+        if unique_domain_count < 2
+    ][:3]
     top3_missing_primary_source_examples = [
         title
         for title, has_primary in zip(block_titles[:3], block_has_primary_source[:3])
@@ -2166,6 +2181,7 @@ def audit_summary_output(summary_text, reference_ms=None):
         'top3_invalid_source_line_examples': top3_invalid_source_line_examples,
         'top3_missing_multi_source_examples': top3_missing_multi_source_examples,
         'top3_missing_multi_domain_source_examples': top3_missing_multi_domain_source_examples,
+        'top3_missing_multi_domain_source_details': top3_missing_multi_domain_source_details,
         'top3_missing_primary_source_examples': top3_missing_primary_source_examples,
         'first3_source_urls': first3_source_urls,
         'first3_unique_source_url_count': first3_unique_source_url_count,
@@ -2507,6 +2523,25 @@ def render_top3_missing_fresh_detail(detail):
     return f"{title} ({'; '.join(qualifiers)})"
 
 
+def render_top3_missing_multi_domain_detail(detail):
+    if not isinstance(detail, dict):
+        return None
+    title = detail.get('title') or 'onbekend'
+    domain_count = detail.get('unique_source_domain_count')
+    url_count = detail.get('unique_source_url_count')
+    domains = [str(domain).strip() for domain in (detail.get('source_domains') or []) if str(domain).strip()]
+    qualifiers = []
+    if domain_count is not None:
+        qualifiers.append(f'{domain_count} domein')
+    if url_count is not None:
+        qualifiers.append(f'{url_count} url')
+    if domains:
+        qualifiers.append('/'.join(domains))
+    if not qualifiers:
+        return title
+    return f"{title} ({'; '.join(qualifiers)})"
+
+
 def summarize_output_examples(summary_output_audit):
     if not isinstance(summary_output_audit, dict) or not summary_output_audit.get('available'):
         return []
@@ -2525,6 +2560,18 @@ def summarize_output_examples(summary_output_audit):
     top3_missing_multi_domain_source_examples = summary_output_audit.get('top3_missing_multi_domain_source_examples') or []
     if top3_missing_multi_domain_source_examples:
         examples.append('top3 zonder multi-domein bronregel: ' + ', '.join(top3_missing_multi_domain_source_examples[:3]))
+    top3_missing_multi_domain_source_details = summary_output_audit.get('top3_missing_multi_domain_source_details') or []
+    if top3_missing_multi_domain_source_details:
+        rendered = ', '.join(
+            rendered_detail
+            for rendered_detail in (
+                render_top3_missing_multi_domain_detail(detail)
+                for detail in top3_missing_multi_domain_source_details[:3]
+            )
+            if rendered_detail
+        )
+        if rendered:
+            examples.append('top3 multi-domein details: ' + rendered)
 
     top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
     if top3_missing_multi_source_examples:
@@ -2602,6 +2649,17 @@ def summarize_output_audit_focus(summary_output_audit):
             'primary_source_families': detail.get('primary_source_families'),
         })
 
+    missing_multi_domain_details = []
+    for detail in (summary_output_audit.get('top3_missing_multi_domain_source_details') or [])[:3]:
+        if not isinstance(detail, dict):
+            continue
+        missing_multi_domain_details.append({
+            'title': detail.get('title'),
+            'unique_source_domain_count': detail.get('unique_source_domain_count'),
+            'source_domains': detail.get('source_domains') or [],
+            'unique_source_url_count': detail.get('unique_source_url_count'),
+        })
+
     missing_primary_fresh_details = []
     for detail in (summary_output_audit.get('top3_missing_primary_fresh_details') or [])[:3]:
         if not isinstance(detail, dict):
@@ -2624,7 +2682,11 @@ def summarize_output_audit_focus(summary_output_audit):
         'last_run_output_audit_multi_domain_top3_count': summary_output_audit.get('first3_items_with_multi_domain_sources_count'),
         'last_run_output_audit_fresh_top3_count': summary_output_audit.get('fresh_dated_first3_count'),
         'last_run_output_audit_primary_fresh_top3_count': summary_output_audit.get('first3_primary_fresh_item_count'),
+        'last_run_output_audit_missing_source_examples': (summary_output_audit.get('top3_missing_source_examples') or [])[:3],
+        'last_run_output_audit_missing_multi_source_examples': (summary_output_audit.get('top3_missing_multi_source_examples') or [])[:3],
         'last_run_output_audit_missing_multi_domain_examples': (summary_output_audit.get('top3_missing_multi_domain_source_examples') or [])[:3],
+        'last_run_output_audit_missing_multi_domain_details': missing_multi_domain_details,
+        'last_run_output_audit_missing_primary_source_examples': (summary_output_audit.get('top3_missing_primary_source_examples') or [])[:3],
         'last_run_output_audit_missing_recent_date_examples': (summary_output_audit.get('top3_missing_recent_date_examples') or [])[:3],
         'last_run_output_audit_missing_fresh_examples': (summary_output_audit.get('top3_missing_fresh_examples') or [])[:3],
         'last_run_output_audit_missing_primary_fresh_examples': (summary_output_audit.get('top3_missing_primary_fresh_examples') or [])[:3],
@@ -3628,6 +3690,18 @@ def render_summary_audit_text(data):
     top3_missing_multi_domain_source_examples = data.get('top3_missing_multi_domain_source_examples') or []
     if top3_missing_multi_domain_source_examples:
         parts.append('top3 zonder multi-domein bronregel ' + ', '.join(top3_missing_multi_domain_source_examples[:3]))
+    top3_missing_multi_domain_source_details = data.get('top3_missing_multi_domain_source_details') or []
+    if top3_missing_multi_domain_source_details:
+        rendered = ', '.join(
+            rendered_detail
+            for rendered_detail in (
+                render_top3_missing_multi_domain_detail(detail)
+                for detail in top3_missing_multi_domain_source_details[:3]
+            )
+            if rendered_detail
+        )
+        if rendered:
+            parts.append('top3 multi-domein details ' + rendered)
     top3_missing_primary_source_examples = data.get('top3_missing_primary_source_examples') or []
     if top3_missing_primary_source_examples:
         parts.append('top3 zonder primaire bron ' + ', '.join(top3_missing_primary_source_examples[:3]))
