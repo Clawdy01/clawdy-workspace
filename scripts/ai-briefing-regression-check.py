@@ -12715,6 +12715,11 @@ def evaluate_proof_recheck_case(case):
         )
     status_payload = run_status_json(case['reference_ms'])
     for key in [
+        'status_text',
+        'reference_now_ms',
+        'reference_mode',
+        'readiness_phase',
+        'readiness_text',
         'last_run_summary',
         *LAST_RUN_OUTPUT_AUDIT_FOCUS_KEYS,
         'proof_freshness',
@@ -13148,7 +13153,28 @@ def evaluate_proof_recheck_producer_case(case):
                 'overall.proof_next_action_kind verwacht '
                 f"{case['expect_proof_next_action_kind']}, kreeg {overall.get('proof_next_action_kind')}"
             )
+        status_payload = run_status_json(case['reference_ms'])
+        for status_key in [
+            'status_text',
+            'reference_now_ms',
+            'reference_mode',
+            'readiness_phase',
+            'readiness_text',
+        ]:
+            if overall.get(status_key) != status_payload.get(status_key):
+                failures.append(
+                    f'overall.{status_key} verwacht pariteit met ai-briefing-status.py, kreeg {overall.get(status_key)} versus {status_payload.get(status_key)}'
+                )
+            if child_payload.get(status_key) != status_payload.get(status_key):
+                failures.append(
+                    f'child payload {status_key} verwacht pariteit met ai-briefing-status.py, kreeg {child_payload.get(status_key)} versus {status_payload.get(status_key)}'
+                )
         for child_payload_key in [
+            'status_text',
+            'reference_now_ms',
+            'reference_mode',
+            'readiness_phase',
+            'readiness_text',
             'proof_waiting_for_next_scheduled_run',
             'proof_config_identity_text',
             'last_run_config_relation_text',
@@ -14886,6 +14912,18 @@ def evaluate_watchdog_alert_case(case):
             'proof_recheck_after_remaining_hours verwacht '
             f"{expected_status.get('proof_recheck_after_remaining_hours')}, kreeg {payload.get('proof_recheck_after_remaining_hours')}"
         )
+    for status_key in [
+        'status_text',
+        'reference_now_ms',
+        'reference_now_text',
+        'reference_mode',
+        'readiness_phase',
+        'readiness_text',
+    ]:
+        if payload.get(status_key) != expected_status.get(status_key):
+            failures.append(
+                f'watchdog-alert {status_key} verwacht pariteit met ai-briefing-status.py, kreeg {payload.get(status_key)} versus {expected_status.get(status_key)}'
+            )
     if payload.get('proof_target_due_hint') != expected_status.get('proof_target_due_hint'):
         failures.append(
             'proof_target_due_hint verwacht '
@@ -14990,6 +15028,13 @@ def evaluate_watchdog_alert_case(case):
         'proof_target_due_at_if_next_slot_missed_remaining_ms',
         'proof_target_due_at_if_next_slot_missed_remaining_hours',
         'proof_freshness',
+        'next_run_at_text',
+        'previous_run_slot_at_text',
+        'last_proof_qualified_run_at_text',
+        'has_run_proof',
+        'attention_needed',
+        'expected_proof_freshness_wait',
+        'job_name',
         'last_run_at',
         'last_run_at_text',
         'last_run_hint',
@@ -15001,6 +15046,14 @@ def evaluate_watchdog_alert_case(case):
         'proof_requirement_met',
         'proof_recheck_schedule_audit',
         'proof_recheck_grace_ms',
+        'recent_run_duration_near_timeout',
+        'recent_run_duration_timed_out',
+        'required_qualified_runs',
+        'status_text',
+        'reference_now_ms',
+        'reference_now_text',
+        'reference_mode',
+        'readiness_phase',
     ]:
         if payload.get(passthrough_key) != watchdog_payload.get(passthrough_key):
             failures.append(
@@ -16621,7 +16674,12 @@ def evaluate_watchdog_producer_case(case):
             f"{payload.get('proof_next_action_kind')} versus {overall.get('proof_next_action_kind')}"
         )
     for alias_key in [
+        'status_text',
+        'reference_now_ms',
+        'reference_mode',
         'reference_context_text',
+        'readiness_phase',
+        'readiness_text',
         'proof_state',
         'proof_state_text',
         'proof_blocker_kind',
