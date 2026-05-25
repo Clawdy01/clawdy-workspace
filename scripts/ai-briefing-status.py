@@ -2624,6 +2624,7 @@ def summarize_output_audit_focus(summary_output_audit):
         'last_run_output_audit_multi_domain_top3_count': summary_output_audit.get('first3_items_with_multi_domain_sources_count'),
         'last_run_output_audit_fresh_top3_count': summary_output_audit.get('fresh_dated_first3_count'),
         'last_run_output_audit_primary_fresh_top3_count': summary_output_audit.get('first3_primary_fresh_item_count'),
+        'last_run_output_audit_missing_multi_domain_examples': (summary_output_audit.get('top3_missing_multi_domain_source_examples') or [])[:3],
         'last_run_output_audit_missing_recent_date_examples': (summary_output_audit.get('top3_missing_recent_date_examples') or [])[:3],
         'last_run_output_audit_missing_fresh_examples': (summary_output_audit.get('top3_missing_fresh_examples') or [])[:3],
         'last_run_output_audit_missing_primary_fresh_examples': (summary_output_audit.get('top3_missing_primary_fresh_examples') or [])[:3],

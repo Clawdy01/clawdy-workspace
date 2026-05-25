@@ -179,6 +179,7 @@ def build_payload(status_data: dict, watchdog_data: dict) -> dict:
         'last_run_output_audit_multi_domain_top3_count': first_non_null(status_data.get('last_run_output_audit_multi_domain_top3_count'), watchdog_data.get('last_run_output_audit_multi_domain_top3_count')),
         'last_run_output_audit_fresh_top3_count': first_non_null(status_data.get('last_run_output_audit_fresh_top3_count'), watchdog_data.get('last_run_output_audit_fresh_top3_count')),
         'last_run_output_audit_primary_fresh_top3_count': first_non_null(status_data.get('last_run_output_audit_primary_fresh_top3_count'), watchdog_data.get('last_run_output_audit_primary_fresh_top3_count')),
+        'last_run_output_audit_missing_multi_domain_examples': first_non_null(status_data.get('last_run_output_audit_missing_multi_domain_examples'), watchdog_data.get('last_run_output_audit_missing_multi_domain_examples')),
         'last_run_output_audit_missing_recent_date_examples': first_non_null(status_data.get('last_run_output_audit_missing_recent_date_examples'), watchdog_data.get('last_run_output_audit_missing_recent_date_examples')),
         'last_run_output_audit_missing_fresh_examples': first_non_null(status_data.get('last_run_output_audit_missing_fresh_examples'), watchdog_data.get('last_run_output_audit_missing_fresh_examples')),
         'last_run_output_audit_missing_primary_fresh_examples': first_non_null(status_data.get('last_run_output_audit_missing_primary_fresh_examples'), watchdog_data.get('last_run_output_audit_missing_primary_fresh_examples')),
