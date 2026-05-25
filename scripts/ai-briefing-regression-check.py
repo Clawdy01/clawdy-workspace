@@ -53,6 +53,25 @@ CURRENT_PROOF_NEXT_SLOT_TEXT = STATUS_BEFORE_SLOT_TOMORROW['proof_wait_until_tex
 CURRENT_PROOF_RECHECK_AFTER_TEXT = STATUS_BEFORE_SLOT_TOMORROW['proof_recheck_after_text']
 CURRENT_PROOF_CONFIG_HASH = LIVE_STATUS_BASELINE.get('proof_config_hash')
 
+LAST_RUN_OUTPUT_AUDIT_FOCUS_KEYS = [
+    'last_run_output_audit_ok',
+    'last_run_output_audit_text',
+    'last_run_output_audit_item_count',
+    'last_run_output_audit_multi_domain_top3_count',
+    'last_run_output_audit_fresh_top3_count',
+    'last_run_output_audit_primary_fresh_top3_count',
+    'last_run_output_audit_missing_source_examples',
+    'last_run_output_audit_missing_multi_source_examples',
+    'last_run_output_audit_missing_multi_domain_examples',
+    'last_run_output_audit_missing_multi_domain_details',
+    'last_run_output_audit_missing_primary_source_examples',
+    'last_run_output_audit_missing_recent_date_examples',
+    'last_run_output_audit_missing_fresh_examples',
+    'last_run_output_audit_missing_primary_fresh_examples',
+    'last_run_output_audit_missing_fresh_details',
+    'last_run_output_audit_missing_primary_fresh_details',
+]
+
 
 def unique_case_names(case_names: list[str]) -> list[str]:
     unique: list[str] = []
@@ -12697,22 +12716,7 @@ def evaluate_proof_recheck_case(case):
     status_payload = run_status_json(case['reference_ms'])
     for key in [
         'last_run_summary',
-        'last_run_output_audit_ok',
-        'last_run_output_audit_text',
-        'last_run_output_audit_item_count',
-        'last_run_output_audit_multi_domain_top3_count',
-        'last_run_output_audit_fresh_top3_count',
-        'last_run_output_audit_primary_fresh_top3_count',
-        'last_run_output_audit_missing_source_examples',
-        'last_run_output_audit_missing_multi_source_examples',
-        'last_run_output_audit_missing_multi_domain_examples',
-        'last_run_output_audit_missing_multi_domain_details',
-        'last_run_output_audit_missing_primary_source_examples',
-        'last_run_output_audit_missing_recent_date_examples',
-        'last_run_output_audit_missing_fresh_examples',
-        'last_run_output_audit_missing_primary_fresh_examples',
-        'last_run_output_audit_missing_fresh_details',
-        'last_run_output_audit_missing_primary_fresh_details',
+        *LAST_RUN_OUTPUT_AUDIT_FOCUS_KEYS,
         'proof_freshness',
         'proof_target_runs',
         'proof_qualified_runs',
@@ -13169,22 +13173,7 @@ def evaluate_proof_recheck_producer_case(case):
             'proof_plan_text',
             'last_run_timeout_text',
             'recent_run_duration_text',
-            'last_run_output_audit_ok',
-            'last_run_output_audit_text',
-            'last_run_output_audit_item_count',
-            'last_run_output_audit_multi_domain_top3_count',
-            'last_run_output_audit_fresh_top3_count',
-            'last_run_output_audit_primary_fresh_top3_count',
-            'last_run_output_audit_missing_source_examples',
-            'last_run_output_audit_missing_multi_source_examples',
-            'last_run_output_audit_missing_multi_domain_examples',
-            'last_run_output_audit_missing_multi_domain_details',
-            'last_run_output_audit_missing_primary_source_examples',
-            'last_run_output_audit_missing_recent_date_examples',
-            'last_run_output_audit_missing_fresh_examples',
-            'last_run_output_audit_missing_primary_fresh_examples',
-            'last_run_output_audit_missing_fresh_details',
-            'last_run_output_audit_missing_primary_fresh_details',
+            *LAST_RUN_OUTPUT_AUDIT_FOCUS_KEYS,
             'summary_output_examples',
         ]:
             if overall.get(child_payload_key) != child_payload.get(child_payload_key):
@@ -14966,12 +14955,23 @@ def evaluate_watchdog_alert_case(case):
             'summary_output_examples verwacht passthrough uit watchdog-json, kreeg '
             f"{payload.get('summary_output_examples')} versus {watchdog_payload.get('summary_output_examples')}"
         )
-    if payload.get('last_run_output_audit_missing_primary_fresh_details') != watchdog_payload.get('last_run_output_audit_missing_primary_fresh_details'):
-        failures.append(
-            'last_run_output_audit_missing_primary_fresh_details verwacht passthrough uit watchdog-json, kreeg '
-            f"{payload.get('last_run_output_audit_missing_primary_fresh_details')} versus {watchdog_payload.get('last_run_output_audit_missing_primary_fresh_details')}"
-        )
     for passthrough_key in [
+        'last_run_output_audit_ok',
+        'last_run_output_audit_text',
+        'last_run_output_audit_item_count',
+        'last_run_output_audit_multi_domain_top3_count',
+        'last_run_output_audit_fresh_top3_count',
+        'last_run_output_audit_primary_fresh_top3_count',
+        'last_run_output_audit_missing_source_examples',
+        'last_run_output_audit_missing_multi_source_examples',
+        'last_run_output_audit_missing_multi_domain_examples',
+        'last_run_output_audit_missing_multi_domain_details',
+        'last_run_output_audit_missing_primary_source_examples',
+        'last_run_output_audit_missing_recent_date_examples',
+        'last_run_output_audit_missing_fresh_examples',
+        'last_run_output_audit_missing_fresh_details',
+        'last_run_output_audit_missing_primary_fresh_examples',
+        'last_run_output_audit_missing_primary_fresh_details',
         'proof_text',
         'proof_due_at',
         'proof_due_at_text',
@@ -14995,7 +14995,12 @@ def evaluate_watchdog_alert_case(case):
         'last_run_hint',
         'last_run_status',
         'last_run_timeout_audit',
+        'last_run_timeout_near_timeout',
+        'last_run_timeout_timed_out',
         'last_run_summary',
+        'proof_requirement_met',
+        'proof_recheck_schedule_audit',
+        'proof_recheck_grace_ms',
     ]:
         if payload.get(passthrough_key) != watchdog_payload.get(passthrough_key):
             failures.append(
@@ -16550,22 +16555,7 @@ def evaluate_watchdog_producer_case(case):
         'proof_target_check_gate',
         'proof_target_check_gate_text',
         'proof_target_run_slots_context_text',
-        'last_run_output_audit_ok',
-        'last_run_output_audit_text',
-        'last_run_output_audit_item_count',
-        'last_run_output_audit_multi_domain_top3_count',
-        'last_run_output_audit_fresh_top3_count',
-        'last_run_output_audit_primary_fresh_top3_count',
-        'last_run_output_audit_missing_source_examples',
-        'last_run_output_audit_missing_multi_source_examples',
-        'last_run_output_audit_missing_multi_domain_examples',
-        'last_run_output_audit_missing_multi_domain_details',
-        'last_run_output_audit_missing_primary_source_examples',
-        'last_run_output_audit_missing_recent_date_examples',
-        'last_run_output_audit_missing_fresh_examples',
-        'last_run_output_audit_missing_primary_fresh_examples',
-        'last_run_output_audit_missing_fresh_details',
-        'last_run_output_audit_missing_primary_fresh_details',
+        *LAST_RUN_OUTPUT_AUDIT_FOCUS_KEYS,
     ]:
         if overall.get(expected_status_key) != expected_status.get(expected_status_key):
             failures.append(
@@ -16589,22 +16579,7 @@ def evaluate_watchdog_producer_case(case):
         'last_run_timeout_text',
         'recent_run_duration_text',
         'last_run_summary',
-        'last_run_output_audit_ok',
-        'last_run_output_audit_text',
-        'last_run_output_audit_item_count',
-        'last_run_output_audit_multi_domain_top3_count',
-        'last_run_output_audit_fresh_top3_count',
-        'last_run_output_audit_primary_fresh_top3_count',
-        'last_run_output_audit_missing_source_examples',
-        'last_run_output_audit_missing_multi_source_examples',
-        'last_run_output_audit_missing_multi_domain_examples',
-        'last_run_output_audit_missing_multi_domain_details',
-        'last_run_output_audit_missing_primary_source_examples',
-        'last_run_output_audit_missing_recent_date_examples',
-        'last_run_output_audit_missing_fresh_examples',
-        'last_run_output_audit_missing_primary_fresh_examples',
-        'last_run_output_audit_missing_fresh_details',
-        'last_run_output_audit_missing_primary_fresh_details',
+        *LAST_RUN_OUTPUT_AUDIT_FOCUS_KEYS,
         'summary_output_examples',
         'consumer_requested_outputs',
         'consumer_requested_output_count',
