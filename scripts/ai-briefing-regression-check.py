@@ -14698,6 +14698,66 @@ def evaluate_watchdog_alert_case(case):
             'proof_recheck_after_at verwacht '
             f"{expected_status.get('proof_recheck_after_at')}, kreeg {payload.get('proof_recheck_after_at')}"
         )
+    if payload.get('proof_wait_until_hint') != expected_status.get('proof_wait_until_hint'):
+        failures.append(
+            'proof_wait_until_hint verwacht '
+            f"{expected_status.get('proof_wait_until_hint')}, kreeg {payload.get('proof_wait_until_hint')}"
+        )
+    if payload.get('proof_wait_until_remaining_ms') != expected_status.get('proof_wait_until_remaining_ms'):
+        failures.append(
+            'proof_wait_until_remaining_ms verwacht '
+            f"{expected_status.get('proof_wait_until_remaining_ms')}, kreeg {payload.get('proof_wait_until_remaining_ms')}"
+        )
+    if payload.get('proof_wait_until_remaining_hours') != expected_status.get('proof_wait_until_remaining_hours'):
+        failures.append(
+            'proof_wait_until_remaining_hours verwacht '
+            f"{expected_status.get('proof_wait_until_remaining_hours')}, kreeg {payload.get('proof_wait_until_remaining_hours')}"
+        )
+    if payload.get('proof_next_qualifying_slot_hint') != expected_status.get('proof_next_qualifying_slot_hint'):
+        failures.append(
+            'proof_next_qualifying_slot_hint verwacht '
+            f"{expected_status.get('proof_next_qualifying_slot_hint')}, kreeg {payload.get('proof_next_qualifying_slot_hint')}"
+        )
+    if payload.get('proof_next_qualifying_slot_remaining_ms') != expected_status.get('proof_next_qualifying_slot_remaining_ms'):
+        failures.append(
+            'proof_next_qualifying_slot_remaining_ms verwacht '
+            f"{expected_status.get('proof_next_qualifying_slot_remaining_ms')}, kreeg {payload.get('proof_next_qualifying_slot_remaining_ms')}"
+        )
+    if payload.get('proof_next_qualifying_slot_remaining_hours') != expected_status.get('proof_next_qualifying_slot_remaining_hours'):
+        failures.append(
+            'proof_next_qualifying_slot_remaining_hours verwacht '
+            f"{expected_status.get('proof_next_qualifying_slot_remaining_hours')}, kreeg {payload.get('proof_next_qualifying_slot_remaining_hours')}"
+        )
+    if payload.get('proof_recheck_after_hint') != expected_status.get('proof_recheck_after_hint'):
+        failures.append(
+            'proof_recheck_after_hint verwacht '
+            f"{expected_status.get('proof_recheck_after_hint')}, kreeg {payload.get('proof_recheck_after_hint')}"
+        )
+    if payload.get('proof_recheck_after_remaining_ms') != expected_status.get('proof_recheck_after_remaining_ms'):
+        failures.append(
+            'proof_recheck_after_remaining_ms verwacht '
+            f"{expected_status.get('proof_recheck_after_remaining_ms')}, kreeg {payload.get('proof_recheck_after_remaining_ms')}"
+        )
+    if payload.get('proof_recheck_after_remaining_hours') != expected_status.get('proof_recheck_after_remaining_hours'):
+        failures.append(
+            'proof_recheck_after_remaining_hours verwacht '
+            f"{expected_status.get('proof_recheck_after_remaining_hours')}, kreeg {payload.get('proof_recheck_after_remaining_hours')}"
+        )
+    if payload.get('proof_target_due_hint') != expected_status.get('proof_target_due_hint'):
+        failures.append(
+            'proof_target_due_hint verwacht '
+            f"{expected_status.get('proof_target_due_hint')}, kreeg {payload.get('proof_target_due_hint')}"
+        )
+    if payload.get('proof_target_due_at_if_next_slot_missed_hint') != expected_status.get('proof_target_due_at_if_next_slot_missed_hint'):
+        failures.append(
+            'proof_target_due_at_if_next_slot_missed_hint verwacht '
+            f"{expected_status.get('proof_target_due_at_if_next_slot_missed_hint')}, kreeg {payload.get('proof_target_due_at_if_next_slot_missed_hint')}"
+        )
+    if payload.get('proof_schedule_slip_hours') != expected_status.get('proof_schedule_slip_hours'):
+        failures.append(
+            'proof_schedule_slip_hours verwacht '
+            f"{expected_status.get('proof_schedule_slip_hours')}, kreeg {payload.get('proof_schedule_slip_hours')}"
+        )
     if not payload.get('last_run_timeout_text'):
         failures.append('last_run_timeout_text verwacht niet-leeg runtime-headroomveld')
     if not payload.get('recent_run_duration_text'):
