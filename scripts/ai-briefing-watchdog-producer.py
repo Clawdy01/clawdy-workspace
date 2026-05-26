@@ -117,6 +117,8 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
     richer_due_context = ' '.join(
         str(bit)
         for bit in [
+            payload.get('proof_plan_text'),
+            payload.get('proof_today_block_text'),
             payload.get('proof_schedule_risk_text'),
             payload.get('proof_target_check_gate_text'),
             payload.get('proof_countdown_text'),

@@ -3926,7 +3926,18 @@ def render_text(data):
         parts.append(f"volgende {data['next_run_at_text']}")
     if data.get('proof_due_at_text'):
         parts.append(f"bewijs verwacht uiterlijk {data['proof_due_at_text']}")
-    if data.get('proof_target_due_at_text'):
+    richer_due_context = ' '.join(
+        str(bit)
+        for bit in [
+            data.get('proof_plan_text'),
+            data.get('proof_today_block_text'),
+            data.get('proof_schedule_risk_text'),
+            data.get('proof_target_check_gate_text'),
+            data.get('proof_countdown_text'),
+        ]
+        if bit
+    )
+    if data.get('proof_target_due_at_text') and data['proof_target_due_at_text'] not in richer_due_context:
         parts.append(f"bewijsdoel bij groene runs uiterlijk {data['proof_target_due_at_text']}")
     if data.get('proof_plan_text'):
         parts.append(data['proof_plan_text'])

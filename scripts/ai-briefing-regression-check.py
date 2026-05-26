@@ -9163,6 +9163,68 @@ WATCHDOG_STDOUT_CASES = [
             'proof recheck schedule kind:',
         ],
     },
+    {
+        'name': 'watchdog-stdout-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'synthetic_status': {
+            **STATUS_BEFORE_SLOT_TOMORROW,
+            'summary': 'synthetische watchdog payload',
+            'proof_schedule_risk_text': 'als slot 2026-05-27 09:00 CEST mist, schuift bewijsdoel naar 2026-05-30 09:15 CEST',
+            'proof_target_due_at_if_next_slot_missed_text': '2026-05-30 09:15 CEST',
+            'proof_countdown_text': 'bewijsdeadline over 2d 12u',
+            'proof_target_check_gate_text': 'proof-target-check wacht op volgende kwalificatierun',
+        },
+        'expect_exit_code': 2,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_no_compact_recheck_line': True,
+        'expect_proof_waiting_for_next_scheduled_run': True,
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
+        'expect_text_substrings': [
+            'proof schedule risk: als slot 2026-05-27 09:00 CEST mist, schuift bewijsdoel naar 2026-05-30 09:15 CEST',
+        ],
+        'expect_text_output_occurrences': [
+            {
+                'text': '2026-05-30 09:15 CEST',
+                'count': 1,
+            },
+        ],
+        'expect_text_output_absent_substrings': [
+            'proof target due if next slot missed:',
+        ],
+    },
+    {
+        'name': 'watchdog-stdout-deduplicates-proof-target-due-at-text',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'synthetic_status': {
+            **STATUS_BEFORE_SLOT_TOMORROW,
+            'summary': 'synthetische watchdog payload',
+            'proof_target_due_at_text': '2026-05-29 09:15 CEST',
+            'proof_plan_text': 'geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, doel 2026-05-29 09:15 CEST',
+            'proof_countdown_text': 'wachtvenster tot 2026-05-27 09:00 CEST (over 1 d); mist volgend slot => 2026-05-30 09:15 CEST (slip +24u)',
+            'proof_target_check_gate_text': 'proof-target-check wacht op volgende kwalificatierun',
+        },
+        'expect_exit_code': 2,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_no_compact_recheck_line': True,
+        'expect_proof_waiting_for_next_scheduled_run': True,
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
+        'expect_text_substrings': [
+            'proof plan: geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, doel 2026-05-29 09:15 CEST',
+        ],
+        'expect_text_output_occurrences': [
+            {
+                'text': '2026-05-29 09:15 CEST',
+                'count': 1,
+            },
+        ],
+        'expect_text_output_absent_substrings': [
+            'proof target due:',
+        ],
+    },
 ]
 
 STATUS_SUMMARY_AUDIT_CASES = [
@@ -17310,6 +17372,53 @@ def run_proof_recheck_plain_missed_target_due_dedup_case(proof_recheck_module):
     }
 
 
+def run_proof_recheck_plain_target_due_dedup_case(proof_recheck_module):
+    failures = []
+    repeated_due = '2026-05-29 09:15 CEST'
+    payload = {
+        'summary': 'synthetische proof-recheck payload',
+        'result_text': 'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+        'proof_plan_text': f'geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, doel {repeated_due}',
+        'proof_target_due_at_text': repeated_due,
+    }
+    text_output = proof_recheck_module.build_text(payload)
+    if payload['proof_plan_text'] not in text_output:
+        failures.append('proof-recheck plain-text mist proof_plan_text voor synthetische bewijsdoel payload')
+    if text_output.count(repeated_due) != 1:
+        failures.append(
+            'proof-recheck plain-text toont proof_target_due_at_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: '
+            f"{text_output.count(repeated_due)}"
+        )
+
+    return {
+        'name': 'proof-recheck-plain-deduplicates-proof-target-due-at-text',
+        'path': str(PROOF_RECHECK_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': text_output,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module):
     failures = []
     repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
@@ -17630,6 +17739,59 @@ def run_watchdog_producer_quiet_missed_target_due_dedup_case(producer_module):
     }
 
 
+def run_watchdog_producer_quiet_target_due_dedup_case(producer_module):
+    failures = []
+    repeated_due = '2026-05-29 09:15 CEST'
+    payload = {
+        'summary': 'synthetische watchdog-producer payload',
+        'proof_plan_text': f'geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, doel {repeated_due}',
+        'proof_target_due_at_text': repeated_due,
+    }
+    quiet_summary = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if not quiet_summary:
+        failures.append('watchdog-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische bewijsdoel payload')
+        quiet_summary = ''
+    if payload['proof_plan_text'] not in quiet_summary:
+        failures.append('watchdog-producer quiet-summary mist proof_plan_text voor synthetische bewijsdoel payload')
+    if quiet_summary.count(repeated_due) != 1:
+        failures.append(
+            'watchdog-producer quiet-summary toont proof_target_due_at_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: '
+            f"{quiet_summary.count(repeated_due)}"
+        )
+
+    return {
+        'name': 'watchdog-producer-quiet-deduplicates-proof-target-due-at-text',
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_proof_recheck_producer_quiet_missed_target_due_dedup_case(producer_module):
     failures = []
     repeated_due = '2026-05-30 09:15 CEST'
@@ -17658,6 +17820,61 @@ def run_proof_recheck_producer_quiet_missed_target_due_dedup_case(producer_modul
 
     return {
         'name': 'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_proof_recheck_producer_quiet_target_due_dedup_case(producer_module):
+    failures = []
+    repeated_due = '2026-05-29 09:15 CEST'
+    payload = {
+        'summary': 'synthetische proof-recheck-producer payload',
+        'proof_plan_text': f'geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, doel {repeated_due}',
+        'proof_target_due_at_text': repeated_due,
+    }
+    quiet_summary, extracted_payload = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if extracted_payload != payload:
+        failures.append('proof-recheck-producer build_quiet_summary gaf niet dezelfde payload terug voor synthetische bewijsdoel payload')
+    if not quiet_summary:
+        failures.append('proof-recheck-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische bewijsdoel payload')
+        quiet_summary = ''
+    if payload['proof_plan_text'] not in quiet_summary:
+        failures.append('proof-recheck-producer quiet-summary mist proof_plan_text voor synthetische bewijsdoel payload')
+    if quiet_summary.count(repeated_due) != 1:
+        failures.append(
+            'proof-recheck-producer quiet-summary toont proof_target_due_at_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: '
+            f"{quiet_summary.count(repeated_due)}"
+        )
+
+    return {
+        'name': 'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text',
         'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -18702,6 +18919,34 @@ def run_brief_consumer_proof_target_due_if_missed_dedup_case(status_module):
 
     return build_brief_consumer_case_result(
         name='brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text',
+        failures=failures,
+        outputs=outputs,
+    )
+
+
+def run_brief_consumer_proof_target_due_dedup_case(status_module):
+    failures = []
+    repeated_due = '2026-05-29 09:15 CEST'
+    payload = {
+        'found': True,
+        'enabled': True,
+        'text': 'synthetische briefingstatus',
+        'proof_plan_text': f'geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, doel {repeated_due}',
+        'proof_target_due_at_text': repeated_due,
+    }
+
+    outputs = render_brief_consumer_outputs(status_module, payload)
+
+    for label, output in outputs.items():
+        if payload['proof_plan_text'] not in output:
+            failures.append(f'{label} mist de synthetische proof_plan tekst')
+        if output.count(repeated_due) != 1:
+            failures.append(
+                f'{label} toont proof_target_due_at_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: {output.count(repeated_due)}'
+            )
+
+    return build_brief_consumer_case_result(
+        name='brief-consumers-deduplicate-proof-target-due-at-text',
         failures=failures,
         outputs=outputs,
     )
@@ -23741,6 +23986,7 @@ WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-stdout-json-open-window-keeps-proof-config-context',
     'watchdog-stdout-deduplicates-wait-until-recheck-after-text',
     'watchdog-stdout-deduplicates-proof-recheck-schedule-text',
+    'watchdog-stdout-deduplicates-proof-target-due-at-if-next-slot-missed-text',
     'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-alert-deduplicates-wait-until-recheck-after-text',
@@ -23765,6 +24011,7 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-stdout-json-open-window-keeps-proof-config-context',
         'watchdog-stdout-deduplicates-wait-until-recheck-after-text',
         'watchdog-stdout-deduplicates-proof-recheck-schedule-text',
+        'watchdog-stdout-deduplicates-proof-target-due-at-if-next-slot-missed-text',
     ],
     'watchdog-alert': [
         'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
@@ -105087,7 +105334,16 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-plain-deduplicate-proof-target-due-at-if-next-slot-missed-text'] = named_cases[
         'proof-recheck-plain-deduplicates-proof-target-due-at-if-next-slot-missed-text'
     ]
+    named_cases['proof-recheck-plain-deduplicates-proof-target-due-at-text'] = (
+        lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_target_due_dedup_case(proof_recheck_module)
+    )
+    named_cases['proof-recheck-plain-deduplicate-proof-target-due-at-text'] = named_cases[
+        'proof-recheck-plain-deduplicates-proof-target-due-at-text'
+    ]
     named_cases['proof-recheck-plain-proof-target-due-dedup'] = named_cases[
+        'proof-recheck-plain-deduplicates-proof-target-due-at-text'
+    ]
+    named_cases['proof-recheck-plain-missed-target-due-dedup'] = named_cases[
         'proof-recheck-plain-deduplicates-proof-target-due-at-if-next-slot-missed-text'
     ]
     named_cases['watchdog-alert-deduplicates-wait-until-recheck-after-text'] = (
@@ -105134,6 +105390,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-producer-quiet-deduplicate-proof-target-due-at-if-next-slot-missed-text'] = (
         named_cases['watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text']
+    )
+    named_cases['watchdog-producer-quiet-deduplicates-proof-target-due-at-text'] = (
+        lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_target_due_dedup_case(producer_module)
+    )
+    named_cases['watchdog-producer-quiet-deduplicate-proof-target-due-at-text'] = (
+        named_cases['watchdog-producer-quiet-deduplicates-proof-target-due-at-text']
     )
     named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module)
@@ -105194,6 +105456,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-producer-quiet-deduplicate-proof-target-due-at-if-next-slot-missed-text'] = named_cases[
         'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text'
     ]
+    named_cases['proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text'] = (
+        lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_target_due_dedup_case(producer_module)
+    )
+    named_cases['proof-recheck-producer-quiet-deduplicate-proof-target-due-at-text'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text'
+    ]
+    named_cases['proof-recheck-producer-proof-target-due-dedup'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text'
+    ]
     named_cases['proof-recheck-producer-missed-target-due-dedup'] = named_cases[
         'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text'
     ]
@@ -105245,6 +105516,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['brief-consumers-deduplicates-proof-target-due-at-if-next-slot-missed-text'] = (
         named_cases['brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text']
     )
+    named_cases['brief-consumers-deduplicate-proof-target-due-at-text'] = (
+        lambda status_module=module: run_brief_consumer_proof_target_due_dedup_case(status_module)
+    )
+    named_cases['brief-consumer-deduplicate-proof-target-due-at-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
+    )
+    named_cases['brief-consumer-deduplicates-proof-target-due-at-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
+    )
+    named_cases['brief-consumers-deduplicates-proof-target-due-at-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
+    )
     named_cases['brief-consumer-schedule-dedup'] = (
         named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text']
     )
@@ -105259,6 +105542,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-stdout-schedule-dedup'] = (
         named_cases['watchdog-stdout-deduplicates-proof-recheck-schedule-text']
+    )
+    named_cases['watchdog-stdout-deduplicate-proof-target-due-at-if-next-slot-missed-text'] = (
+        named_cases['watchdog-stdout-deduplicates-proof-target-due-at-if-next-slot-missed-text']
+    )
+    named_cases['watchdog-stdout-dedup-proof-target-due-at-if-next-slot-missed-text'] = (
+        named_cases['watchdog-stdout-deduplicates-proof-target-due-at-if-next-slot-missed-text']
+    )
+    named_cases['watchdog-stdout-deduplicate-proof-target-due-at-text'] = (
+        named_cases['watchdog-stdout-deduplicates-proof-target-due-at-text']
+    )
+    named_cases['watchdog-stdout-proof-target-due-dedup'] = (
+        named_cases['watchdog-stdout-deduplicates-proof-target-due-at-text']
     )
     named_cases['watchdog-producer-quiet-falls-back-to-requested-outputs'] = (
         lambda producer_module=watchdog_producer_module: evaluate_watchdog_producer_quiet_requested_outputs_fallback_case(producer_module)

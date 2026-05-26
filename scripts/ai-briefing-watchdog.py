@@ -847,11 +847,23 @@ def main() -> int:
         lines.append(f"next run: {result['next_run_at_text']}")
     if result['proof_due_at_text']:
         lines.append(f"proof due: {result['proof_due_at_text']}")
-    if result['proof_target_due_at_text']:
+    proof_target_due_if_missed_text = result.get('proof_target_due_at_if_next_slot_missed_text')
+    richer_due_context = ' '.join(
+        str(bit)
+        for bit in [
+            result.get('proof_plan_text'),
+            result.get('proof_today_block_text'),
+            result.get('proof_schedule_risk_text'),
+            result.get('proof_target_check_gate_text'),
+            result.get('proof_countdown_text'),
+        ]
+        if bit
+    )
+    if result['proof_target_due_at_text'] and result['proof_target_due_at_text'] not in richer_due_context:
         lines.append(f"proof target due: {result['proof_target_due_at_text']}")
-    if result.get('proof_target_due_at_if_next_slot_missed_text'):
+    if proof_target_due_if_missed_text and proof_target_due_if_missed_text not in richer_due_context:
         lines.append(
-            f"proof target due if next slot missed: {result['proof_target_due_at_if_next_slot_missed_text']}"
+            f"proof target due if next slot missed: {proof_target_due_if_missed_text}"
         )
     if result['proof_plan_text']:
         lines.append(f"proof plan: {result['proof_plan_text']}")
