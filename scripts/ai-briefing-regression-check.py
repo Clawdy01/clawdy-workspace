@@ -9134,6 +9134,35 @@ WATCHDOG_STDOUT_CASES = [
             'proof recheck commands: draai daarna: python3 scripts/ai-briefing-watchdog.py --json',
         ],
     },
+    {
+        'name': 'watchdog-stdout-deduplicates-proof-recheck-schedule-text',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'synthetic_status': {
+            **STATUS_BEFORE_SLOT_TOMORROW,
+            'summary': 'synthetische watchdog payload',
+            'proof_recheck_schedule_text': 'proof-recheck-cronstatus: ok, dagelijkse hercheck om 09:15 lokale tijd',
+            'proof_recheck_schedule_kind_text': 'proof-recheck-cronstatus: ok',
+        },
+        'expect_exit_code': 2,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_no_compact_recheck_line': True,
+        'expect_proof_waiting_for_next_scheduled_run': True,
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
+        'expect_text_substrings': [
+            'proof recheck schedule: proof-recheck-cronstatus: ok, dagelijkse hercheck om 09:15 lokale tijd',
+        ],
+        'expect_text_output_occurrences': [
+            {
+                'text': 'proof-recheck-cronstatus: ok',
+                'count': 1,
+            },
+        ],
+        'expect_text_output_absent_substrings': [
+            'proof recheck schedule kind:',
+        ],
+    },
 ]
 
 STATUS_SUMMARY_AUDIT_CASES = [
@@ -12853,6 +12882,19 @@ def evaluate_watchdog_stdout_case(case):
     for snippet in case.get('expect_text_substrings', []):
         if snippet not in combined_text:
             failures.append(f"verwachte ai-briefing-watchdog-tekst ontbreekt: {snippet}")
+    for rule in case.get('expect_text_output_occurrences', []):
+        snippet = rule.get('text')
+        expected_count = rule.get('count')
+        if not snippet:
+            continue
+        actual_count = text_output.count(snippet)
+        if actual_count != expected_count:
+            failures.append(
+                f"watchdog-stdout-tekst verwacht {snippet!r} exact {expected_count} keer, kreeg {actual_count}"
+            )
+    for snippet in case.get('expect_text_output_absent_substrings', []):
+        if snippet and snippet in text_output:
+            failures.append(f"watchdog-stdout-tekst toont onverwacht redundante tekst: {snippet}")
 
     return {
         'name': case['name'],
@@ -23317,6 +23359,7 @@ WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-stdout-json-before-slot-keeps-proof-config-context',
     'watchdog-stdout-json-open-window-keeps-proof-config-context',
     'watchdog-stdout-deduplicates-wait-until-recheck-after-text',
+    'watchdog-stdout-deduplicates-proof-recheck-schedule-text',
     'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-alert-deduplicates-wait-until-recheck-after-text',
@@ -23338,6 +23381,7 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-stdout-json-before-slot-keeps-proof-config-context',
         'watchdog-stdout-json-open-window-keeps-proof-config-context',
         'watchdog-stdout-deduplicates-wait-until-recheck-after-text',
+        'watchdog-stdout-deduplicates-proof-recheck-schedule-text',
     ],
     'watchdog-alert': [
         'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
@@ -104749,6 +104793,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-stdout-deduplicate-wait-until-recheck-after-text'] = (
         named_cases['watchdog-stdout-deduplicates-wait-until-recheck-after-text']
+    )
+    named_cases['watchdog-stdout-deduplicate-proof-recheck-schedule-text'] = (
+        named_cases['watchdog-stdout-deduplicates-proof-recheck-schedule-text']
+    )
+    named_cases['watchdog-stdout-schedule-dedup'] = (
+        named_cases['watchdog-stdout-deduplicates-proof-recheck-schedule-text']
     )
     named_cases['watchdog-producer-quiet-falls-back-to-requested-outputs'] = (
         lambda producer_module=watchdog_producer_module: evaluate_watchdog_producer_quiet_requested_outputs_fallback_case(producer_module)

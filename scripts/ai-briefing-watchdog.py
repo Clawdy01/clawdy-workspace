@@ -54,13 +54,20 @@ def unique_reasons(reasons: list[str]) -> list[str]:
 
 
 def unique_bits(bits: list[str]) -> list[str]:
-    seen: set[str] = set()
     unique: list[str] = []
     for bit in bits:
         cleaned = ' '.join((bit or '').split())
-        if not cleaned or cleaned in seen:
+        if not cleaned:
             continue
-        seen.add(cleaned)
+        skip = False
+        for existing in list(unique):
+            if cleaned == existing or cleaned in existing:
+                skip = True
+                break
+            if existing in cleaned:
+                unique.remove(existing)
+        if skip:
+            continue
         unique.append(cleaned)
     return unique
 
@@ -818,10 +825,15 @@ def main() -> int:
         lines.append(f"proof config: {result['proof_config_identity_text']}")
     if result.get('last_run_config_relation_text'):
         lines.append(f"last run config relation: {result['last_run_config_relation_text']}")
-    if result.get('proof_recheck_schedule_kind_text'):
-        lines.append(f"proof recheck schedule kind: {result['proof_recheck_schedule_kind_text']}")
-    if result.get('proof_recheck_schedule_text'):
-        lines.append(f"proof recheck schedule: {result['proof_recheck_schedule_text']}")
+    proof_recheck_schedule_kind_text = result.get('proof_recheck_schedule_kind_text')
+    proof_recheck_schedule_text = result.get('proof_recheck_schedule_text')
+    if (
+        proof_recheck_schedule_kind_text
+        and proof_recheck_schedule_kind_text not in (proof_recheck_schedule_text or '')
+    ):
+        lines.append(f"proof recheck schedule kind: {proof_recheck_schedule_kind_text}")
+    if proof_recheck_schedule_text:
+        lines.append(f"proof recheck schedule: {proof_recheck_schedule_text}")
     if result['proof_progress_text']:
         lines.append(f"proof progress: {result['proof_progress_text']}")
     if result['proof_waiting_for_next_scheduled_run']:

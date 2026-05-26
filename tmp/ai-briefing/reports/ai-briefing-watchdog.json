@@ -531,11 +531,11 @@
   "consumer_effective_outputs_status_text": "consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via written)",
   "consumer_outputs_status_kind": "ok",
   "consumer_outputs_status_text": "consumer-output-audit ok (2/2 gevraagde artifacts geschreven)",
-  "generated_at": "2026-05-26T17:21:27.622494+00:00",
-  "generated_at_text": "2026-05-26 19:21:27 CEST",
-  "started_at": "2026-05-26T17:21:27.496751+00:00",
-  "started_at_text": "2026-05-26 19:21:27 CEST",
-  "duration_ms": 126,
-  "duration_seconds": 0.126,
-  "duration_text": "0.126s"
+  "generated_at": "2026-05-26T17:52:56.393668+00:00",
+  "generated_at_text": "2026-05-26 19:52:56 CEST",
+  "started_at": "2026-05-26T17:52:56.268594+00:00",
+  "started_at_text": "2026-05-26 19:52:56 CEST",
+  "duration_ms": 125,
+  "duration_seconds": 0.125,
+  "duration_text": "0.125s"
 }
