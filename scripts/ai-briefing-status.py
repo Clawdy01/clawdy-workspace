@@ -1012,6 +1012,24 @@ def extract_bare_url_lines(lines):
     return bare_urls, invalid_lines
 
 
+DOMAIN_LIKE_REFERENCE_RE = re.compile(
+    r'(?i)\b(?:www\.)?[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9-]{1,63})+\b'
+)
+
+
+def extract_domain_like_reference_lines(lines):
+    matches = []
+    for raw_line in lines or []:
+        stripped = raw_line.strip()
+        if not stripped:
+            continue
+        if re.search(r'(?i)https?://\S+', stripped):
+            continue
+        if DOMAIN_LIKE_REFERENCE_RE.search(stripped):
+            matches.append(stripped)
+    return matches
+
+
 def source_url_has_trailing_punctuation(url):
     if not isinstance(url, str) or not url:
         return False
@@ -2097,6 +2115,24 @@ def audit_summary_output(summary_text, reference_ms=None):
         reasons.append(
             f'expliciet geen briefingitems vandaag botst met item-bron-URLs ({source_url_count})'
         )
+
+    explicit_no_briefing_domain_reference_lines = []
+    if explicit_no_briefing_mode:
+        for section_name in ('intro', 'wat_moeten_wij_hiermee', 'wat_ik_vandaag_het_belangrijkst_vind'):
+            explicit_no_briefing_domain_reference_lines.extend(
+                extract_domain_like_reference_lines(narrative_section_lines.get(section_name) or [])
+            )
+        explicit_no_briefing_domain_reference_lines.extend(
+            extract_domain_like_reference_lines(bronnenlijst_invalid_lines)
+        )
+        if explicit_no_briefing_domain_reference_lines:
+            explicit_no_briefing_domain_reference_lines = list(dict.fromkeys(explicit_no_briefing_domain_reference_lines))
+            reason = (
+                'expliciet geen briefingitems vandaag noemt nog domeinverwijzingen '
+                f"({len(explicit_no_briefing_domain_reference_lines)}): "
+                + ', '.join(explicit_no_briefing_domain_reference_lines[:3])
+            )
+            reasons.append(reason)
 
     ok_text = (
         'briefing-output ok zonder briefingitems '
