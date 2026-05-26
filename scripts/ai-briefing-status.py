@@ -1013,8 +1013,28 @@ def extract_bare_url_lines(lines):
 
 
 DOMAIN_LIKE_REFERENCE_RE = re.compile(
-    r'(?i)\b(?:www\.)?[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9-]{1,63})+\b'
+    r'(?i)\b(?:www\.)?[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9-]{1,63})*\.[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?\b'
 )
+COMMON_FILE_REFERENCE_EXTENSIONS = {
+    'cfg', 'conf', 'csv', 'ini', 'json', 'log', 'md', 'rst', 'text', 'toml', 'txt', 'yaml', 'yml'
+}
+
+
+def is_probable_file_reference(line, match):
+    if not isinstance(line, str) or match is None:
+        return False
+    candidate = match.group(0)
+    if '.' not in candidate:
+        return False
+    extension = candidate.rsplit('.', 1)[-1].lower()
+    if extension not in COMMON_FILE_REFERENCE_EXTENSIONS:
+        return False
+    start, end = match.span()
+    previous_char = line[start - 1] if start > 0 else ''
+    next_char = line[end] if end < len(line) else ''
+    if previous_char in '/\\`' or next_char in '/\\`':
+        return True
+    return any(ch.isupper() for ch in candidate)
 
 
 def extract_domain_like_reference_lines(lines):
@@ -1025,7 +1045,8 @@ def extract_domain_like_reference_lines(lines):
             continue
         if re.search(r'(?i)https?://\S+', stripped):
             continue
-        if DOMAIN_LIKE_REFERENCE_RE.search(stripped):
+        domain_match = DOMAIN_LIKE_REFERENCE_RE.search(stripped)
+        if domain_match and not is_probable_file_reference(stripped, domain_match):
             matches.append(stripped)
     return matches
 

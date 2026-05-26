@@ -1,0 +1,11 @@
+clawdy:
+
+Vandaag publiceer ik geen briefingitems.
+
+Wat moeten wij hiermee?
+Houd README.md lokaal aan en archiveer tmp/checklist.txt pas na de volgende bewijsrun.
+
+Wat ik vandaag het belangrijkst vind
+Werk eerst de notities in CHANGELOG.md bij, maar publiceer geen briefingitems.
+
+Bronnenlijst
