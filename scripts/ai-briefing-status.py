@@ -1053,9 +1053,11 @@ def extract_domain_like_reference_lines(lines):
             continue
         if re.search(r'(?i)https?://\S+', stripped):
             continue
-        domain_match = DOMAIN_LIKE_REFERENCE_RE.search(stripped)
-        if domain_match and not is_probable_file_reference(stripped, domain_match):
+        for domain_match in DOMAIN_LIKE_REFERENCE_RE.finditer(stripped):
+            if is_probable_file_reference(stripped, domain_match):
+                continue
             matches.append(stripped)
+            break
     return matches
 
 
