@@ -1018,6 +1018,7 @@ DOMAIN_LIKE_REFERENCE_RE = re.compile(
 COMMON_FILE_REFERENCE_EXTENSIONS = {
     'cfg', 'conf', 'csv', 'ini', 'json', 'log', 'md', 'rst', 'text', 'toml', 'txt', 'yaml', 'yml'
 }
+FILE_REFERENCE_BOUNDARY_CHARS = "/\\`'\"()[]{}<>"
 
 
 def is_probable_file_reference(line, match):
@@ -1029,10 +1030,12 @@ def is_probable_file_reference(line, match):
     extension = candidate.rsplit('.', 1)[-1].lower()
     if extension not in COMMON_FILE_REFERENCE_EXTENSIONS:
         return False
+    if candidate.count('.') == 1:
+        return True
     start, end = match.span()
     previous_char = line[start - 1] if start > 0 else ''
     next_char = line[end] if end < len(line) else ''
-    if previous_char in '/\\`' or next_char in '/\\`':
+    if previous_char in FILE_REFERENCE_BOUNDARY_CHARS or next_char in FILE_REFERENCE_BOUNDARY_CHARS:
         return True
     return any(ch.isupper() for ch in candidate)
 

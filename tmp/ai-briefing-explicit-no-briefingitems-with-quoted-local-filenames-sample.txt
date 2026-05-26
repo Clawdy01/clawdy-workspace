@@ -1,0 +1,11 @@
+clawdy:
+
+Vandaag publiceer ik geen briefingitems.
+
+Wat moeten wij hiermee?
+Houd 'release.notes.md' lokaal aan en verplaats "verslag.final.txt" pas na de volgende bewijsrun.
+
+Wat ik vandaag het belangrijkst vind
+Werk '(tmp.backup.yaml)' eerst bij, maar publiceer geen briefingitems.
+
+Bronnenlijst
