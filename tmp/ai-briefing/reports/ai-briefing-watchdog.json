@@ -604,11 +604,11 @@
   "consumer_effective_outputs_status_text": "consumer-effectieve-output-audit ok (3/3 gevraagde artifacts gedekt via written)",
   "consumer_outputs_status_kind": "ok",
   "consumer_outputs_status_text": "consumer-output-audit ok (3/3 gevraagde artifacts geschreven)",
-  "generated_at": "2026-05-26T05:57:12.756548+00:00",
-  "generated_at_text": "2026-05-26 07:57:12 CEST",
-  "started_at": "2026-05-26T05:57:12.627269+00:00",
-  "started_at_text": "2026-05-26 07:57:12 CEST",
-  "duration_ms": 129,
-  "duration_seconds": 0.129,
-  "duration_text": "0.129s"
+  "generated_at": "2026-05-26T06:27:06.048565+00:00",
+  "generated_at_text": "2026-05-26 08:27:06 CEST",
+  "started_at": "2026-05-26T06:27:05.918642+00:00",
+  "started_at_text": "2026-05-26 08:27:05 CEST",
+  "duration_ms": 130,
+  "duration_seconds": 0.13,
+  "duration_text": "0.130s"
 }
