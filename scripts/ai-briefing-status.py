@@ -949,16 +949,18 @@ def extract_narrative_section_lines(text):
             first_item_index = index
             break
 
-    if first_item_index is not None:
-        intro_lines = [line.rstrip() for line in lines[1:first_item_index] if line.strip()]
-        if intro_lines:
-            sections['intro'] = intro_lines
-
     exact_heading_indexes = {}
     for index, raw_line in enumerate(lines):
         stripped = raw_line.strip()
         if stripped in REQUIRED_OUTPUT_MARKERS:
             exact_heading_indexes[stripped] = index
+
+    intro_end_candidates = [index for index in [first_item_index, *(exact_heading_indexes.values())] if index is not None]
+    if intro_end_candidates:
+        intro_end = min(intro_end_candidates)
+        intro_lines = [line.rstrip() for line in lines[1:intro_end] if line.strip()]
+        if intro_lines:
+            sections['intro'] = intro_lines
 
     action_start = exact_heading_indexes.get('Wat moeten wij hiermee?')
     priority_start = exact_heading_indexes.get('Wat ik vandaag het belangrijkst vind')
@@ -1031,6 +1033,9 @@ def is_probable_file_reference(line, match):
     if extension not in COMMON_FILE_REFERENCE_EXTENSIONS:
         return False
     if candidate.count('.') == 1:
+        return True
+    stem_segments = candidate.split('.')[:-1]
+    if stem_segments and all(re.fullmatch(r'[A-Za-z0-9_-]+', segment) for segment in stem_segments):
         return True
     start, end = match.span()
     previous_char = line[start - 1] if start > 0 else ''
