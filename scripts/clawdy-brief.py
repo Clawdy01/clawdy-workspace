@@ -353,7 +353,19 @@ def render_text(summary):
             if ai_briefing_status.get('proof_target_due_hint'):
                 proof_target_due_text += f" ({ai_briefing_status['proof_target_due_hint']})"
             ai_bits.append(proof_target_due_text)
-        if ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text'):
+        richer_due_context = ' '.join(
+            str(bit)
+            for bit in [
+                ai_briefing_status.get('proof_schedule_risk_text'),
+                ai_briefing_status.get('proof_target_check_gate_text'),
+                ai_briefing_status.get('proof_countdown_text'),
+            ]
+            if bit
+        )
+        if (
+            ai_briefing_status.get('proof_target_due_at_if_next_slot_missed_text')
+            and ai_briefing_status['proof_target_due_at_if_next_slot_missed_text'] not in richer_due_context
+        ):
             ai_bits.append(
                 f"bewijsdoel bij gemist volgend slot {ai_briefing_status['proof_target_due_at_if_next_slot_missed_text']}"
             )

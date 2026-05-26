@@ -3974,11 +3974,23 @@ def render_text(data):
         and data.get('proof_recheck_after_text_compact') != data.get('proof_wait_until_reason_text')
     ):
         parts.append(data['proof_recheck_after_text_compact'])
+    richer_due_context = ' '.join(
+        str(bit)
+        for bit in [
+            data.get('proof_schedule_risk_text'),
+            data.get('proof_target_check_gate_text'),
+            data.get('proof_countdown_text'),
+        ]
+        if bit
+    )
     if data.get('proof_schedule_risk_text'):
         parts.append(data['proof_schedule_risk_text'])
     if data.get('proof_countdown_text'):
         parts.append(data['proof_countdown_text'])
-    if data.get('proof_target_due_at_if_next_slot_missed_text'):
+    if (
+        data.get('proof_target_due_at_if_next_slot_missed_text')
+        and data['proof_target_due_at_if_next_slot_missed_text'] not in richer_due_context
+    ):
         parts.append(f"bewijsdoel bij gemist volgend slot {data['proof_target_due_at_if_next_slot_missed_text']}")
     if data.get('proof_target_run_slots_context_text'):
         parts.append(f"kwalificatie-slots {data['proof_target_run_slots_context_text']}")

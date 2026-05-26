@@ -112,6 +112,18 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
     except json.JSONDecodeError:
         return None
 
+    proof_target_due_text = payload.get('proof_target_due_at_text')
+    proof_target_due_if_missed_text = payload.get('proof_target_due_at_if_next_slot_missed_text')
+    richer_due_context = ' '.join(
+        str(bit)
+        for bit in [
+            payload.get('proof_schedule_risk_text'),
+            payload.get('proof_target_check_gate_text'),
+            payload.get('proof_countdown_text'),
+        ]
+        if bit
+    )
+
     bits: list[str] = []
     if payload.get('summary'):
         bits.append(str(payload['summary']))
@@ -180,9 +192,11 @@ def build_quiet_summary(stdout: str, stderr: str, returncode: int) -> str | None
         bits.append(str(payload['proof_schedule_risk_text']))
     if payload.get('proof_countdown_text'):
         bits.append(str(payload['proof_countdown_text']))
-    if payload.get('proof_target_due_at_if_next_slot_missed_text'):
+    if proof_target_due_text and proof_target_due_text not in richer_due_context:
+        bits.append(str(proof_target_due_text))
+    if proof_target_due_if_missed_text and proof_target_due_if_missed_text not in richer_due_context:
         bits.append(
-            f"bewijsdoel bij gemist volgend slot {payload['proof_target_due_at_if_next_slot_missed_text']}"
+            f"bewijsdoel bij gemist volgend slot {proof_target_due_if_missed_text}"
         )
     if payload.get('proof_target_check_gate_text'):
         bits.append(str(payload['proof_target_check_gate_text']))
