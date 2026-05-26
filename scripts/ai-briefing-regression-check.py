@@ -17429,6 +17429,116 @@ def run_proof_recheck_producer_quiet_schedule_dedup_case(producer_module):
     }
 
 
+def run_proof_recheck_producer_quiet_today_block_dedup_case(producer_module):
+    failures = []
+    repeated_block = 'geen kwalificerende runs meer vandaag'
+    payload = {
+        'summary': 'synthetische proof-recheck-producer payload',
+        'proof_plan_text': repeated_block,
+        'proof_today_block_text': repeated_block,
+    }
+    quiet_summary, extracted_payload = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if extracted_payload != payload:
+        failures.append('proof-recheck-producer build_quiet_summary gaf niet dezelfde payload terug voor synthetische proof_today_block/proof_plan payload')
+    if not quiet_summary:
+        failures.append('proof-recheck-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische proof_today_block/proof_plan payload')
+        quiet_summary = ''
+    if repeated_block not in quiet_summary:
+        failures.append('proof-recheck-producer quiet-summary mist de synthetische proof_today_block/proof_plan tekst')
+    if quiet_summary.count(repeated_block) != 1:
+        failures.append(
+            'proof-recheck-producer quiet-summary toont de synthetische proof_today_block/proof_plan tekst niet exact één keer: '
+            f"{quiet_summary.count(repeated_block)}"
+        )
+
+    return {
+        'name': 'proof-recheck-producer-quiet-deduplicates-proof-today-block-text',
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_proof_recheck_producer_quiet_missed_target_due_dedup_case(producer_module):
+    failures = []
+    repeated_due = '2026-05-30 09:15 CEST'
+    payload = {
+        'summary': 'synthetische proof-recheck-producer payload',
+        'proof_schedule_risk_text': f'als slot 2026-05-27 09:00 CEST mist, schuift bewijsdoel naar {repeated_due}',
+        'proof_target_due_at_if_next_slot_missed_text': repeated_due,
+    }
+    quiet_summary, extracted_payload = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if extracted_payload != payload:
+        failures.append('proof-recheck-producer build_quiet_summary gaf niet dezelfde payload terug voor synthetische gemist-slot-bewijsdoel payload')
+    if not quiet_summary:
+        failures.append('proof-recheck-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische gemist-slot-bewijsdoel payload')
+        quiet_summary = ''
+    if payload['proof_schedule_risk_text'] not in quiet_summary:
+        failures.append('proof-recheck-producer quiet-summary mist proof_schedule_risk_text voor synthetische gemist-slot-bewijsdoel payload')
+    if quiet_summary.count(repeated_due) != 1:
+        failures.append(
+            'proof-recheck-producer quiet-summary toont proof_target_due_at_if_next_slot_missed_text niet exact één keer wanneer proof_schedule_risk_text dezelfde deadline al bevat: '
+            f"{quiet_summary.count(repeated_due)}"
+        )
+
+    return {
+        'name': 'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_proof_recheck_producer_overall_passthrough_case(producer_module):
     failures = []
     overall = producer_module.build_overall_item([
@@ -18390,6 +18500,34 @@ def run_brief_consumer_schedule_dedup_case(status_module):
 
     return build_brief_consumer_case_result(
         name='brief-consumers-deduplicate-proof-recheck-schedule-text',
+        failures=failures,
+        outputs=outputs,
+    )
+
+
+def run_brief_consumer_today_block_dedup_case(status_module):
+    failures = []
+    repeated_block = 'geen kwalificerende runs meer vandaag'
+    payload = {
+        'found': True,
+        'enabled': True,
+        'text': 'synthetische briefingstatus',
+        'proof_plan_text': repeated_block,
+        'proof_today_block_text': repeated_block,
+    }
+
+    outputs = render_brief_consumer_outputs(status_module, payload)
+
+    for label, output in outputs.items():
+        if repeated_block not in output:
+            failures.append(f'{label} mist de synthetische proof_today_block/proof_plan tekst')
+        if output.count(repeated_block) != 1:
+            failures.append(
+                f'{label} toont de synthetische proof_today_block/proof_plan tekst niet exact één keer: {output.count(repeated_block)}'
+            )
+
+    return build_brief_consumer_case_result(
+        name='brief-consumers-deduplicate-proof-today-block-text',
         failures=failures,
         outputs=outputs,
     )
@@ -23273,6 +23411,7 @@ BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'clawdy-brief-open-window-keeps-proof-recheck-cronstatus',
     'brief-consumers-deduplicate-wait-until-recheck-after-text',
     'brief-consumers-deduplicate-proof-recheck-schedule-text',
+    'brief-consumers-deduplicate-proof-today-block-text',
 ]
 
 BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
@@ -23293,6 +23432,9 @@ BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'brief-consumers-schedule-dedup': [
         'brief-consumers-deduplicate-proof-recheck-schedule-text',
+    ],
+    'brief-consumers-proof-today-block-dedup': [
+        'brief-consumers-deduplicate-proof-today-block-text',
     ],
 }
 
@@ -104824,6 +104966,24 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-producer-schedule-dedup'] = named_cases[
         'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text'
     ]
+    named_cases['proof-recheck-producer-quiet-deduplicates-proof-today-block-text'] = (
+        lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_today_block_dedup_case(producer_module)
+    )
+    named_cases['proof-recheck-producer-quiet-deduplicate-proof-today-block-text'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-today-block-text'
+    ]
+    named_cases['proof-recheck-producer-today-block-dedup'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-today-block-text'
+    ]
+    named_cases['proof-recheck-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text'] = (
+        lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_missed_target_due_dedup_case(producer_module)
+    )
+    named_cases['proof-recheck-producer-quiet-deduplicate-proof-target-due-at-if-next-slot-missed-text'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text'
+    ]
+    named_cases['proof-recheck-producer-missed-target-due-dedup'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text'
+    ]
     named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text'] = (
         lambda status_module=module: run_brief_consumer_wait_until_dedup_case(status_module)
     )
@@ -104847,6 +105007,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['brief-consumers-deduplicates-proof-recheck-schedule-text'] = (
         named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text']
+    )
+    named_cases['brief-consumers-deduplicate-proof-today-block-text'] = (
+        lambda status_module=module: run_brief_consumer_today_block_dedup_case(status_module)
+    )
+    named_cases['brief-consumer-deduplicate-proof-today-block-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-today-block-text']
+    )
+    named_cases['brief-consumer-deduplicates-proof-today-block-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-today-block-text']
+    )
+    named_cases['brief-consumers-deduplicates-proof-today-block-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-today-block-text']
     )
     named_cases['brief-consumer-schedule-dedup'] = (
         named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text']
