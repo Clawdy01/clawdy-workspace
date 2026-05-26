@@ -536,9 +536,15 @@ def build_text(payload: dict) -> str:
         payload.get('proof_blocker_text'),
         payload.get('proof_wait_until_text'),
         payload.get('proof_wait_until_reason_text'),
+        payload.get('proof_progress_text'),
         payload.get('proof_today_block_text'),
         payload.get('proof_freshness_text'),
         payload.get('proof_plan_text'),
+        (
+            f"nog {payload.get('proof_runs_remaining')} kwalificerende run(s) te gaan"
+            if payload.get('proof_runs_remaining') is not None and not payload.get('proof_target_met')
+            else None
+        ),
         ('outputvoorbeelden: ' + '; '.join(summary_output_examples[:3])) if summary_output_examples else None,
         payload.get('proof_next_action_window_text'),
         (

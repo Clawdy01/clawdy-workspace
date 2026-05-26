@@ -161,6 +161,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
             bits.append(data['proof_freshness_text'])
         if data.get('proof_plan_text'):
             bits.append(data['proof_plan_text'])
+        if data.get('proof_today_block_text'):
+            bits.append(data['proof_today_block_text'])
         proof_runs_remaining = data.get('proof_runs_remaining')
         if proof_runs_remaining is not None and not data.get('proof_target_met'):
             bits.append(f'nog {proof_runs_remaining} kwalificerende run(s) te gaan')

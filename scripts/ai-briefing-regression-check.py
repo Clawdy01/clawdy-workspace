@@ -13382,6 +13382,19 @@ def evaluate_proof_recheck_case(case):
             'proof-recheck-plain-tekst mist proof_wait_until_reason_text uit stdout-json: '
             f"{payload.get('proof_wait_until_reason_text')}"
         )
+    if payload.get('proof_progress_text') and payload['proof_progress_text'] not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_progress_text uit stdout-json: '
+            f"{payload.get('proof_progress_text')}"
+        )
+    proof_runs_remaining_text = None
+    if payload.get('proof_runs_remaining') is not None and not payload.get('proof_target_met'):
+        proof_runs_remaining_text = f"nog {payload.get('proof_runs_remaining')} kwalificerende run(s) te gaan"
+    if proof_runs_remaining_text and proof_runs_remaining_text not in text_output:
+        failures.append(
+            'proof-recheck-plain-tekst mist proof_runs_remaining uit stdout-json: '
+            f"{proof_runs_remaining_text}"
+        )
     if payload.get('proof_next_action_window_text') and payload['proof_next_action_window_text'] not in text_output:
         failures.append(
             'proof-recheck-plain-tekst mist proof_next_action_window_text uit stdout-json: '
@@ -15782,6 +15795,17 @@ def evaluate_watchdog_alert_case(case):
                     'watchdog-alert alert_text mist proof_plan_text uit stdout-json: '
                     f"{payload.get('proof_plan_text')}"
                 )
+        if payload.get('proof_today_block_text'):
+            if payload['proof_today_block_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_today_block_text uit stdout-json: '
+                    f"{payload.get('proof_today_block_text')}"
+                )
+            if payload['proof_today_block_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_today_block_text uit stdout-json: '
+                    f"{payload.get('proof_today_block_text')}"
+                )
         if payload.get('proof_wait_until_text'):
             if payload['proof_wait_until_text'] not in text_output:
                 failures.append(
@@ -16906,6 +16930,7 @@ def run_watchdog_producer_quiet_reasons_dedup_case(producer_module):
         'summary': 'synthetische watchdog-producer payload',
         'reasons': ['status not ok', 'consumer-write mismatch gedetecteerd', 'consumer-write mismatch gedetecteerd'],
     }
+
     quiet_summary = producer_module.build_quiet_summary(
         json.dumps(payload, ensure_ascii=False),
         '',
@@ -16925,6 +16950,56 @@ def run_watchdog_producer_quiet_reasons_dedup_case(producer_module):
 
     return {
         'name': 'watchdog-producer-quiet-deduplicates-reasons',
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_watchdog_producer_quiet_schedule_dedup_case(producer_module):
+    failures = []
+    payload = dict(STATUS_BEFORE_SLOT_TOMORROW)
+    quiet_summary = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if not quiet_summary:
+        failures.append('watchdog-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische schedule-payload')
+        quiet_summary = ''
+    for field in ('proof_recheck_schedule_kind_text', 'proof_recheck_schedule_text'):
+        expected = payload.get(field)
+        if expected and expected not in quiet_summary:
+            failures.append(f'watchdog-producer quiet-summary mist {field} voor synthetische schedule-payload')
+        if expected and quiet_summary.count(str(expected)) != 1:
+            failures.append(
+                f'watchdog-producer quiet-summary toont {field} niet exact één keer: '
+                f"{quiet_summary.count(str(expected))}"
+            )
+
+    return {
+        'name': 'watchdog-producer-quiet-deduplicates-proof-recheck-schedule-text',
         'path': str(WATCHDOG_PRODUCER_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -104438,6 +104513,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_reasons_dedup_case(producer_module)
     )
     named_cases['watchdog-producer-quiet-deduplicate-reasons'] = named_cases['watchdog-producer-quiet-deduplicates-reasons']
+    named_cases['watchdog-producer-quiet-deduplicates-proof-recheck-schedule-text'] = (
+        lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_schedule_dedup_case(producer_module)
+    )
+    named_cases['watchdog-producer-quiet-deduplicate-proof-recheck-schedule-text'] = (
+        named_cases['watchdog-producer-quiet-deduplicates-proof-recheck-schedule-text']
+    )
     named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module)
     )
