@@ -12437,6 +12437,11 @@ def evaluate_status_stdout_case(case):
             'status-stdout-tekst mist proof_blocker_text uit stdout-json: '
             f"{payload.get('proof_blocker_text')}"
         )
+    if payload.get('proof_today_block_text') and payload['proof_today_block_text'] not in text_output:
+        failures.append(
+            'status-stdout-tekst mist proof_today_block_text uit stdout-json: '
+            f"{payload.get('proof_today_block_text')}"
+        )
     if payload.get('proof_next_action_window_text') and payload['proof_next_action_window_text'] not in text_output:
         failures.append(
             'status-stdout-tekst mist proof_next_action_window_text uit stdout-json: '
@@ -12504,6 +12509,7 @@ def evaluate_status_stdout_case(case):
             payload.get('proof_wait_until_reason_text'),
             payload.get('proof_recheck_after_text_compact'),
             payload.get('proof_blocker_text'),
+            payload.get('proof_today_block_text'),
             payload.get('proof_target_due_at_if_next_slot_missed_text'),
             payload.get('proof_countdown_text'),
             summary_examples_text,
@@ -17183,6 +17189,53 @@ def run_proof_recheck_plain_reasons_dedup_case(proof_recheck_module):
 
     return {
         'name': 'proof-recheck-plain-deduplicates-reasons',
+        'path': str(PROOF_RECHECK_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': text_output,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_proof_recheck_plain_schedule_dedup_case(proof_recheck_module):
+    failures = []
+    payload = {
+        'summary': 'synthetische proof-recheck payload',
+        'result_text': 'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+        'proof_recheck_schedule_text': 'proof-recheck-cronstatus: ok, dagelijkse hercheck om 09:15 lokale tijd',
+        'proof_recheck_schedule_kind_text': 'proof-recheck-cronstatus: ok',
+    }
+    text_output = proof_recheck_module.build_text(payload)
+    expected = 'proof-recheck-cronstatus: ok, dagelijkse hercheck om 09:15 lokale tijd'
+    if expected not in text_output:
+        failures.append('proof-recheck plain-text mist deduped proof_recheck_schedule_text voor synthetische payload')
+    if text_output.count('proof-recheck-cronstatus: ok') != 1:
+        failures.append(
+            'proof-recheck plain-text toont proof_recheck_schedule-kindprefix niet exact één keer: '
+            f"{text_output.count('proof-recheck-cronstatus: ok')}"
+        )
+
+    return {
+        'name': 'proof-recheck-plain-deduplicates-proof-recheck-schedule-text',
         'path': str(PROOF_RECHECK_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -23139,6 +23192,7 @@ PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'proof-recheck-open-window-needs-attention',
     'proof-recheck-plain-deduplicates-wait-until-recheck-after-text',
     'proof-recheck-plain-deduplicates-reasons',
+    'proof-recheck-plain-deduplicates-proof-recheck-schedule-text',
     'proof-recheck-producer-before-slot-too-early',
     'proof-recheck-producer-open-window-needs-attention',
     'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
@@ -23161,6 +23215,9 @@ PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'proof-recheck-plain-reasons-dedup': [
         'proof-recheck-plain-deduplicates-reasons',
+    ],
+    'proof-recheck-plain-schedule-dedup': [
+        'proof-recheck-plain-deduplicates-proof-recheck-schedule-text',
     ],
     'proof-recheck-producer-before-slot': [
         'proof-recheck-producer-before-slot-too-early',
@@ -104684,6 +104741,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_reasons_dedup_case(proof_recheck_module)
     )
     named_cases['proof-recheck-plain-deduplicate-reasons'] = named_cases['proof-recheck-plain-deduplicates-reasons']
+    named_cases['proof-recheck-plain-deduplicates-proof-recheck-schedule-text'] = (
+        lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_schedule_dedup_case(proof_recheck_module)
+    )
+    named_cases['proof-recheck-plain-schedule-dedup'] = named_cases[
+        'proof-recheck-plain-deduplicates-proof-recheck-schedule-text'
+    ]
     named_cases['watchdog-alert-deduplicates-wait-until-recheck-after-text'] = (
         lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_wait_until_dedup_case(watchdog_alert_module)
     )
