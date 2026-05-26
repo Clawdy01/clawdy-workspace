@@ -16866,6 +16866,49 @@ def run_watchdog_alert_reasons_dedup_case(watchdog_alert_module):
     }
 
 
+def run_watchdog_alert_schedule_dedup_case(watchdog_alert_module):
+    failures = []
+    payload = dict(STATUS_BEFORE_SLOT_TOMORROW)
+    alert_text = watchdog_alert_module.build_alert(payload, 'proof-check', 3)
+    for field in ('proof_recheck_schedule_kind_text', 'proof_recheck_schedule_text'):
+        expected = payload.get(field)
+        if expected and expected not in alert_text:
+            failures.append(f'watchdog-alert mist {field} voor synthetische schedule-payload')
+        if expected and alert_text.count(str(expected)) != 1:
+            failures.append(
+                f'watchdog-alert toont {field} niet exact één keer: '
+                f"{alert_text.count(str(expected))}"
+            )
+
+    return {
+        'name': 'watchdog-alert-deduplicates-proof-recheck-schedule-text',
+        'path': str(WATCHDOG_ALERT_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': alert_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_watchdog_producer_quiet_wait_until_dedup_case(producer_module):
     failures = []
     repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
@@ -17212,6 +17255,58 @@ def run_proof_recheck_producer_quiet_reasons_dedup_case(producer_module):
 
     return {
         'name': 'proof-recheck-producer-quiet-deduplicates-reasons',
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_proof_recheck_producer_quiet_schedule_dedup_case(producer_module):
+    failures = []
+    payload = dict(STATUS_BEFORE_SLOT_TOMORROW)
+    quiet_summary, extracted_payload = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if extracted_payload != payload:
+        failures.append('proof-recheck-producer build_quiet_summary gaf niet dezelfde payload terug voor synthetische schedule-payload')
+    if not quiet_summary:
+        failures.append('proof-recheck-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische schedule-payload')
+        quiet_summary = ''
+    for field in ('proof_recheck_schedule_kind_text', 'proof_recheck_schedule_text'):
+        expected = payload.get(field)
+        if expected and expected not in quiet_summary:
+            failures.append(f'proof-recheck-producer quiet-summary mist {field} voor synthetische schedule-payload')
+        if expected and quiet_summary.count(str(expected)) != 1:
+            failures.append(
+                f'proof-recheck-producer quiet-summary toont {field} niet exact één keer: '
+                f"{quiet_summary.count(str(expected))}"
+            )
+
+    return {
+        'name': 'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text',
         'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -18053,20 +18148,7 @@ def run_watchdog_producer_overall_passthrough_case(producer_module):
 
 
 
-def run_brief_consumer_wait_until_dedup_case(status_module):
-    failures = []
-    repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
-    payload = {
-        'found': True,
-        'enabled': True,
-        'text': 'synthetische briefingstatus',
-        'proof_wait_until_text': repeated_instruction,
-        'proof_wait_until_reason_text': repeated_instruction,
-        'proof_next_action_text': repeated_instruction,
-        'proof_recheck_after_text_compact': repeated_instruction,
-        'proof_recheck_commands_text': 'draai daarna: python3 scripts/ai-briefing-status.py --json',
-    }
-
+def render_brief_consumer_outputs(status_module, payload):
     def load_module(name, path):
         spec = importlib.util.spec_from_file_location(name, path)
         module = importlib.util.module_from_spec(spec)
@@ -18077,7 +18159,7 @@ def run_brief_consumer_wait_until_dedup_case(status_module):
     statusboard_module = load_module('statusboard', STATUSBOARD_SCRIPT)
     clawdy_brief_module = load_module('clawdy_brief', CLAWDY_BRIEF_SCRIPT)
 
-    outputs = {
+    return {
         'status-stdout': status_module.render_text(payload),
         'statusboard': statusboard_module.render_text({
             'status': {
@@ -18128,16 +18210,10 @@ def run_brief_consumer_wait_until_dedup_case(status_module):
         }),
     }
 
-    for label, output in outputs.items():
-        if repeated_instruction not in output:
-            failures.append(f'{label} mist de synthetische wait-until instructie')
-        if output.count(repeated_instruction) != 1:
-            failures.append(
-                f'{label} toont de synthetische wait-until instructie niet exact één keer: {output.count(repeated_instruction)}'
-            )
 
+def build_brief_consumer_case_result(*, name, failures, outputs):
     return {
-        'name': 'brief-consumers-deduplicate-wait-until-recheck-after-text',
+        'name': name,
         'path': str(STATUS_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -18163,6 +18239,65 @@ def run_brief_consumer_wait_until_dedup_case(status_module):
         'items_with_field_order_mismatch_count': None,
         'numbered_title_heading_count': None,
     }
+
+
+def run_brief_consumer_wait_until_dedup_case(status_module):
+    failures = []
+    repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
+    payload = {
+        'found': True,
+        'enabled': True,
+        'text': 'synthetische briefingstatus',
+        'proof_wait_until_text': repeated_instruction,
+        'proof_wait_until_reason_text': repeated_instruction,
+        'proof_next_action_text': repeated_instruction,
+        'proof_recheck_after_text_compact': repeated_instruction,
+        'proof_recheck_commands_text': 'draai daarna: python3 scripts/ai-briefing-status.py --json',
+    }
+
+    outputs = render_brief_consumer_outputs(status_module, payload)
+
+    for label, output in outputs.items():
+        if repeated_instruction not in output:
+            failures.append(f'{label} mist de synthetische wait-until instructie')
+        if output.count(repeated_instruction) != 1:
+            failures.append(
+                f'{label} toont de synthetische wait-until instructie niet exact één keer: {output.count(repeated_instruction)}'
+            )
+
+    return build_brief_consumer_case_result(
+        name='brief-consumers-deduplicate-wait-until-recheck-after-text',
+        failures=failures,
+        outputs=outputs,
+    )
+
+
+def run_brief_consumer_schedule_dedup_case(status_module):
+    failures = []
+    repeated_schedule = 'proof-recheck-cronstatus: ok, dagelijkse hercheck om 09:15 lokale tijd'
+    payload = {
+        'found': True,
+        'enabled': True,
+        'text': 'synthetische briefingstatus',
+        'proof_recheck_schedule_text': repeated_schedule,
+        'proof_recheck_schedule_kind_text': 'proof-recheck-cronstatus: ok',
+    }
+
+    outputs = render_brief_consumer_outputs(status_module, payload)
+
+    for label, output in outputs.items():
+        if repeated_schedule not in output:
+            failures.append(f'{label} mist de synthetische proof-recheck-schedule tekst')
+        if output.count(repeated_schedule) != 1:
+            failures.append(
+                f'{label} toont de synthetische proof-recheck-schedule tekst niet exact één keer: {output.count(repeated_schedule)}'
+            )
+
+    return build_brief_consumer_case_result(
+        name='brief-consumers-deduplicate-proof-recheck-schedule-text',
+        failures=failures,
+        outputs=outputs,
+    )
 
 
 def evaluate_watchdog_producer_case(case):
@@ -22966,6 +23101,7 @@ PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'proof-recheck-producer-open-window-needs-attention',
     'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
     'proof-recheck-producer-quiet-deduplicates-reasons',
+    'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text',
 ]
 
 PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
@@ -22995,6 +23131,9 @@ PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'proof-recheck-producer-reasons-dedup': [
         'proof-recheck-producer-quiet-deduplicates-reasons',
+    ],
+    'proof-recheck-producer-schedule-dedup': [
+        'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text',
     ],
 }
 
@@ -23034,6 +23173,7 @@ BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'clawdy-brief-before-slot-keeps-proof-recheck-cronstatus',
     'clawdy-brief-open-window-keeps-proof-recheck-cronstatus',
     'brief-consumers-deduplicate-wait-until-recheck-after-text',
+    'brief-consumers-deduplicate-proof-recheck-schedule-text',
 ]
 
 BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
@@ -23051,6 +23191,9 @@ BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'brief-consumers-wait-until-dedup': [
         'brief-consumers-deduplicate-wait-until-recheck-after-text',
+    ],
+    'brief-consumers-schedule-dedup': [
+        'brief-consumers-deduplicate-proof-recheck-schedule-text',
     ],
 }
 
@@ -23178,10 +23321,12 @@ WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-alert-deduplicates-wait-until-recheck-after-text',
     'watchdog-alert-deduplicates-reasons',
+    'watchdog-alert-deduplicates-proof-recheck-schedule-text',
     'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
     'watchdog-producer-quiet-deduplicates-reasons',
+    'watchdog-producer-quiet-deduplicates-proof-recheck-schedule-text',
     'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-board-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-eventlog-before-slot-keeps-proof-recheck-cronstatus',
@@ -23199,12 +23344,14 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
         'watchdog-alert-deduplicates-wait-until-recheck-after-text',
         'watchdog-alert-deduplicates-reasons',
+        'watchdog-alert-deduplicates-proof-recheck-schedule-text',
     ],
     'watchdog-producer': [
         'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
         'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
         'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
         'watchdog-producer-quiet-deduplicates-reasons',
+        'watchdog-producer-quiet-deduplicates-proof-recheck-schedule-text',
     ],
     'watchdog-producer-proof-board': [
         'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
@@ -104503,6 +104650,13 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_reasons_dedup_case(watchdog_alert_module)
     )
     named_cases['watchdog-alert-deduplicate-reasons'] = named_cases['watchdog-alert-deduplicates-reasons']
+    named_cases['watchdog-alert-deduplicates-proof-recheck-schedule-text'] = (
+        lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_schedule_dedup_case(watchdog_alert_module)
+    )
+    named_cases['watchdog-alert-deduplicate-proof-recheck-schedule-text'] = (
+        named_cases['watchdog-alert-deduplicates-proof-recheck-schedule-text']
+    )
+    named_cases['watchdog-alert-schedule-dedup'] = named_cases['watchdog-alert-deduplicates-proof-recheck-schedule-text']
     named_cases['watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_wait_until_dedup_case(producer_module)
     )
@@ -104529,6 +104683,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_reasons_dedup_case(producer_module)
     )
     named_cases['proof-recheck-producer-quiet-deduplicate-reasons'] = named_cases['proof-recheck-producer-quiet-deduplicates-reasons']
+    named_cases['proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text'] = (
+        lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_schedule_dedup_case(producer_module)
+    )
+    named_cases['proof-recheck-producer-quiet-deduplicate-proof-recheck-schedule-text'] = (
+        named_cases['proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text']
+    )
     named_cases['proof-recheck-producer-quiet-wait-until-deduplicate'] = (
         named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text']
     )
@@ -104554,6 +104714,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'
     ]
     named_cases['proof-recheck-producer-reasons-dedup'] = named_cases['proof-recheck-producer-quiet-deduplicates-reasons']
+    named_cases['proof-recheck-producer-schedule-dedup'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text'
+    ]
     named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text'] = (
         lambda status_module=module: run_brief_consumer_wait_until_dedup_case(status_module)
     )
@@ -104565,6 +104728,24 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['brief-consumers-deduplicates-wait-until-recheck-after-text'] = (
         named_cases['brief-consumers-deduplicate-wait-until-recheck-after-text']
+    )
+    named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text'] = (
+        lambda status_module=module: run_brief_consumer_schedule_dedup_case(status_module)
+    )
+    named_cases['brief-consumer-deduplicate-proof-recheck-schedule-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text']
+    )
+    named_cases['brief-consumer-deduplicates-proof-recheck-schedule-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text']
+    )
+    named_cases['brief-consumers-deduplicates-proof-recheck-schedule-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text']
+    )
+    named_cases['brief-consumer-schedule-dedup'] = (
+        named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text']
+    )
+    named_cases['brief-consumers-schedule-dedup'] = (
+        named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text']
     )
     named_cases['watchdog-stdout-deduplicate-wait-until-recheck-after-text'] = (
         named_cases['watchdog-stdout-deduplicates-wait-until-recheck-after-text']
