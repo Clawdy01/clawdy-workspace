@@ -4,7 +4,7 @@ proof blocker: hercheckvenster is open, dus dit spoor wacht alleen nog op direct
 reasons:
 - status not ok
 - runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-25 09:02 CEST > 2026-05-25 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
-- proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-25 09:02 CEST > 2026-05-25 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: Bronnenlijst bevat ongebruikte URLs (21): https://anthropic.com/news, https://aws.amazon.com/blogs/machine-learning/feed, https://blog.google/rss; Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news
+- proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-25 09:02 CEST > 2026-05-25 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news
 - onvoldoende gekwalificeerde runs voor huidige config (0/3)
 - geen gekwalificeerde run sinds verwacht dagslot 2026-05-25 09:00 CEST
 readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan; runbewijs met aandachtspunt

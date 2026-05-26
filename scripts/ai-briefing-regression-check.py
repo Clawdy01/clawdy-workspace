@@ -16775,10 +16775,22 @@ def run_proof_recheck_producer_overall_passthrough_case(producer_module):
                 'result_kind': 'attention-needed',
                 'result_text': 'hercheckvenster is open, maar bewijsdoel is nog niet gehaald; inhoudelijke blockers: blocker A; blocker B',
                 'result_evidence_text': 'inhoudelijke blockers: blocker A; blocker B',
+                'status_text': 'status not ok',
+                'reference_now_ms': 1779434100000,
+                'reference_mode': 'reference-ms',
+                'reference_now_text': '2026-05-21 09:15 CEST',
+                'readiness_phase': 'waiting-proof',
                 'proof_text': 'bewijsdoel open',
                 'proof_due_at': '2026-05-28T07:15:00+00:00',
                 'proof_due_at_text': '2026-05-28 09:15 CEST',
                 'proof_due_hint': 'over 2 d 8 u',
+                'proof_wait_until_hint': 'over 7 u 45 m',
+                'proof_wait_until_remaining_ms': 27900000,
+                'proof_wait_until_remaining_hours': 7.75,
+                'proof_next_qualifying_slot_hint': 'morgen 09:00 CEST',
+                'proof_next_qualifying_slot_remaining_ms': 27900000,
+                'proof_next_qualifying_slot_remaining_hours': 7.75,
+                'last_proof_qualified_run_at_text': '2026-05-24 09:00 CEST',
             },
             'returncode': 3,
             'summary': 'synthetische proof-recheck-producer overall',
@@ -16786,9 +16798,21 @@ def run_proof_recheck_producer_overall_passthrough_case(producer_module):
     ])
     for key, expected in {
         'result_evidence_text': 'inhoudelijke blockers: blocker A; blocker B',
+        'status_text': 'status not ok',
+        'reference_now_ms': 1779434100000,
+        'reference_mode': 'reference-ms',
+        'reference_now_text': '2026-05-21 09:15 CEST',
+        'readiness_phase': 'waiting-proof',
         'proof_due_at': '2026-05-28T07:15:00+00:00',
         'proof_due_at_text': '2026-05-28 09:15 CEST',
         'proof_due_hint': 'over 2 d 8 u',
+        'proof_wait_until_hint': 'over 7 u 45 m',
+        'proof_wait_until_remaining_ms': 27900000,
+        'proof_wait_until_remaining_hours': 7.75,
+        'proof_next_qualifying_slot_hint': 'morgen 09:00 CEST',
+        'proof_next_qualifying_slot_remaining_ms': 27900000,
+        'proof_next_qualifying_slot_remaining_hours': 7.75,
+        'last_proof_qualified_run_at_text': '2026-05-24 09:00 CEST',
     }.items():
         if overall.get(key) != expected:
             failures.append(f'proof-recheck-producer overall mist passthrough voor {key}: {overall.get(key)} versus {expected}')
@@ -16800,6 +16824,76 @@ def run_proof_recheck_producer_overall_passthrough_case(producer_module):
         'failures': failures,
         'audit_ok': not failures,
         'audit_text': overall.get('result_text'),
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+
+def run_watchdog_producer_overall_passthrough_case(producer_module):
+    failures = []
+    overall = producer_module.build_overall_summary({
+        'summary': 'synthetische watchdog-producer overall',
+        'status_text': 'status not ok',
+        'reference_now_ms': 1779434100000,
+        'reference_mode': 'reference-ms',
+        'reference_now_text': '2026-05-21 09:15 CEST',
+        'readiness_phase': 'waiting-proof',
+        'proof_due_at': '2026-05-28T07:15:00+00:00',
+        'proof_due_at_text': '2026-05-28 09:15 CEST',
+        'proof_due_hint': 'over 2 d 8 u',
+        'proof_wait_until_hint': 'over 7 u 45 m',
+        'proof_wait_until_remaining_ms': 27900000,
+        'proof_wait_until_remaining_hours': 7.75,
+        'proof_next_qualifying_slot_hint': 'morgen 09:00 CEST',
+        'proof_next_qualifying_slot_remaining_ms': 27900000,
+        'proof_next_qualifying_slot_remaining_hours': 7.75,
+        'last_proof_qualified_run_at_text': '2026-05-24 09:00 CEST',
+    }, 2)
+    for key, expected in {
+        'status_text': 'status not ok',
+        'reference_now_ms': 1779434100000,
+        'reference_mode': 'reference-ms',
+        'reference_now_text': '2026-05-21 09:15 CEST',
+        'readiness_phase': 'waiting-proof',
+        'proof_due_at': '2026-05-28T07:15:00+00:00',
+        'proof_due_at_text': '2026-05-28 09:15 CEST',
+        'proof_due_hint': 'over 2 d 8 u',
+        'proof_wait_until_hint': 'over 7 u 45 m',
+        'proof_wait_until_remaining_ms': 27900000,
+        'proof_wait_until_remaining_hours': 7.75,
+        'proof_next_qualifying_slot_hint': 'morgen 09:00 CEST',
+        'proof_next_qualifying_slot_remaining_ms': 27900000,
+        'proof_next_qualifying_slot_remaining_hours': 7.75,
+        'last_proof_qualified_run_at_text': '2026-05-24 09:00 CEST',
+    }.items():
+        if overall.get(key) != expected:
+            failures.append(f'watchdog-producer overall mist passthrough voor {key}: {overall.get(key)} versus {expected}')
+
+    return {
+        'name': 'watchdog-producer-overall-keeps-direct-status-and-proof-due-fields',
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': overall.get('summary'),
         'item_count': None,
         'items_with_source_count': None,
         'items_with_valid_source_line_count': None,
@@ -104462,6 +104556,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-consumer-format-passthrough'] = evaluate_proof_recheck_consumer_format_passthrough_case
     named_cases['proof-recheck-producer-overall-keeps-result-evidence-and-proof-due-fields'] = (
         lambda: run_proof_recheck_producer_overall_passthrough_case(load_proof_recheck_producer_module())
+    )
+    named_cases['watchdog-producer-overall-keeps-direct-status-and-proof-due-fields'] = (
+        lambda: run_watchdog_producer_overall_passthrough_case(load_watchdog_producer_module())
     )
     named_cases['watchdog-consumer-format-passthrough'] = evaluate_watchdog_consumer_format_passthrough_case
     named_cases['watchdog-alert-consumer-format-passthrough'] = evaluate_watchdog_alert_consumer_format_passthrough_case

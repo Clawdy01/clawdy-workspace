@@ -4,7 +4,7 @@
   "reasons": [
     "status not ok",
     "runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-25 09:02 CEST > 2026-05-25 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config",
-    "proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-25 09:02 CEST > 2026-05-25 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: Bronnenlijst bevat ongebruikte URLs (21): https://anthropic.com/news, https://aws.amazon.com/blogs/machine-learning/feed, https://blog.google/rss; Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news",
+    "proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-25 09:02 CEST > 2026-05-25 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news",
     "onvoldoende gekwalificeerde runs voor huidige config (0/3)",
     "geen gekwalificeerde run sinds verwacht dagslot 2026-05-25 09:00 CEST"
   ],
@@ -381,15 +381,14 @@
       ],
       "category_theme_count": 3,
       "reasons": [
-        "Bronnenlijst bevat ongebruikte URLs (21): https://anthropic.com/news, https://aws.amazon.com/blogs/machine-learning/feed, https://blog.google/rss",
         "Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news"
       ],
-      "text": "Bronnenlijst bevat ongebruikte URLs (21): https://anthropic.com/news, https://aws.amazon.com/blogs/machine-learning/feed, https://blog.google/rss; Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news"
+      "text": "Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news"
     },
     "error_text": null
   },
   "last_run_output_audit_ok": false,
-  "last_run_output_audit_text": "Bronnenlijst bevat ongebruikte URLs (21): https://anthropic.com/news, https://aws.amazon.com/blogs/machine-learning/feed, https://blog.google/rss; Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news",
+  "last_run_output_audit_text": "Bronnenlijst hoort leeg te blijven bij expliciet geen briefingitems (21 URL(s)): https://openai.com/news/, https://openai.com/news/rss.xml, https://www.anthropic.com/news",
   "last_run_output_audit_item_count": 0,
   "last_run_output_audit_multi_domain_top3_count": 0,
   "last_run_output_audit_fresh_top3_count": 0,
@@ -601,10 +600,10 @@
   "consumer_effective_outputs_status_text": "consumer-effectieve-output-audit ok (3/3 gevraagde artifacts gedekt via written)",
   "consumer_outputs_status_kind": "ok",
   "consumer_outputs_status_text": "consumer-output-audit ok (3/3 gevraagde artifacts geschreven)",
-  "generated_at": "2026-05-25T22:51:15.675928+00:00",
-  "generated_at_text": "2026-05-26 00:51:15 CEST",
-  "started_at": "2026-05-25T22:51:15.548296+00:00",
-  "started_at_text": "2026-05-26 00:51:15 CEST",
+  "generated_at": "2026-05-25T23:56:01.605556+00:00",
+  "generated_at_text": "2026-05-26 01:56:01 CEST",
+  "started_at": "2026-05-25T23:56:01.477247+00:00",
+  "started_at_text": "2026-05-26 01:56:01 CEST",
   "duration_ms": 128,
   "duration_seconds": 0.128,
   "duration_text": "0.128s"
