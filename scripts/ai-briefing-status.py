@@ -894,6 +894,7 @@ def build_top3_date_detail_examples(titles, date_lines, date_values, now_ms, *, 
             detail['primary_source_domains'] = primary_domains
             detail['primary_source_families'] = primary_families
             detail['primary_source_family'] = primary_families[0] if len(primary_families) == 1 else None
+            detail['primary_source_family_text'] = primary_source_family_text(primary_families)
             if has_primary_source and is_fresh:
                 detail['primary_fresh_issue'] = None
             elif has_primary_source:
@@ -1429,6 +1430,17 @@ def primary_source_family(domain):
         if normalized == root or normalized.endswith(f'.{root}'):
             return family
     return None
+
+
+def primary_source_family_text(families):
+    normalized_families = sorted({
+        str(family).strip()
+        for family in (families or [])
+        if str(family).strip()
+    })
+    if not normalized_families:
+        return None
+    return normalized_families[0] if len(normalized_families) == 1 else '/'.join(normalized_families)
 
 
 def audit_summary_output(summary_text, reference_ms=None):
@@ -2581,9 +2593,12 @@ def render_top3_missing_fresh_detail(detail):
     title = detail.get('title') or 'onbekend'
     date_text = detail.get('date_text') or 'geen Datum:-waarde'
     families = [str(family).strip() for family in (detail.get('primary_source_families') or []) if str(family).strip()]
+    family_text = str(detail.get('primary_source_family_text') or '').strip()
     issue = str(detail.get('primary_fresh_issue') or detail.get('freshness_issue') or '').strip()
     qualifiers = [date_text]
-    if families:
+    if family_text:
+        qualifiers.append(family_text)
+    elif families:
         qualifiers.append('/'.join(families))
     if issue:
         qualifiers.append(issue)
@@ -2714,6 +2729,7 @@ def summarize_output_audit_focus(summary_output_audit):
             'primary_fresh_issue': detail.get('primary_fresh_issue'),
             'primary_source_family': detail.get('primary_source_family'),
             'primary_source_families': detail.get('primary_source_families'),
+            'primary_source_family_text': detail.get('primary_source_family_text'),
         })
 
     missing_multi_domain_details = []
@@ -2740,6 +2756,7 @@ def summarize_output_audit_focus(summary_output_audit):
             'primary_domain': primary_domains[0] if len(primary_domains) == 1 else None,
             'primary_source_family': detail.get('primary_source_family'),
             'primary_source_families': detail.get('primary_source_families'),
+            'primary_source_family_text': detail.get('primary_source_family_text'),
         })
 
     return {
