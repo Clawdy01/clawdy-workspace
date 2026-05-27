@@ -17147,6 +17147,52 @@ def run_watchdog_alert_target_check_gate_dedup_case(watchdog_alert_module):
     }
 
 
+def run_watchdog_alert_today_block_dedup_case(watchdog_alert_module):
+    failures = []
+    repeated_block = 'geen kwalificerende runs meer vandaag'
+    payload = {
+        'summary': 'synthetische watchdog-alert payload',
+        'proof_plan_text': repeated_block,
+        'proof_today_block_text': repeated_block,
+    }
+    alert_text = watchdog_alert_module.build_alert(payload, 'proof-check', 3)
+    if repeated_block not in alert_text:
+        failures.append('watchdog-alert mist de synthetische proof_today_block/proof_plan tekst')
+    if alert_text.count(repeated_block) != 1:
+        failures.append(
+            'watchdog-alert toont de synthetische proof_today_block/proof_plan tekst niet exact één keer: '
+            f"{alert_text.count(repeated_block)}"
+        )
+
+    return {
+        'name': 'watchdog-alert-deduplicates-proof-today-block-text',
+        'path': str(WATCHDOG_ALERT_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': alert_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_watchdog_producer_quiet_wait_until_dedup_case(producer_module):
     failures = []
     repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
@@ -17708,6 +17754,61 @@ def run_proof_recheck_producer_quiet_reasons_dedup_case(producer_module):
     }
 
 
+def run_proof_recheck_producer_quiet_target_check_gate_dedup_case(producer_module):
+    failures = []
+    repeated_gate = 'controleer pas na de eerstvolgende kwalificatierun'
+    payload = {
+        'summary': 'synthetische proof-recheck-producer payload',
+        'proof_plan_text': f'wachtplan: {repeated_gate}',
+        'proof_target_check_gate_text': repeated_gate,
+    }
+    quiet_summary, extracted_payload = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if extracted_payload != payload:
+        failures.append('proof-recheck-producer build_quiet_summary gaf niet dezelfde payload terug voor synthetische proof-target-check-gate payload')
+    if not quiet_summary:
+        failures.append('proof-recheck-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische proof-target-check-gate payload')
+        quiet_summary = ''
+    if payload['proof_plan_text'] not in quiet_summary:
+        failures.append('proof-recheck-producer quiet-summary mist proof_plan_text voor synthetische proof-target-check-gate payload')
+    if quiet_summary.count(repeated_gate) != 1:
+        failures.append(
+            'proof-recheck-producer quiet-summary toont proof_target_check_gate_text niet exact één keer wanneer proof_plan_text dezelfde gate al bevat: '
+            f"{quiet_summary.count(repeated_gate)}"
+        )
+
+    return {
+        'name': 'proof-recheck-producer-quiet-deduplicates-proof-target-check-gate-text',
+        'path': str(PROOF_RECHECK_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_proof_recheck_producer_quiet_schedule_dedup_case(producer_module):
     failures = []
     payload = dict(STATUS_BEFORE_SLOT_TOMORROW)
@@ -17940,6 +18041,59 @@ def run_watchdog_producer_quiet_target_due_dedup_case(producer_module):
 
     return {
         'name': 'watchdog-producer-quiet-deduplicates-proof-target-due-at-text',
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_watchdog_producer_quiet_today_block_dedup_case(producer_module):
+    failures = []
+    repeated_block = 'geen kwalificerende runs meer vandaag'
+    payload = {
+        'summary': 'synthetische watchdog-producer payload',
+        'proof_plan_text': repeated_block,
+        'proof_today_block_text': repeated_block,
+    }
+    quiet_summary = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if not quiet_summary:
+        failures.append('watchdog-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische proof_today_block/proof_plan payload')
+        quiet_summary = ''
+    if repeated_block not in quiet_summary:
+        failures.append('watchdog-producer quiet-summary mist de synthetische proof_today_block/proof_plan tekst')
+    if quiet_summary.count(repeated_block) != 1:
+        failures.append(
+            'watchdog-producer quiet-summary toont de synthetische proof_today_block/proof_plan tekst niet exact één keer: '
+            f"{quiet_summary.count(repeated_block)}"
+        )
+
+    return {
+        'name': 'watchdog-producer-quiet-deduplicates-proof-today-block-text',
         'path': str(WATCHDOG_PRODUCER_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -23959,6 +24113,7 @@ PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'proof-recheck-producer-open-window-needs-attention',
     'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
     'proof-recheck-producer-quiet-deduplicates-reasons',
+    'proof-recheck-producer-quiet-deduplicates-proof-target-check-gate-text',
     'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text',
 ]
 
@@ -23998,6 +24153,9 @@ PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'proof-recheck-producer-reasons-dedup': [
         'proof-recheck-producer-quiet-deduplicates-reasons',
+    ],
+    'proof-recheck-producer-proof-target-check-gate-dedup': [
+        'proof-recheck-producer-quiet-deduplicates-proof-target-check-gate-text',
     ],
     'proof-recheck-producer-schedule-dedup': [
         'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text',
@@ -24202,6 +24360,7 @@ WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-alert-deduplicates-proof-recheck-schedule-text',
     'watchdog-alert-deduplicates-proof-target-check-gate-text',
     'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+    'watchdog-alert-deduplicates-proof-today-block-text',
     'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
@@ -24209,6 +24368,7 @@ WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-producer-quiet-deduplicates-proof-recheck-schedule-text',
     'watchdog-producer-quiet-deduplicates-proof-target-check-gate-text',
     'watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+    'watchdog-producer-quiet-deduplicates-proof-today-block-text',
     'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-board-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-eventlog-before-slot-keeps-proof-recheck-cronstatus',
@@ -24232,6 +24392,7 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-alert-deduplicates-proof-recheck-schedule-text',
         'watchdog-alert-deduplicates-proof-target-check-gate-text',
         'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+        'watchdog-alert-deduplicates-proof-today-block-text',
     ],
     'watchdog-producer': [
         'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
@@ -24241,6 +24402,7 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-producer-quiet-deduplicates-proof-recheck-schedule-text',
         'watchdog-producer-quiet-deduplicates-proof-target-check-gate-text',
         'watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+        'watchdog-producer-quiet-deduplicates-proof-today-block-text',
     ],
     'watchdog-producer-proof-board': [
         'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
@@ -105600,6 +105762,13 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-deduplicate-proof-target-due-at-if-next-slot-missed-text'] = (
         named_cases['watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text']
     )
+    named_cases['watchdog-alert-deduplicates-proof-today-block-text'] = (
+        lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_today_block_dedup_case(watchdog_alert_module)
+    )
+    named_cases['watchdog-alert-deduplicate-proof-today-block-text'] = (
+        named_cases['watchdog-alert-deduplicates-proof-today-block-text']
+    )
+    named_cases['watchdog-alert-today-block-dedup'] = named_cases['watchdog-alert-deduplicates-proof-today-block-text']
     named_cases['watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_wait_until_dedup_case(producer_module)
     )
@@ -105637,6 +105806,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-producer-quiet-proof-target-check-gate-dedup'] = (
         named_cases['watchdog-producer-quiet-deduplicates-proof-target-check-gate-text']
     )
+    named_cases['watchdog-producer-quiet-deduplicates-proof-today-block-text'] = (
+        lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_today_block_dedup_case(producer_module)
+    )
+    named_cases['watchdog-producer-quiet-deduplicate-proof-today-block-text'] = (
+        named_cases['watchdog-producer-quiet-deduplicates-proof-today-block-text']
+    )
+    named_cases['watchdog-producer-quiet-today-block-dedup'] = (
+        named_cases['watchdog-producer-quiet-deduplicates-proof-today-block-text']
+    )
     named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module)
     )
@@ -105647,6 +105825,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_reasons_dedup_case(producer_module)
     )
     named_cases['proof-recheck-producer-quiet-deduplicate-reasons'] = named_cases['proof-recheck-producer-quiet-deduplicates-reasons']
+    named_cases['proof-recheck-producer-quiet-deduplicates-proof-target-check-gate-text'] = (
+        lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_target_check_gate_dedup_case(producer_module)
+    )
+    named_cases['proof-recheck-producer-quiet-deduplicate-proof-target-check-gate-text'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-target-check-gate-text'
+    ]
     named_cases['proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text'] = (
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_schedule_dedup_case(producer_module)
     )
@@ -105678,6 +105862,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'
     ]
     named_cases['proof-recheck-producer-reasons-dedup'] = named_cases['proof-recheck-producer-quiet-deduplicates-reasons']
+    named_cases['proof-recheck-producer-proof-target-check-gate-dedup'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-target-check-gate-text'
+    ]
     named_cases['proof-recheck-producer-schedule-dedup'] = named_cases[
         'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text'
     ]
