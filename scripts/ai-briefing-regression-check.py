@@ -25563,6 +25563,9 @@ TRANSITIVE_FULL_SWEEP_META_REGISTRY_CASE_NAMES_BY_BATCH = {
     'transitive-full-sweep-route-family-registry-derived': (
         'registry-keeps-transitive-full-sweep-route-family-registry-cases-derived-from-batches'
     ),
+    'stale-date-alias-family-registry': (
+        'registry-keeps-transitive-full-sweep-meta-registry-stale-date-alias-family-registry-cases-registered'
+    ),
 }
 
 TRANSITIVE_FULL_SWEEP_META_REGISTRY_CASE_NAMES = [
@@ -25575,6 +25578,7 @@ TRANSITIVE_FULL_SWEEP_META_REGISTRY_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-route-family-registry-cases-registered',
     'registry-keeps-transitive-full-sweep-route-family-registry-case-mappings-align-with-batches',
     'registry-keeps-transitive-full-sweep-route-family-registry-cases-derived-from-batches',
+    'registry-keeps-transitive-full-sweep-meta-registry-stale-date-alias-family-registry-cases-registered',
 ]
 
 TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
@@ -26344,6 +26348,7 @@ def evaluate_transitive_full_sweep_meta_registry_case_name_mappings_by_batch_cas
             'transitive-full-sweep-route-family-registry',
             'transitive-full-sweep-route-family-registry-case-mappings',
             'transitive-full-sweep-route-family-registry-derived',
+            'stale-date-alias-family-registry',
         ],
         expected_case_name_suffix=('cases-registered', '-case-mappings-align-with-batches', '-cases-derived-from-batches'),
         label='transitieve full-sweep meta-registry',
@@ -108153,6 +108158,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-stale-date-alias-families-registered'] = (
         lambda named_cases=named_cases: evaluate_stale_date_alias_family_registry_case(named_cases)
+    )
+    named_cases['registry-keeps-transitive-full-sweep-meta-registry-stale-date-alias-family-registry-cases-registered'] = (
+        named_cases['registry-keeps-stale-date-alias-families-registered']
     )
     named_cases['registry-keeps-transitive-full-sweep-route-family-registry-cases-derived-from-batches'] = (
         evaluate_transitive_full_sweep_route_family_registry_case_names_derived_case
