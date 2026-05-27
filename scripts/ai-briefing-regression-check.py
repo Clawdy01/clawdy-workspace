@@ -1051,6 +1051,77 @@ DEFAULT_CASES = [
         ],
     },
     {
+        'name': 'top3-open-source-primary-stale-date-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-open-source-primary-stale-date-sample.txt',
+        'reference_ms': 1779865920000,
+        'expect_ok': True,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_multiple_sources_count': 3,
+        'expect_items_with_multi_domain_sources_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_multi_domain_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 4,
+        'expect_first3_primary_fresh_item_count': 2,
+        'expect_fresh_dated_first3_count': 2,
+        'expect_source_url_count': 6,
+        'expect_unique_source_url_count': 6,
+        'expect_source_domain_count': 6,
+        'expect_first3_unique_source_url_count': 6,
+        'expect_first3_source_domain_count': 6,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_top3_missing_fresh_details': [
+            {
+                'title': 'Borealis zet sparse-MoE tooling open maar de zichtbare brondata is te oud',
+                'position': 2,
+                'date_line': 'Datum: 2026-05-24',
+                'date_text': '2026-05-24',
+                'date_value_text': '2026-05-24',
+                'has_date': True,
+                'is_fresh': False,
+                'freshness_issue': 'stale-date',
+                'source_domains': ['github.com', 'huggingface.co'],
+                'has_primary_source': True,
+                'primary_source_domains': ['github.com', 'huggingface.co'],
+                'primary_source_families': ['github', 'huggingface'],
+                'primary_source_family': None,
+                'primary_fresh_issue': 'stale-date',
+            },
+        ],
+        'expect_top3_missing_primary_fresh_details': [
+            {
+                'title': 'Borealis zet sparse-MoE tooling open maar de zichtbare brondata is te oud',
+                'position': 2,
+                'date_line': 'Datum: 2026-05-24',
+                'date_text': '2026-05-24',
+                'date_value_text': '2026-05-24',
+                'has_date': True,
+                'is_fresh': False,
+                'freshness_issue': 'stale-date',
+                'source_domains': ['github.com', 'huggingface.co'],
+                'has_primary_source': True,
+                'primary_source_domains': ['github.com', 'huggingface.co'],
+                'primary_source_families': ['github', 'huggingface'],
+                'primary_source_family': None,
+                'primary_fresh_issue': 'stale-date',
+            },
+        ],
+    },
+    {
         'name': 'top3-trailing-slash-duplicate-source-sample',
         'path': ROOT / 'tmp' / 'ai-briefing-top3-trailing-slash-duplicate-source-sample.txt',
         'expect_ok': False,
@@ -9366,6 +9437,20 @@ STATUS_SUMMARY_AUDIT_CASES = [
             'top3 met multi-domein bronregels 3/3',
             'vers top3 1/3 (48u)',
             'top3 met primaire bron+verse datum 1/3',
+        ],
+    },
+    {
+        'name': 'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-open-source-primary-stale-date-sample.txt',
+        'reference_ms': 1779865920000,
+        'expect_rendered_text_substrings': [
+            'top3 zonder verse datum Borealis zet sparse-MoE tooling open maar de zichtbare brondata is te oud',
+            'top3 verse-datum details Borealis zet sparse-MoE tooling open maar de zichtbare brondata is te oud (2026-05-24; github/huggingface; stale-date)',
+            'top3 zonder primaire+verse combo Borealis zet sparse-MoE tooling open maar de zichtbare brondata is te oud',
+            'top3 met multi-domein bronregels 3/3',
+            'vers top3 2/3 (48u)',
+            'top3 met primaire bron+verse datum 2/3',
+            'top3 primaire bronfamilies 4',
         ],
     },
     {
@@ -106230,6 +106315,25 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['top3-live-output-freshness-blocker-audit'] = named_cases['top3-live-output-freshness-blocker-sample']
     named_cases['top3-live-output-freshness-blocker-regression'] = named_cases[
         'top3-live-output-freshness-blocker-sample'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-open-source-primary-stale-date-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-open-source-primary-stale-date-regression'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-top3-open-source-primary-stale-date-sample'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date'
+    ]
+    named_cases['top3-open-source-primary-stale-date'] = named_cases['top3-open-source-primary-stale-date-sample']
+    named_cases['top3-open-source-primary-stale-date-audit'] = named_cases['top3-open-source-primary-stale-date-sample']
+    named_cases['top3-open-source-primary-stale-date-regression'] = named_cases[
+        'top3-open-source-primary-stale-date-sample'
+    ]
+    named_cases['top3-open-source-stale-date'] = named_cases['top3-open-source-primary-stale-date-sample']
+    named_cases['top3-open-source-stale-date-audit'] = named_cases['top3-open-source-primary-stale-date-sample']
+    named_cases['top3-open-source-stale-date-regression'] = named_cases[
+        'top3-open-source-primary-stale-date-sample'
     ]
     proof_recheck_module = load_proof_recheck_module()
     named_cases['proof-recheck-deduplicates-wait-until-recheck-after-text'] = (
