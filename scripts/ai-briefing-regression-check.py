@@ -22,6 +22,8 @@ WATCHDOG_ALERT_SCRIPT = ROOT / 'scripts' / 'ai-briefing-watchdog-alert.py'
 WATCHDOG_PRODUCER_SCRIPT = ROOT / 'scripts' / 'ai-briefing-watchdog-producer.py'
 STATUSBOARD_SCRIPT = ROOT / 'scripts' / 'statusboard.py'
 CLAWDY_BRIEF_SCRIPT = ROOT / 'scripts' / 'clawdy-brief.py'
+CRON_JOBS_FILE = Path('/home/clawdy/.openclaw/cron/jobs.json')
+DAILY_AI_UPDATE_JOB_NAME = 'daily-ai-update'
 DEFAULT_REFERENCE_MS = int(datetime(2026, 4, 15, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
 EXPECTED_PROOF_RECHECK_JOB_NAME = 'ai-briefing-proof-recheck-producer'
 EXPECTED_PROOF_RECHECK_SCHEDULE_EXPR = '15 9 * * *'
@@ -1185,6 +1187,79 @@ DEFAULT_CASES = [
         'expect_top3_missing_primary_fresh_details': [
             {
                 'title': 'Borealis publiceert een open audio-LLM stack met data, code, gewichten en inference-aanpak',
+                'position': 2,
+                'date_line': 'Datum: 25 mei 2026, 17:30 UTC',
+                'date_text': '25 mei 2026, 17:30 UTC',
+                'date_value_text': '2026-05-25',
+                'has_date': True,
+                'is_fresh': False,
+                'freshness_issue': 'stale-date',
+                'source_domains': ['github.com', 'huggingface.co'],
+                'has_primary_source': True,
+                'primary_source_domains': ['github.com', 'huggingface.co'],
+                'primary_source_families': ['github', 'huggingface'],
+                'primary_source_family': None,
+                'primary_source_family_text': 'github/huggingface',
+                'primary_fresh_issue': 'stale-date',
+            },
+        ],
+    },
+    {
+        'name': 'top3-open-audio-llm-model-card-primary-stale-date-sample',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-open-audio-llm-model-card-primary-stale-date-sample.txt',
+        'reference_ms': 1779865920000,
+        'expect_ok': True,
+        'expect_item_count': 3,
+        'expect_items_with_source_count': 3,
+        'expect_items_with_multiple_sources_count': 3,
+        'expect_items_with_multi_domain_sources_count': 3,
+        'expect_items_with_valid_source_line_count': 3,
+        'expect_items_with_invalid_source_line_count': 0,
+        'expect_first3_items_with_source_count': 3,
+        'expect_first3_items_with_valid_source_line_count': 3,
+        'expect_first3_items_with_multiple_sources_count': 3,
+        'expect_first3_items_with_multi_domain_sources_count': 3,
+        'expect_first3_items_with_primary_source_count': 3,
+        'expect_first3_evidenced_item_count': 3,
+        'expect_first3_primary_source_family_count': 4,
+        'expect_first3_primary_fresh_item_count': 2,
+        'expect_fresh_dated_first3_count': 2,
+        'expect_source_url_count': 6,
+        'expect_unique_source_url_count': 6,
+        'expect_source_domain_count': 5,
+        'expect_first3_unique_source_url_count': 6,
+        'expect_first3_source_domain_count': 5,
+        'expect_invalid_source_issue_counts': {},
+        'expect_exact_field_line_counts': {
+            'Titel:': 3,
+            'Bron:': 3,
+            'Datum:': 3,
+            'Wat is er nieuw:': 3,
+            'Waarom is dit belangrijk:': 3,
+            'Relevant voor Christian:': 3,
+        },
+        'expect_top3_missing_fresh_details': [
+            {
+                'title': 'Borealis publiceert een open audio-LLM stack met model card, code, gewichten en inference-aanpak',
+                'position': 2,
+                'date_line': 'Datum: 25 mei 2026, 17:30 UTC',
+                'date_text': '25 mei 2026, 17:30 UTC',
+                'date_value_text': '2026-05-25',
+                'has_date': True,
+                'is_fresh': False,
+                'freshness_issue': 'stale-date',
+                'source_domains': ['github.com', 'huggingface.co'],
+                'has_primary_source': True,
+                'primary_source_domains': ['github.com', 'huggingface.co'],
+                'primary_source_families': ['github', 'huggingface'],
+                'primary_source_family': None,
+                'primary_source_family_text': 'github/huggingface',
+                'primary_fresh_issue': 'stale-date',
+            },
+        ],
+        'expect_top3_missing_primary_fresh_details': [
+            {
+                'title': 'Borealis publiceert een open audio-LLM stack met model card, code, gewichten en inference-aanpak',
                 'position': 2,
                 'date_line': 'Datum: 25 mei 2026, 17:30 UTC',
                 'date_text': '25 mei 2026, 17:30 UTC',
@@ -9622,6 +9697,20 @@ STATUS_SUMMARY_AUDIT_CASES = [
         ],
     },
     {
+        'name': 'status-summary-audit-cli-keeps-top3-open-audio-llm-model-card-primary-stale-date',
+        'path': ROOT / 'tmp' / 'ai-briefing-top3-open-audio-llm-model-card-primary-stale-date-sample.txt',
+        'reference_ms': 1779865920000,
+        'expect_rendered_text_substrings': [
+            'top3 zonder verse datum Borealis publiceert een open audio-LLM stack met model card, code, gewichten en inference-aanpak',
+            'top3 verse-datum details Borealis publiceert een open audio-LLM stack met model card, code, gewichten en inference-aanpak (25 mei 2026, 17:30 UTC; github/huggingface; stale-date)',
+            'top3 zonder primaire+verse combo Borealis publiceert een open audio-LLM stack met model card, code, gewichten en inference-aanpak',
+            'top3 met multi-domein bronregels 3/3',
+            'vers top3 2/3 (48u)',
+            'top3 met primaire bron+verse datum 2/3',
+            'top3 primaire bronfamilies 4',
+        ],
+    },
+    {
         'name': 'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date',
         'path': ROOT / 'tmp' / 'ai-briefing-top3-open-tooling-release-docs-primary-stale-date-sample.txt',
         'reference_ms': 1779865920000,
@@ -11711,6 +11800,19 @@ WATCHDOG_PRODUCER_CASES = [
         ],
     },
 ]
+
+
+def load_daily_ai_update_job() -> dict:
+    data = json.loads(CRON_JOBS_FILE.read_text())
+    jobs = data.get('jobs') if isinstance(data, dict) else data
+    if not isinstance(jobs, list):
+        raise ValueError(f'jobs.json bevat geen jobs-lijst: {CRON_JOBS_FILE}')
+    for job in jobs:
+        if (job or {}).get('name') == DAILY_AI_UPDATE_JOB_NAME:
+            if not isinstance(job, dict):
+                raise ValueError('daily-ai-update job is geen object')
+            return job
+    raise ValueError(f'job {DAILY_AI_UPDATE_JOB_NAME} niet gevonden in {CRON_JOBS_FILE}')
 
 
 def load_status_module():
@@ -17345,6 +17447,68 @@ def evaluate_watchdog_alert_case(case):
         'failures': failures,
         'audit_ok': not failures,
         'audit_text': text_output,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_payload_guardrail_case(status_module, *, case_name: str, missing_line: str, expected_reason: str):
+    failures = []
+    job = load_daily_ai_update_job()
+    payload = job.get('payload') or {}
+    live_audit = status_module.audit_payload(job)
+    if not live_audit.get('ok'):
+        failures.append(
+            'live daily-ai-update payload hoort groen te zijn voor audit_payload maar kreeg: '
+            + (live_audit.get('text') or 'onbekend')
+        )
+    message = payload.get('message') or ''
+    if missing_line not in message:
+        failures.append(f'live payload mist al de verwachte guardrailregel voor {case_name}')
+    else:
+        mutated_payload = dict(payload)
+        mutated_payload['message'] = message.replace(missing_line, '', 1)
+        mutated_job = dict(job)
+        mutated_job['payload'] = mutated_payload
+        mutated_audit = status_module.audit_payload(mutated_job)
+        if mutated_audit.get('ok'):
+            failures.append(
+                f'audit_payload keurt payload zonder {case_name} ten onrechte nog goed'
+            )
+        reasons = mutated_audit.get('reasons') or []
+        if expected_reason not in reasons:
+            failures.append(
+                f"audit_payload meldt {expected_reason!r} niet na verwijderen van {case_name}: {reasons}"
+            )
+        if reasons.count(expected_reason) != 1:
+            failures.append(
+                f"audit_payload hoort {expected_reason!r} exact één keer te melden na verwijderen van {case_name}, kreeg {reasons.count(expected_reason)}"
+            )
+
+    return {
+        'name': case_name,
+        'path': str(STATUS_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': (live_audit.get('text') or 'prompt/config ok') if not failures else '; '.join(failures),
         'item_count': None,
         'items_with_source_count': None,
         'items_with_valid_source_line_count': None,
@@ -24876,6 +25040,16 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
             True,
         ),
         (
+            'status-open-audio-llm-model-card-stale-date-family',
+            'status-summary-audit-cli-keeps-top3-open-audio-llm-model-card-primary-stale-date',
+            [
+                'status-summary-audit-cli-keeps-top3-open-audio-llm-model-card-stale-date',
+                'status-summary-audit-cli-keeps-borealis-open-audio-llm-model-card-primary-stale-date',
+                'status-summary-audit-cli-keeps-borealis-open-audio-llm-model-card-stale-date',
+            ],
+            True,
+        ),
+        (
             'status-open-tooling-release-docs-stale-date-family',
             'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date',
             [
@@ -24904,6 +25078,17 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
                 'top3-open-audio-llm-stale-date',
                 'borealis-open-audio-llm-primary-stale-date',
                 'borealis-open-audio-llm-stale-date',
+            ],
+            False,
+        ),
+        (
+            'sample-open-audio-llm-model-card-stale-date-family',
+            'top3-open-audio-llm-model-card-primary-stale-date-sample',
+            [
+                'top3-open-audio-llm-model-card-primary-stale-date',
+                'top3-open-audio-llm-model-card-stale-date',
+                'borealis-open-audio-llm-model-card-primary-stale-date',
+                'borealis-open-audio-llm-model-card-stale-date',
             ],
             False,
         ),
@@ -106634,6 +106819,13 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         include_target_suffixes=True,
     )
     alias_case_family(
+        'status-summary-audit-cli-keeps-top3-open-audio-llm-model-card-primary-stale-date',
+        'status-summary-audit-cli-keeps-top3-open-audio-llm-model-card-stale-date',
+        'status-summary-audit-cli-keeps-borealis-open-audio-llm-model-card-primary-stale-date',
+        'status-summary-audit-cli-keeps-borealis-open-audio-llm-model-card-stale-date',
+        include_target_suffixes=True,
+    )
+    alias_case_family(
         'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date',
         'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-stale-date',
         'status-summary-audit-cli-keeps-langgraph-open-tooling-release-docs-primary-stale-date',
@@ -106655,11 +106847,41 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'borealis-open-audio-llm-stale-date',
     )
     alias_case_family(
+        'top3-open-audio-llm-model-card-primary-stale-date-sample',
+        'top3-open-audio-llm-model-card-primary-stale-date',
+        'top3-open-audio-llm-model-card-stale-date',
+        'borealis-open-audio-llm-model-card-primary-stale-date',
+        'borealis-open-audio-llm-model-card-stale-date',
+    )
+    alias_case_family(
         'top3-open-tooling-release-docs-primary-stale-date-sample',
         'top3-open-tooling-release-docs-primary-stale-date',
         'top3-open-tooling-release-docs-stale-date',
         'langgraph-open-tooling-release-docs-primary-stale-date',
         'langgraph-open-tooling-release-docs-stale-date',
+    )
+    status_module = load_status_module()
+    named_cases['payload-audit-keeps-open-source-stale-date-guardrail'] = (
+        lambda status_module=status_module: run_payload_guardrail_case(
+            status_module,
+            case_name='payload-audit-keeps-open-source-stale-date-guardrail',
+            missing_line='Als een open-source of tooling-item alleen een GitHub-, Hugging Face-, docs- of release-datum van meer dan 48 uur oud heeft, moet het geschrapt worden ook als de ontwikkeling inhoudelijk sterk voelt of nog breed besproken wordt.',
+            expected_reason='open-source stale-date guardrail ontbreekt',
+        )
+    )
+    named_cases['payload-audit-keeps-audio-stale-date-guardrail'] = (
+        lambda status_module=status_module: run_payload_guardrail_case(
+            status_module,
+            case_name='payload-audit-keeps-audio-stale-date-guardrail',
+            missing_line='Als een audio-, voice- of speech-item alleen een GitHub-, Hugging Face-, docs-, release- of model-card-datum van meer dan 48 uur oud heeft, moet het ook geschrapt worden ook als de demo, benchmark of discussie nog vers lijkt.',
+            expected_reason='audio stale-date guardrail ontbreekt',
+        )
+    )
+    named_cases['payload-audit-open-source-stale-date-guardrail'] = (
+        named_cases['payload-audit-keeps-open-source-stale-date-guardrail']
+    )
+    named_cases['payload-audit-audio-stale-date-guardrail'] = (
+        named_cases['payload-audit-keeps-audio-stale-date-guardrail']
     )
     proof_recheck_module = load_proof_recheck_module()
     named_cases['proof-recheck-deduplicates-wait-until-recheck-after-text'] = (
