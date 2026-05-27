@@ -3988,6 +3988,8 @@ def render_text(data):
     richer_due_context = ' '.join(
         str(bit)
         for bit in [
+            data.get('proof_plan_text'),
+            data.get('proof_today_block_text'),
             data.get('proof_schedule_risk_text'),
             data.get('proof_target_check_gate_text'),
             data.get('proof_countdown_text'),

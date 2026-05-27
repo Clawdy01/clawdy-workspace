@@ -19442,6 +19442,37 @@ def run_brief_consumer_proof_target_due_if_missed_dedup_case(status_module):
     )
 
 
+def run_brief_consumer_proof_target_due_if_missed_vs_plan_dedup_case(status_module):
+    failures = []
+    repeated_due = '2026-05-30 09:15 CEST'
+    payload = {
+        'found': True,
+        'enabled': True,
+        'text': 'synthetische briefingstatus',
+        'proof_plan_text': (
+            'geen kwalificerende runs meer vandaag, eerstvolgende slot '
+            f'2026-05-27 09:00 CEST, mist volgend slot => {repeated_due}'
+        ),
+        'proof_target_due_at_if_next_slot_missed_text': repeated_due,
+    }
+
+    outputs = render_brief_consumer_outputs(status_module, payload)
+
+    for label, output in outputs.items():
+        if payload['proof_plan_text'] not in output:
+            failures.append(f'{label} mist de synthetische proof_plan tekst voor gemist-slot-bewijsdoel')
+        if output.count(repeated_due) != 1:
+            failures.append(
+                f'{label} toont proof_target_due_at_if_next_slot_missed_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: {output.count(repeated_due)}'
+            )
+
+    return build_brief_consumer_case_result(
+        name='brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text',
+        failures=failures,
+        outputs=outputs,
+    )
+
+
 def run_brief_consumer_proof_target_due_dedup_case(status_module):
     failures = []
     repeated_due = '2026-05-29 09:15 CEST'
@@ -24394,6 +24425,7 @@ BRIEF_CONSUMER_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'brief-consumers-deduplicate-proof-recheck-schedule-text',
     'brief-consumers-deduplicate-proof-today-block-text',
     'brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text',
+    'brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text',
 ]
 
 BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
@@ -24420,6 +24452,7 @@ BRIEF_CONSUMER_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'brief-consumers-proof-target-due-if-missed-dedup': [
         'brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text',
+        'brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text',
     ],
 }
 
@@ -106166,6 +106199,21 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['brief-consumers-deduplicates-proof-target-due-at-if-next-slot-missed-text'] = (
         named_cases['brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text']
+    )
+    named_cases['brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text'] = (
+        lambda status_module=module: run_brief_consumer_proof_target_due_if_missed_vs_plan_dedup_case(status_module)
+    )
+    named_cases['brief-consumer-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text']
+    )
+    named_cases['brief-consumer-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text']
+    )
+    named_cases['brief-consumers-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text']
+    )
+    named_cases['brief-consumers-proof-target-due-if-missed-vs-plan-dedup'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text']
     )
     named_cases['brief-consumers-deduplicate-proof-target-due-at-text'] = (
         lambda status_module=module: run_brief_consumer_proof_target_due_dedup_case(status_module)
