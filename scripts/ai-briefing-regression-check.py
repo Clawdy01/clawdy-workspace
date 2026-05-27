@@ -16176,6 +16176,17 @@ def evaluate_watchdog_alert_case(case):
                     'watchdog-alert alert_text mist proof_recheck_schedule_text uit stdout-json: '
                     f"{payload.get('proof_recheck_schedule_text')}"
                 )
+        if payload.get('proof_target_due_at_text'):
+            if payload['proof_target_due_at_text'] not in text_output:
+                failures.append(
+                    'watchdog-alert-tekst mist proof_target_due_at_text uit stdout-json: '
+                    f"{payload.get('proof_target_due_at_text')}"
+                )
+            if payload['proof_target_due_at_text'] not in (payload.get('alert_text') or ''):
+                failures.append(
+                    'watchdog-alert alert_text mist proof_target_due_at_text uit stdout-json: '
+                    f"{payload.get('proof_target_due_at_text')}"
+                )
         if payload.get('proof_target_check_gate_text'):
             if payload['proof_target_check_gate_text'] not in text_output:
                 failures.append(
@@ -17147,6 +17158,52 @@ def run_watchdog_alert_target_check_gate_dedup_case(watchdog_alert_module):
     }
 
 
+def run_watchdog_alert_target_due_dedup_case(watchdog_alert_module):
+    failures = []
+    repeated_due = '2026-05-29 09:15 CEST'
+    payload = {
+        'summary': 'synthetische watchdog-alert payload',
+        'proof_plan_text': f'geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, doel {repeated_due}',
+        'proof_target_due_at_text': repeated_due,
+    }
+    alert_text = watchdog_alert_module.build_alert(payload, 'proof-check', 3)
+    if payload['proof_plan_text'] not in alert_text:
+        failures.append('watchdog-alert mist proof_plan_text voor synthetische bewijsdoel payload')
+    if alert_text.count(repeated_due) != 1:
+        failures.append(
+            'watchdog-alert toont proof_target_due_at_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: '
+            f"{alert_text.count(repeated_due)}"
+        )
+
+    return {
+        'name': 'watchdog-alert-deduplicates-proof-target-due-at-text',
+        'path': str(WATCHDOG_ALERT_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': alert_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_watchdog_alert_today_block_dedup_case(watchdog_alert_module):
     failures = []
     repeated_block = 'geen kwalificerende runs meer vandaag'
@@ -18029,6 +18086,44 @@ def run_watchdog_alert_missed_target_due_dedup_case(watchdog_alert_module):
 
     return {
         'name': 'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+        'path': str(WATCHDOG_ALERT_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': alert_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_multiple_sources_count': None,
+        'items_with_primary_source_count': None,
+        'items_with_valid_date_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_watchdog_alert_missed_target_due_vs_plan_dedup_case(watchdog_alert_module):
+    failures = []
+    repeated_due = '2026-05-30 09:15 CEST'
+    payload = {
+        'summary': 'synthetische watchdog-alert payload',
+        'proof_plan_text': f'geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, mist volgend slot => {repeated_due}',
+        'proof_target_due_at_if_next_slot_missed_text': repeated_due,
+    }
+    alert_text = watchdog_alert_module.build_alert(payload, 'proof-check', 3)
+    if payload['proof_plan_text'] not in alert_text:
+        failures.append('watchdog-alert mist proof_plan_text voor synthetische gemist-slot-bewijsdoel payload')
+    if alert_text.count(repeated_due) != 1:
+        failures.append(
+            'watchdog-alert toont proof_target_due_at_if_next_slot_missed_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: '
+            f"{alert_text.count(repeated_due)}"
+        )
+
+    return {
+        'name': 'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text',
         'path': str(WATCHDOG_ALERT_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -24457,7 +24552,9 @@ WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-alert-deduplicates-reasons',
     'watchdog-alert-deduplicates-proof-recheck-schedule-text',
     'watchdog-alert-deduplicates-proof-target-check-gate-text',
+    'watchdog-alert-deduplicates-proof-target-due-at-text',
     'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+    'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text',
     'watchdog-alert-deduplicates-proof-today-block-text',
     'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
@@ -24489,7 +24586,9 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-alert-deduplicates-reasons',
         'watchdog-alert-deduplicates-proof-recheck-schedule-text',
         'watchdog-alert-deduplicates-proof-target-check-gate-text',
+        'watchdog-alert-deduplicates-proof-target-due-at-text',
         'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+        'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text',
         'watchdog-alert-deduplicates-proof-today-block-text',
     ],
     'watchdog-producer': [
@@ -105863,11 +105962,29 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['watchdog-alert-proof-target-check-gate-dedup'] = (
         named_cases['watchdog-alert-deduplicates-proof-target-check-gate-text']
     )
+    named_cases['watchdog-alert-deduplicates-proof-target-due-at-text'] = (
+        lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_target_due_dedup_case(watchdog_alert_module)
+    )
+    named_cases['watchdog-alert-deduplicate-proof-target-due-at-text'] = (
+        named_cases['watchdog-alert-deduplicates-proof-target-due-at-text']
+    )
+    named_cases['watchdog-alert-proof-target-due-dedup'] = (
+        named_cases['watchdog-alert-deduplicates-proof-target-due-at-text']
+    )
     named_cases['watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text'] = (
         lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_missed_target_due_dedup_case(watchdog_alert_module)
     )
     named_cases['watchdog-alert-deduplicate-proof-target-due-at-if-next-slot-missed-text'] = (
         named_cases['watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text']
+    )
+    named_cases['watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text'] = (
+        lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_missed_target_due_vs_plan_dedup_case(watchdog_alert_module)
+    )
+    named_cases['watchdog-alert-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text'] = (
+        named_cases['watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text']
+    )
+    named_cases['watchdog-alert-proof-target-due-if-missed-vs-plan-dedup'] = (
+        named_cases['watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text']
     )
     named_cases['watchdog-alert-deduplicates-proof-today-block-text'] = (
         lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_today_block_dedup_case(watchdog_alert_module)

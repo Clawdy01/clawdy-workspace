@@ -131,10 +131,13 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
     reasons = compact_reasons(data.get('reasons') or [])
     summary_output_examples = [example for example in (data.get('summary_output_examples') or []) if example]
     proof_example_limit = 2 if mode == 'preflight' else 3
+    proof_target_due_text = data.get('proof_target_due_at_text')
     proof_target_due_if_missed_text = data.get('proof_target_due_at_if_next_slot_missed_text')
     richer_due_context = ' '.join(
         str(bit)
         for bit in [
+            data.get('proof_plan_text'),
+            data.get('proof_today_block_text'),
             data.get('proof_schedule_risk_text'),
             data.get('proof_target_check_gate_text'),
             data.get('proof_countdown_text'),
@@ -199,6 +202,8 @@ def build_alert(data: dict, mode: str, require_qualified_runs: int) -> str:
         bits.append(data['proof_schedule_risk_text'])
     if data.get('proof_countdown_text') and require_qualified_runs > 0:
         bits.append(data['proof_countdown_text'])
+    if proof_target_due_text and require_qualified_runs > 0 and proof_target_due_text not in richer_due_context:
+        bits.append(f"bewijsdoel {proof_target_due_text}")
     if (
         proof_target_due_if_missed_text
         and require_qualified_runs > 0
