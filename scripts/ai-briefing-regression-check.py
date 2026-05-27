@@ -9231,37 +9231,7 @@ WATCHDOG_STDOUT_CASES = [
         'synthetic_status': {
             **STATUS_BEFORE_SLOT_TOMORROW,
             'summary': 'synthetische watchdog payload',
-            'proof_target_due_at_text': '2026-05-29 09:15 CEST',
-            'proof_schedule_risk_text': 'als de eerstvolgende kwalificatierun uitvalt, blijft bewijsdoel 2026-05-29 09:15 CEST onder druk staan',
-            'proof_countdown_text': 'wachtvenster tot 2026-05-27 09:00 CEST (over 1 d); mist volgend slot => 2026-05-30 09:15 CEST (slip +24u)',
-            'proof_target_check_gate_text': 'proof-target-check wacht op volgende kwalificatierun',
-        },
-        'expect_exit_code': 2,
-        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
-        'expect_proof_next_action_kind': 'wait-then-recheck',
-        'expect_no_compact_recheck_line': True,
-        'expect_proof_waiting_for_next_scheduled_run': True,
-        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
-        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
-        'expect_text_substrings': [
-            'proof schedule risk: als de eerstvolgende kwalificatierun uitvalt, blijft bewijsdoel 2026-05-29 09:15 CEST onder druk staan',
-        ],
-        'expect_text_output_occurrences': [
-            {
-                'text': '2026-05-29 09:15 CEST',
-                'count': 1,
-            },
-        ],
-        'expect_text_output_absent_substrings': [
-            'proof target due:',
-        ],
-    },
-    {
-        'name': 'watchdog-stdout-deduplicates-proof-target-due-at-text-against-proof-schedule-risk-text',
-        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
-        'synthetic_status': {
-            **STATUS_BEFORE_SLOT_TOMORROW,
-            'summary': 'synthetische watchdog payload',
+            'proof_plan_text': None,
             'proof_target_due_at_text': '2026-05-29 09:15 CEST',
             'proof_schedule_risk_text': 'als de eerstvolgende kwalificatierun uitvalt, blijft bewijsdoel 2026-05-29 09:15 CEST onder druk staan',
             'proof_countdown_text': 'wachtvenster tot 2026-05-27 09:00 CEST (over 1 d); mist volgend slot => 2026-05-30 09:15 CEST (slip +24u)',
@@ -12615,10 +12585,30 @@ def evaluate_status_stdout_case(case):
             'status-stdout-tekst mist proof_recheck_schedule_text uit stdout-json: '
             f"{payload.get('proof_recheck_schedule_text')}"
         )
+    richer_due_context = ' '.join(
+        str(bit)
+        for bit in [
+            payload.get('proof_plan_text'),
+            payload.get('proof_today_block_text'),
+            payload.get('proof_schedule_risk_text'),
+            payload.get('proof_target_check_gate_text'),
+            payload.get('proof_countdown_text'),
+        ]
+        if bit
+    )
     if payload.get('proof_schedule_risk_text') and payload['proof_schedule_risk_text'] not in text_output:
         failures.append(
             'status-stdout-tekst mist proof_schedule_risk_text uit stdout-json: '
             f"{payload.get('proof_schedule_risk_text')}"
+        )
+    if (
+        payload.get('proof_target_due_at_text')
+        and payload['proof_target_due_at_text'] not in richer_due_context
+        and payload['proof_target_due_at_text'] not in text_output
+    ):
+        failures.append(
+            'status-stdout-tekst mist proof_target_due_at_text uit stdout-json: '
+            f"{payload.get('proof_target_due_at_text')}"
         )
     if payload.get('proof_target_check_gate_text') and payload['proof_target_check_gate_text'] not in text_output:
         failures.append(
@@ -12627,6 +12617,7 @@ def evaluate_status_stdout_case(case):
         )
     if (
         payload.get('proof_target_due_at_if_next_slot_missed_text')
+        and payload['proof_target_due_at_if_next_slot_missed_text'] not in richer_due_context
         and payload['proof_target_due_at_if_next_slot_missed_text'] not in text_output
     ):
         failures.append(
@@ -12980,10 +12971,30 @@ def evaluate_watchdog_stdout_case(case):
             'watchdog-stdout-tekst mist proof_recheck_schedule_text uit stdout-json: '
             f"{payload.get('proof_recheck_schedule_text')}"
         )
+    richer_due_context = ' '.join(
+        str(bit)
+        for bit in [
+            payload.get('proof_plan_text'),
+            payload.get('proof_today_block_text'),
+            payload.get('proof_schedule_risk_text'),
+            payload.get('proof_target_check_gate_text'),
+            payload.get('proof_countdown_text'),
+        ]
+        if bit
+    )
     if payload.get('proof_schedule_risk_text') and payload['proof_schedule_risk_text'] not in text_output:
         failures.append(
             'watchdog-stdout-tekst mist proof_schedule_risk_text uit stdout-json: '
             f"{payload.get('proof_schedule_risk_text')}"
+        )
+    if (
+        payload.get('proof_target_due_at_text')
+        and payload['proof_target_due_at_text'] not in richer_due_context
+        and payload['proof_target_due_at_text'] not in text_output
+    ):
+        failures.append(
+            'watchdog-stdout-tekst mist proof_target_due_at_text uit stdout-json: '
+            f"{payload.get('proof_target_due_at_text')}"
         )
     if payload.get('proof_target_check_gate_text') and payload['proof_target_check_gate_text'] not in text_output:
         failures.append(
@@ -12992,6 +13003,7 @@ def evaluate_watchdog_stdout_case(case):
         )
     if (
         payload.get('proof_target_due_at_if_next_slot_missed_text')
+        and payload['proof_target_due_at_if_next_slot_missed_text'] not in richer_due_context
         and payload['proof_target_due_at_if_next_slot_missed_text'] not in text_output
     ):
         failures.append(
