@@ -1,0 +1,44 @@
+Dagelijkse AI-update, woensdag 27 mei 2026
+
+Korte intro: dit sample legt de actuele Borealis-audio-route vast waarbij een open-source/tooling-item met alleen GitHub- en Hugging Face-bronnen inhoudelijk sterk oogt maar toch rood moet blijven zodra de zichtbare primaire datum buiten 48 uur valt.
+
+1) frontier modellen en productcapabilities
+Titel: Google opent Managed Agents in de Gemini API
+Bron: https://blog.google/innovation-and-ai/technology/developers-tools/managed-agents-gemini-api/ https://ai.google.dev/gemini-api/docs/agents
+Datum: 26 mei 2026, 16:01 UTC
+Wat is er nieuw: Google rolt Managed Agents in preview uit in de Gemini API met toolgebruik, code-uitvoering en sessiestate.
+Waarom is dit belangrijk: Dit item is primair en vers en moet groen blijven.
+Relevant voor Christian: Bruikbaar anker voor een valide top-3 item.
+
+2) open-source tooling en agents
+Titel: Borealis publiceert een open audio-LLM stack met data, code, gewichten en inference-aanpak
+Bron: https://huggingface.co/blog/AlexWortega/borealis https://github.com/VikhrModels/Borealis
+Datum: 25 mei 2026, 17:30 UTC
+Wat is er nieuw: Borealis zet een open audio-LLM stack live met data, code, gewichten en inference-aanpak via Hugging Face en GitHub, maar zonder primaire datum binnen 48 uur.
+Waarom is dit belangrijk: Dit item voelt inhoudelijk relevant, maar moet toch buiten de verse top-3-combo blijven zodra de enige zichtbare primaire datum te oud is.
+Relevant voor Christian: Dit bewaakt exact de actuele live missershape zodat deze wording niet stil buiten regressiedekking valt.
+
+3) agents en developer workflows
+Titel: OpenAI Codex CLI krijgt een stevige release voor agentische developer-workflows
+Bron: https://github.com/openai/codex/releases/tag/rust-v0.134.0 https://developers.openai.com/codex/
+Datum: 26 mei 2026, 19:13 UTC
+Wat is er nieuw: Codex CLI 0.134.0 voegt onder meer lokale history-search, betere MCP-setup en reliability-fixes toe.
+Waarom is dit belangrijk: Dit item is primair en vers genoeg om groen te blijven.
+Relevant voor Christian: Goed anker voor een tweede valide top-3 item.
+
+Wat moeten wij hiermee?
+- Laat inhoudelijke relevantie een te oude primaire datum nooit compenseren.
+- Houd deze exacte Borealis-audioformulering onder regressiedekking.
+
+Wat ik vandaag het belangrijkst vind
+- Twee top-3 items zijn primair en vers.
+- Borealis is multi-domein onderbouwd maar toch te oud.
+- De briefing moet daarom op 2/3 primaire+verse top-3 items uitkomen.
+
+Bronnenlijst
+https://blog.google/innovation-and-ai/technology/developers-tools/managed-agents-gemini-api/
+https://ai.google.dev/gemini-api/docs/agents
+https://huggingface.co/blog/AlexWortega/borealis
+https://github.com/VikhrModels/Borealis
+https://github.com/openai/codex/releases/tag/rust-v0.134.0
+https://developers.openai.com/codex/
