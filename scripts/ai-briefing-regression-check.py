@@ -106523,6 +106523,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['status-summary-audit-cli-keeps-top3-open-source-stale-date-sample'] = named_cases[
         'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date'
     ]
+    named_cases['status-summary-audit-cli-keeps-borealis-open-source-primary-stale-date'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-borealis-open-source-primary-stale-date-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-borealis-open-source-primary-stale-date-regression'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-borealis-open-source-primary-stale-date-sample'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date'
+    ]
     named_cases['status-summary-audit-cli-keeps-borealis-open-source-stale-date'] = named_cases[
         'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date'
     ]
@@ -106554,6 +106566,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'status-summary-audit-cli-keeps-top3-open-audio-llm-primary-stale-date'
     ]
     named_cases['status-summary-audit-cli-keeps-top3-open-audio-llm-stale-date-sample'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-audio-llm-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-borealis-open-audio-llm-primary-stale-date'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-audio-llm-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-borealis-open-audio-llm-primary-stale-date-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-audio-llm-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-borealis-open-audio-llm-primary-stale-date-regression'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-audio-llm-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-borealis-open-audio-llm-primary-stale-date-sample'] = named_cases[
         'status-summary-audit-cli-keeps-top3-open-audio-llm-primary-stale-date'
     ]
     named_cases['status-summary-audit-cli-keeps-borealis-open-audio-llm-stale-date'] = named_cases[
@@ -106589,6 +106613,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['status-summary-audit-cli-keeps-top3-open-tooling-release-docs-stale-date-sample'] = named_cases[
         'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date'
     ]
+    named_cases['status-summary-audit-cli-keeps-langgraph-open-tooling-release-docs-primary-stale-date'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-langgraph-open-tooling-release-docs-primary-stale-date-audit'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-langgraph-open-tooling-release-docs-primary-stale-date-regression'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date'
+    ]
+    named_cases['status-summary-audit-cli-keeps-langgraph-open-tooling-release-docs-primary-stale-date-sample'] = named_cases[
+        'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date'
+    ]
     named_cases['status-summary-audit-cli-keeps-langgraph-open-tooling-release-docs-stale-date'] = named_cases[
         'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date'
     ]
@@ -106614,6 +106650,14 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['top3-open-source-stale-date-sample'] = named_cases[
         'top3-open-source-primary-stale-date-sample'
     ]
+    named_cases['borealis-open-source-primary-stale-date'] = named_cases['top3-open-source-primary-stale-date-sample']
+    named_cases['borealis-open-source-primary-stale-date-audit'] = named_cases['top3-open-source-primary-stale-date-sample']
+    named_cases['borealis-open-source-primary-stale-date-regression'] = named_cases[
+        'top3-open-source-primary-stale-date-sample'
+    ]
+    named_cases['borealis-open-source-primary-stale-date-sample'] = named_cases[
+        'top3-open-source-primary-stale-date-sample'
+    ]
     named_cases['borealis-open-source-stale-date'] = named_cases['top3-open-source-primary-stale-date-sample']
     named_cases['borealis-open-source-stale-date-audit'] = named_cases['top3-open-source-primary-stale-date-sample']
     named_cases['borealis-open-source-stale-date-regression'] = named_cases[
@@ -106633,6 +106677,14 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'top3-open-audio-llm-primary-stale-date-sample'
     ]
     named_cases['top3-open-audio-llm-stale-date-sample'] = named_cases[
+        'top3-open-audio-llm-primary-stale-date-sample'
+    ]
+    named_cases['borealis-open-audio-llm-primary-stale-date'] = named_cases['top3-open-audio-llm-primary-stale-date-sample']
+    named_cases['borealis-open-audio-llm-primary-stale-date-audit'] = named_cases['top3-open-audio-llm-primary-stale-date-sample']
+    named_cases['borealis-open-audio-llm-primary-stale-date-regression'] = named_cases[
+        'top3-open-audio-llm-primary-stale-date-sample'
+    ]
+    named_cases['borealis-open-audio-llm-primary-stale-date-sample'] = named_cases[
         'top3-open-audio-llm-primary-stale-date-sample'
     ]
     named_cases['borealis-open-audio-llm-stale-date'] = named_cases['top3-open-audio-llm-primary-stale-date-sample']
@@ -106662,6 +106714,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'top3-open-tooling-release-docs-primary-stale-date-sample'
     ]
     named_cases['top3-open-tooling-release-docs-stale-date-sample'] = named_cases[
+        'top3-open-tooling-release-docs-primary-stale-date-sample'
+    ]
+    named_cases['langgraph-open-tooling-release-docs-primary-stale-date'] = named_cases[
+        'top3-open-tooling-release-docs-primary-stale-date-sample'
+    ]
+    named_cases['langgraph-open-tooling-release-docs-primary-stale-date-audit'] = named_cases[
+        'top3-open-tooling-release-docs-primary-stale-date-sample'
+    ]
+    named_cases['langgraph-open-tooling-release-docs-primary-stale-date-regression'] = named_cases[
+        'top3-open-tooling-release-docs-primary-stale-date-sample'
+    ]
+    named_cases['langgraph-open-tooling-release-docs-primary-stale-date-sample'] = named_cases[
         'top3-open-tooling-release-docs-primary-stale-date-sample'
     ]
     named_cases['langgraph-open-tooling-release-docs-stale-date'] = named_cases[
