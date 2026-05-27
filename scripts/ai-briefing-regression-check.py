@@ -25103,6 +25103,22 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
             ],
             False,
         ),
+        (
+            'payload-open-source-stale-date-guardrail-family',
+            'payload-audit-keeps-open-source-stale-date-guardrail',
+            [
+                'payload-audit-open-source-stale-date-guardrail',
+            ],
+            True,
+        ),
+        (
+            'payload-audio-stale-date-guardrail-family',
+            'payload-audit-keeps-audio-stale-date-guardrail',
+            [
+                'payload-audit-audio-stale-date-guardrail',
+            ],
+            True,
+        ),
     ]
 
     for family_name, target_name, alias_bases, include_target_suffixes in families:
@@ -106882,6 +106898,16 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['payload-audit-audio-stale-date-guardrail'] = (
         named_cases['payload-audit-keeps-audio-stale-date-guardrail']
+    )
+    alias_case_family(
+        'payload-audit-keeps-open-source-stale-date-guardrail',
+        'payload-audit-open-source-stale-date-guardrail',
+        include_target_suffixes=True,
+    )
+    alias_case_family(
+        'payload-audit-keeps-audio-stale-date-guardrail',
+        'payload-audit-audio-stale-date-guardrail',
+        include_target_suffixes=True,
     )
     proof_recheck_module = load_proof_recheck_module()
     named_cases['proof-recheck-deduplicates-wait-until-recheck-after-text'] = (
