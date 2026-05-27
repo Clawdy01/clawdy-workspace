@@ -24722,6 +24722,7 @@ PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'proof-recheck-plain-deduplicates-proof-today-block-text',
     'proof-recheck-producer-before-slot-too-early',
     'proof-recheck-producer-open-window-needs-attention',
+    'proof-recheck-producer-overall-keeps-result-evidence-and-proof-due-fields',
     'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
     'proof-recheck-producer-quiet-deduplicates-reasons',
     'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text',
@@ -24765,6 +24766,9 @@ PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'proof-recheck-producer-open-window': [
         'proof-recheck-producer-open-window-needs-attention',
+    ],
+    'proof-recheck-producer-overall-passthrough': [
+        'proof-recheck-producer-overall-keeps-result-evidence-and-proof-due-fields',
     ],
     'proof-recheck-producer-wait-until-dedup': [
         'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',

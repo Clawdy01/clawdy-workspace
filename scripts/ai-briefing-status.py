@@ -2800,6 +2800,8 @@ def audit_payload(job):
         reasons.append('shortlist-freshness-schrappen instructie ontbreekt')
     if 'Verboden: in de inleiding of slotafweging een te oud item alsnog rechtpraten' not in message:
         reasons.append('intro/slot stale-date verbod ontbreekt')
+    if 'Als een open-source of tooling-item alleen een GitHub-, Hugging Face-, docs- of release-datum van meer dan 48 uur oud heeft, moet het geschrapt worden ook als de ontwikkeling inhoudelijk sterk voelt of nog breed besproken wordt.' not in message:
+        reasons.append('open-source stale-date guardrail ontbreekt')
     if 'controleer vlak voor versturen nog één keer expliciet dat elk genoemd item ook echt door zijn primaire bron binnen 48 uur wordt gedragen' not in message:
         reasons.append('laatste primary-freshness eindcheck ontbreekt')
     if not light_context:
