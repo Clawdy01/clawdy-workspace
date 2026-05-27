@@ -25090,7 +25090,7 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
                 'borealis-open-audio-llm-model-card-primary-stale-date',
                 'borealis-open-audio-llm-model-card-stale-date',
             ],
-            False,
+            True,
         ),
         (
             'sample-open-tooling-release-docs-stale-date-family',
@@ -106868,6 +106868,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'top3-open-audio-llm-model-card-stale-date',
         'borealis-open-audio-llm-model-card-primary-stale-date',
         'borealis-open-audio-llm-model-card-stale-date',
+        include_target_suffixes=True,
     )
     alias_case_family(
         'top3-open-tooling-release-docs-primary-stale-date-sample',
