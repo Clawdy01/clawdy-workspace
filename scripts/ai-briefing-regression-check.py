@@ -106503,6 +106503,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-producer-quiet-deduplicate-proof-target-due-at-text'] = named_cases[
         'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text'
     ]
+    named_cases['proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text-against-proof-plan-text'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text'
+    ]
+    named_cases['proof-recheck-producer-quiet-deduplicate-proof-target-due-at-text-against-proof-plan-text'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text'
+    ]
+    named_cases['proof-recheck-producer-proof-target-due-vs-plan-dedup'] = named_cases[
+        'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text'
+    ]
     named_cases['proof-recheck-producer-quiet-deduplicates-proof-target-due-at-text-against-proof-schedule-risk-text'] = (
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_target_due_vs_schedule_risk_dedup_case(producer_module)
     )
@@ -106591,6 +106600,21 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
     )
     named_cases['brief-consumers-deduplicates-proof-target-due-at-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
+    )
+    named_cases['brief-consumers-deduplicate-proof-target-due-at-text-against-proof-plan-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
+    )
+    named_cases['brief-consumer-deduplicate-proof-target-due-at-text-against-proof-plan-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
+    )
+    named_cases['brief-consumer-deduplicates-proof-target-due-at-text-against-proof-plan-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
+    )
+    named_cases['brief-consumers-deduplicates-proof-target-due-at-text-against-proof-plan-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
+    )
+    named_cases['brief-consumers-proof-target-due-vs-plan-dedup'] = (
         named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
     )
     named_cases['brief-consumers-deduplicate-proof-target-due-at-text-against-proof-schedule-risk-text'] = (
