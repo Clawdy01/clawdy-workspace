@@ -16,8 +16,6 @@ proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, n
 proof requirement: 0/3 gekwalificeerde runs
 proof remaining: nog 3 te gaan
 next run: 2026-05-27 09:00 CEST
-proof target due: 2026-05-29 09:15 CEST
-proof target due if next slot missed: 2026-05-30 09:15 CEST
 proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-05-27 09:00 CEST (nu), doel 2026-05-29 09:15 CEST
 proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-26 09:10 CEST > 2026-05-26 09:02 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
 proof next action window: hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw

@@ -848,13 +848,24 @@ def main() -> int:
     if result['proof_due_at_text']:
         lines.append(f"proof due: {result['proof_due_at_text']}")
     proof_target_due_if_missed_text = result.get('proof_target_due_at_if_next_slot_missed_text')
+    proof_target_check_gate_text = result.get('proof_target_check_gate_text')
     richer_due_context = ' '.join(
         str(bit)
         for bit in [
             result.get('proof_plan_text'),
             result.get('proof_today_block_text'),
             result.get('proof_schedule_risk_text'),
-            result.get('proof_target_check_gate_text'),
+            proof_target_check_gate_text,
+            result.get('proof_countdown_text'),
+        ]
+        if bit
+    )
+    richer_target_check_gate_context = ' '.join(
+        str(bit)
+        for bit in [
+            result.get('proof_plan_text'),
+            result.get('proof_today_block_text'),
+            result.get('proof_schedule_risk_text'),
             result.get('proof_countdown_text'),
         ]
         if bit
@@ -914,9 +925,9 @@ def main() -> int:
         lines.append(next_qualifying_line)
     if result.get('proof_countdown_text'):
         lines.append(f"proof countdown: {result['proof_countdown_text']}")
-    if result['proof_target_check_gate_text']:
+    if proof_target_check_gate_text and proof_target_check_gate_text not in richer_target_check_gate_context:
         lines.append(
-            f"proof target check gate: {result['proof_target_check_gate_text']} ({result['proof_target_check_gate']})"
+            f"proof target check gate: {proof_target_check_gate_text} ({result['proof_target_check_gate']})"
         )
     if result['proof_target_run_slots_context_text']:
         lines.append(f"qualifying run slots: {result['proof_target_run_slots_context_text']}")

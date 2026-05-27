@@ -9225,6 +9225,35 @@ WATCHDOG_STDOUT_CASES = [
             'proof target due:',
         ],
     },
+    {
+        'name': 'watchdog-stdout-deduplicates-proof-target-check-gate-text',
+        'reference_ms': REFERENCE_MS_BEFORE_SLOT_TOMORROW,
+        'synthetic_status': {
+            **STATUS_BEFORE_SLOT_TOMORROW,
+            'summary': 'synthetische watchdog payload',
+            'proof_plan_text': 'wachtplan: controleer pas na de eerstvolgende kwalificatierun',
+            'proof_target_check_gate_text': 'controleer pas na de eerstvolgende kwalificatierun',
+        },
+        'expect_exit_code': 2,
+        'expect_proof_state': 'waiting-next-scheduled-run-tomorrow',
+        'expect_proof_next_action_kind': 'wait-then-recheck',
+        'expect_no_compact_recheck_line': True,
+        'expect_proof_waiting_for_next_scheduled_run': True,
+        'expect_proof_config_identity_text': STATUS_BEFORE_SLOT_TOMORROW['proof_config_identity_text'],
+        'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
+        'expect_text_substrings': [
+            'proof plan: wachtplan: controleer pas na de eerstvolgende kwalificatierun',
+        ],
+        'expect_text_output_occurrences': [
+            {
+                'text': 'controleer pas na de eerstvolgende kwalificatierun',
+                'count': 1,
+            },
+        ],
+        'expect_text_output_absent_substrings': [
+            'proof target check gate:',
+        ],
+    },
 ]
 
 STATUS_SUMMARY_AUDIT_CASES = [
@@ -13595,6 +13624,59 @@ def evaluate_proof_recheck_case(case):
     }
 
 
+def run_watchdog_producer_quiet_target_check_gate_dedup_case(producer_module):
+    failures = []
+    repeated_gate = 'controleer pas na de eerstvolgende kwalificatierun'
+    payload = {
+        'summary': 'synthetische watchdog-producer payload',
+        'proof_plan_text': f'wachtplan: {repeated_gate}',
+        'proof_target_check_gate_text': repeated_gate,
+    }
+    quiet_summary = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if not quiet_summary:
+        failures.append('watchdog-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische proof-target-check-gate payload')
+        quiet_summary = ''
+    if payload['proof_plan_text'] not in quiet_summary:
+        failures.append('watchdog-producer quiet-summary mist proof_plan_text voor synthetische proof-target-check-gate payload')
+    if quiet_summary.count(repeated_gate) != 1:
+        failures.append(
+            'watchdog-producer quiet-summary toont proof_target_check_gate_text niet exact één keer wanneer proof_plan_text dezelfde gate al bevat: '
+            f"{quiet_summary.count(repeated_gate)}"
+        )
+
+    return {
+        'name': 'watchdog-producer-quiet-deduplicates-proof-target-check-gate-text',
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def evaluate_proof_recheck_producer_case(case):
     with tempfile.TemporaryDirectory(prefix='ai-briefing-proof-recheck-producer-') as temp_dir:
         json_proc = subprocess.run(
@@ -17019,6 +17101,52 @@ def run_watchdog_alert_schedule_dedup_case(watchdog_alert_module):
     }
 
 
+def run_watchdog_alert_target_check_gate_dedup_case(watchdog_alert_module):
+    failures = []
+    repeated_gate = 'controleer pas na de eerstvolgende kwalificatierun'
+    payload = {
+        'summary': 'synthetische watchdog-alert payload',
+        'proof_plan_text': f'wachtplan: {repeated_gate}',
+        'proof_target_check_gate_text': repeated_gate,
+    }
+    alert_text = watchdog_alert_module.build_alert(payload, 'proof-check', 3)
+    if payload['proof_plan_text'] not in alert_text:
+        failures.append('watchdog-alert mist proof_plan_text voor synthetische proof-target-check-gate payload')
+    if alert_text.count(repeated_gate) != 1:
+        failures.append(
+            'watchdog-alert toont proof_target_check_gate_text niet exact één keer wanneer proof_plan_text dezelfde gate al bevat: '
+            f"{alert_text.count(repeated_gate)}"
+        )
+
+    return {
+        'name': 'watchdog-alert-deduplicates-proof-target-check-gate-text',
+        'path': str(WATCHDOG_ALERT_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': alert_text,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_watchdog_producer_quiet_wait_until_dedup_case(producer_module):
     failures = []
     repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
@@ -17392,6 +17520,53 @@ def run_proof_recheck_plain_target_due_dedup_case(proof_recheck_module):
 
     return {
         'name': 'proof-recheck-plain-deduplicates-proof-target-due-at-text',
+        'path': str(PROOF_RECHECK_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': text_output,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_proof_recheck_plain_target_check_gate_dedup_case(proof_recheck_module):
+    failures = []
+    repeated_gate = 'controleer pas na de eerstvolgende kwalificatierun'
+    payload = {
+        'summary': 'synthetische proof-recheck payload',
+        'result_text': 'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+        'proof_plan_text': f'wachtplan: {repeated_gate}',
+        'proof_target_check_gate_text': repeated_gate,
+    }
+    text_output = proof_recheck_module.build_text(payload)
+    if payload['proof_plan_text'] not in text_output:
+        failures.append('proof-recheck plain-text mist proof_plan_text voor synthetische proof-target-check-gate payload')
+    if text_output.count(repeated_gate) != 1:
+        failures.append(
+            'proof-recheck plain-text toont proof_target_check_gate_text niet exact één keer wanneer proof_plan_text dezelfde gate al bevat: '
+            f"{text_output.count(repeated_gate)}"
+        )
+
+    return {
+        'name': 'proof-recheck-plain-deduplicates-proof-target-check-gate-text',
         'path': str(PROOF_RECHECK_SCRIPT),
         'ok': not failures,
         'failures': failures,
@@ -18947,6 +19122,34 @@ def run_brief_consumer_proof_target_due_dedup_case(status_module):
 
     return build_brief_consumer_case_result(
         name='brief-consumers-deduplicate-proof-target-due-at-text',
+        failures=failures,
+        outputs=outputs,
+    )
+
+
+def run_brief_consumer_proof_target_check_gate_dedup_case(status_module):
+    failures = []
+    repeated_gate = 'controleer pas na de eerstvolgende kwalificatierun'
+    payload = {
+        'found': True,
+        'enabled': True,
+        'text': 'synthetische briefingstatus',
+        'proof_plan_text': f'wachtplan: {repeated_gate}',
+        'proof_target_check_gate_text': repeated_gate,
+    }
+
+    outputs = render_brief_consumer_outputs(status_module, payload)
+
+    for label, output in outputs.items():
+        if payload['proof_plan_text'] not in output:
+            failures.append(f'{label} mist de synthetische proof_plan tekst voor proof_target_check_gate_text')
+        if output.count(repeated_gate) != 1:
+            failures.append(
+                f'{label} toont proof_target_check_gate_text niet exact één keer wanneer proof_plan_text dezelfde gate al bevat: {output.count(repeated_gate)}'
+            )
+
+    return build_brief_consumer_case_result(
+        name='brief-consumers-deduplicate-proof-target-check-gate-text',
         failures=failures,
         outputs=outputs,
     )
@@ -23751,6 +23954,7 @@ PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'proof-recheck-plain-deduplicates-reasons',
     'proof-recheck-plain-deduplicates-proof-recheck-schedule-text',
     'proof-recheck-plain-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+    'proof-recheck-plain-deduplicates-proof-target-check-gate-text',
     'proof-recheck-producer-before-slot-too-early',
     'proof-recheck-producer-open-window-needs-attention',
     'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
@@ -23779,6 +23983,9 @@ PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'proof-recheck-plain-proof-target-due-dedup': [
         'proof-recheck-plain-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+    ],
+    'proof-recheck-plain-proof-target-check-gate-dedup': [
+        'proof-recheck-plain-deduplicates-proof-target-check-gate-text',
     ],
     'proof-recheck-producer-before-slot': [
         'proof-recheck-producer-before-slot-too-early',
@@ -23987,17 +24194,20 @@ WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-stdout-deduplicates-wait-until-recheck-after-text',
     'watchdog-stdout-deduplicates-proof-recheck-schedule-text',
     'watchdog-stdout-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+    'watchdog-stdout-deduplicates-proof-target-check-gate-text',
     'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-alert-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-alert-deduplicates-wait-until-recheck-after-text',
     'watchdog-alert-deduplicates-reasons',
     'watchdog-alert-deduplicates-proof-recheck-schedule-text',
+    'watchdog-alert-deduplicates-proof-target-check-gate-text',
     'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text',
     'watchdog-producer-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-open-window-keeps-proof-recheck-cronstatus',
     'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
     'watchdog-producer-quiet-deduplicates-reasons',
     'watchdog-producer-quiet-deduplicates-proof-recheck-schedule-text',
+    'watchdog-producer-quiet-deduplicates-proof-target-check-gate-text',
     'watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text',
     'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-board-open-window-keeps-proof-recheck-cronstatus',
@@ -24012,6 +24222,7 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-stdout-deduplicates-wait-until-recheck-after-text',
         'watchdog-stdout-deduplicates-proof-recheck-schedule-text',
         'watchdog-stdout-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+        'watchdog-stdout-deduplicates-proof-target-check-gate-text',
     ],
     'watchdog-alert': [
         'watchdog-alert-before-slot-keeps-proof-recheck-cronstatus',
@@ -24019,6 +24230,7 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-alert-deduplicates-wait-until-recheck-after-text',
         'watchdog-alert-deduplicates-reasons',
         'watchdog-alert-deduplicates-proof-recheck-schedule-text',
+        'watchdog-alert-deduplicates-proof-target-check-gate-text',
         'watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text',
     ],
     'watchdog-producer': [
@@ -24027,6 +24239,7 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-producer-quiet-deduplicates-wait-until-recheck-after-text',
         'watchdog-producer-quiet-deduplicates-reasons',
         'watchdog-producer-quiet-deduplicates-proof-recheck-schedule-text',
+        'watchdog-producer-quiet-deduplicates-proof-target-check-gate-text',
         'watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text',
     ],
     'watchdog-producer-proof-board': [
@@ -105343,6 +105556,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['proof-recheck-plain-proof-target-due-dedup'] = named_cases[
         'proof-recheck-plain-deduplicates-proof-target-due-at-text'
     ]
+    named_cases['proof-recheck-plain-deduplicates-proof-target-check-gate-text'] = (
+        lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_target_check_gate_dedup_case(proof_recheck_module)
+    )
+    named_cases['proof-recheck-plain-deduplicate-proof-target-check-gate-text'] = named_cases[
+        'proof-recheck-plain-deduplicates-proof-target-check-gate-text'
+    ]
+    named_cases['proof-recheck-plain-proof-target-check-gate-dedup'] = named_cases[
+        'proof-recheck-plain-deduplicates-proof-target-check-gate-text'
+    ]
     named_cases['proof-recheck-plain-missed-target-due-dedup'] = named_cases[
         'proof-recheck-plain-deduplicates-proof-target-due-at-if-next-slot-missed-text'
     ]
@@ -105363,6 +105585,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         named_cases['watchdog-alert-deduplicates-proof-recheck-schedule-text']
     )
     named_cases['watchdog-alert-schedule-dedup'] = named_cases['watchdog-alert-deduplicates-proof-recheck-schedule-text']
+    named_cases['watchdog-alert-deduplicates-proof-target-check-gate-text'] = (
+        lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_target_check_gate_dedup_case(watchdog_alert_module)
+    )
+    named_cases['watchdog-alert-deduplicate-proof-target-check-gate-text'] = (
+        named_cases['watchdog-alert-deduplicates-proof-target-check-gate-text']
+    )
+    named_cases['watchdog-alert-proof-target-check-gate-dedup'] = (
+        named_cases['watchdog-alert-deduplicates-proof-target-check-gate-text']
+    )
     named_cases['watchdog-alert-deduplicates-proof-target-due-at-if-next-slot-missed-text'] = (
         lambda watchdog_alert_module=watchdog_alert_module: run_watchdog_alert_missed_target_due_dedup_case(watchdog_alert_module)
     )
@@ -105396,6 +105627,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-producer-quiet-deduplicate-proof-target-due-at-text'] = (
         named_cases['watchdog-producer-quiet-deduplicates-proof-target-due-at-text']
+    )
+    named_cases['watchdog-producer-quiet-deduplicates-proof-target-check-gate-text'] = (
+        lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_target_check_gate_dedup_case(producer_module)
+    )
+    named_cases['watchdog-producer-quiet-deduplicate-proof-target-check-gate-text'] = (
+        named_cases['watchdog-producer-quiet-deduplicates-proof-target-check-gate-text']
+    )
+    named_cases['watchdog-producer-quiet-proof-target-check-gate-dedup'] = (
+        named_cases['watchdog-producer-quiet-deduplicates-proof-target-check-gate-text']
     )
     named_cases['proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text'] = (
         lambda producer_module=proof_recheck_producer_module: run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module)
@@ -105528,6 +105768,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['brief-consumers-deduplicates-proof-target-due-at-text'] = (
         named_cases['brief-consumers-deduplicate-proof-target-due-at-text']
     )
+    named_cases['brief-consumers-deduplicate-proof-target-check-gate-text'] = (
+        lambda status_module=module: run_brief_consumer_proof_target_check_gate_dedup_case(status_module)
+    )
+    named_cases['brief-consumer-deduplicate-proof-target-check-gate-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-check-gate-text']
+    )
+    named_cases['brief-consumer-deduplicates-proof-target-check-gate-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-check-gate-text']
+    )
+    named_cases['brief-consumers-deduplicates-proof-target-check-gate-text'] = (
+        named_cases['brief-consumers-deduplicate-proof-target-check-gate-text']
+    )
     named_cases['brief-consumer-schedule-dedup'] = (
         named_cases['brief-consumers-deduplicate-proof-recheck-schedule-text']
     )
@@ -105554,6 +105806,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-stdout-proof-target-due-dedup'] = (
         named_cases['watchdog-stdout-deduplicates-proof-target-due-at-text']
+    )
+    named_cases['watchdog-stdout-deduplicate-proof-target-check-gate-text'] = (
+        named_cases['watchdog-stdout-deduplicates-proof-target-check-gate-text']
+    )
+    named_cases['watchdog-stdout-proof-target-check-gate-dedup'] = (
+        named_cases['watchdog-stdout-deduplicates-proof-target-check-gate-text']
     )
     named_cases['watchdog-producer-quiet-falls-back-to-requested-outputs'] = (
         lambda producer_module=watchdog_producer_module: evaluate_watchdog_producer_quiet_requested_outputs_fallback_case(producer_module)
