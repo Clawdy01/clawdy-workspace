@@ -17640,6 +17640,100 @@ def run_proof_recheck_plain_target_check_gate_dedup_case(proof_recheck_module):
     }
 
 
+def run_proof_recheck_plain_today_block_dedup_case(proof_recheck_module):
+    failures = []
+    repeated_block = 'geen kwalificerende runs meer vandaag'
+    payload = {
+        'summary': 'synthetische proof-recheck payload',
+        'result_text': 'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+        'proof_plan_text': repeated_block,
+        'proof_today_block_text': repeated_block,
+    }
+    text_output = proof_recheck_module.build_text(payload)
+    if payload['proof_plan_text'] not in text_output:
+        failures.append('proof-recheck plain-text mist proof_plan_text voor synthetische proof_today_block payload')
+    if text_output.count(repeated_block) != 1:
+        failures.append(
+            'proof-recheck plain-text toont proof_today_block_text niet exact één keer wanneer proof_plan_text dezelfde blocker al bevat: '
+            f"{text_output.count(repeated_block)}"
+        )
+
+    return {
+        'name': 'proof-recheck-plain-deduplicates-proof-today-block-text',
+        'path': str(PROOF_RECHECK_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': text_output,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
+def run_proof_recheck_plain_today_block_dedup_case(proof_recheck_module):
+    failures = []
+    repeated_block = 'geen kwalificerende runs meer vandaag'
+    payload = {
+        'summary': 'synthetische proof-recheck payload',
+        'result_text': 'hercheck nog te vroeg, wacht op kwalificatierun en hercheckvenster',
+        'proof_plan_text': repeated_block,
+        'proof_today_block_text': repeated_block,
+    }
+    text_output = proof_recheck_module.build_text(payload)
+    if payload['proof_plan_text'] not in text_output:
+        failures.append('proof-recheck plain-text mist proof_plan_text voor synthetische proof_today_block payload')
+    if text_output.count(repeated_block) != 1:
+        failures.append(
+            'proof-recheck plain-text toont proof_today_block_text niet exact één keer wanneer proof_plan_text dezelfde blocker al bevat: '
+            f"{text_output.count(repeated_block)}"
+        )
+
+    return {
+        'name': 'proof-recheck-plain-deduplicates-proof-today-block-text',
+        'path': str(PROOF_RECHECK_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': text_output,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_proof_recheck_producer_quiet_wait_until_dedup_case(producer_module):
     failures = []
     repeated_instruction = 'wacht tot 2099-01-01 09:15 CEST en draai daarna opnieuw'
@@ -24109,6 +24203,7 @@ PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'proof-recheck-plain-deduplicates-proof-recheck-schedule-text',
     'proof-recheck-plain-deduplicates-proof-target-due-at-if-next-slot-missed-text',
     'proof-recheck-plain-deduplicates-proof-target-check-gate-text',
+    'proof-recheck-plain-deduplicates-proof-today-block-text',
     'proof-recheck-producer-before-slot-too-early',
     'proof-recheck-producer-open-window-needs-attention',
     'proof-recheck-producer-quiet-deduplicates-wait-until-recheck-after-text',
@@ -24141,6 +24236,9 @@ PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'proof-recheck-plain-proof-target-check-gate-dedup': [
         'proof-recheck-plain-deduplicates-proof-target-check-gate-text',
+    ],
+    'proof-recheck-plain-today-block-dedup': [
+        'proof-recheck-plain-deduplicates-proof-today-block-text',
     ],
     'proof-recheck-producer-before-slot': [
         'proof-recheck-producer-before-slot-too-early',
@@ -105726,6 +105824,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     ]
     named_cases['proof-recheck-plain-proof-target-check-gate-dedup'] = named_cases[
         'proof-recheck-plain-deduplicates-proof-target-check-gate-text'
+    ]
+    named_cases['proof-recheck-plain-deduplicates-proof-today-block-text'] = (
+        lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_today_block_dedup_case(proof_recheck_module)
+    )
+    named_cases['proof-recheck-plain-deduplicate-proof-today-block-text'] = named_cases[
+        'proof-recheck-plain-deduplicates-proof-today-block-text'
+    ]
+    named_cases['proof-recheck-plain-today-block-dedup'] = named_cases[
+        'proof-recheck-plain-deduplicates-proof-today-block-text'
     ]
     named_cases['proof-recheck-plain-missed-target-due-dedup'] = named_cases[
         'proof-recheck-plain-deduplicates-proof-target-due-at-if-next-slot-missed-text'
