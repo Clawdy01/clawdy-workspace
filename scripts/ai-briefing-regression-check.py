@@ -26044,6 +26044,14 @@ WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH = {
     'watchdog-all-routes-full-sweep': 'registry-keeps-watchdog-full-sweep-route-families-complete',
 }
 
+WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH = {
+    batch_name: WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.get(
+        batch_name,
+        f'registry-keeps-{batch_name}-route-families-complete',
+    )
+    for batch_name in WATCHDOG_BATCH_CASE_DEPENDENCIES
+}
+
 PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH = {
     'proof-recheck-proof-context-all-routes': 'registry-keeps-proof-recheck-proof-context-route-families-complete',
     'proof-recheck-consumer-format-passthrough-all-routes': 'registry-keeps-proof-recheck-consumer-format-passthrough-all-routes-route-families-complete',
@@ -26176,16 +26184,22 @@ TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES = [
 ]
 
 TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH = {
-    **{
-        batch_name: WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.get(
-            batch_name,
-            f'registry-keeps-{batch_name}-route-families-complete',
-        )
-        for batch_name in WATCHDOG_BATCH_CASE_DEPENDENCIES
-    },
+    **WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH,
     **PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH,
     **BRIEFING_PROOF_CONTEXT_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH,
 }
+
+WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES = [
+    'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
+    'registry-keeps-watchdog-consumer-sweep-all-routes-route-families-complete',
+    'registry-keeps-watchdog-alert-consumer-sweep-all-routes-route-families-complete',
+    'registry-keeps-watchdog-proof-context-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline-route-families-complete',
+    'registry-keeps-watchdog-full-sweep-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
+]
 
 PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES = [
     'registry-keeps-proof-recheck-proof-context-route-families-complete',
@@ -26225,13 +26239,7 @@ def build_transitive_full_sweep_route_family_registry_case_names() -> list[str]:
 
 
 def build_watchdog_route_family_registry_case_names() -> list[str]:
-    return [
-        WATCHDOG_SPECIAL_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.get(
-            batch_name,
-            f'registry-keeps-{batch_name}-route-families-complete',
-        )
-        for batch_name in WATCHDOG_BATCH_CASE_DEPENDENCIES
-    ]
+    return list(WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values())
 
 
 def evaluate_registry_case_name_mapping_by_batch_case(
@@ -27139,6 +27147,68 @@ def evaluate_transitive_full_sweep_registry_case_names_derived_case():
     )
 
 
+def evaluate_registry_case_list_subset_case(
+    *,
+    name: str,
+    subset_case_names: list[str],
+    superset_case_names: list[str],
+    subset_label: str,
+    superset_label: str,
+):
+    unique_subset_case_names = unique_case_names(subset_case_names)
+    unique_superset_case_names = unique_case_names(superset_case_names)
+    duplicate_subset_case_names = [
+        case_name
+        for case_name in unique_subset_case_names
+        if subset_case_names.count(case_name) > 1
+    ]
+    duplicate_superset_case_names = [
+        case_name
+        for case_name in unique_superset_case_names
+        if superset_case_names.count(case_name) > 1
+    ]
+    blank_subset_case_names = [
+        case_name for case_name in subset_case_names if not case_name.strip()
+    ]
+    blank_superset_case_names = [
+        case_name for case_name in superset_case_names if not case_name.strip()
+    ]
+    missing_from_superset = [
+        case_name for case_name in unique_subset_case_names if case_name not in unique_superset_case_names
+    ]
+    audit_bits = [
+        f'{len(unique_subset_case_names)}/{len(subset_case_names)} {subset_label} uniek',
+        f'{len(unique_superset_case_names)}/{len(superset_case_names)} {superset_label} uniek',
+        f'{len(subset_case_names) - len(blank_subset_case_names)}/{len(subset_case_names)} {subset_label} niet-leeg',
+        f'{len(superset_case_names) - len(blank_superset_case_names)}/{len(superset_case_names)} {superset_label} niet-leeg',
+        f'{len(unique_subset_case_names) - len(missing_from_superset)}/{len(unique_subset_case_names)} {subset_label} zitten in {superset_label}',
+    ]
+    failures = []
+    if duplicate_subset_case_names:
+        failures.append(f'{subset_label} bevatten dubbele casenamen: ' + ', '.join(duplicate_subset_case_names))
+    if duplicate_superset_case_names:
+        failures.append(f'{superset_label} bevatten dubbele casenamen: ' + ', '.join(duplicate_superset_case_names))
+    if blank_subset_case_names:
+        failures.append(
+            f'{subset_label} bevatten lege casenamen: '
+            + ', '.join(repr(case_name) for case_name in blank_subset_case_names)
+        )
+    if blank_superset_case_names:
+        failures.append(
+            f'{superset_label} bevatten lege casenamen: '
+            + ', '.join(repr(case_name) for case_name in blank_superset_case_names)
+        )
+    if missing_from_superset:
+        failures.append(
+            f'{subset_label} ontbreken in {superset_label}: ' + ', '.join(missing_from_superset)
+        )
+    return build_registry_case_result(
+        name=name,
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_registry_case_names_derived_from_mapping_case(
     *,
     name: str,
@@ -27285,6 +27355,25 @@ def evaluate_transitive_full_sweep_route_family_registry_case_name_mappings_by_b
     )
 
 
+def evaluate_watchdog_route_family_registry_cases_registered_case():
+    return evaluate_registry_case_set_registered_case(
+        name='registry-keeps-watchdog-route-family-registry-cases-registered',
+        expected_case_names=WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        suffix='-route-families-complete',
+        label='watchdog route-family-registrycases',
+    )
+
+
+def evaluate_watchdog_route_family_registry_case_name_mappings_by_batch_case():
+    return evaluate_registry_case_name_mapping_by_batch_case(
+        name='registry-keeps-watchdog-route-family-registry-case-mappings-align-with-batches',
+        mapping=WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH,
+        expected_batch_names=list(WATCHDOG_BATCH_CASE_DEPENDENCIES.keys()),
+        expected_case_name_suffix='-route-families-complete',
+        label='watchdog route-family-registry',
+    )
+
+
 def evaluate_proof_recheck_route_family_registry_cases_registered_case():
     return evaluate_registry_case_set_registered_case(
         name='registry-keeps-proof-recheck-route-family-registry-cases-registered',
@@ -27323,6 +27412,16 @@ def evaluate_briefing_proof_context_route_family_registry_case_name_mappings_by_
     )
 
 
+def evaluate_watchdog_route_family_registry_case_names_derived_case():
+    return evaluate_registry_case_names_derived_from_mapping_case(
+        name='registry-keeps-watchdog-route-family-registry-cases-derived-from-batches',
+        derived_case_names=build_watchdog_route_family_registry_case_names(),
+        expected_case_names=WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        label='watchdog route-family-registrycases',
+        required_case_name_suffix='-route-families-complete',
+    )
+
+
 def evaluate_proof_recheck_route_family_registry_case_names_derived_case():
     return evaluate_registry_case_names_derived_from_mapping_case(
         name='registry-keeps-proof-recheck-route-family-registry-cases-derived-from-batches',
@@ -27340,6 +27439,36 @@ def evaluate_briefing_proof_context_route_family_registry_case_names_derived_cas
         expected_case_names=BRIEFING_PROOF_CONTEXT_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
         label='briefing-proof-context route-family-registrycases',
         required_case_name_suffix='-route-families-complete',
+    )
+
+
+def evaluate_watchdog_route_family_registry_case_names_are_in_transitive_full_sweep_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-watchdog-route-family-registry-cases-covered-by-transitive-full-sweep',
+        subset_case_names=WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        superset_case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='watchdog route-family-registrycases',
+        superset_label='transitieve full-sweep-route-family-registrycases',
+    )
+
+
+def evaluate_proof_recheck_route_family_registry_case_names_are_in_transitive_full_sweep_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-proof-recheck-route-family-registry-cases-covered-by-transitive-full-sweep',
+        subset_case_names=PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        superset_case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='proof-recheck route-family-registrycases',
+        superset_label='transitieve full-sweep-route-family-registrycases',
+    )
+
+
+def evaluate_briefing_proof_context_route_family_registry_case_names_are_in_transitive_full_sweep_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-briefing-proof-context-route-family-registry-cases-covered-by-transitive-full-sweep',
+        subset_case_names=BRIEFING_PROOF_CONTEXT_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        superset_case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='briefing-proof-context route-family-registrycases',
+        superset_label='transitieve full-sweep-route-family-registrycases',
     )
 
 
@@ -109015,6 +109144,18 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-transitive-full-sweep-route-family-registry-case-mappings-align-with-batches'] = (
         evaluate_transitive_full_sweep_route_family_registry_case_name_mappings_by_batch_case
     )
+    named_cases['registry-keeps-watchdog-route-family-registry-cases-registered'] = (
+        evaluate_watchdog_route_family_registry_cases_registered_case
+    )
+    named_cases['registry-keeps-watchdog-route-family-registry-case-mappings-align-with-batches'] = (
+        evaluate_watchdog_route_family_registry_case_name_mappings_by_batch_case
+    )
+    named_cases['registry-keeps-watchdog-route-family-registry-cases-derived-from-batches'] = (
+        evaluate_watchdog_route_family_registry_case_names_derived_case
+    )
+    named_cases['registry-keeps-watchdog-route-family-registry-cases-covered-by-transitive-full-sweep'] = (
+        evaluate_watchdog_route_family_registry_case_names_are_in_transitive_full_sweep_case
+    )
     named_cases['registry-keeps-proof-recheck-route-family-registry-cases-registered'] = (
         evaluate_proof_recheck_route_family_registry_cases_registered_case
     )
@@ -109024,6 +109165,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-proof-recheck-route-family-registry-cases-derived-from-batches'] = (
         evaluate_proof_recheck_route_family_registry_case_names_derived_case
     )
+    named_cases['registry-keeps-proof-recheck-route-family-registry-cases-covered-by-transitive-full-sweep'] = (
+        evaluate_proof_recheck_route_family_registry_case_names_are_in_transitive_full_sweep_case
+    )
     named_cases['registry-keeps-briefing-proof-context-route-family-registry-cases-registered'] = (
         evaluate_briefing_proof_context_route_family_registry_cases_registered_case
     )
@@ -109032,6 +109176,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-briefing-proof-context-route-family-registry-cases-derived-from-batches'] = (
         evaluate_briefing_proof_context_route_family_registry_case_names_derived_case
+    )
+    named_cases['registry-keeps-briefing-proof-context-route-family-registry-cases-covered-by-transitive-full-sweep'] = (
+        evaluate_briefing_proof_context_route_family_registry_case_names_are_in_transitive_full_sweep_case
     )
     named_cases['registry-keeps-top3-multi-domain-aliases-registered'] = (
         lambda named_cases=named_cases: evaluate_top3_multi_domain_alias_registry_case(named_cases)
