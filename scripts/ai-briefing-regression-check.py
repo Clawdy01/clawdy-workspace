@@ -26732,6 +26732,11 @@ def evaluate_registry_case_names_derived_from_mapping_case(
 ):
     unique_expected_case_names = unique_case_names(expected_case_names)
     unique_derived_case_names = unique_case_names(derived_case_names)
+    duplicate_expected_case_names = [
+        case_name
+        for case_name in unique_expected_case_names
+        if expected_case_names.count(case_name) > 1
+    ]
     duplicate_derived_case_names = [
         case_name
         for case_name in unique_derived_case_names
@@ -26744,11 +26749,16 @@ def evaluate_registry_case_names_derived_from_mapping_case(
         case_name for case_name in unique_derived_case_names if case_name not in unique_expected_case_names
     ]
     audit_bits = [
+        f'{len(unique_expected_case_names)}/{len(expected_case_names)} verwachte {label} uniek',
         f'{len(unique_derived_case_names)}/{len(derived_case_names)} afgeleide {label} uniek',
         f'{len(unique_expected_case_names) - len(missing_from_derived)}/{len(unique_expected_case_names)} verwachte {label} afgeleid',
         f'{len(unique_derived_case_names) - len(unexpected_in_derived)}/{len(unique_derived_case_names)} afgeleide {label} volgen de verwachte set',
     ]
     failures = []
+    if duplicate_expected_case_names:
+        failures.append(
+            f'verwachte {label} bevatten dubbele casenamen: ' + ', '.join(duplicate_expected_case_names)
+        )
     if duplicate_derived_case_names:
         failures.append(
             f'afgeleide {label} bevatten dubbele casenamen: ' + ', '.join(duplicate_derived_case_names)
@@ -106971,66 +106981,14 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
                     continue
                 named_cases[alias_name] = named_cases[target_name]
 
-    alias_case_family(
-        'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date',
-        'status-summary-audit-cli-keeps-top3-open-source-stale-date',
-        'status-summary-audit-cli-keeps-borealis-open-source-primary-stale-date',
-        'status-summary-audit-cli-keeps-borealis-open-source-stale-date',
-        include_target_suffixes=True,
-    )
-    alias_case_family(
-        'status-summary-audit-cli-keeps-top3-open-audio-llm-primary-stale-date',
-        'status-summary-audit-cli-keeps-top3-open-audio-llm-stale-date',
-        'status-summary-audit-cli-keeps-borealis-open-audio-llm-primary-stale-date',
-        'status-summary-audit-cli-keeps-borealis-open-audio-llm-stale-date',
-        include_target_suffixes=True,
-    )
-    alias_case_family(
-        'status-summary-audit-cli-keeps-top3-open-audio-llm-model-card-primary-stale-date',
-        'status-summary-audit-cli-keeps-top3-open-audio-llm-model-card-stale-date',
-        'status-summary-audit-cli-keeps-borealis-open-audio-llm-model-card-primary-stale-date',
-        'status-summary-audit-cli-keeps-borealis-open-audio-llm-model-card-stale-date',
-        include_target_suffixes=True,
-    )
-    alias_case_family(
-        'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date',
-        'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-stale-date',
-        'status-summary-audit-cli-keeps-langgraph-open-tooling-release-docs-primary-stale-date',
-        'status-summary-audit-cli-keeps-langgraph-open-tooling-release-docs-stale-date',
-        include_target_suffixes=True,
-    )
-    alias_case_family(
-        'top3-open-source-primary-stale-date-sample',
-        'top3-open-source-primary-stale-date',
-        'top3-open-source-stale-date',
-        'borealis-open-source-primary-stale-date',
-        'borealis-open-source-stale-date',
-        include_target_suffixes=True,
-    )
-    alias_case_family(
-        'top3-open-audio-llm-primary-stale-date-sample',
-        'top3-open-audio-llm-primary-stale-date',
-        'top3-open-audio-llm-stale-date',
-        'borealis-open-audio-llm-primary-stale-date',
-        'borealis-open-audio-llm-stale-date',
-        include_target_suffixes=True,
-    )
-    alias_case_family(
-        'top3-open-audio-llm-model-card-primary-stale-date-sample',
-        'top3-open-audio-llm-model-card-primary-stale-date',
-        'top3-open-audio-llm-model-card-stale-date',
-        'borealis-open-audio-llm-model-card-primary-stale-date',
-        'borealis-open-audio-llm-model-card-stale-date',
-        include_target_suffixes=True,
-    )
-    alias_case_family(
-        'top3-open-tooling-release-docs-primary-stale-date-sample',
-        'top3-open-tooling-release-docs-primary-stale-date',
-        'top3-open-tooling-release-docs-stale-date',
-        'langgraph-open-tooling-release-docs-primary-stale-date',
-        'langgraph-open-tooling-release-docs-stale-date',
-        include_target_suffixes=True,
-    )
+    for _, target_name, alias_bases, include_target_suffixes in build_stale_date_alias_family_specs():
+        if target_name.startswith('payload-'):
+            continue
+        alias_case_family(
+            target_name,
+            *alias_bases,
+            include_target_suffixes=include_target_suffixes,
+        )
     status_module = load_status_module()
     named_cases['payload-audit-keeps-open-source-stale-date-guardrail'] = (
         lambda status_module=status_module: run_payload_guardrail_case(
@@ -107054,16 +107012,14 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['payload-audit-audio-stale-date-guardrail'] = (
         named_cases['payload-audit-keeps-audio-stale-date-guardrail']
     )
-    alias_case_family(
-        'payload-audit-keeps-open-source-stale-date-guardrail',
-        'payload-audit-open-source-stale-date-guardrail',
-        include_target_suffixes=True,
-    )
-    alias_case_family(
-        'payload-audit-keeps-audio-stale-date-guardrail',
-        'payload-audit-audio-stale-date-guardrail',
-        include_target_suffixes=True,
-    )
+    for _, target_name, alias_bases, include_target_suffixes in build_stale_date_alias_family_specs():
+        if not target_name.startswith('payload-'):
+            continue
+        alias_case_family(
+            target_name,
+            *alias_bases,
+            include_target_suffixes=include_target_suffixes,
+        )
     proof_recheck_module = load_proof_recheck_module()
     named_cases['proof-recheck-deduplicates-wait-until-recheck-after-text'] = (
         lambda proof_recheck_module=proof_recheck_module: run_proof_recheck_plain_wait_until_dedup_case(proof_recheck_module)
