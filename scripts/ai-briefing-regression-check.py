@@ -9687,6 +9687,7 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'expect_rendered_text_substrings': [
             'te weinig top-3 items met bron-URLs uit meerdere domeinen (0/3, verwacht minstens 3): OpenAI licht nieuwe eval-aanpak toe, GitHub toont nieuwe Copilot-agentflows, Anthropic bundelt twee posts over model-evals',
             'top3 zonder multi-domein bronregel OpenAI licht nieuwe eval-aanpak toe, GitHub toont nieuwe Copilot-agentflows, Anthropic bundelt twee posts over model-evals',
+            'top3 multi-domein details OpenAI licht nieuwe eval-aanpak toe (1 domein; 2 url; openai.com; primaire domeinen 1; primair openai.com; primaire families 1; familie openai), GitHub toont nieuwe Copilot-agentflows (1 domein; 2 url; github.com; primaire domeinen 1; primair github.com; primaire families 1; familie github), Anthropic bundelt twee posts over model-evals (1 domein; 2 url; anthropic.com; primaire domeinen 1; primair anthropic.com; primaire families 1; familie anthropic)',
             'top3 met meerdere bron-URLs 3/3',
             'top3 met multi-domein bronregels 0/3',
         ],
@@ -9697,6 +9698,7 @@ STATUS_SUMMARY_AUDIT_CASES = [
         'reference_ms': 1778138100000,
         'expect_rendered_text_substrings': [
             'top3 zonder multi-domein bronregel OpenAI zet GPT-5.5 Instant live als nieuwe standaard in ChatGPT',
+            'top3 multi-domein details OpenAI zet GPT-5.5 Instant live als nieuwe standaard in ChatGPT (1 domein; 2 url; openai.com; primaire domeinen 1; primair openai.com; primaire families 1; familie openai)',
             'top3 zonder verse datum OpenAI zet GPT-5.5 Instant live als nieuwe standaard in ChatGPT, OpenAI publiceert MRC, een nieuwe netwerklaag voor training van grote AI-clusters',
             'top3 zonder primaire+verse combo OpenAI zet GPT-5.5 Instant live als nieuwe standaard in ChatGPT, OpenAI publiceert MRC, een nieuwe netwerklaag voor training van grote AI-clusters',
             'top3 met multi-domein bronregels 2/3',
