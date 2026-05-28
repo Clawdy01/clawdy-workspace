@@ -1697,14 +1697,14 @@ def audit_summary_output(summary_text, reference_ms=None):
     source_domains = sorted({domain for domains in block_source_domains for domain in domains})
     source_domain_count = len(source_domains)
     first3_source_domains = sorted({domain for domains in block_source_domains[:3] for domain in domains})
-    block_has_primary_source = [
-        any(
-            domain == root or domain.endswith(f'.{root}')
-            for domain in domains
-            for root in PRIMARY_SOURCE_DOMAINS
-        )
+    block_primary_source_domains = [
+        sorted({
+            domain for domain in domains
+            if any(domain == root or domain.endswith(f'.{root}') for root in PRIMARY_SOURCE_DOMAINS)
+        })
         for domains in block_source_domains
     ]
+    block_has_primary_source = [bool(domains) for domains in block_primary_source_domains]
     first3_items_with_primary_source_count = sum(1 for has_primary in block_has_primary_source[:3] if has_primary)
     valid_source_domains = sorted({domain for domains in block_source_domains for domain in domains})
     valid_first3_source_domains = sorted({domain for domains in block_source_domains[:3] for domain in domains})
@@ -1833,12 +1833,22 @@ def audit_summary_output(summary_text, reference_ms=None):
             'unique_source_domain_count': unique_domain_count,
             'source_domains': domains,
             'unique_source_url_count': unique_source_url_count,
+            'primary_source_domain_count': len(primary_domains),
+            'primary_source_domains': primary_domains,
+            'primary_source_family_count': len(primary_families),
+            'primary_source_families': primary_families,
+            'primary_source_family_text': primary_source_family_text(primary_families),
         }
-        for title, unique_domain_count, domains, unique_source_url_count in zip(
+        for title, unique_domain_count, domains, unique_source_url_count, primary_domains, primary_families in zip(
             block_titles[:3],
             block_unique_source_domain_counts[:3],
             block_source_domains[:3],
             block_unique_source_url_counts[:3],
+            block_primary_source_domains[:3],
+            [
+                sorted({family for family in (primary_source_family(domain) for domain in domains) if family})
+                for domains in block_source_domains[:3]
+            ],
         )
         if unique_domain_count < 2
     ][:3]
@@ -2612,6 +2622,11 @@ def render_top3_missing_multi_domain_detail(detail):
     domain_count = detail.get('unique_source_domain_count')
     url_count = detail.get('unique_source_url_count')
     domains = [str(domain).strip() for domain in (detail.get('source_domains') or []) if str(domain).strip()]
+    primary_domain_count = detail.get('primary_source_domain_count')
+    primary_domains = [str(domain).strip() for domain in (detail.get('primary_source_domains') or []) if str(domain).strip()]
+    primary_family_count = detail.get('primary_source_family_count')
+    primary_families = [str(family).strip() for family in (detail.get('primary_source_families') or []) if str(family).strip()]
+    primary_family_text = str(detail.get('primary_source_family_text') or '').strip()
     qualifiers = []
     if domain_count is not None:
         qualifiers.append(f'{domain_count} domein')
@@ -2619,6 +2634,16 @@ def render_top3_missing_multi_domain_detail(detail):
         qualifiers.append(f'{url_count} url')
     if domains:
         qualifiers.append('/'.join(domains))
+    if primary_domain_count is not None:
+        qualifiers.append(f'primaire domeinen {primary_domain_count}')
+    if primary_domains:
+        qualifiers.append('primair ' + '/'.join(primary_domains))
+    if primary_family_count is not None:
+        qualifiers.append(f'primaire families {primary_family_count}')
+    if primary_family_text:
+        qualifiers.append('familie ' + primary_family_text)
+    elif primary_families:
+        qualifiers.append('families ' + '/'.join(primary_families))
     if not qualifiers:
         return title
     return f"{title} ({'; '.join(qualifiers)})"
@@ -2741,6 +2766,11 @@ def summarize_output_audit_focus(summary_output_audit):
             'unique_source_domain_count': detail.get('unique_source_domain_count'),
             'source_domains': detail.get('source_domains') or [],
             'unique_source_url_count': detail.get('unique_source_url_count'),
+            'primary_source_domain_count': detail.get('primary_source_domain_count'),
+            'primary_source_domains': detail.get('primary_source_domains') or [],
+            'primary_source_family_count': detail.get('primary_source_family_count'),
+            'primary_source_families': detail.get('primary_source_families') or [],
+            'primary_source_family_text': detail.get('primary_source_family_text'),
         })
 
     missing_primary_fresh_details = []
