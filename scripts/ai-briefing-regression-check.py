@@ -26796,6 +26796,9 @@ def evaluate_registry_case_set_registered_case(
         for case_name in unique_expected_case_names
         if expected_case_names.count(case_name) > 1
     ]
+    blank_case_names = [
+        case_name for case_name in expected_case_names if not case_name.strip()
+    ]
     invalid_case_names = [
         case_name
         for case_name in unique_expected_case_names
@@ -26825,12 +26828,18 @@ def evaluate_registry_case_set_registered_case(
         ]
     audit_bits = [
         f'{len(unique_expected_case_names)}/{len(expected_case_names)} {label} uniek verwacht',
+        f'{len(expected_case_names) - len(blank_case_names)}/{len(expected_case_names)} {label} niet-leeg verwacht',
         f'{len(unique_expected_case_names) - len(missing_case_names)}/{len(unique_expected_case_names)} {label} geregistreerd',
         f'{len(actual_registry_case_names) - len(unexpected_case_names)}/{len(actual_registry_case_names)} geregistreerde {label} volgen de verwachte set',
     ]
     failures = []
     if duplicate_case_names:
         failures.append(f'{label}-lijst bevat dubbele casenamen: ' + ', '.join(duplicate_case_names))
+    if blank_case_names:
+        failures.append(
+            f'{label}-lijst bevat lege casenamen: '
+            + ', '.join(repr(case_name) for case_name in blank_case_names)
+        )
     if invalid_case_names:
         failures.append(f'{label}-lijst bevat ongeldige casenamen: ' + ', '.join(invalid_case_names))
     if missing_case_names:
@@ -26872,6 +26881,9 @@ def evaluate_transitive_full_sweep_meta_registry_cases_registered_case():
         for case_name in unique_expected_case_names
         if expected_case_names.count(case_name) > 1
     ]
+    blank_case_names = [
+        case_name for case_name in expected_case_names if not case_name.strip()
+    ]
     invalid_case_names = [
         case_name
         for case_name in unique_expected_case_names
@@ -26896,6 +26908,7 @@ def evaluate_transitive_full_sweep_meta_registry_cases_registered_case():
     ]
     audit_bits = [
         f'{len(unique_expected_case_names)}/{len(expected_case_names)} transitieve full-sweep meta-registrycases uniek verwacht',
+        f'{len(expected_case_names) - len(blank_case_names)}/{len(expected_case_names)} transitieve full-sweep meta-registrycases niet-leeg verwacht',
         f'{len(unique_expected_case_names) - len(missing_case_names)}/{len(unique_expected_case_names)} transitieve full-sweep meta-registrycases geregistreerd',
         f'{len(actual_meta_registry_case_names) - len(unexpected_case_names)}/{len(actual_meta_registry_case_names)} geregistreerde transitieve full-sweep meta-registrycases volgen de verwachte set',
     ]
@@ -26904,6 +26917,11 @@ def evaluate_transitive_full_sweep_meta_registry_cases_registered_case():
         failures.append(
             'transitieve full-sweep meta-registrycases-lijst bevat dubbele casenamen: '
             + ', '.join(duplicate_case_names)
+        )
+    if blank_case_names:
+        failures.append(
+            'transitieve full-sweep meta-registrycases-lijst bevat lege casenamen: '
+            + ', '.join(repr(case_name) for case_name in blank_case_names)
         )
     if invalid_case_names:
         failures.append(
@@ -27004,6 +27022,12 @@ def evaluate_registry_case_names_derived_from_mapping_case(
         for case_name in unique_derived_case_names
         if derived_case_names.count(case_name) > 1
     ]
+    blank_expected_case_names = [
+        case_name for case_name in expected_case_names if not case_name.strip()
+    ]
+    blank_derived_case_names = [
+        case_name for case_name in derived_case_names if not case_name.strip()
+    ]
     missing_from_derived = [
         case_name for case_name in unique_expected_case_names if case_name not in unique_derived_case_names
     ]
@@ -27013,6 +27037,8 @@ def evaluate_registry_case_names_derived_from_mapping_case(
     audit_bits = [
         f'{len(unique_expected_case_names)}/{len(expected_case_names)} verwachte {label} uniek',
         f'{len(unique_derived_case_names)}/{len(derived_case_names)} afgeleide {label} uniek',
+        f'{len(expected_case_names) - len(blank_expected_case_names)}/{len(expected_case_names)} verwachte {label} niet-leeg',
+        f'{len(derived_case_names) - len(blank_derived_case_names)}/{len(derived_case_names)} afgeleide {label} niet-leeg',
         f'{len(unique_expected_case_names) - len(missing_from_derived)}/{len(unique_expected_case_names)} verwachte {label} afgeleid',
         f'{len(unique_derived_case_names) - len(unexpected_in_derived)}/{len(unique_derived_case_names)} afgeleide {label} volgen de verwachte set',
     ]
@@ -27024,6 +27050,16 @@ def evaluate_registry_case_names_derived_from_mapping_case(
     if duplicate_derived_case_names:
         failures.append(
             f'afgeleide {label} bevatten dubbele casenamen: ' + ', '.join(duplicate_derived_case_names)
+        )
+    if blank_expected_case_names:
+        failures.append(
+            f'verwachte {label} bevatten lege casenamen: '
+            + ', '.join(repr(case_name) for case_name in blank_expected_case_names)
+        )
+    if blank_derived_case_names:
+        failures.append(
+            f'afgeleide {label} bevatten lege casenamen: '
+            + ', '.join(repr(case_name) for case_name in blank_derived_case_names)
         )
     if missing_from_derived:
         failures.append(
