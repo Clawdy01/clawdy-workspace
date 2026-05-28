@@ -26161,6 +26161,21 @@ WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_
     'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
 ]
 
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
+]
+
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
+]
+
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_BATCH_CASE_NAMES = [
+    *WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_BATCH_CASE_DEPENDENCIES.keys(),
+    *WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_BATCH_CASE_DEPENDENCIES.keys(),
+]
+
 WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
     *WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
     *WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
@@ -27546,7 +27561,7 @@ def evaluate_watchdog_alert_proof_target_check_route_family_registry_case_name_m
     return evaluate_registry_case_name_mapping_by_batch_case(
         name='registry-keeps-watchdog-alert-proof-target-check-route-family-registry-case-mappings-align-with-batches',
         mapping=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH,
-        expected_batch_names=list(WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.keys()),
+        expected_batch_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_BATCH_CASE_NAMES,
         expected_case_name_suffix='-route-families-complete',
         label='watchdog-alert proof-target-check route-family-registry',
     )
@@ -27684,6 +27699,78 @@ def evaluate_watchdog_alert_proof_target_check_all_routes_route_family_registry_
     )
 
 
+def evaluate_watchdog_alert_proof_target_check_before_deadline_route_family_registry_case_names_are_in_transitive_full_sweep_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-before-deadline-route-family-registry-cases-covered-by-transitive-full-sweep',
+        subset_case_names=(
+            WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES
+        ),
+        superset_case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='watchdog-alert proof-target-check before-deadline route-family-registrycases',
+        superset_label='transitieve full-sweep-route-family-registrycases',
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_after_deadline_route_family_registry_case_names_are_in_transitive_full_sweep_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-after-deadline-route-family-registry-cases-covered-by-transitive-full-sweep',
+        subset_case_names=(
+            WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES
+        ),
+        superset_case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='watchdog-alert proof-target-check after-deadline route-family-registrycases',
+        superset_label='transitieve full-sweep-route-family-registrycases',
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_consumer_sweep_route_family_registry_case_names_are_in_watchdog_alert_route_family_registry_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-route-family-registry-cases-covered-by-watchdog-alert-route-family-registry',
+        subset_case_names=(
+            WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES
+        ),
+        superset_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='watchdog-alert proof-target-check consumer-sweep route-family-registrycases',
+        superset_label='watchdog-alert proof-target-check route-family-registrycases',
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_all_routes_route_family_registry_case_names_are_in_watchdog_alert_route_family_registry_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-all-routes-route-family-registry-cases-covered-by-watchdog-alert-route-family-registry',
+        subset_case_names=(
+            WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES
+        ),
+        superset_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='watchdog-alert proof-target-check all-routes route-family-registrycases',
+        superset_label='watchdog-alert proof-target-check route-family-registrycases',
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_before_deadline_route_family_registry_case_names_are_in_watchdog_alert_route_family_registry_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-before-deadline-route-family-registry-cases-covered-by-watchdog-alert-route-family-registry',
+        subset_case_names=(
+            WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES
+        ),
+        superset_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='watchdog-alert proof-target-check before-deadline route-family-registrycases',
+        superset_label='watchdog-alert proof-target-check route-family-registrycases',
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_after_deadline_route_family_registry_case_names_are_in_watchdog_alert_route_family_registry_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-after-deadline-route-family-registry-cases-covered-by-watchdog-alert-route-family-registry',
+        subset_case_names=(
+            WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES
+        ),
+        superset_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='watchdog-alert proof-target-check after-deadline route-family-registrycases',
+        superset_label='watchdog-alert proof-target-check route-family-registrycases',
+    )
+
+
 def evaluate_watchdog_alert_proof_target_check_route_family_registry_case_names_are_in_transitive_full_sweep_case():
     return evaluate_registry_case_list_subset_case(
         name='registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-covered-by-transitive-full-sweep',
@@ -27691,6 +27778,16 @@ def evaluate_watchdog_alert_proof_target_check_route_family_registry_case_names_
         superset_case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
         subset_label='watchdog-alert proof-target-check route-family-registrycases',
         superset_label='transitieve full-sweep-route-family-registrycases',
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_route_family_registry_case_names_are_in_watchdog_route_family_registry_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-covered-by-watchdog-route-family-registry',
+        subset_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        superset_case_names=WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        subset_label='watchdog-alert proof-target-check route-family-registrycases',
+        superset_label='watchdog route-family-registrycases',
     )
 
 
@@ -109438,8 +109535,29 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-watchdog-alert-proof-target-check-all-routes-route-family-registry-cases-covered-by-transitive-full-sweep'] = (
         evaluate_watchdog_alert_proof_target_check_all_routes_route_family_registry_case_names_are_in_transitive_full_sweep_case
     )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-before-deadline-route-family-registry-cases-covered-by-transitive-full-sweep'] = (
+        evaluate_watchdog_alert_proof_target_check_before_deadline_route_family_registry_case_names_are_in_transitive_full_sweep_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-after-deadline-route-family-registry-cases-covered-by-transitive-full-sweep'] = (
+        evaluate_watchdog_alert_proof_target_check_after_deadline_route_family_registry_case_names_are_in_transitive_full_sweep_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-route-family-registry-cases-covered-by-watchdog-alert-route-family-registry'] = (
+        evaluate_watchdog_alert_proof_target_check_consumer_sweep_route_family_registry_case_names_are_in_watchdog_alert_route_family_registry_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-all-routes-route-family-registry-cases-covered-by-watchdog-alert-route-family-registry'] = (
+        evaluate_watchdog_alert_proof_target_check_all_routes_route_family_registry_case_names_are_in_watchdog_alert_route_family_registry_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-before-deadline-route-family-registry-cases-covered-by-watchdog-alert-route-family-registry'] = (
+        evaluate_watchdog_alert_proof_target_check_before_deadline_route_family_registry_case_names_are_in_watchdog_alert_route_family_registry_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-after-deadline-route-family-registry-cases-covered-by-watchdog-alert-route-family-registry'] = (
+        evaluate_watchdog_alert_proof_target_check_after_deadline_route_family_registry_case_names_are_in_watchdog_alert_route_family_registry_case
+    )
     named_cases['registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-covered-by-transitive-full-sweep'] = (
         evaluate_watchdog_alert_proof_target_check_route_family_registry_case_names_are_in_transitive_full_sweep_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-covered-by-watchdog-route-family-registry'] = (
+        evaluate_watchdog_alert_proof_target_check_route_family_registry_case_names_are_in_watchdog_route_family_registry_case
     )
     named_cases['registry-keeps-top3-multi-domain-aliases-registered'] = (
         lambda named_cases=named_cases: evaluate_top3_multi_domain_alias_registry_case(named_cases)
