@@ -25121,13 +25121,24 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
     failures: list[str] = []
     audit_bits: list[str] = []
 
+    def build_family_suffix_alias_names(name: str) -> list[str]:
+        return [
+            f'{name}{suffix}'
+            for suffix in ('-audit', '-regression', '-sample')
+            if not name.endswith(suffix)
+        ]
+
     def expected_alias_names(target_name: str, alias_bases: list[str], include_target_suffixes: bool) -> list[str]:
         names = [target_name]
         if include_target_suffixes:
-            names.extend(f'{target_name}{suffix}' for suffix in ('-audit', '-regression', '-sample'))
+            names.extend(build_family_suffix_alias_names(target_name))
         for alias_base in alias_bases:
             names.append(alias_base)
-            names.extend(f'{alias_base}{suffix}' for suffix in ('-audit', '-regression', '-sample'))
+            names.extend(
+                alias_name
+                for alias_name in build_family_suffix_alias_names(alias_base)
+                if alias_name != target_name
+            )
         return names
 
     specs = build_stale_date_alias_family_specs()
@@ -25193,16 +25204,28 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
             alias_base for alias_base in unique_case_names(alias_bases)
             if alias_bases.count(alias_base) > 1
         ]
+        duplicate_expected_names_within_family = [
+            expected_name for expected_name in unique_case_names(expected_names)
+            if expected_names.count(expected_name) > 1
+        ]
         if duplicate_alias_bases:
             failures.append(
                 f'{family_name} specificeert dubbele alias-bases: ' + ', '.join(duplicate_alias_bases)
+            )
+        if duplicate_expected_names_within_family:
+            failures.append(
+                f'{family_name} genereert dubbele aliasnamen binnen dezelfde familie: '
+                + ', '.join(duplicate_expected_names_within_family)
             )
         if target_name in alias_bases:
             failures.append(f'{family_name} herhaalt targetcase als alias-base: {target_name}')
         missing_names = [name for name in expected_names if name not in named_cases]
         if missing_names:
             failures.append(f'{family_name} mist aliases: ' + ', '.join(missing_names))
-            audit_bits.append(f'{family_name}: {len(expected_names) - len(missing_names)}/{len(expected_names)} aanwezig')
+            audit_bits.append(
+                f'{family_name}: {len(unique_case_names(expected_names))}/{len(expected_names)} uniek, '
+                f'{len(expected_names) - len(missing_names)}/{len(expected_names)} aanwezig'
+            )
             continue
         mismatched_names = [
             name for name in expected_names
@@ -25212,7 +25235,10 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
             failures.append(
                 f'{family_name} verwijst niet overal naar {target_name}: ' + ', '.join(mismatched_names)
             )
-        audit_bits.append(f'{family_name}: {len(expected_names)}/{len(expected_names)} aanwezig')
+        audit_bits.append(
+            f'{family_name}: {len(unique_case_names(expected_names))}/{len(expected_names)} uniek, '
+            f'{len(expected_names)}/{len(expected_names)} aanwezig'
+        )
 
     cross_family_overlapping_expected_names = [
         name for name, family_names in expected_name_families.items()
@@ -106927,14 +106953,23 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['top3-live-output-freshness-blocker-regression'] = named_cases[
         'top3-live-output-freshness-blocker-sample'
     ]
+    def alias_case_family_suffix_names(name: str) -> list[str]:
+        return [
+            f'{name}{suffix}'
+            for suffix in ('-audit', '-regression', '-sample')
+            if not name.endswith(suffix)
+        ]
+
     def alias_case_family(target_name: str, *alias_bases: str, include_target_suffixes: bool = False) -> None:
         if include_target_suffixes:
-            for suffix in ('-audit', '-regression', '-sample'):
-                named_cases[f'{target_name}{suffix}'] = named_cases[target_name]
+            for alias_name in alias_case_family_suffix_names(target_name):
+                named_cases[alias_name] = named_cases[target_name]
         for alias_base in alias_bases:
             named_cases[alias_base] = named_cases[target_name]
-            for suffix in ('-audit', '-regression', '-sample'):
-                named_cases[f'{alias_base}{suffix}'] = named_cases[target_name]
+            for alias_name in alias_case_family_suffix_names(alias_base):
+                if alias_name == target_name:
+                    continue
+                named_cases[alias_name] = named_cases[target_name]
 
     alias_case_family(
         'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date',
