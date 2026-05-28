@@ -25130,8 +25130,75 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
             names.extend(f'{alias_base}{suffix}' for suffix in ('-audit', '-regression', '-sample'))
         return names
 
-    for family_name, target_name, alias_bases, include_target_suffixes in build_stale_date_alias_family_specs():
+    specs = build_stale_date_alias_family_specs()
+    family_names = [family_name for family_name, _, _, _ in specs]
+    target_names = [target_name for _, target_name, _, _ in specs]
+    blank_family_names = [family_name for family_name in family_names if not family_name.strip()]
+    blank_target_names = [target_name for target_name in target_names if not target_name.strip()]
+    duplicate_family_names = [
+        family_name for family_name in unique_case_names(family_names)
+        if family_names.count(family_name) > 1
+    ]
+    duplicate_target_names = [
+        target_name for target_name in unique_case_names(target_names)
+        if target_names.count(target_name) > 1
+    ]
+    flattened_expected_names: list[str] = []
+    expected_name_families: dict[str, list[str]] = {}
+
+    audit_bits.append(
+        f'stale-date alias-family-specs unieke families '
+        f'{len(unique_case_names(family_names))}/{len(family_names)}'
+    )
+    audit_bits.append(
+        f'stale-date alias-family-specs unieke targets '
+        f'{len(unique_case_names(target_names))}/{len(target_names)}'
+    )
+    audit_bits.append(
+        f'stale-date alias-family-specs benoemde families '
+        f'{len(family_names) - len(blank_family_names)}/{len(family_names)}'
+    )
+    audit_bits.append(
+        f'stale-date alias-family-specs benoemde targets '
+        f'{len(target_names) - len(blank_target_names)}/{len(target_names)}'
+    )
+
+    if duplicate_family_names:
+        failures.append(
+            'stale-date alias-family-specs bevat dubbele familienamen: '
+            + ', '.join(duplicate_family_names)
+        )
+    if duplicate_target_names:
+        failures.append(
+            'stale-date alias-family-specs bevat dubbele targetcases: '
+            + ', '.join(duplicate_target_names)
+        )
+    if blank_family_names:
+        failures.append(
+            'stale-date alias-family-specs bevat lege familienamen: '
+            + ', '.join(repr(family_name) for family_name in blank_family_names)
+        )
+    if blank_target_names:
+        failures.append(
+            'stale-date alias-family-specs bevat lege targetcases: '
+            + ', '.join(repr(target_name) for target_name in blank_target_names)
+        )
+
+    for family_name, target_name, alias_bases, include_target_suffixes in specs:
         expected_names = expected_alias_names(target_name, alias_bases, include_target_suffixes)
+        flattened_expected_names.extend(expected_names)
+        for expected_name in unique_case_names(expected_names):
+            expected_name_families.setdefault(expected_name, []).append(family_name)
+        duplicate_alias_bases = [
+            alias_base for alias_base in unique_case_names(alias_bases)
+            if alias_bases.count(alias_base) > 1
+        ]
+        if duplicate_alias_bases:
+            failures.append(
+                f'{family_name} specificeert dubbele alias-bases: ' + ', '.join(duplicate_alias_bases)
+            )
+        if target_name in alias_bases:
+            failures.append(f'{family_name} herhaalt targetcase als alias-base: {target_name}')
         missing_names = [name for name in expected_names if name not in named_cases]
         if missing_names:
             failures.append(f'{family_name} mist aliases: ' + ', '.join(missing_names))
@@ -25146,6 +25213,20 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
                 f'{family_name} verwijst niet overal naar {target_name}: ' + ', '.join(mismatched_names)
             )
         audit_bits.append(f'{family_name}: {len(expected_names)}/{len(expected_names)} aanwezig')
+
+    cross_family_overlapping_expected_names = [
+        name for name, family_names in expected_name_families.items()
+        if len(unique_case_names(family_names)) > 1
+    ]
+    audit_bits.append(
+        f'stale-date alias-family-specs unieke aliassen '
+        f'{len(unique_case_names(flattened_expected_names))}/{len(flattened_expected_names)}'
+    )
+    if cross_family_overlapping_expected_names:
+        failures.append(
+            'stale-date alias-family-specs bevat familie-overlappende aliasnamen: '
+            + ', '.join(cross_family_overlapping_expected_names)
+        )
 
     return build_registry_case_result(
         name='registry-keeps-stale-date-alias-families-registered',
@@ -108974,7 +109055,7 @@ def build_named_case_runners(module, producer_module):
     )
     named_cases['stale-date-alias-family-full-sweep'] = lambda: evaluate_case_batch(
         name='stale-date-alias-family-full-sweep',
-        case_names=STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES,
+        case_names=build_stale_date_alias_family_full_sweep_expected_case_names(),
         named_cases=named_cases,
     )
 
