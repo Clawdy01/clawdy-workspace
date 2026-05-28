@@ -2098,6 +2098,26 @@ DEFAULT_CASES = [
         'expect_source_domain_count': 3,
         'expect_first3_unique_source_url_count': 6,
         'expect_first3_source_domain_count': 3,
+        'expect_top3_missing_multi_domain_source_details': [
+            {
+                'title': 'OpenAI licht nieuwe eval-aanpak toe',
+                'unique_source_domain_count': 1,
+                'source_domains': ['openai.com'],
+                'unique_source_url_count': 2,
+            },
+            {
+                'title': 'GitHub toont nieuwe Copilot-agentflows',
+                'unique_source_domain_count': 1,
+                'source_domains': ['github.com'],
+                'unique_source_url_count': 2,
+            },
+            {
+                'title': 'Anthropic bundelt twee posts over model-evals',
+                'unique_source_domain_count': 1,
+                'source_domains': ['anthropic.com'],
+                'unique_source_url_count': 2,
+            },
+        ],
         'expect_invalid_source_issue_counts': {},
         'expect_exact_field_line_counts': {
             'Titel:': 3,
@@ -12523,6 +12543,14 @@ def collect_audit_expectation_failures(case, audit, failures):
         failures.append(
             'top3_missing_primary_source_examples verwacht '
             f"{case['expect_top3_missing_primary_source_examples']}, kreeg {audit.get('top3_missing_primary_source_examples')}"
+        )
+    if (
+        'expect_top3_missing_multi_domain_source_details' in case
+        and audit.get('top3_missing_multi_domain_source_details') != case['expect_top3_missing_multi_domain_source_details']
+    ):
+        failures.append(
+            'top3_missing_multi_domain_source_details verwacht '
+            f"{case['expect_top3_missing_multi_domain_source_details']}, kreeg {audit.get('top3_missing_multi_domain_source_details')}"
         )
     if (
         'expect_top3_missing_fresh_details' in case

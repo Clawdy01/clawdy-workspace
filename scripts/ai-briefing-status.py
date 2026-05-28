@@ -44,7 +44,7 @@ REQUIRED_PROMPT_MARKERS = [
     'meerdere primaire bronnen',
     'vermijd dubbele items',
     'als meerdere bronnen over dezelfde ontwikkeling gaan, bundel dat tot één item',
-    'Geef bij de belangrijkste items waar mogelijk minstens twee bron-URLs',
+    'minstens twee bron-URLs uit minstens twee verschillende domeinen',
     'uit minstens twee verschillende domeinen',
     'marketing zonder echte verandering',
     'focus op echt nieuwe ontwikkelingen uit de afgelopen 48 uur',
