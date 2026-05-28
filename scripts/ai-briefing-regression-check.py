@@ -26122,6 +26122,22 @@ TRANSITIVE_FULL_SWEEP_META_REGISTRY_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-meta-registry-top3-multi-domain-alias-registry-cases-registered',
 ]
 
+STALE_DATE_ALIAS_FAMILY_META_REGISTRY_CASE_NAMES = [
+    'registry-keeps-transitive-full-sweep-meta-registry-stale-date-alias-family-registry-cases-registered',
+]
+
+TOP3_MULTI_DOMAIN_ALIAS_META_REGISTRY_CASE_NAMES = [
+    'registry-keeps-transitive-full-sweep-meta-registry-top3-multi-domain-alias-registry-cases-registered',
+]
+
+STALE_DATE_ALIAS_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
+    'registry-keeps-stale-date-alias-family-full-sweep-complete',
+]
+
+TOP3_MULTI_DOMAIN_ALIAS_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
+    'registry-keeps-top3-multi-domain-alias-full-sweep-complete',
+]
+
 STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-stale-date-alias-families-registered',
     'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date',
@@ -27120,6 +27136,26 @@ def evaluate_transitive_full_sweep_meta_registry_case_names_derived_case():
     )
 
 
+def evaluate_stale_date_alias_family_meta_registry_case_names_are_in_transitive_full_sweep_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-stale-date-alias-family-meta-registry-cases-covered-by-transitive-full-sweep',
+        subset_case_names=STALE_DATE_ALIAS_FAMILY_META_REGISTRY_CASE_NAMES,
+        superset_case_names=TRANSITIVE_FULL_SWEEP_META_REGISTRY_CASE_NAMES,
+        subset_label='stale-date alias-family meta-registrycases',
+        superset_label='transitieve full-sweep meta-registrycases',
+    )
+
+
+def evaluate_top3_multi_domain_alias_meta_registry_case_names_are_in_transitive_full_sweep_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-top3-multi-domain-alias-meta-registry-cases-covered-by-transitive-full-sweep',
+        subset_case_names=TOP3_MULTI_DOMAIN_ALIAS_META_REGISTRY_CASE_NAMES,
+        superset_case_names=TRANSITIVE_FULL_SWEEP_META_REGISTRY_CASE_NAMES,
+        subset_label='top3 multi-domain alias meta-registrycases',
+        superset_label='transitieve full-sweep meta-registrycases',
+    )
+
+
 def evaluate_transitive_full_sweep_registry_case_name_mappings_by_batch_case():
     return evaluate_registry_case_name_mapping_by_batch_case(
         name='registry-keeps-transitive-full-sweep-registry-case-mappings-align-with-batches',
@@ -27147,6 +27183,26 @@ def evaluate_transitive_full_sweep_registry_case_names_derived_case():
     )
 
 
+def evaluate_stale_date_alias_family_full_sweep_case_names_are_in_transitive_full_sweep_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-stale-date-alias-family-full-sweep-covered-by-transitive-full-sweep',
+        subset_case_names=STALE_DATE_ALIAS_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
+        superset_case_names=TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
+        subset_label='stale-date alias-family full-sweep-registrycases',
+        superset_label='transitieve full-sweep-registrycases',
+    )
+
+
+def evaluate_top3_multi_domain_alias_full_sweep_case_names_are_in_transitive_full_sweep_case():
+    return evaluate_registry_case_list_subset_case(
+        name='registry-keeps-top3-multi-domain-alias-full-sweep-covered-by-transitive-full-sweep',
+        subset_case_names=TOP3_MULTI_DOMAIN_ALIAS_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
+        superset_case_names=TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
+        subset_label='top3 multi-domain alias full-sweep-registrycases',
+        superset_label='transitieve full-sweep-registrycases',
+    )
+
+
 def evaluate_registry_case_list_subset_case(
     *,
     name: str,
@@ -27155,6 +27211,9 @@ def evaluate_registry_case_list_subset_case(
     subset_label: str,
     superset_label: str,
 ):
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    named_case_names = set(build_named_case_runners(module, producer_module).keys())
     unique_subset_case_names = unique_case_names(subset_case_names)
     unique_superset_case_names = unique_case_names(superset_case_names)
     duplicate_subset_case_names = [
@@ -27173,6 +27232,16 @@ def evaluate_registry_case_list_subset_case(
     blank_superset_case_names = [
         case_name for case_name in superset_case_names if not case_name.strip()
     ]
+    missing_subset_registered_case_names = [
+        case_name
+        for case_name in unique_subset_case_names
+        if case_name not in named_case_names
+    ]
+    missing_superset_registered_case_names = [
+        case_name
+        for case_name in unique_superset_case_names
+        if case_name not in named_case_names
+    ]
     missing_from_superset = [
         case_name for case_name in unique_subset_case_names if case_name not in unique_superset_case_names
     ]
@@ -27181,6 +27250,8 @@ def evaluate_registry_case_list_subset_case(
         f'{len(unique_superset_case_names)}/{len(superset_case_names)} {superset_label} uniek',
         f'{len(subset_case_names) - len(blank_subset_case_names)}/{len(subset_case_names)} {subset_label} niet-leeg',
         f'{len(superset_case_names) - len(blank_superset_case_names)}/{len(superset_case_names)} {superset_label} niet-leeg',
+        f'{len(unique_subset_case_names) - len(missing_subset_registered_case_names)}/{len(unique_subset_case_names)} {subset_label} zijn echt geregistreerd',
+        f'{len(unique_superset_case_names) - len(missing_superset_registered_case_names)}/{len(unique_superset_case_names)} {superset_label} zijn echt geregistreerd',
         f'{len(unique_subset_case_names) - len(missing_from_superset)}/{len(unique_subset_case_names)} {subset_label} zitten in {superset_label}',
     ]
     failures = []
@@ -27197,6 +27268,16 @@ def evaluate_registry_case_list_subset_case(
         failures.append(
             f'{superset_label} bevatten lege casenamen: '
             + ', '.join(repr(case_name) for case_name in blank_superset_case_names)
+        )
+    if missing_subset_registered_case_names:
+        failures.append(
+            f'{subset_label} verwijzen naar niet-geregistreerde cases: '
+            + ', '.join(missing_subset_registered_case_names)
+        )
+    if missing_superset_registered_case_names:
+        failures.append(
+            f'{superset_label} verwijzen naar niet-geregistreerde cases: '
+            + ', '.join(missing_superset_registered_case_names)
         )
     if missing_from_superset:
         failures.append(
@@ -109129,6 +109210,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-transitive-full-sweep-meta-registry-cases-derived-from-batches'] = (
         evaluate_transitive_full_sweep_meta_registry_case_names_derived_case
     )
+    named_cases['registry-keeps-stale-date-alias-family-meta-registry-cases-covered-by-transitive-full-sweep'] = (
+        evaluate_stale_date_alias_family_meta_registry_case_names_are_in_transitive_full_sweep_case
+    )
+    named_cases['registry-keeps-top3-multi-domain-alias-meta-registry-cases-covered-by-transitive-full-sweep'] = (
+        evaluate_top3_multi_domain_alias_meta_registry_case_names_are_in_transitive_full_sweep_case
+    )
     named_cases['registry-keeps-transitive-full-sweep-registry-cases-registered'] = (
         evaluate_transitive_full_sweep_registry_cases_registered_case
     )
@@ -109137,6 +109224,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-transitive-full-sweep-registry-cases-derived-from-batches'] = (
         evaluate_transitive_full_sweep_registry_case_names_derived_case
+    )
+    named_cases['registry-keeps-stale-date-alias-family-full-sweep-covered-by-transitive-full-sweep'] = (
+        evaluate_stale_date_alias_family_full_sweep_case_names_are_in_transitive_full_sweep_case
+    )
+    named_cases['registry-keeps-top3-multi-domain-alias-full-sweep-covered-by-transitive-full-sweep'] = (
+        evaluate_top3_multi_domain_alias_full_sweep_case_names_are_in_transitive_full_sweep_case
     )
     named_cases['registry-keeps-transitive-full-sweep-route-family-registry-cases-registered'] = (
         evaluate_transitive_full_sweep_route_family_registry_cases_registered_case
