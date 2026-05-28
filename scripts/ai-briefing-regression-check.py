@@ -25207,7 +25207,7 @@ def build_top3_multi_domain_alias_groups() -> list[tuple[str, str, list[str]]]:
 
 
 def build_top3_multi_domain_alias_full_sweep_expected_case_names() -> list[str]:
-    return [
+    return ['registry-keeps-top3-multi-domain-aliases-registered'] + [
         case_name
         for _, target_name, alias_names in build_top3_multi_domain_alias_groups()
         for case_name in [target_name, *alias_names]
@@ -26120,6 +26120,25 @@ STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES = [
     'top3-open-tooling-release-docs-primary-stale-date-sample',
     'payload-audit-keeps-open-source-stale-date-guardrail',
     'payload-audit-keeps-audio-stale-date-guardrail',
+]
+
+TOP3_MULTI_DOMAIN_ALIAS_FULL_SWEEP_CASE_NAMES = [
+    'registry-keeps-top3-multi-domain-aliases-registered',
+    'top3-same-domain-multi-source-sample',
+    'top3-same-domain-multi-source',
+    'top3-same-domain-multi-source-audit',
+    'top3-same-domain-multi-source-regression',
+    'top3-same-domain-multi-source-regression-sample',
+    'top3-multi-domain-source',
+    'top3-multi-domain-source-audit',
+    'top3-multi-domain-source-regression',
+    'top3-multi-domain-source-regression-sample',
+    'status-summary-audit-cli-keeps-top3-multi-domain-source-audit',
+    'status-summary-audit-cli-keeps-top3-multi-domain-source',
+    'status-summary-audit-cli-keeps-top3-multi-domain-source-regression',
+    'status-summary-audit-cli-keeps-top3-same-domain-multi-source-audit',
+    'status-summary-audit-cli-keeps-top3-same-domain-multi-source',
+    'status-summary-audit-cli-keeps-top3-same-domain-multi-source-regression',
 ]
 
 TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
@@ -27123,7 +27142,7 @@ def evaluate_top3_multi_domain_alias_full_sweep_registry_case():
     return evaluate_registry_case_names_derived_from_mapping_case(
         name='registry-keeps-top3-multi-domain-alias-full-sweep-complete',
         derived_case_names=build_top3_multi_domain_alias_full_sweep_expected_case_names(),
-        expected_case_names=build_top3_multi_domain_alias_full_sweep_expected_case_names(),
+        expected_case_names=TOP3_MULTI_DOMAIN_ALIAS_FULL_SWEEP_CASE_NAMES,
         label='top3 multi-domain alias full-sweepcases',
     )
 
