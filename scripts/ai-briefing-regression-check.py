@@ -26607,6 +26607,40 @@ def evaluate_batch_dependency_transitive_full_sweep_registry_case(
     if required_case_prefixes is not None:
         prefix_tuple = (required_case_prefixes,) if isinstance(required_case_prefixes, str) else required_case_prefixes
 
+    if not full_sweep_batch_name.strip():
+        failures.append(f'{label}-full-sweep batchnaam mag niet leeg zijn')
+    batch_names = list(batch_case_dependencies.keys())
+    unique_batch_names = unique_case_names(batch_names)
+    duplicate_batch_names = [
+        batch_name
+        for batch_name in unique_batch_names
+        if batch_names.count(batch_name) > 1
+    ]
+    blank_batch_names = [
+        batch_name
+        for batch_name in batch_names
+        if not batch_name.strip()
+    ]
+    audit_bits.append(
+        f'{len(unique_batch_names)}/{len(batch_names)} {label}-batchcases uniek benoemd'
+    )
+    audit_bits.append(
+        f'{len(batch_names) - len(blank_batch_names)}/{len(batch_names)} {label}-batchcases niet-leeg benoemd'
+    )
+    if duplicate_batch_names:
+        failures.append(
+            f'{label}-batchcases bevatten dubbele batchnamen: ' + ', '.join(duplicate_batch_names)
+        )
+    if blank_batch_names:
+        failures.append(
+            f'{label}-batchcases bevatten lege batchnamen: '
+            + ', '.join(repr(batch_name) for batch_name in blank_batch_names)
+        )
+    if full_sweep_batch_name not in batch_case_dependencies:
+        failures.append(
+            f'{label}-full-sweep batchcase ontbreekt in batchdependencies: {full_sweep_batch_name!r}'
+        )
+
     for batch_name, child_case_names in batch_case_dependencies.items():
         unique_child_case_names = unique_case_names(child_case_names)
         duplicate_children = [
@@ -26614,7 +26648,18 @@ def evaluate_batch_dependency_transitive_full_sweep_registry_case(
             for case_name in unique_child_case_names
             if child_case_names.count(case_name) > 1
         ]
+        blank_child_case_names = [
+            case_name
+            for case_name in child_case_names
+            if not case_name.strip()
+        ]
         missing_children = [case_name for case_name in unique_child_case_names if case_name not in named_case_names]
+        audit_bits.append(
+            f'{batch_name}: {len(unique_child_case_names)}/{len(child_case_names)} childcases uniek'
+        )
+        audit_bits.append(
+            f'{batch_name}: {len(child_case_names) - len(blank_child_case_names)}/{len(child_case_names)} childcases niet-leeg'
+        )
         audit_bits.append(
             f'{batch_name}: {len(unique_child_case_names) - len(missing_children)}/{len(unique_child_case_names)} unieke children aanwezig'
         )
@@ -26625,6 +26670,11 @@ def evaluate_batch_dependency_transitive_full_sweep_registry_case(
         if duplicate_children:
             failures.append(
                 f'{label}-batchcase {batch_name} bevat dubbele childcases: ' + ', '.join(duplicate_children)
+            )
+        if blank_child_case_names:
+            failures.append(
+                f'{label}-batchcase {batch_name} bevat lege childcases: '
+                + ', '.join(repr(case_name) for case_name in blank_child_case_names)
             )
         if missing_children:
             failures.append(
@@ -26683,20 +26733,64 @@ def evaluate_batch_dependency_transitive_full_sweep_registry_case(
         [full_sweep_batch_name]
         + transitive_case_names_by_batch.get(full_sweep_batch_name, [])
     )
-    if relevant_case_names is None:
+    explicit_relevant_case_names = relevant_case_names
+    if explicit_relevant_case_names is None:
         relevant_case_names = sorted(
             case_name for case_name in named_case_names
             if prefix_tuple is not None and case_name.startswith(prefix_tuple)
         )
+        duplicate_relevant_case_names: list[str] = []
+        blank_relevant_case_names: list[str] = []
     else:
-        relevant_case_names = unique_case_names(relevant_case_names)
+        duplicate_relevant_case_names = [
+            case_name
+            for case_name in unique_case_names(explicit_relevant_case_names)
+            if explicit_relevant_case_names.count(case_name) > 1
+        ]
+        blank_relevant_case_names = [
+            case_name for case_name in explicit_relevant_case_names if not case_name.strip()
+        ]
+        relevant_case_names = unique_case_names(explicit_relevant_case_names)
+    declared_relevant_case_names = set(named_case_names) | set(batch_case_dependencies)
+    unknown_relevant_case_names = [
+        case_name for case_name in relevant_case_names
+        if case_name not in declared_relevant_case_names
+    ]
     missing_from_full_sweep = [
         case_name for case_name in relevant_case_names
         if case_name not in full_sweep_case_names
     ]
     audit_bits.append(
+        f'{len(relevant_case_names) - len(blank_relevant_case_names)}/{len(relevant_case_names) if explicit_relevant_case_names is None else len(explicit_relevant_case_names)} {required_case_prefix_label} niet-leeg relevant'
+    )
+    audit_bits.append(
+        f'{len(relevant_case_names)}/{len(relevant_case_names) if explicit_relevant_case_names is None else len(explicit_relevant_case_names)} {required_case_prefix_label} uniek relevant'
+    )
+    audit_bits.append(
+        f'{len(relevant_case_names) - len(unknown_relevant_case_names)}/{len(relevant_case_names)} {required_case_prefix_label} gedeclareerd'
+    )
+    audit_bits.append(
         f'{full_sweep_batch_name} dekt {len(full_sweep_case_names)}/{len(relevant_case_names)} {required_case_prefix_label} transitief af'
     )
+    if duplicate_relevant_case_names:
+        failures.append(
+            f'{required_case_prefix_label} bevatten dubbele relevante casenamen: '
+            + ', '.join(duplicate_relevant_case_names)
+        )
+    if blank_relevant_case_names:
+        failures.append(
+            f'{required_case_prefix_label} bevatten lege relevante casenamen: '
+            + ', '.join(repr(case_name) for case_name in blank_relevant_case_names)
+        )
+    if not relevant_case_names:
+        failures.append(
+            f'{required_case_prefix_label} leverden geen relevante casenamen op voor {full_sweep_batch_name}'
+        )
+    if unknown_relevant_case_names:
+        failures.append(
+            f'{required_case_prefix_label} bevatten niet-gedeclareerde casenamen: '
+            + ', '.join(unknown_relevant_case_names)
+        )
     if missing_from_full_sweep:
         failures.append(
             f'{full_sweep_batch_name} mist {required_case_prefix_label}: ' + ', '.join(missing_from_full_sweep)
@@ -26756,7 +26850,7 @@ def evaluate_watchdog_alert_proof_target_check_before_deadline_full_sweep_regist
         batch_case_dependencies=WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_BATCH_CASE_DEPENDENCIES,
         full_sweep_batch_name='watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
         required_case_prefix_label='watchdog-alert-proof-target-check-before-deadline-routecases',
-        relevant_case_names=(
+        relevant_case_names=unique_case_names(
             WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_BEFORE_DEADLINE_CASE_NAMES
             + WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_BEFORE_DEADLINE_CASE_NAMES
             + list(WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_BATCH_CASE_DEPENDENCIES.keys())
@@ -26771,7 +26865,7 @@ def evaluate_watchdog_alert_proof_target_check_after_deadline_full_sweep_registr
         batch_case_dependencies=WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_BATCH_CASE_DEPENDENCIES,
         full_sweep_batch_name='watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
         required_case_prefix_label='watchdog-alert-proof-target-check-after-deadline-routecases',
-        relevant_case_names=(
+        relevant_case_names=unique_case_names(
             WATCHDOG_ALERT_PROOF_TARGET_CHECK_CONSUMER_SWEEP_AFTER_DEADLINE_CASE_NAMES
             + WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES
             + list(WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_BATCH_CASE_DEPENDENCIES.keys())
