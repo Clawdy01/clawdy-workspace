@@ -25176,11 +25176,8 @@ def build_stale_date_alias_family_full_sweep_expected_case_names() -> list[str]:
     ]
 
 
-def evaluate_top3_multi_domain_alias_registry_case(named_cases: dict[str, callable]) -> dict:
-    failures: list[str] = []
-    audit_bits: list[str] = []
-
-    alias_groups = [
+def build_top3_multi_domain_alias_groups() -> list[tuple[str, str, list[str]]]:
+    return [
         (
             'top3 multi-domain sample aliases',
             'top3-same-domain-multi-source-sample',
@@ -25208,26 +25205,76 @@ def evaluate_top3_multi_domain_alias_registry_case(named_cases: dict[str, callab
         ),
     ]
 
+
+def build_top3_multi_domain_alias_full_sweep_expected_case_names() -> list[str]:
+    return [
+        case_name
+        for _, target_name, alias_names in build_top3_multi_domain_alias_groups()
+        for case_name in [target_name, *alias_names]
+    ]
+
+
+def evaluate_top3_multi_domain_alias_registry_case(named_cases: dict[str, callable]) -> dict:
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    alias_groups = build_top3_multi_domain_alias_groups()
+
     flattened_expected_aliases: list[str] = []
     alias_group_names = [group_name for group_name, _, _ in alias_groups]
+    target_names = [target_name for _, target_name, _ in alias_groups]
+    blank_group_names = [group_name for group_name in alias_group_names if not group_name.strip()]
+    blank_target_names = [target_name for target_name in target_names if not target_name.strip()]
     duplicate_group_names = [
         group_name for group_name in unique_case_names(alias_group_names)
         if alias_group_names.count(group_name) > 1
     ]
+    duplicate_target_names = [
+        target_name for target_name in unique_case_names(target_names)
+        if target_names.count(target_name) > 1
+    ]
+    if blank_group_names:
+        failures.append(
+            'top3 multi-domain alias-groepen bevatten lege groepsnamen: '
+            + ', '.join(repr(name) for name in blank_group_names)
+        )
+    if blank_target_names:
+        failures.append(
+            'top3 multi-domain alias-groepen bevatten lege targetcases: '
+            + ', '.join(repr(name) for name in blank_target_names)
+        )
     if duplicate_group_names:
         failures.append(
             'top3 multi-domain alias-groepen bevatten dubbele namen: '
             + ', '.join(duplicate_group_names)
         )
+    if duplicate_target_names:
+        failures.append(
+            'top3 multi-domain alias-groepen bevatten dubbele targetcases: '
+            + ', '.join(duplicate_target_names)
+        )
+    audit_bits.append(
+        f'top3 multi-domain alias-groepen unieke groepsnamen '
+        f'{len(unique_case_names(alias_group_names))}/{len(alias_group_names)}'
+    )
+    audit_bits.append(
+        f'top3 multi-domain alias-groepen unieke targetcases '
+        f'{len(unique_case_names(target_names))}/{len(target_names)}'
+    )
 
     for group_name, target_name, alias_names in alias_groups:
         duplicate_alias_names = [
             alias_name for alias_name in unique_case_names(alias_names)
             if alias_names.count(alias_name) > 1
         ]
+        blank_alias_names = [alias_name for alias_name in alias_names if not alias_name.strip()]
         if duplicate_alias_names:
             failures.append(
                 f'{group_name} bevat dubbele aliasnamen: ' + ', '.join(duplicate_alias_names)
+            )
+        if blank_alias_names:
+            failures.append(
+                f'{group_name} bevat lege aliasnamen: ' + ', '.join(repr(name) for name in blank_alias_names)
             )
         if target_name in alias_names:
             failures.append(f'{group_name} herhaalt targetcase als alias: {target_name}')
@@ -26008,6 +26055,7 @@ TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES_BY_BATCH = {
     'proof-recheck-all-routes-full-sweep': 'registry-keeps-proof-recheck-full-sweep-complete',
     'briefing-proof-context-all-routes-full-sweep': 'registry-keeps-briefing-proof-context-full-sweep-complete',
     'stale-date-alias-family-full-sweep': 'registry-keeps-stale-date-alias-family-full-sweep-complete',
+    'top3-multi-domain-alias-full-sweep': 'registry-keeps-top3-multi-domain-alias-full-sweep-complete',
     'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline': (
         'registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete'
     ),
@@ -26079,6 +26127,7 @@ TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
     'registry-keeps-proof-recheck-full-sweep-complete',
     'registry-keeps-briefing-proof-context-full-sweep-complete',
     'registry-keeps-stale-date-alias-family-full-sweep-complete',
+    'registry-keeps-top3-multi-domain-alias-full-sweep-complete',
     'registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete',
     'registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete',
 ]
@@ -26899,6 +26948,7 @@ def evaluate_transitive_full_sweep_registry_case_name_mappings_by_batch_case():
             'proof-recheck-all-routes-full-sweep',
             'briefing-proof-context-all-routes-full-sweep',
             'stale-date-alias-family-full-sweep',
+            'top3-multi-domain-alias-full-sweep',
             'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
             'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
         ],
@@ -27066,6 +27116,15 @@ def evaluate_stale_date_alias_family_full_sweep_registry_case():
         derived_case_names=build_stale_date_alias_family_full_sweep_expected_case_names(),
         expected_case_names=STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES,
         label='stale-date alias-family full-sweepcases',
+    )
+
+
+def evaluate_top3_multi_domain_alias_full_sweep_registry_case():
+    return evaluate_registry_case_names_derived_from_mapping_case(
+        name='registry-keeps-top3-multi-domain-alias-full-sweep-complete',
+        derived_case_names=build_top3_multi_domain_alias_full_sweep_expected_case_names(),
+        expected_case_names=build_top3_multi_domain_alias_full_sweep_expected_case_names(),
+        label='top3 multi-domain alias full-sweepcases',
     )
 
 
@@ -108740,6 +108799,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-stale-date-alias-family-full-sweep-complete'] = (
         evaluate_stale_date_alias_family_full_sweep_registry_case
     )
+    named_cases['registry-keeps-top3-multi-domain-alias-full-sweep-complete'] = (
+        evaluate_top3_multi_domain_alias_full_sweep_registry_case
+    )
     named_cases['registry-keeps-transitive-full-sweep-meta-registry-stale-date-alias-family-registry-cases-registered'] = (
         named_cases['registry-keeps-stale-date-alias-families-registered']
     )
@@ -109269,6 +109331,11 @@ def build_named_case_runners(module, producer_module):
     named_cases['stale-date-alias-family-full-sweep'] = lambda: evaluate_case_batch(
         name='stale-date-alias-family-full-sweep',
         case_names=build_stale_date_alias_family_full_sweep_expected_case_names(),
+        named_cases=named_cases,
+    )
+    named_cases['top3-multi-domain-alias-full-sweep'] = lambda: evaluate_case_batch(
+        name='top3-multi-domain-alias-full-sweep',
+        case_names=build_top3_multi_domain_alias_full_sweep_expected_case_names(),
         named_cases=named_cases,
     )
 
