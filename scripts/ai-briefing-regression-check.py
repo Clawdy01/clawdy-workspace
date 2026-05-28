@@ -26244,7 +26244,7 @@ def evaluate_registry_case_name_mapping_by_batch_case(
 ):
     module = load_status_module()
     producer_module = load_proof_recheck_producer_module()
-    named_case_names = set(build_named_case_runners_without_watchdog_batches(module, producer_module).keys())
+    named_case_names = set(build_named_case_runners(module, producer_module).keys())
     actual_batch_names = list(mapping.keys())
     actual_case_names = list(mapping.values())
     unique_actual_batch_names = unique_case_names(actual_batch_names)
@@ -26274,6 +26274,16 @@ def evaluate_registry_case_name_mapping_by_batch_case(
     unexpected_batch_names = [
         batch_name for batch_name in unique_actual_batch_names if batch_name not in unique_expected_batch_names
     ]
+    missing_expected_registered_batch_names = [
+        batch_name
+        for batch_name in unique_expected_batch_names
+        if batch_name not in named_case_names
+    ]
+    missing_actual_registered_batch_names = [
+        batch_name
+        for batch_name in unique_actual_batch_names
+        if batch_name not in named_case_names
+    ]
     invalid_case_names = [
         case_name
         for case_name in unique_actual_case_names
@@ -26291,6 +26301,8 @@ def evaluate_registry_case_name_mapping_by_batch_case(
         f'{len(expected_batch_names) - len(blank_expected_batch_names)}/{len(expected_batch_names)} verwachte {label} batchkeys benoemd',
         f'{len(unique_expected_batch_names) - len(missing_batch_names)}/{len(unique_expected_batch_names)} verwachte {label} batchkeys aanwezig',
         f'{len(unique_actual_batch_names) - len(unexpected_batch_names)}/{len(unique_actual_batch_names)} {label} batchkeys blijven binnen de verwachte set',
+        f'{len(unique_expected_batch_names) - len(missing_expected_registered_batch_names)}/{len(unique_expected_batch_names)} verwachte {label} batchkeys zijn echt geregistreerd',
+        f'{len(unique_actual_batch_names) - len(missing_actual_registered_batch_names)}/{len(unique_actual_batch_names)} {label} batchkeys zijn echt geregistreerd',
         f'{len(unique_actual_case_names)}/{len(actual_case_names)} {label} registrycasenamen uniek',
         f'{len(actual_case_names) - len(blank_actual_case_names)}/{len(actual_case_names)} {label} registrycasenamen benoemd',
         f'{len(unique_actual_case_names) - len(invalid_case_names)}/{len(unique_actual_case_names)} {label} registrycasenamen volgen de naamvorm',
@@ -26324,6 +26336,16 @@ def evaluate_registry_case_name_mapping_by_batch_case(
         failures.append(f'{label} batchmappings missen verwachte batchkeys: ' + ', '.join(missing_batch_names))
     if unexpected_batch_names:
         failures.append(f'{label} batchmappings bevatten onverwachte batchkeys: ' + ', '.join(unexpected_batch_names))
+    if missing_expected_registered_batch_names:
+        failures.append(
+            f'verwachte {label} batchkeys verwijzen naar niet-geregistreerde batchcases: '
+            + ', '.join(missing_expected_registered_batch_names)
+        )
+    if missing_actual_registered_batch_names:
+        failures.append(
+            f'{label} batchmappings verwijzen naar niet-geregistreerde batchcases: '
+            + ', '.join(missing_actual_registered_batch_names)
+        )
     if invalid_case_names:
         failures.append(f'{label} batchmappings bevatten ongeldige registrycasenamen: ' + ', '.join(invalid_case_names))
     if missing_registered_case_names:
@@ -27123,6 +27145,7 @@ def evaluate_registry_case_names_derived_from_mapping_case(
     derived_case_names: list[str],
     expected_case_names: list[str],
     label: str,
+    required_case_name_suffix: str | None = None,
 ):
     module = load_status_module()
     producer_module = load_proof_recheck_producer_module()
@@ -27145,6 +27168,19 @@ def evaluate_registry_case_names_derived_from_mapping_case(
     blank_derived_case_names = [
         case_name for case_name in derived_case_names if not case_name.strip()
     ]
+    invalid_expected_case_names = []
+    invalid_derived_case_names = []
+    if required_case_name_suffix is not None:
+        invalid_expected_case_names = [
+            case_name
+            for case_name in unique_expected_case_names
+            if not case_name.startswith('registry-keeps-') or not case_name.endswith(required_case_name_suffix)
+        ]
+        invalid_derived_case_names = [
+            case_name
+            for case_name in unique_derived_case_names
+            if not case_name.startswith('registry-keeps-') or not case_name.endswith(required_case_name_suffix)
+        ]
     missing_from_derived = [
         case_name for case_name in unique_expected_case_names if case_name not in unique_derived_case_names
     ]
@@ -27166,6 +27202,8 @@ def evaluate_registry_case_names_derived_from_mapping_case(
         f'{len(unique_derived_case_names)}/{len(derived_case_names)} afgeleide {label} uniek',
         f'{len(expected_case_names) - len(blank_expected_case_names)}/{len(expected_case_names)} verwachte {label} niet-leeg',
         f'{len(derived_case_names) - len(blank_derived_case_names)}/{len(derived_case_names)} afgeleide {label} niet-leeg',
+        f'{len(unique_expected_case_names) - len(invalid_expected_case_names)}/{len(unique_expected_case_names)} verwachte {label} volgen de naamvorm',
+        f'{len(unique_derived_case_names) - len(invalid_derived_case_names)}/{len(unique_derived_case_names)} afgeleide {label} volgen de naamvorm',
         f'{len(unique_expected_case_names) - len(missing_from_derived)}/{len(unique_expected_case_names)} verwachte {label} afgeleid',
         f'{len(unique_derived_case_names) - len(unexpected_in_derived)}/{len(unique_derived_case_names)} afgeleide {label} volgen de verwachte set',
         f'{len(unique_expected_case_names) - len(missing_expected_registered_case_names)}/{len(unique_expected_case_names)} verwachte {label} zijn echt geregistreerd',
@@ -27189,6 +27227,14 @@ def evaluate_registry_case_names_derived_from_mapping_case(
         failures.append(
             f'afgeleide {label} bevatten lege casenamen: '
             + ', '.join(repr(case_name) for case_name in blank_derived_case_names)
+        )
+    if invalid_expected_case_names:
+        failures.append(
+            f'verwachte {label} bevatten ongeldige casenamen: ' + ', '.join(invalid_expected_case_names)
+        )
+    if invalid_derived_case_names:
+        failures.append(
+            f'afgeleide {label} bevatten ongeldige casenamen: ' + ', '.join(invalid_derived_case_names)
         )
     if missing_from_derived:
         failures.append(
@@ -27283,6 +27329,7 @@ def evaluate_proof_recheck_route_family_registry_case_names_derived_case():
         derived_case_names=build_proof_recheck_route_family_registry_case_names(),
         expected_case_names=PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
         label='proof-recheck route-family-registrycases',
+        required_case_name_suffix='-route-families-complete',
     )
 
 
@@ -27292,6 +27339,7 @@ def evaluate_briefing_proof_context_route_family_registry_case_names_derived_cas
         derived_case_names=build_briefing_proof_context_route_family_registry_case_names(),
         expected_case_names=BRIEFING_PROOF_CONTEXT_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
         label='briefing-proof-context route-family-registrycases',
+        required_case_name_suffix='-route-families-complete',
     )
 
 
@@ -27301,6 +27349,7 @@ def evaluate_transitive_full_sweep_route_family_registry_case_names_derived_case
         derived_case_names=build_transitive_full_sweep_route_family_registry_case_names(),
         expected_case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
         label='transitieve full-sweep-route-family-registrycases',
+        required_case_name_suffix='-route-families-complete',
     )
 
 
