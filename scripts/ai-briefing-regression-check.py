@@ -26017,11 +26017,19 @@ def evaluate_registry_case_name_mapping_by_batch_case(
         for batch_name in unique_actual_batch_names
         if actual_batch_names.count(batch_name) > 1
     ]
+    duplicate_expected_batch_names = [
+        batch_name
+        for batch_name in unique_expected_batch_names
+        if expected_batch_names.count(batch_name) > 1
+    ]
     duplicate_case_names = [
         case_name
         for case_name in unique_actual_case_names
         if actual_case_names.count(case_name) > 1
     ]
+    blank_actual_batch_names = [batch_name for batch_name in actual_batch_names if not batch_name.strip()]
+    blank_expected_batch_names = [batch_name for batch_name in expected_batch_names if not batch_name.strip()]
+    blank_actual_case_names = [case_name for case_name in actual_case_names if not case_name.strip()]
     missing_batch_names = [
         batch_name for batch_name in unique_expected_batch_names if batch_name not in unique_actual_batch_names
     ]
@@ -26035,16 +26043,39 @@ def evaluate_registry_case_name_mapping_by_batch_case(
     ]
     audit_bits = [
         f'{len(unique_actual_batch_names)}/{len(actual_batch_names)} {label} batchkeys uniek',
+        f'{len(unique_expected_batch_names)}/{len(expected_batch_names)} verwachte {label} batchkeys uniek',
+        f'{len(actual_batch_names) - len(blank_actual_batch_names)}/{len(actual_batch_names)} {label} batchkeys benoemd',
+        f'{len(expected_batch_names) - len(blank_expected_batch_names)}/{len(expected_batch_names)} verwachte {label} batchkeys benoemd',
         f'{len(unique_expected_batch_names) - len(missing_batch_names)}/{len(unique_expected_batch_names)} verwachte {label} batchkeys aanwezig',
         f'{len(unique_actual_batch_names) - len(unexpected_batch_names)}/{len(unique_actual_batch_names)} {label} batchkeys blijven binnen de verwachte set',
         f'{len(unique_actual_case_names)}/{len(actual_case_names)} {label} registrycasenamen uniek',
+        f'{len(actual_case_names) - len(blank_actual_case_names)}/{len(actual_case_names)} {label} registrycasenamen benoemd',
         f'{len(unique_actual_case_names) - len(invalid_case_names)}/{len(unique_actual_case_names)} {label} registrycasenamen volgen de naamvorm',
     ]
     failures = []
     if duplicate_batch_names:
         failures.append(f'{label} batchmappings bevatten dubbele batchkeys: ' + ', '.join(duplicate_batch_names))
+    if duplicate_expected_batch_names:
+        failures.append(
+            f'verwachte {label} batchkeys bevatten dubbele namen: ' + ', '.join(duplicate_expected_batch_names)
+        )
     if duplicate_case_names:
         failures.append(f'{label} batchmappings bevatten dubbele registrycasenamen: ' + ', '.join(duplicate_case_names))
+    if blank_actual_batch_names:
+        failures.append(
+            f'{label} batchmappings bevatten lege batchkeys: '
+            + ', '.join(repr(batch_name) for batch_name in blank_actual_batch_names)
+        )
+    if blank_expected_batch_names:
+        failures.append(
+            f'verwachte {label} batchkeys bevatten lege namen: '
+            + ', '.join(repr(batch_name) for batch_name in blank_expected_batch_names)
+        )
+    if blank_actual_case_names:
+        failures.append(
+            f'{label} batchmappings bevatten lege registrycasenamen: '
+            + ', '.join(repr(case_name) for case_name in blank_actual_case_names)
+        )
     if missing_batch_names:
         failures.append(f'{label} batchmappings missen verwachte batchkeys: ' + ', '.join(missing_batch_names))
     if unexpected_batch_names:
