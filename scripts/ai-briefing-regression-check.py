@@ -25068,7 +25068,7 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
                 'borealis-open-source-primary-stale-date',
                 'borealis-open-source-stale-date',
             ],
-            False,
+            True,
         ),
         (
             'sample-open-audio-llm-stale-date-family',
@@ -25079,7 +25079,7 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
                 'borealis-open-audio-llm-primary-stale-date',
                 'borealis-open-audio-llm-stale-date',
             ],
-            False,
+            True,
         ),
         (
             'sample-open-audio-llm-model-card-stale-date-family',
@@ -25101,7 +25101,7 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
                 'langgraph-open-tooling-release-docs-primary-stale-date',
                 'langgraph-open-tooling-release-docs-stale-date',
             ],
-            False,
+            True,
         ),
         (
             'payload-open-source-stale-date-guardrail-family',
@@ -106854,6 +106854,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'top3-open-source-stale-date',
         'borealis-open-source-primary-stale-date',
         'borealis-open-source-stale-date',
+        include_target_suffixes=True,
     )
     alias_case_family(
         'top3-open-audio-llm-primary-stale-date-sample',
@@ -106861,6 +106862,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'top3-open-audio-llm-stale-date',
         'borealis-open-audio-llm-primary-stale-date',
         'borealis-open-audio-llm-stale-date',
+        include_target_suffixes=True,
     )
     alias_case_family(
         'top3-open-audio-llm-model-card-primary-stale-date-sample',
@@ -106876,6 +106878,7 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
         'top3-open-tooling-release-docs-stale-date',
         'langgraph-open-tooling-release-docs-primary-stale-date',
         'langgraph-open-tooling-release-docs-stale-date',
+        include_target_suffixes=True,
     )
     status_module = load_status_module()
     named_cases['payload-audit-keeps-open-source-stale-date-guardrail'] = (
