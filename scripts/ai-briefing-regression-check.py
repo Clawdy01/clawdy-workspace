@@ -26447,6 +26447,94 @@ def evaluate_registry_case_name_mapping_by_batch_case(
     )
 
 
+def evaluate_batch_name_list_matches_expected_case(
+    *,
+    name: str,
+    derived_batch_names: list[str],
+    expected_batch_names: list[str],
+    label: str,
+):
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    named_case_names = set(build_named_case_runners(module, producer_module).keys())
+    unique_derived_batch_names = unique_case_names(derived_batch_names)
+    unique_expected_batch_names = unique_case_names(expected_batch_names)
+    duplicate_derived_batch_names = [
+        batch_name
+        for batch_name in unique_derived_batch_names
+        if derived_batch_names.count(batch_name) > 1
+    ]
+    duplicate_expected_batch_names = [
+        batch_name
+        for batch_name in unique_expected_batch_names
+        if expected_batch_names.count(batch_name) > 1
+    ]
+    blank_derived_batch_names = [batch_name for batch_name in derived_batch_names if not batch_name.strip()]
+    blank_expected_batch_names = [batch_name for batch_name in expected_batch_names if not batch_name.strip()]
+    missing_batch_names = [
+        batch_name for batch_name in unique_expected_batch_names if batch_name not in unique_derived_batch_names
+    ]
+    unexpected_batch_names = [
+        batch_name for batch_name in unique_derived_batch_names if batch_name not in unique_expected_batch_names
+    ]
+    missing_expected_registered_batch_names = [
+        batch_name for batch_name in unique_expected_batch_names if batch_name not in named_case_names
+    ]
+    missing_derived_registered_batch_names = [
+        batch_name for batch_name in unique_derived_batch_names if batch_name not in named_case_names
+    ]
+    audit_bits = [
+        f'{len(unique_derived_batch_names)}/{len(derived_batch_names)} afgeleide {label} batchkeys uniek',
+        f'{len(unique_expected_batch_names)}/{len(expected_batch_names)} verwachte {label} batchkeys uniek',
+        f'{len(derived_batch_names) - len(blank_derived_batch_names)}/{len(derived_batch_names)} afgeleide {label} batchkeys benoemd',
+        f'{len(expected_batch_names) - len(blank_expected_batch_names)}/{len(expected_batch_names)} verwachte {label} batchkeys benoemd',
+        f'{len(unique_expected_batch_names) - len(missing_batch_names)}/{len(unique_expected_batch_names)} verwachte {label} batchkeys afgeleid',
+        f'{len(unique_derived_batch_names) - len(unexpected_batch_names)}/{len(unique_derived_batch_names)} afgeleide {label} batchkeys blijven binnen de verwachte set',
+        f'{len(unique_expected_batch_names) - len(missing_expected_registered_batch_names)}/{len(unique_expected_batch_names)} verwachte {label} batchkeys zijn echt geregistreerd',
+        f'{len(unique_derived_batch_names) - len(missing_derived_registered_batch_names)}/{len(unique_derived_batch_names)} afgeleide {label} batchkeys zijn echt geregistreerd',
+    ]
+    failures = []
+    if duplicate_derived_batch_names:
+        failures.append(
+            f'afgeleide {label} batchkeys bevatten dubbele namen: ' + ', '.join(duplicate_derived_batch_names)
+        )
+    if duplicate_expected_batch_names:
+        failures.append(
+            f'verwachte {label} batchkeys bevatten dubbele namen: ' + ', '.join(duplicate_expected_batch_names)
+        )
+    if blank_derived_batch_names:
+        failures.append(
+            f'afgeleide {label} batchkeys bevatten lege namen: '
+            + ', '.join(repr(batch_name) for batch_name in blank_derived_batch_names)
+        )
+    if blank_expected_batch_names:
+        failures.append(
+            f'verwachte {label} batchkeys bevatten lege namen: '
+            + ', '.join(repr(batch_name) for batch_name in blank_expected_batch_names)
+        )
+    if missing_batch_names:
+        failures.append(f'afgeleide {label} batchkeys missen verwachte namen: ' + ', '.join(missing_batch_names))
+    if unexpected_batch_names:
+        failures.append(
+            f'afgeleide {label} batchkeys bevatten onverwachte namen: ' + ', '.join(unexpected_batch_names)
+        )
+    if missing_expected_registered_batch_names:
+        failures.append(
+            f'verwachte {label} batchkeys verwijzen naar niet-geregistreerde batchcases: '
+            + ', '.join(missing_expected_registered_batch_names)
+        )
+    if missing_derived_registered_batch_names:
+        failures.append(
+            f'afgeleide {label} batchkeys verwijzen naar niet-geregistreerde batchcases: '
+            + ', '.join(missing_derived_registered_batch_names)
+        )
+    return build_registry_case_result(
+        name=name,
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
 def evaluate_lowercase_encoded_equals_cluster_registry_case():
     failures = []
     audit_bits: list[str] = []
@@ -27567,6 +27655,18 @@ def evaluate_watchdog_alert_proof_target_check_route_family_registry_case_name_m
     )
 
 
+def evaluate_watchdog_alert_proof_target_check_route_family_batch_case_names_derived_from_before_after_deadline_slices_case():
+    return evaluate_batch_name_list_matches_expected_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-route-family-batchkeys-derived-from-before-after-deadline-slices',
+        derived_batch_names=[
+            *WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_BATCH_CASE_DEPENDENCIES.keys(),
+            *WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_BATCH_CASE_DEPENDENCIES.keys(),
+        ],
+        expected_batch_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_BATCH_CASE_NAMES,
+        label='watchdog-alert proof-target-check route-family',
+    )
+
+
 def evaluate_proof_recheck_route_family_registry_cases_registered_case():
     return evaluate_registry_case_set_registered_case(
         name='registry-keeps-proof-recheck-route-family-registry-cases-registered',
@@ -27621,6 +27721,32 @@ def evaluate_watchdog_alert_proof_target_check_route_family_registry_case_names_
         derived_case_names=list(WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values()),
         expected_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
         label='watchdog-alert proof-target-check route-family-registrycases',
+        required_case_name_suffix='-route-families-complete',
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_route_family_registry_case_names_derived_from_before_after_deadline_slices_case():
+    return evaluate_registry_case_names_derived_from_mapping_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-derived-from-before-after-deadline-slices',
+        derived_case_names=[
+            *WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
+            *WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
+        ],
+        expected_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
+        label='watchdog-alert proof-target-check route-family-registrycases',
+        required_case_name_suffix='-route-families-complete',
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_route_family_transitive_full_sweep_case_names_derived_from_before_after_deadline_slices_case():
+    return evaluate_registry_case_names_derived_from_mapping_case(
+        name='registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-derived-from-before-after-deadline-slices',
+        derived_case_names=[
+            *WATCHDOG_ALERT_PROOF_TARGET_CHECK_BEFORE_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
+            *WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
+        ],
+        expected_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
+        label='watchdog-alert proof-target-check transitive-full-sweep route-family-registrycases',
         required_case_name_suffix='-route-families-complete',
     )
 
@@ -109502,8 +109628,17 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-watchdog-alert-proof-target-check-route-family-registry-case-mappings-align-with-batches'] = (
         evaluate_watchdog_alert_proof_target_check_route_family_registry_case_name_mappings_by_batch_case
     )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-route-family-batchkeys-derived-from-before-after-deadline-slices'] = (
+        evaluate_watchdog_alert_proof_target_check_route_family_batch_case_names_derived_from_before_after_deadline_slices_case
+    )
     named_cases['registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-derived-from-batches'] = (
         evaluate_watchdog_alert_proof_target_check_route_family_registry_case_names_derived_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-derived-from-before-after-deadline-slices'] = (
+        evaluate_watchdog_alert_proof_target_check_route_family_registry_case_names_derived_from_before_after_deadline_slices_case
+    )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-derived-from-before-after-deadline-slices'] = (
+        evaluate_watchdog_alert_proof_target_check_route_family_transitive_full_sweep_case_names_derived_from_before_after_deadline_slices_case
     )
     named_cases['registry-keeps-proof-recheck-route-family-registry-cases-registered'] = (
         evaluate_proof_recheck_route_family_registry_cases_registered_case
