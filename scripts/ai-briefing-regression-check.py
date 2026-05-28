@@ -25005,20 +25005,8 @@ def build_registry_case_result(*, name: str, failures: list[str], audit_bits: li
     }
 
 
-def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callable]) -> dict:
-    failures: list[str] = []
-    audit_bits: list[str] = []
-
-    def expected_alias_names(target_name: str, alias_bases: list[str], include_target_suffixes: bool) -> list[str]:
-        names = [target_name]
-        if include_target_suffixes:
-            names.extend(f'{target_name}{suffix}' for suffix in ('-audit', '-regression', '-sample'))
-        for alias_base in alias_bases:
-            names.append(alias_base)
-            names.extend(f'{alias_base}{suffix}' for suffix in ('-audit', '-regression', '-sample'))
-        return names
-
-    families = [
+def build_stale_date_alias_family_specs() -> list[tuple[str, str, list[str], bool]]:
+    return [
         (
             'status-open-source-stale-date-family',
             'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date',
@@ -25121,7 +25109,28 @@ def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callab
         ),
     ]
 
-    for family_name, target_name, alias_bases, include_target_suffixes in families:
+
+def build_stale_date_alias_family_full_sweep_expected_case_names() -> list[str]:
+    return ['registry-keeps-stale-date-alias-families-registered'] + [
+        target_name
+        for _, target_name, _, _ in build_stale_date_alias_family_specs()
+    ]
+
+
+def evaluate_stale_date_alias_family_registry_case(named_cases: dict[str, callable]) -> dict:
+    failures: list[str] = []
+    audit_bits: list[str] = []
+
+    def expected_alias_names(target_name: str, alias_bases: list[str], include_target_suffixes: bool) -> list[str]:
+        names = [target_name]
+        if include_target_suffixes:
+            names.extend(f'{target_name}{suffix}' for suffix in ('-audit', '-regression', '-sample'))
+        for alias_base in alias_bases:
+            names.append(alias_base)
+            names.extend(f'{alias_base}{suffix}' for suffix in ('-audit', '-regression', '-sample'))
+        return names
+
+    for family_name, target_name, alias_bases, include_target_suffixes in build_stale_date_alias_family_specs():
         expected_names = expected_alias_names(target_name, alias_bases, include_target_suffixes)
         missing_names = [name for name in expected_names if name not in named_cases]
         if missing_names:
@@ -25734,6 +25743,7 @@ TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES_BY_BATCH = {
     'watchdog-all-routes-full-sweep': 'registry-keeps-watchdog-full-sweep-complete',
     'proof-recheck-all-routes-full-sweep': 'registry-keeps-proof-recheck-full-sweep-complete',
     'briefing-proof-context-all-routes-full-sweep': 'registry-keeps-briefing-proof-context-full-sweep-complete',
+    'stale-date-alias-family-full-sweep': 'registry-keeps-stale-date-alias-family-full-sweep-complete',
     'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline': (
         'registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete'
     ),
@@ -25782,10 +25792,25 @@ TRANSITIVE_FULL_SWEEP_META_REGISTRY_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-meta-registry-stale-date-alias-family-registry-cases-registered',
 ]
 
+STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES = [
+    'registry-keeps-stale-date-alias-families-registered',
+    'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date',
+    'status-summary-audit-cli-keeps-top3-open-audio-llm-primary-stale-date',
+    'status-summary-audit-cli-keeps-top3-open-audio-llm-model-card-primary-stale-date',
+    'status-summary-audit-cli-keeps-top3-open-tooling-release-docs-primary-stale-date',
+    'top3-open-source-primary-stale-date-sample',
+    'top3-open-audio-llm-primary-stale-date-sample',
+    'top3-open-audio-llm-model-card-primary-stale-date-sample',
+    'top3-open-tooling-release-docs-primary-stale-date-sample',
+    'payload-audit-keeps-open-source-stale-date-guardrail',
+    'payload-audit-keeps-audio-stale-date-guardrail',
+]
+
 TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
     'registry-keeps-watchdog-full-sweep-complete',
     'registry-keeps-proof-recheck-full-sweep-complete',
     'registry-keeps-briefing-proof-context-full-sweep-complete',
+    'registry-keeps-stale-date-alias-family-full-sweep-complete',
     'registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete',
     'registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete',
 ]
@@ -26573,6 +26598,7 @@ def evaluate_transitive_full_sweep_registry_case_name_mappings_by_batch_case():
             'watchdog-all-routes-full-sweep',
             'proof-recheck-all-routes-full-sweep',
             'briefing-proof-context-all-routes-full-sweep',
+            'stale-date-alias-family-full-sweep',
             'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
             'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
         ],
@@ -26721,6 +26747,15 @@ def evaluate_transitive_full_sweep_route_family_registry_case_names_derived_case
         derived_case_names=build_transitive_full_sweep_route_family_registry_case_names(),
         expected_case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES,
         label='transitieve full-sweep-route-family-registrycases',
+    )
+
+
+def evaluate_stale_date_alias_family_full_sweep_registry_case():
+    return evaluate_registry_case_names_derived_from_mapping_case(
+        name='registry-keeps-stale-date-alias-family-full-sweep-complete',
+        derived_case_names=build_stale_date_alias_family_full_sweep_expected_case_names(),
+        expected_case_names=STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES,
+        label='stale-date alias-family full-sweepcases',
     )
 
 
@@ -108411,6 +108446,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-stale-date-alias-families-registered'] = (
         lambda named_cases=named_cases: evaluate_stale_date_alias_family_registry_case(named_cases)
     )
+    named_cases['registry-keeps-stale-date-alias-family-full-sweep-complete'] = (
+        evaluate_stale_date_alias_family_full_sweep_registry_case
+    )
     named_cases['registry-keeps-transitive-full-sweep-meta-registry-stale-date-alias-family-registry-cases-registered'] = (
         named_cases['registry-keeps-stale-date-alias-families-registered']
     )
@@ -108932,6 +108970,11 @@ def build_named_case_runners(module, producer_module):
     named_cases['briefing-proof-context-all-routes-full-sweep'] = lambda: evaluate_case_batch(
         name='briefing-proof-context-all-routes-full-sweep',
         case_names=BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
+        named_cases=named_cases,
+    )
+    named_cases['stale-date-alias-family-full-sweep'] = lambda: evaluate_case_batch(
+        name='stale-date-alias-family-full-sweep',
+        case_names=STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES,
         named_cases=named_cases,
     )
 
