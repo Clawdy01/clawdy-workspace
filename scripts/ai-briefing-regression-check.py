@@ -25268,6 +25268,8 @@ def evaluate_top3_multi_domain_alias_registry_case(named_cases: dict[str, callab
             if alias_names.count(alias_name) > 1
         ]
         blank_alias_names = [alias_name for alias_name in alias_names if not alias_name.strip()]
+        if not alias_names:
+            failures.append(f'{group_name} bevat geen aliasnamen naast targetcase {target_name}')
         if duplicate_alias_names:
             failures.append(
                 f'{group_name} bevat dubbele aliasnamen: ' + ', '.join(duplicate_alias_names)
@@ -25281,6 +25283,10 @@ def evaluate_top3_multi_domain_alias_registry_case(named_cases: dict[str, callab
         expected_names = [target_name, *alias_names]
         flattened_expected_aliases.extend(expected_names)
         missing_names = [name for name in expected_names if name not in named_cases]
+        audit_bits.append(
+            f'{group_name}: {len(unique_case_names(alias_names))}/{len(alias_names)} aliases uniek en '
+            f'{len(alias_names) - len(blank_alias_names)}/{len(alias_names)} benoemd'
+        )
         if missing_names:
             failures.append(f'{group_name} mist aliases: ' + ', '.join(missing_names))
             audit_bits.append(
@@ -26236,6 +26242,9 @@ def evaluate_registry_case_name_mapping_by_batch_case(
     expected_case_name_suffix: str,
     label: str,
 ):
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    named_case_names = set(build_named_case_runners_without_watchdog_batches(module, producer_module).keys())
     actual_batch_names = list(mapping.keys())
     actual_case_names = list(mapping.values())
     unique_actual_batch_names = unique_case_names(actual_batch_names)
@@ -26270,6 +26279,11 @@ def evaluate_registry_case_name_mapping_by_batch_case(
         for case_name in unique_actual_case_names
         if not case_name.startswith('registry-keeps-') or not case_name.endswith(expected_case_name_suffix)
     ]
+    missing_registered_case_names = [
+        case_name
+        for case_name in unique_actual_case_names
+        if case_name not in named_case_names
+    ]
     audit_bits = [
         f'{len(unique_actual_batch_names)}/{len(actual_batch_names)} {label} batchkeys uniek',
         f'{len(unique_expected_batch_names)}/{len(expected_batch_names)} verwachte {label} batchkeys uniek',
@@ -26280,6 +26294,7 @@ def evaluate_registry_case_name_mapping_by_batch_case(
         f'{len(unique_actual_case_names)}/{len(actual_case_names)} {label} registrycasenamen uniek',
         f'{len(actual_case_names) - len(blank_actual_case_names)}/{len(actual_case_names)} {label} registrycasenamen benoemd',
         f'{len(unique_actual_case_names) - len(invalid_case_names)}/{len(unique_actual_case_names)} {label} registrycasenamen volgen de naamvorm',
+        f'{len(unique_actual_case_names) - len(missing_registered_case_names)}/{len(unique_actual_case_names)} {label} registrycasenamen zijn echt geregistreerd',
     ]
     failures = []
     if duplicate_batch_names:
@@ -26311,6 +26326,11 @@ def evaluate_registry_case_name_mapping_by_batch_case(
         failures.append(f'{label} batchmappings bevatten onverwachte batchkeys: ' + ', '.join(unexpected_batch_names))
     if invalid_case_names:
         failures.append(f'{label} batchmappings bevatten ongeldige registrycasenamen: ' + ', '.join(invalid_case_names))
+    if missing_registered_case_names:
+        failures.append(
+            f'{label} batchmappings verwijzen naar niet-geregistreerde registrycasenamen: '
+            + ', '.join(missing_registered_case_names)
+        )
     return build_registry_case_result(
         name=name,
         failures=failures,
@@ -27104,6 +27124,9 @@ def evaluate_registry_case_names_derived_from_mapping_case(
     expected_case_names: list[str],
     label: str,
 ):
+    module = load_status_module()
+    producer_module = load_proof_recheck_producer_module()
+    named_case_names = set(build_named_case_runners_without_watchdog_batches(module, producer_module).keys())
     unique_expected_case_names = unique_case_names(expected_case_names)
     unique_derived_case_names = unique_case_names(derived_case_names)
     duplicate_expected_case_names = [
@@ -27128,6 +27151,16 @@ def evaluate_registry_case_names_derived_from_mapping_case(
     unexpected_in_derived = [
         case_name for case_name in unique_derived_case_names if case_name not in unique_expected_case_names
     ]
+    missing_expected_registered_case_names = [
+        case_name
+        for case_name in unique_expected_case_names
+        if case_name not in named_case_names
+    ]
+    missing_derived_registered_case_names = [
+        case_name
+        for case_name in unique_derived_case_names
+        if case_name not in named_case_names
+    ]
     audit_bits = [
         f'{len(unique_expected_case_names)}/{len(expected_case_names)} verwachte {label} uniek',
         f'{len(unique_derived_case_names)}/{len(derived_case_names)} afgeleide {label} uniek',
@@ -27135,6 +27168,8 @@ def evaluate_registry_case_names_derived_from_mapping_case(
         f'{len(derived_case_names) - len(blank_derived_case_names)}/{len(derived_case_names)} afgeleide {label} niet-leeg',
         f'{len(unique_expected_case_names) - len(missing_from_derived)}/{len(unique_expected_case_names)} verwachte {label} afgeleid',
         f'{len(unique_derived_case_names) - len(unexpected_in_derived)}/{len(unique_derived_case_names)} afgeleide {label} volgen de verwachte set',
+        f'{len(unique_expected_case_names) - len(missing_expected_registered_case_names)}/{len(unique_expected_case_names)} verwachte {label} zijn echt geregistreerd',
+        f'{len(unique_derived_case_names) - len(missing_derived_registered_case_names)}/{len(unique_derived_case_names)} afgeleide {label} zijn echt geregistreerd',
     ]
     failures = []
     if duplicate_expected_case_names:
@@ -27162,6 +27197,16 @@ def evaluate_registry_case_names_derived_from_mapping_case(
     if unexpected_in_derived:
         failures.append(
             f'afgeleide {label} vallen buiten de verwachte set: ' + ', '.join(unexpected_in_derived)
+        )
+    if missing_expected_registered_case_names:
+        failures.append(
+            f'verwachte {label} verwijzen naar niet-geregistreerde casenamen: '
+            + ', '.join(missing_expected_registered_case_names)
+        )
+    if missing_derived_registered_case_names:
+        failures.append(
+            f'afgeleide {label} verwijzen naar niet-geregistreerde casenamen: '
+            + ', '.join(missing_derived_registered_case_names)
         )
     return build_registry_case_result(
         name=name,
