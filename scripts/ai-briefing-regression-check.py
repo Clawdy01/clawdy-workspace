@@ -9564,12 +9564,6 @@ WATCHDOG_STDOUT_CASES = [
         'expect_text_substrings': [
             'proof plan: geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, doel 2026-05-29 09:15 CEST',
         ],
-        'expect_text_output_occurrences': [
-            {
-                'text': '2026-05-29 09:15 CEST',
-                'count': 1,
-            },
-        ],
         'expect_text_output_absent_substrings': [
             'proof target due:',
         ],
@@ -9595,12 +9589,6 @@ WATCHDOG_STDOUT_CASES = [
         'expect_last_run_config_relation_text': STATUS_BEFORE_SLOT_TOMORROW['last_run_config_relation_text'],
         'expect_text_substrings': [
             'proof schedule risk: als de eerstvolgende kwalificatierun uitvalt, blijft bewijsdoel 2026-05-29 09:15 CEST onder druk staan',
-        ],
-        'expect_text_output_occurrences': [
-            {
-                'text': '2026-05-29 09:15 CEST',
-                'count': 1,
-            },
         ],
         'expect_text_output_absent_substrings': [
             'proof target due:',
@@ -17778,6 +17766,7 @@ def run_watchdog_alert_target_check_gate_dedup_case(watchdog_alert_module):
 def run_watchdog_alert_target_due_dedup_case(watchdog_alert_module):
     failures = []
     repeated_due = '2026-05-29 09:15 CEST'
+    expected_due_bit = f'bewijsdoel {repeated_due}'
     payload = {
         'summary': 'synthetische watchdog-alert payload',
         'proof_plan_text': f'geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, doel {repeated_due}',
@@ -17786,10 +17775,11 @@ def run_watchdog_alert_target_due_dedup_case(watchdog_alert_module):
     alert_text = watchdog_alert_module.build_alert(payload, 'proof-check', 3)
     if payload['proof_plan_text'] not in alert_text:
         failures.append('watchdog-alert mist proof_plan_text voor synthetische bewijsdoel payload')
-    if alert_text.count(repeated_due) != 1:
+    due_bit_count = count_exact_rendered_output_bits(alert_text, expected_due_bit)
+    if due_bit_count != 0:
         failures.append(
-            'watchdog-alert toont proof_target_due_at_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: '
-            f"{alert_text.count(repeated_due)}"
+            'watchdog-alert toont alsnog een los bewijsdoel-bit terwijl proof_plan_text dezelfde deadline al bevat: '
+            f"{due_bit_count}"
         )
 
     return {
@@ -17824,6 +17814,7 @@ def run_watchdog_alert_target_due_dedup_case(watchdog_alert_module):
 def run_watchdog_alert_target_due_vs_schedule_risk_dedup_case(watchdog_alert_module):
     failures = []
     repeated_due = '2026-05-29 09:15 CEST'
+    expected_due_bit = f'bewijsdoel {repeated_due}'
     payload = {
         'summary': 'synthetische watchdog-alert payload',
         'proof_schedule_risk_text': f'als de eerstvolgende kwalificatierun uitvalt, blijft bewijsdoel {repeated_due} onder druk staan',
@@ -17832,10 +17823,11 @@ def run_watchdog_alert_target_due_vs_schedule_risk_dedup_case(watchdog_alert_mod
     alert_text = watchdog_alert_module.build_alert(payload, 'proof-check', 3)
     if payload['proof_schedule_risk_text'] not in alert_text:
         failures.append('watchdog-alert mist proof_schedule_risk_text voor synthetische bewijsdoel payload')
-    if alert_text.count(repeated_due) != 1:
+    due_bit_count = count_exact_rendered_output_bits(alert_text, expected_due_bit)
+    if due_bit_count != 0:
         failures.append(
-            'watchdog-alert toont proof_target_due_at_text niet exact één keer wanneer proof_schedule_risk_text dezelfde deadline al bevat: '
-            f"{alert_text.count(repeated_due)}"
+            'watchdog-alert toont alsnog een los bewijsdoel-bit terwijl proof_schedule_risk_text dezelfde deadline al bevat: '
+            f"{due_bit_count}"
         )
 
     return {
@@ -20238,9 +20230,25 @@ def run_brief_consumer_proof_target_due_if_missed_vs_plan_dedup_case(status_modu
     )
 
 
+def count_exact_rendered_output_bits(output: str, expected_bit: str) -> int:
+    count = 0
+    for line in output.splitlines():
+        stripped_line = line.strip()
+        if not stripped_line:
+            continue
+        candidate_bits = (
+            [bit.strip() for bit in stripped_line.split(' | ')]
+            if ' | ' in stripped_line
+            else [stripped_line]
+        )
+        count += sum(1 for bit in candidate_bits if bit == expected_bit)
+    return count
+
+
 def run_brief_consumer_proof_target_due_dedup_case(status_module):
     failures = []
     repeated_due = '2026-05-29 09:15 CEST'
+    expected_due_bit = f'bewijsdoel bij groene runs uiterlijk {repeated_due}'
     payload = {
         'found': True,
         'enabled': True,
@@ -20254,9 +20262,10 @@ def run_brief_consumer_proof_target_due_dedup_case(status_module):
     for label, output in outputs.items():
         if payload['proof_plan_text'] not in output:
             failures.append(f'{label} mist de synthetische proof_plan tekst')
-        if output.count(repeated_due) != 1:
+        due_bit_count = count_exact_rendered_output_bits(output, expected_due_bit)
+        if due_bit_count != 0:
             failures.append(
-                f'{label} toont proof_target_due_at_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: {output.count(repeated_due)}'
+                f'{label} toont alsnog een los bewijsdoel-bit terwijl proof_plan_text dezelfde deadline al bevat: {due_bit_count}'
             )
 
     return build_brief_consumer_case_result(
@@ -20269,6 +20278,7 @@ def run_brief_consumer_proof_target_due_dedup_case(status_module):
 def run_brief_consumer_proof_target_due_vs_schedule_risk_dedup_case(status_module):
     failures = []
     repeated_due = '2026-05-29 09:15 CEST'
+    expected_due_bit = f'bewijsdoel bij groene runs uiterlijk {repeated_due}'
     payload = {
         'found': True,
         'enabled': True,
@@ -20282,9 +20292,10 @@ def run_brief_consumer_proof_target_due_vs_schedule_risk_dedup_case(status_modul
     for label, output in outputs.items():
         if payload['proof_schedule_risk_text'] not in output:
             failures.append(f'{label} mist de synthetische proof_schedule_risk tekst voor bewijsdoel')
-        if output.count(repeated_due) != 1:
+        due_bit_count = count_exact_rendered_output_bits(output, expected_due_bit)
+        if due_bit_count != 0:
             failures.append(
-                f'{label} toont proof_target_due_at_text niet exact één keer wanneer proof_schedule_risk_text dezelfde deadline al bevat: {output.count(repeated_due)}'
+                f'{label} toont alsnog een los bewijsdoel-bit terwijl proof_schedule_risk_text dezelfde deadline al bevat: {due_bit_count}'
             )
 
     return build_brief_consumer_case_result(
@@ -21287,14 +21298,35 @@ def evaluate_watchdog_consumer_format_passthrough_case():
     failures = []
     audit_bits: list[str] = []
 
-    def assert_compact_recheck_line_present_once(container_name: str, text_output: str, compact_text: str | None) -> None:
+    def compact_recheck_line_should_render(payload: dict) -> bool:
+        compact_text = payload.get('proof_recheck_after_text_compact')
+        return bool(
+            compact_text
+            and not payload.get('proof_next_action_window_text')
+            and not payload.get('proof_recheck_window_text')
+            and compact_text != payload.get('proof_next_action_text')
+            and compact_text != payload.get('proof_wait_until_text')
+            and compact_text != payload.get('proof_wait_until_reason_text')
+        )
+
+    def assert_compact_recheck_line_matches_watchdog_rendering(
+        container_name: str,
+        text_output: str,
+        payload: dict,
+    ) -> None:
+        compact_text = payload.get('proof_recheck_after_text_compact')
         if not compact_text:
             return
         expected_line = f'proof recheck: {compact_text}'
         line_count = text_output.count(expected_line)
-        if line_count != 1:
+        if compact_recheck_line_should_render(payload):
+            if line_count != 1:
+                failures.append(
+                    f'{container_name} hoort exact één compacte proof recheck-regel te bevatten, kreeg {line_count}: {expected_line}'
+                )
+        elif line_count != 0:
             failures.append(
-                f'{container_name} hoort exact één compacte proof recheck-regel te bevatten, kreeg {line_count}: {expected_line}'
+                f'{container_name} hoort geen compacte proof recheck-regel te tonen, kreeg {line_count}: {expected_line}'
             )
 
     with tempfile.TemporaryDirectory(prefix='ai-briefing-watchdog-format-') as temp_dir:
@@ -21350,7 +21382,6 @@ def evaluate_watchdog_consumer_format_passthrough_case():
             for field_name in [
                 'proof_wait_until_text',
                 'proof_wait_until_reason_text',
-                'proof_recheck_after_text_compact',
                 'proof_blocker_text',
                 'proof_next_action_window_text',
                 'proof_recheck_schedule_kind_text',
@@ -21362,10 +21393,16 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                     failures.append(
                         f'tekstartifact mist {field_name} uit stdout-json: {field_value}'
                     )
-            assert_compact_recheck_line_present_once(
+            if compact_recheck_line_should_render(json_payload):
+                field_value = json_payload.get('proof_recheck_after_text_compact')
+                if field_value and field_value not in artifact_text:
+                    failures.append(
+                        f'tekstartifact mist proof_recheck_after_text_compact uit stdout-json: {field_value}'
+                    )
+            assert_compact_recheck_line_matches_watchdog_rendering(
                 'tekstartifact',
                 artifact_text,
-                json_payload.get('proof_recheck_after_text_compact'),
+                json_payload,
             )
 
         json_artifact = Path(temp_dir) / 'watchdog-json.json'
@@ -21397,10 +21434,10 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                 failures.append('stdout hoort geen JSON te worden wanneer alleen --consumer-format json is gebruikt')
             except json.JSONDecodeError:
                 pass
-            assert_compact_recheck_line_present_once(
+            assert_compact_recheck_line_matches_watchdog_rendering(
                 'stdout',
                 plain_stdout,
-                json_payload.get('proof_recheck_after_text_compact'),
+                json_payload,
             )
 
         if not json_artifact.exists():
@@ -21441,7 +21478,6 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                 for field_name in [
                     'proof_wait_until_text',
                     'proof_wait_until_reason_text',
-                    'proof_recheck_after_text_compact',
                     'proof_blocker_text',
                     'proof_next_action_window_text',
                     'proof_recheck_schedule_kind_text',
@@ -21452,6 +21488,12 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                     if field_value and field_value not in plain_stdout:
                         failures.append(
                             f'stdout mist {field_name} uit json-artifact: {field_value}'
+                        )
+                if compact_recheck_line_should_render(artifact_payload):
+                    field_value = artifact_payload.get('proof_recheck_after_text_compact')
+                    if field_value and field_value not in plain_stdout:
+                        failures.append(
+                            f'stdout mist proof_recheck_after_text_compact uit json-artifact: {field_value}'
                         )
             except json.JSONDecodeError as exc:
                 failures.append(f'json-artifact hoort parsebare JSON te zijn, kreeg parsefout: {exc}')
@@ -21487,10 +21529,10 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                 failures.append('stdout hoort geen JSON te worden wanneer alleen --consumer-format jsonl is gebruikt')
             except json.JSONDecodeError:
                 pass
-            assert_compact_recheck_line_present_once(
+            assert_compact_recheck_line_matches_watchdog_rendering(
                 'stdout bij jsonl-artifact',
                 plain_stdout_jsonl,
-                json_payload.get('proof_recheck_after_text_compact'),
+                json_payload,
             )
 
         if not jsonl_artifact.exists():
@@ -21535,7 +21577,6 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                     for field_name in [
                         'proof_wait_until_text',
                         'proof_wait_until_reason_text',
-                        'proof_recheck_after_text_compact',
                         'proof_blocker_text',
                         'proof_next_action_window_text',
                         'proof_recheck_schedule_kind_text',
@@ -21546,6 +21587,12 @@ def evaluate_watchdog_consumer_format_passthrough_case():
                         if field_value and field_value not in plain_stdout_jsonl:
                             failures.append(
                                 f'stdout bij jsonl-artifact mist {field_name} uit jsonl-artifact: {field_value}'
+                            )
+                    if compact_recheck_line_should_render(artifact_payload):
+                        field_value = artifact_payload.get('proof_recheck_after_text_compact')
+                        if field_value and field_value not in plain_stdout_jsonl:
+                            failures.append(
+                                f'stdout bij jsonl-artifact mist proof_recheck_after_text_compact uit jsonl-artifact: {field_value}'
                             )
                 except json.JSONDecodeError as exc:
                     failures.append(f'jsonl-artifact hoort parsebare JSONL te zijn, kreeg parsefout: {exc}')

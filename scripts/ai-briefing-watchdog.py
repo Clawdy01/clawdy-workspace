@@ -442,6 +442,40 @@ def render_top3_missing_fresh_detail(detail: dict) -> str | None:
     return f"{title} ({'; '.join(qualifiers)})"
 
 
+def render_top3_missing_multi_domain_detail(detail: dict) -> str | None:
+    if not isinstance(detail, dict):
+        return None
+    title = detail.get('title') or 'onbekend'
+    domain_count = detail.get('unique_source_domain_count')
+    url_count = detail.get('unique_source_url_count')
+    domains = [str(domain).strip() for domain in (detail.get('source_domains') or []) if str(domain).strip()]
+    primary_domain_count = detail.get('primary_source_domain_count')
+    primary_domains = [str(domain).strip() for domain in (detail.get('primary_source_domains') or []) if str(domain).strip()]
+    primary_family_count = detail.get('primary_source_family_count')
+    primary_families = [str(family).strip() for family in (detail.get('primary_source_families') or []) if str(family).strip()]
+    primary_family_text = str(detail.get('primary_source_family_text') or '').strip()
+    qualifiers = []
+    if domain_count is not None:
+        qualifiers.append(f'{domain_count} domein')
+    if url_count is not None:
+        qualifiers.append(f'{url_count} url')
+    if domains:
+        qualifiers.append('/'.join(domains))
+    if primary_domain_count is not None:
+        qualifiers.append(f'primaire domeinen {primary_domain_count}')
+    if primary_domains:
+        qualifiers.append('primair ' + '/'.join(primary_domains))
+    if primary_family_count is not None:
+        qualifiers.append(f'primaire families {primary_family_count}')
+    if primary_family_text:
+        qualifiers.append('familie ' + primary_family_text)
+    elif primary_families:
+        qualifiers.append('families ' + '/'.join(primary_families))
+    if not qualifiers:
+        return title
+    return f"{title} ({'; '.join(qualifiers)})"
+
+
 def summarize_output_examples(status: dict) -> list[str]:
     summary_output_audit = ((status.get('last_run_summary') or {}).get('summary_output_audit') or {})
     if not summary_output_audit.get('available'):
@@ -461,6 +495,18 @@ def summarize_output_examples(status: dict) -> list[str]:
     top3_missing_multi_domain_source_examples = summary_output_audit.get('top3_missing_multi_domain_source_examples') or []
     if top3_missing_multi_domain_source_examples:
         examples.append('top3 zonder multi-domein bronregel: ' + ', '.join(top3_missing_multi_domain_source_examples[:3]))
+    top3_missing_multi_domain_source_details = summary_output_audit.get('top3_missing_multi_domain_source_details') or []
+    if top3_missing_multi_domain_source_details:
+        rendered = ', '.join(
+            rendered_detail
+            for rendered_detail in (
+                render_top3_missing_multi_domain_detail(detail)
+                for detail in top3_missing_multi_domain_source_details[:3]
+            )
+            if rendered_detail
+        )
+        if rendered:
+            examples.append('top3 multi-domein details: ' + rendered)
 
     top3_missing_multi_source_examples = summary_output_audit.get('top3_missing_multi_source_examples') or []
     if top3_missing_multi_source_examples:
