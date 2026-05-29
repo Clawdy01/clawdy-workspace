@@ -26095,6 +26095,14 @@ WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'watchdog-proof-context-all-routes',
     'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
     'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
+    'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
+    'registry-keeps-watchdog-consumer-sweep-all-routes-route-families-complete',
+    'registry-keeps-watchdog-alert-consumer-sweep-all-routes-route-families-complete',
+    'registry-keeps-watchdog-proof-context-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
 ]
 
 
@@ -26130,6 +26138,30 @@ WATCHDOG_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'watchdog-alert-proof-target-check-after-deadline': [
         'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
+    ],
+    'watchdog-consumer-format-family-check': [
+        'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
+    ],
+    'watchdog-consumer-sweep-family-check': [
+        'registry-keeps-watchdog-consumer-sweep-all-routes-route-families-complete',
+    ],
+    'watchdog-alert-consumer-sweep-family-check': [
+        'registry-keeps-watchdog-alert-consumer-sweep-all-routes-route-families-complete',
+    ],
+    'watchdog-proof-context-family-check': [
+        'registry-keeps-watchdog-proof-context-route-families-complete',
+    ],
+    'watchdog-alert-proof-target-check-consumer-sweep-before-deadline-family-check': [
+        'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline-route-families-complete',
+    ],
+    'watchdog-alert-proof-target-check-consumer-sweep-after-deadline-family-check': [
+        'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline-route-families-complete',
+    ],
+    'watchdog-alert-proof-target-check-all-routes-before-deadline-family-check': [
+        'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
+    ],
+    'watchdog-alert-proof-target-check-all-routes-after-deadline-family-check': [
+        'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
     ],
 }
 
@@ -26653,6 +26685,21 @@ TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'briefing-proof-context-route-family-registry-full-sweep',
     'watchdog-alert-proof-target-check-route-family-registry-full-sweep',
     'watchdog-alert-proof-target-check-route-family-transitive-full-sweep-full-sweep',
+    'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
+    'registry-keeps-watchdog-consumer-sweep-all-routes-route-families-complete',
+    'registry-keeps-watchdog-alert-consumer-sweep-all-routes-route-families-complete',
+    'registry-keeps-watchdog-proof-context-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline-route-families-complete',
+    'registry-keeps-watchdog-full-sweep-route-families-complete',
+    'registry-keeps-proof-recheck-proof-context-route-families-complete',
+    'registry-keeps-proof-recheck-consumer-format-passthrough-all-routes-route-families-complete',
+    'registry-keeps-proof-recheck-full-sweep-route-families-complete',
+    'registry-keeps-status-proof-context-route-families-complete',
+    'registry-keeps-brief-consumer-proof-context-route-families-complete',
+    'registry-keeps-briefing-proof-context-full-sweep-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
     'registry-keeps-watchdog-route-family-registry-full-sweep-complete',
     'registry-keeps-proof-recheck-route-family-registry-full-sweep-complete',
     'registry-keeps-briefing-proof-context-route-family-registry-full-sweep-complete',
