@@ -26388,6 +26388,24 @@ TRANSITIVE_FULL_SWEEP_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-registry-full-sweep-complete',
 ]
 
+TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES = [
+    'watchdog-all-routes-full-sweep',
+    'proof-recheck-all-routes-full-sweep',
+    'briefing-proof-context-all-routes-full-sweep',
+    'stale-date-alias-family-full-sweep',
+    'top3-multi-domain-alias-full-sweep',
+    'watchdog-alert-proof-target-check-full-sweep',
+    'watchdog-route-family-registry-full-sweep',
+    'proof-recheck-route-family-registry-full-sweep',
+    'briefing-proof-context-route-family-registry-full-sweep',
+    'watchdog-alert-proof-target-check-route-family-registry-full-sweep',
+    'watchdog-alert-proof-target-check-route-family-transitive-full-sweep-full-sweep',
+    'transitive-full-sweep-route-family-registry-full-sweep',
+    'transitive-full-sweep-registry-full-sweep',
+    'transitive-full-sweep-meta-registry-full-sweep',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
+]
+
 TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_CASE_NAMES = [
     'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
     'registry-keeps-watchdog-consumer-sweep-all-routes-route-families-complete',
@@ -27396,6 +27414,21 @@ def evaluate_transitive_full_sweep_registry_full_sweep_registry_case():
         full_sweep_batch_name='transitive-full-sweep-registry-full-sweep',
         required_case_prefix_label='transitive-full-sweep-registry-full-sweep-cases',
         relevant_case_names=TRANSITIVE_FULL_SWEEP_REGISTRY_FULL_SWEEP_CASE_NAMES,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_full_sweep_registry_case():
+    return evaluate_batch_dependency_transitive_full_sweep_registry_case(
+        registry_name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
+        label='transitive-full-sweep-end-to-end-full-sweep',
+        batch_case_dependencies={
+            'transitive-full-sweep-end-to-end-full-sweep': (
+                TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES
+            ),
+        },
+        full_sweep_batch_name='transitive-full-sweep-end-to-end-full-sweep',
+        required_case_prefix_label='transitive-full-sweep-end-to-end-full-sweep-cases',
+        relevant_case_names=TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES,
     )
 
 
@@ -110131,6 +110164,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-transitive-full-sweep-registry-full-sweep-complete'] = (
         evaluate_transitive_full_sweep_registry_full_sweep_registry_case
     )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete'] = (
+        evaluate_transitive_full_sweep_end_to_end_full_sweep_registry_case
+    )
     named_cases['registry-keeps-transitive-full-sweep-meta-registry-stale-date-alias-family-registry-cases-registered'] = (
         named_cases['registry-keeps-stale-date-alias-families-registered']
     )
@@ -110735,6 +110771,11 @@ def build_named_case_runners(module, producer_module):
     named_cases['transitive-full-sweep-route-family-registry-full-sweep'] = lambda: evaluate_case_batch(
         name='transitive-full-sweep-route-family-registry-full-sweep',
         case_names=TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES,
+        named_cases=named_cases,
+    )
+    named_cases['transitive-full-sweep-end-to-end-full-sweep'] = lambda: evaluate_case_batch(
+        name='transitive-full-sweep-end-to-end-full-sweep',
+        case_names=TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES,
         named_cases=named_cases,
     )
 
