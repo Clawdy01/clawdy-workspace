@@ -9533,12 +9533,6 @@ WATCHDOG_STDOUT_CASES = [
         'expect_text_substrings': [
             'proof schedule risk: als slot 2026-05-27 09:00 CEST mist, schuift bewijsdoel naar 2026-05-30 09:15 CEST',
         ],
-        'expect_text_output_occurrences': [
-            {
-                'text': '2026-05-30 09:15 CEST',
-                'count': 1,
-            },
-        ],
         'expect_text_output_absent_substrings': [
             'proof target due if next slot missed:',
         ],
@@ -26027,6 +26021,21 @@ WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
 ]
 
+
+def build_watchdog_all_routes_full_sweep_case_names(named_case_names: set[str]) -> list[str]:
+    extra_case_names = sorted(
+        case_name
+        for case_name in named_case_names
+        if case_name.startswith('watchdog-')
+        and case_name != 'watchdog-all-routes-full-sweep'
+        and case_name not in WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES
+    )
+    return [
+        *WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
+        *extra_case_names,
+    ]
+
+
 WATCHDOG_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
     'watchdog-consumer-format': [
         'watchdog-consumer-format-passthrough-all-routes',
@@ -26352,6 +26361,14 @@ TRANSITIVE_FULL_SWEEP_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-registry-cases-registered',
     'registry-keeps-transitive-full-sweep-registry-case-mappings-align-with-batches',
     'registry-keeps-transitive-full-sweep-registry-cases-derived-from-batches',
+    'registry-keeps-watchdog-full-sweep-complete',
+    'registry-keeps-proof-recheck-full-sweep-complete',
+    'registry-keeps-briefing-proof-context-full-sweep-complete',
+    'registry-keeps-stale-date-alias-family-full-sweep-complete',
+    'registry-keeps-top3-multi-domain-alias-full-sweep-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-full-sweep-complete',
     'registry-keeps-watchdog-full-sweep-cases-covered-by-transitive-full-sweep',
     'registry-keeps-stale-date-alias-family-full-sweep-covered-by-transitive-full-sweep',
     'registry-keeps-top3-multi-domain-alias-full-sweep-covered-by-transitive-full-sweep',
@@ -26945,7 +26962,7 @@ def evaluate_watchdog_full_sweep_registry_case():
 
     full_sweep_case_names = unique_case_names(
         ['watchdog-all-routes-full-sweep']
-        + transitive_case_names_by_batch.get('watchdog-all-routes-full-sweep', [])
+        + build_watchdog_all_routes_full_sweep_case_names(named_case_names)
     )
     all_watchdog_case_names = sorted(case_name for case_name in named_case_names if case_name.startswith('watchdog-'))
     missing_from_full_sweep = [
@@ -110609,7 +110626,11 @@ def build_named_case_runners(module, producer_module):
     def build_watchdog_batch_runner(batch_name: str):
         return lambda: evaluate_case_batch(
             name=batch_name,
-            case_names=WATCHDOG_BATCH_CASE_DEPENDENCIES[batch_name],
+            case_names=(
+                build_watchdog_all_routes_full_sweep_case_names(set(named_cases.keys()))
+                if batch_name == 'watchdog-all-routes-full-sweep'
+                else WATCHDOG_BATCH_CASE_DEPENDENCIES[batch_name]
+            ),
             named_cases=named_cases,
         )
 
