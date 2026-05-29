@@ -603,11 +603,11 @@
   "consumer_effective_outputs_status_text": "consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via written)",
   "consumer_outputs_status_kind": "ok",
   "consumer_outputs_status_text": "consumer-output-audit ok (2/2 gevraagde artifacts geschreven)",
-  "generated_at": "2026-05-29T21:35:58.223916+00:00",
-  "generated_at_text": "2026-05-29 23:35:58 CEST",
-  "started_at": "2026-05-29T21:35:58.089908+00:00",
-  "started_at_text": "2026-05-29 23:35:58 CEST",
-  "duration_ms": 134,
-  "duration_seconds": 0.134,
-  "duration_text": "0.134s"
+  "generated_at": "2026-05-29T22:30:07.337489+00:00",
+  "generated_at_text": "2026-05-30 00:30:07 CEST",
+  "started_at": "2026-05-29T22:30:07.204258+00:00",
+  "started_at_text": "2026-05-30 00:30:07 CEST",
+  "duration_ms": 133,
+  "duration_seconds": 0.133,
+  "duration_text": "0.133s"
 }

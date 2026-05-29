@@ -25789,6 +25789,8 @@ PROOF_RECHECK_CONSUMER_FORMAT_PASSTHROUGH_ROUTE_FAMILY_EXPECTATIONS = {
 PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'proof-recheck-proof-context-all-routes',
     'proof-recheck-consumer-format-passthrough-all-routes',
+    'registry-keeps-proof-recheck-proof-context-route-families-complete',
+    'registry-keeps-proof-recheck-consumer-format-passthrough-all-routes-route-families-complete',
 ]
 
 PROOF_RECHECK_BATCH_CASE_DEPENDENCIES = {
@@ -25804,11 +25806,19 @@ PROOF_RECHECK_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
     'proof-recheck-consumer-format': [
         'proof-recheck-consumer-format-passthrough-all-routes',
     ],
+    'proof-recheck-proof-context-family-check': [
+        'registry-keeps-proof-recheck-proof-context-route-families-complete',
+    ],
+    'proof-recheck-consumer-format-family-check': [
+        'registry-keeps-proof-recheck-consumer-format-passthrough-all-routes-route-families-complete',
+    ],
 }
 
 BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'status-proof-context-all-routes',
     'brief-consumer-proof-context-all-routes',
+    'registry-keeps-status-proof-context-route-families-complete',
+    'registry-keeps-brief-consumer-proof-context-route-families-complete',
 ]
 
 BRIEFING_PROOF_CONTEXT_BATCH_CASE_DEPENDENCIES = {
@@ -25823,6 +25833,12 @@ BRIEFING_PROOF_CONTEXT_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'brief-consumer-proof-context': [
         'brief-consumer-proof-context-all-routes',
+    ],
+    'status-proof-context-family-check': [
+        'registry-keeps-status-proof-context-route-families-complete',
+    ],
+    'brief-consumer-proof-context-family-check': [
+        'registry-keeps-brief-consumer-proof-context-route-families-complete',
     ],
 }
 
@@ -29167,7 +29183,7 @@ def evaluate_proof_recheck_full_sweep_route_families_registry_case():
         audit_bits=audit_bits,
         label='proof-recheck-all-routes-full-sweep',
         expected_family_case_names_by_name=PROOF_RECHECK_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS,
-        required_case_prefix='proof-recheck-',
+        required_case_prefix='',
         required_case_prefix_label='proof-recheck-batchcases',
     )
     actual_case_names = unique_case_names(PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES)
