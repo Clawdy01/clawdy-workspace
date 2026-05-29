@@ -18955,6 +18955,59 @@ def run_watchdog_producer_quiet_missed_target_due_dedup_case(producer_module):
     }
 
 
+def run_watchdog_producer_quiet_missed_target_due_vs_plan_dedup_case(producer_module):
+    failures = []
+    repeated_due = '2026-05-30 09:15 CEST'
+    payload = {
+        'summary': 'synthetische watchdog-producer payload',
+        'proof_plan_text': f'geen kwalificerende runs meer vandaag, eerstvolgende slot 2026-05-27 09:00 CEST, mist volgend slot => {repeated_due}',
+        'proof_target_due_at_if_next_slot_missed_text': repeated_due,
+    }
+    quiet_summary = producer_module.build_quiet_summary(
+        json.dumps(payload, ensure_ascii=False),
+        '',
+        2,
+    )
+    if not quiet_summary:
+        failures.append('watchdog-producer build_quiet_summary gaf geen quiet-summary terug voor synthetische gemist-slot-bewijsdoel payload met proof_plan_text')
+        quiet_summary = ''
+    if payload['proof_plan_text'] not in quiet_summary:
+        failures.append('watchdog-producer quiet-summary mist proof_plan_text voor synthetische gemist-slot-bewijsdoel payload')
+    if quiet_summary.count(repeated_due) != 1:
+        failures.append(
+            'watchdog-producer quiet-summary toont proof_target_due_at_if_next_slot_missed_text niet exact één keer wanneer proof_plan_text dezelfde deadline al bevat: '
+            f"{quiet_summary.count(repeated_due)}"
+        )
+
+    return {
+        'name': 'watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text',
+        'path': str(WATCHDOG_PRODUCER_SCRIPT),
+        'ok': not failures,
+        'failures': failures,
+        'audit_ok': not failures,
+        'audit_text': quiet_summary,
+        'item_count': None,
+        'items_with_source_count': None,
+        'items_with_valid_source_line_count': None,
+        'items_with_invalid_source_line_count': None,
+        'first3_items_with_source_count': None,
+        'first3_items_with_valid_source_line_count': None,
+        'first3_items_with_multiple_sources_count': None,
+        'first3_items_with_primary_source_count': None,
+        'first3_primary_source_family_count': None,
+        'first3_primary_fresh_item_count': None,
+        'explicit_dated_item_count': None,
+        'explicit_recent_dated_first3_count': None,
+        'explicit_fresh_dated_first3_count': None,
+        'future_dated_item_count': None,
+        'invalid_source_line_issue_counts': None,
+        'exact_field_line_counts': None,
+        'items_with_exact_field_order_count': None,
+        'items_with_field_order_mismatch_count': None,
+        'numbered_title_heading_count': None,
+    }
+
+
 def run_watchdog_producer_quiet_target_due_dedup_case(producer_module):
     failures = []
     repeated_due = '2026-05-29 09:15 CEST'
@@ -25868,6 +25921,7 @@ WATCHDOG_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'watchdog-producer-quiet-deduplicates-proof-target-due-at-text-against-proof-schedule-risk-text',
     'watchdog-producer-quiet-deduplicates-proof-target-check-gate-text',
     'watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+    'watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text',
     'watchdog-producer-quiet-deduplicates-proof-today-block-text',
     'watchdog-producer-proof-board-before-slot-keeps-proof-recheck-cronstatus',
     'watchdog-producer-proof-board-open-window-keeps-proof-recheck-cronstatus',
@@ -25909,6 +25963,7 @@ WATCHDOG_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
         'watchdog-producer-quiet-deduplicates-proof-target-due-at-text-against-proof-schedule-risk-text',
         'watchdog-producer-quiet-deduplicates-proof-target-check-gate-text',
         'watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text',
+        'watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text',
         'watchdog-producer-quiet-deduplicates-proof-today-block-text',
     ],
     'watchdog-producer-proof-board': [
@@ -26546,6 +26601,12 @@ WATCHDOG_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-watchdog-route-family-registry-cases-registered',
     'registry-keeps-watchdog-route-family-registry-case-mappings-align-with-batches',
     'registry-keeps-watchdog-route-family-registry-cases-derived-from-batches',
+    'watchdog-consumer-format-passthrough-all-routes',
+    'watchdog-consumer-sweep-all-routes',
+    'watchdog-alert-consumer-sweep-all-routes',
+    'watchdog-proof-context-all-routes',
+    'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
     'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
     'registry-keeps-watchdog-consumer-sweep-all-routes-route-families-complete',
     'registry-keeps-watchdog-alert-consumer-sweep-all-routes-route-families-complete',
@@ -26594,6 +26655,9 @@ PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-proof-recheck-route-family-registry-cases-registered',
     'registry-keeps-proof-recheck-route-family-registry-case-mappings-align-with-batches',
     'registry-keeps-proof-recheck-route-family-registry-cases-derived-from-batches',
+    'proof-recheck-proof-context-all-routes',
+    'proof-recheck-consumer-format-passthrough-all-routes',
+    'proof-recheck-all-routes-full-sweep',
     'registry-keeps-proof-recheck-proof-context-route-families-complete',
     'registry-keeps-proof-recheck-consumer-format-passthrough-all-routes-route-families-complete',
     'registry-keeps-proof-recheck-full-sweep-route-families-complete',
@@ -26611,6 +26675,9 @@ BRIEFING_PROOF_CONTEXT_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-briefing-proof-context-route-family-registry-cases-registered',
     'registry-keeps-briefing-proof-context-route-family-registry-case-mappings-align-with-batches',
     'registry-keeps-briefing-proof-context-route-family-registry-cases-derived-from-batches',
+    'status-proof-context-all-routes',
+    'brief-consumer-proof-context-all-routes',
+    'briefing-proof-context-all-routes-full-sweep',
     'registry-keeps-status-proof-context-route-families-complete',
     'registry-keeps-brief-consumer-proof-context-route-families-complete',
     'registry-keeps-briefing-proof-context-full-sweep-route-families-complete',
@@ -108824,6 +108891,15 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['watchdog-producer-quiet-deduplicate-proof-target-due-at-if-next-slot-missed-text'] = (
         named_cases['watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text']
+    )
+    named_cases['watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text'] = (
+        lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_missed_target_due_vs_plan_dedup_case(producer_module)
+    )
+    named_cases['watchdog-producer-quiet-deduplicate-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text'] = (
+        named_cases['watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text']
+    )
+    named_cases['watchdog-producer-quiet-missed-target-due-vs-plan-dedup'] = (
+        named_cases['watchdog-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text-against-proof-plan-text']
     )
     named_cases['watchdog-producer-quiet-deduplicates-proof-target-due-at-text'] = (
         lambda producer_module=watchdog_producer_module: run_watchdog_producer_quiet_target_due_dedup_case(producer_module)
