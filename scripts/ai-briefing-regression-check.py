@@ -26185,6 +26185,8 @@ TRANSITIVE_FULL_SWEEP_META_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-meta-registry-cases-derived-from-batches',
     'registry-keeps-stale-date-alias-family-meta-registry-cases-covered-by-transitive-full-sweep',
     'registry-keeps-top3-multi-domain-alias-meta-registry-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-transitive-full-sweep-registry-full-sweep-complete',
+    'registry-keeps-transitive-full-sweep-route-family-registry-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-meta-registry-full-sweep-complete',
 ]
 
@@ -26410,6 +26412,10 @@ TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-watchdog-route-family-registry-cases-covered-by-transitive-full-sweep',
     'registry-keeps-proof-recheck-route-family-registry-cases-covered-by-transitive-full-sweep',
     'registry-keeps-briefing-proof-context-route-family-registry-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-route-family-registry-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-route-family-registry-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-watchdog-alert-proof-target-check-before-deadline-route-family-registry-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-watchdog-alert-proof-target-check-after-deadline-route-family-registry-cases-covered-by-transitive-full-sweep',
     'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-covered-by-transitive-full-sweep',
     'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-covered-by-transitive-full-sweep',
     'registry-keeps-watchdog-route-family-registry-full-sweep-complete',
