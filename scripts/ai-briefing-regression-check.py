@@ -25583,6 +25583,7 @@ PROOF_RECHECK_PROOF_CONTEXT_ALL_ROUTE_CASE_NAMES = [
     'proof-recheck-producer-quiet-deduplicates-proof-target-due-at-if-next-slot-missed-text',
     'proof-recheck-producer-quiet-deduplicates-proof-target-check-gate-text',
     'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text',
+    'proof-recheck-producer-quiet-deduplicates-proof-today-block-text',
 ]
 
 PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
@@ -25640,6 +25641,9 @@ PROOF_RECHECK_PROOF_CONTEXT_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'proof-recheck-producer-schedule-dedup': [
         'proof-recheck-producer-quiet-deduplicates-proof-recheck-schedule-text',
+    ],
+    'proof-recheck-producer-today-block-dedup': [
+        'proof-recheck-producer-quiet-deduplicates-proof-today-block-text',
     ],
 }
 
@@ -26292,6 +26296,10 @@ WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_FULL_SWEEP_
     'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-registered',
     'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-derived-from-batches',
     'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-derived-from-before-after-deadline-slices',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-route-family-registry-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-route-family-registry-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-watchdog-alert-proof-target-check-before-deadline-route-family-registry-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-watchdog-alert-proof-target-check-after-deadline-route-family-registry-cases-covered-by-transitive-full-sweep',
     'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-covered-by-transitive-full-sweep',
     'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-covered-by-watchdog-alert-route-family-registry',
     'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-full-sweep-complete',
