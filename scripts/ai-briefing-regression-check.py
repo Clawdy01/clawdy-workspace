@@ -26201,6 +26201,23 @@ WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_CASE_NAMES = [
     *WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES,
 ]
 
+WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-registered',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-case-mappings-align-with-batches',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-batchkeys-derived-from-before-after-deadline-slices',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-batchkeys-covered-by-watchdog-route-family-batches',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-derived-from-batches',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-derived-from-before-after-deadline-slices',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-registered',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-derived-from-batches',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-derived-from-before-after-deadline-slices',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-covered-by-transitive-full-sweep',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-cases-covered-by-watchdog-route-family-registry',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-cases-covered-by-watchdog-alert-route-family-registry',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-full-sweep-complete',
+]
+
 STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-stale-date-alias-families-registered',
     'status-summary-audit-cli-keeps-top3-open-source-primary-stale-date',
@@ -27087,6 +27104,21 @@ def evaluate_watchdog_alert_proof_target_check_after_deadline_full_sweep_registr
             + WATCHDOG_ALERT_PROOF_TARGET_CHECK_ALL_ROUTES_AFTER_DEADLINE_CASE_NAMES
             + list(WATCHDOG_ALERT_PROOF_TARGET_CHECK_AFTER_DEADLINE_BATCH_CASE_DEPENDENCIES.keys())
         ),
+    )
+
+
+def evaluate_watchdog_alert_proof_target_check_route_family_registry_full_sweep_registry_case():
+    return evaluate_batch_dependency_transitive_full_sweep_registry_case(
+        registry_name='registry-keeps-watchdog-alert-proof-target-check-route-family-registry-full-sweep-complete',
+        label='watchdog-alert-proof-target-check-route-family-registry-full-sweep',
+        batch_case_dependencies={
+            'watchdog-alert-proof-target-check-route-family-registry-full-sweep': (
+                WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES
+            ),
+        },
+        full_sweep_batch_name='watchdog-alert-proof-target-check-route-family-registry-full-sweep',
+        required_case_prefix_label='watchdog-alert-proof-target-check-route-family-registry-full-sweep-cases',
+        relevant_case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES,
     )
 
 
@@ -109794,6 +109826,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete'] = (
         evaluate_watchdog_alert_proof_target_check_after_deadline_full_sweep_registry_case
     )
+    named_cases['registry-keeps-watchdog-alert-proof-target-check-route-family-registry-full-sweep-complete'] = (
+        evaluate_watchdog_alert_proof_target_check_route_family_registry_full_sweep_registry_case
+    )
     named_cases['registry-keeps-proof-recheck-proof-context-route-families-complete'] = (
         lambda: evaluate_proof_recheck_proof_context_route_families_registry_case()
     )
@@ -110304,6 +110339,11 @@ def build_named_case_runners(module, producer_module):
     named_cases['top3-multi-domain-alias-full-sweep'] = lambda: evaluate_case_batch(
         name='top3-multi-domain-alias-full-sweep',
         case_names=build_top3_multi_domain_alias_full_sweep_expected_case_names(),
+        named_cases=named_cases,
+    )
+    named_cases['watchdog-alert-proof-target-check-route-family-registry-full-sweep'] = lambda: evaluate_case_batch(
+        name='watchdog-alert-proof-target-check-route-family-registry-full-sweep',
+        case_names=WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES,
         named_cases=named_cases,
     )
 
