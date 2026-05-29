@@ -26315,8 +26315,12 @@ WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = 
 ]
 
 WATCHDOG_ALERT_PROOF_TARGET_CHECK_FULL_SWEEP_FULL_SWEEP_CASE_NAMES = [
+    'watchdog-alert-proof-target-check-route-family-registry-full-sweep',
+    'watchdog-alert-proof-target-check-route-family-transitive-full-sweep-full-sweep',
     'registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete',
     'registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-full-sweep-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-route-family-transitive-full-sweep-full-sweep-complete',
     'registry-keeps-watchdog-alert-proof-target-check-full-sweep-cases-covered-by-transitive-full-sweep',
     'registry-keeps-watchdog-alert-proof-target-check-full-sweep-complete',
 ]
@@ -26534,6 +26538,14 @@ WATCHDOG_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-watchdog-route-family-registry-cases-registered',
     'registry-keeps-watchdog-route-family-registry-case-mappings-align-with-batches',
     'registry-keeps-watchdog-route-family-registry-cases-derived-from-batches',
+    'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
+    'registry-keeps-watchdog-consumer-sweep-all-routes-route-families-complete',
+    'registry-keeps-watchdog-alert-consumer-sweep-all-routes-route-families-complete',
+    'registry-keeps-watchdog-proof-context-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
+    'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
     'registry-keeps-watchdog-route-family-registry-cases-covered-by-transitive-full-sweep',
     'registry-keeps-watchdog-route-family-registry-full-sweep-complete',
 ]
@@ -26574,6 +26586,9 @@ PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-proof-recheck-route-family-registry-cases-registered',
     'registry-keeps-proof-recheck-route-family-registry-case-mappings-align-with-batches',
     'registry-keeps-proof-recheck-route-family-registry-cases-derived-from-batches',
+    'registry-keeps-proof-recheck-proof-context-route-families-complete',
+    'registry-keeps-proof-recheck-consumer-format-passthrough-all-routes-route-families-complete',
+    'registry-keeps-proof-recheck-full-sweep-route-families-complete',
     'registry-keeps-proof-recheck-route-family-registry-cases-covered-by-transitive-full-sweep',
     'registry-keeps-proof-recheck-route-family-registry-full-sweep-complete',
 ]
@@ -26588,6 +26603,9 @@ BRIEFING_PROOF_CONTEXT_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-briefing-proof-context-route-family-registry-cases-registered',
     'registry-keeps-briefing-proof-context-route-family-registry-case-mappings-align-with-batches',
     'registry-keeps-briefing-proof-context-route-family-registry-cases-derived-from-batches',
+    'registry-keeps-status-proof-context-route-families-complete',
+    'registry-keeps-brief-consumer-proof-context-route-families-complete',
+    'registry-keeps-briefing-proof-context-full-sweep-route-families-complete',
     'registry-keeps-briefing-proof-context-route-family-registry-cases-covered-by-transitive-full-sweep',
     'registry-keeps-briefing-proof-context-route-family-registry-full-sweep-complete',
 ]
