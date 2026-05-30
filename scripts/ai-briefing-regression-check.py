@@ -26444,6 +26444,10 @@ WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = 
 WATCHDOG_ALERT_PROOF_TARGET_CHECK_FULL_SWEEP_FULL_SWEEP_CASE_NAMES = [
     'watchdog-alert-proof-target-check-route-family-registry-full-sweep',
     'watchdog-alert-proof-target-check-route-family-transitive-full-sweep-full-sweep',
+    'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
+    'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
     'registry-keeps-watchdog-alert-proof-target-check-before-deadline-full-sweep-complete',
     'registry-keeps-watchdog-alert-proof-target-check-after-deadline-full-sweep-complete',
     'registry-keeps-watchdog-alert-proof-target-check-route-family-registry-full-sweep-complete',
