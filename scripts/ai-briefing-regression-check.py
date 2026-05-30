@@ -26747,6 +26747,7 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-unique-by-batch',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-terminal-within-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-covered-by-cases-derived-from-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-end-to-end-full-sweep',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps',
@@ -26969,6 +26970,7 @@ def build_transitive_full_sweep_end_to_end_full_sweep_expected_case_names() -> l
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-unique-by-batch',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps',
+            'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-terminal-within-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-covered-by-cases-derived-from-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-end-to-end-full-sweep',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps',
@@ -29080,6 +29082,46 @@ def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case
         audit_bits.append(f'{batch_name} bevat mapped complete-anker {anchor_case_name} in de eigen component full-sweep')
     return build_registry_case_result(
         name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_terminal_within_component_full_sweeps_case():
+    component_case_names_by_batch = build_transitive_full_sweep_end_to_end_component_full_sweep_case_names_by_batch()
+    failures = []
+    audit_bits = []
+    for batch_name, anchor_case_name in (
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_FULL_SWEEP_COMPLETE_CASE_NAMES_BY_BATCH.items()
+    ):
+        component_case_names = component_case_names_by_batch.get(batch_name)
+        if component_case_names is None:
+            failures.append(
+                f'{batch_name} mist in de component full-sweep-caselijst maar heeft wel complete-anker {anchor_case_name}'
+            )
+            continue
+        if not component_case_names:
+            failures.append(f'{batch_name} heeft een lege component full-sweep-caselijst')
+            continue
+        if not anchor_case_name.strip():
+            failures.append(f'{batch_name} heeft leeg component full-sweep complete-anker')
+            continue
+        if anchor_case_name not in component_case_names:
+            failures.append(
+                f'{batch_name} mist zijn mapped complete-anker {anchor_case_name} in de eigen component full-sweep'
+            )
+            continue
+        terminal_case_name = component_case_names[-1]
+        if terminal_case_name != anchor_case_name:
+            failures.append(
+                f'{batch_name} eindigt op {terminal_case_name} in plaats van op mapped complete-anker {anchor_case_name}'
+            )
+            continue
+        audit_bits.append(
+            f'{batch_name} eindigt op mapped complete-anker {anchor_case_name} binnen de eigen component full-sweep'
+        )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-terminal-within-component-full-sweeps',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -111019,6 +111061,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps'] = (
         evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_aligned_with_component_full_sweeps_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-terminal-within-component-full-sweeps'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_terminal_within_component_full_sweeps_case
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-covered-by-cases-derived-from-component-full-sweeps'] = (
         evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_covered_by_derived_cases_case
