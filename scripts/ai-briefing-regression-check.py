@@ -26093,6 +26093,8 @@ WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'watchdog-consumer-sweep-all-routes',
     'watchdog-alert-consumer-sweep-all-routes',
     'watchdog-proof-context-all-routes',
+    'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
     'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
     'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
     'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
@@ -26132,6 +26134,12 @@ WATCHDOG_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS = {
     ],
     'watchdog-proof-context': [
         'watchdog-proof-context-all-routes',
+    ],
+    'watchdog-alert-proof-target-check-consumer-sweep-before-deadline': [
+        'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
+    ],
+    'watchdog-alert-proof-target-check-consumer-sweep-after-deadline': [
+        'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
     ],
     'watchdog-alert-proof-target-check-before-deadline': [
         'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
@@ -26558,6 +26566,8 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES = [
     'watchdog-consumer-sweep-all-routes',
     'watchdog-alert-consumer-sweep-all-routes',
     'watchdog-proof-context-all-routes',
+    'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
     'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
     'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
     'proof-recheck-proof-context-all-routes',
@@ -26683,6 +26693,8 @@ WATCHDOG_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES = [
     'watchdog-consumer-sweep-all-routes',
     'watchdog-alert-consumer-sweep-all-routes',
     'watchdog-proof-context-all-routes',
+    'watchdog-alert-proof-target-check-consumer-sweep-keeps-no-reply-before-deadline',
+    'watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline',
     'watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline',
     'watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline',
     'registry-keeps-watchdog-consumer-format-passthrough-all-routes-route-families-complete',
@@ -28872,6 +28884,8 @@ def evaluate_watchdog_full_sweep_route_families_registry_case():
         audit_bits=audit_bits,
         label='watchdog-all-routes-full-sweep',
         expected_family_case_names_by_name=WATCHDOG_FULL_SWEEP_ROUTE_FAMILY_EXPECTATIONS,
+        required_case_prefix='',
+        required_case_prefix_label='watchdog-batchcases',
     )
     actual_case_names = unique_case_names(WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES)
     expected_case_names = unique_case_names([
