@@ -26748,6 +26748,7 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-covered-by-cases-derived-from-component-full-sweeps',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-end-to-end-full-sweep',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-order-aligned-with-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
@@ -26969,6 +26970,7 @@ def build_transitive_full_sweep_end_to_end_full_sweep_expected_case_names() -> l
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-covered-by-cases-derived-from-component-full-sweeps',
+            'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-end-to-end-full-sweep',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-order-aligned-with-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
@@ -28894,6 +28896,12 @@ def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case
     unexpected_component_full_sweeps_in_mapping = [
         case_name for case_name in derived_component_full_sweeps if case_name not in expected_component_full_sweeps
     ]
+    missing_registered_expected_component_full_sweeps = [
+        case_name for case_name in unique_case_names(expected_component_full_sweeps) if case_name not in named_case_names
+    ]
+    missing_registered_mapped_component_full_sweeps = [
+        case_name for case_name in unique_case_names(derived_component_full_sweeps) if case_name not in named_case_names
+    ]
     complete_anchor_case_names = build_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names()
     unique_complete_anchor_case_names = unique_case_names(complete_anchor_case_names)
     duplicate_complete_anchor_case_names = [
@@ -28915,6 +28923,8 @@ def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case
     ]
     audit_bits = [
         f'{len(derived_component_full_sweeps) - len(component_full_sweeps_missing_from_mapping)}/{len(expected_component_full_sweeps)} component-full-sweeps hebben een complete-anker',
+        f'{len(unique_case_names(expected_component_full_sweeps)) - len(missing_registered_expected_component_full_sweeps)}/{len(unique_case_names(expected_component_full_sweeps))} verwachte component-full-sweeps zijn echt geregistreerd',
+        f'{len(unique_case_names(derived_component_full_sweeps)) - len(missing_registered_mapped_component_full_sweeps)}/{len(unique_case_names(derived_component_full_sweeps))} gemapte component-full-sweeps zijn echt geregistreerd',
         f'{len(unique_complete_anchor_case_names)}/{len(complete_anchor_case_names)} component full-sweep complete-ankers uniek',
         f'{len(complete_anchor_case_names) - len(blank_complete_anchor_case_names)}/{len(complete_anchor_case_names)} component full-sweep complete-ankers benoemd',
         f'{len(unique_complete_anchor_case_names) - len(non_complete_anchor_case_names)}/{len(unique_complete_anchor_case_names)} component full-sweep complete-ankers eindigen op -complete',
@@ -28931,6 +28941,16 @@ def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case
         failures.append(
             'complete-ankermapping bevat onverwachte component full-sweeps: '
             + ', '.join(unexpected_component_full_sweeps_in_mapping)
+        )
+    if missing_registered_expected_component_full_sweeps:
+        failures.append(
+            'verwachte component full-sweeps verwijzen naar niet-geregistreerde batchcases: '
+            + ', '.join(missing_registered_expected_component_full_sweeps)
+        )
+    if missing_registered_mapped_component_full_sweeps:
+        failures.append(
+            'component full-sweep complete-ankermapping verwijst naar niet-geregistreerde batchcases: '
+            + ', '.join(missing_registered_mapped_component_full_sweeps)
         )
     if duplicate_complete_anchor_case_names:
         failures.append(
@@ -29072,6 +29092,58 @@ def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case
         superset_case_names=build_transitive_full_sweep_end_to_end_full_sweep_expected_case_names(),
         subset_label='transitieve full-sweep end-to-end component full-sweep complete-ankers',
         superset_label='transitieve full-sweep end-to-end component-afgeleide full-sweepcases',
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_order_aligned_with_end_to_end_full_sweep_case():
+    expected_anchor_case_name_set = set(
+        build_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names()
+    )
+    expected_anchor_case_names = [
+        case_name
+        for case_name in build_transitive_full_sweep_end_to_end_full_sweep_expected_case_names()
+        if case_name in expected_anchor_case_name_set
+    ]
+    actual_anchor_case_names = [
+        case_name
+        for case_name in TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES
+        if case_name in expected_anchor_case_name_set
+    ]
+    first_mismatch_index = next(
+        (
+            index
+            for index, (expected_case_name, actual_case_name) in enumerate(
+                zip(expected_anchor_case_names, actual_anchor_case_names),
+                start=1,
+            )
+            if expected_case_name != actual_case_name
+        ),
+        None,
+    )
+    failures = []
+    audit_bits = [
+        f'{len(actual_anchor_case_names)}/{len(expected_anchor_case_names)} component full-sweep complete-ankers behouden hun relatieve volgorde in de end-to-end full-sweep'
+    ]
+    if len(actual_anchor_case_names) != len(expected_anchor_case_names):
+        failures.append(
+            'end-to-end full-sweep bevat een andere component full-sweep complete-ankerset dan verwacht: '
+            f'{len(actual_anchor_case_names)} != {len(expected_anchor_case_names)}'
+        )
+    if first_mismatch_index is not None:
+        failures.append(
+            'component full-sweep complete-ankervolgorde wijkt in de end-to-end full-sweep af op positie '
+            f'{first_mismatch_index}: verwacht '
+            f'{expected_anchor_case_names[first_mismatch_index - 1]} maar kreeg '
+            f'{actual_anchor_case_names[first_mismatch_index - 1]}'
+        )
+    if not failures:
+        audit_bits.append(
+            'component full-sweep complete-ankers behouden exact dezelfde volgorde in de end-to-end full-sweep'
+        )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-end-to-end-full-sweep',
+        failures=failures,
+        audit_bits=audit_bits,
     )
 
 
@@ -110950,6 +111022,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-covered-by-cases-derived-from-component-full-sweeps'] = (
         evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_covered_by_derived_cases_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-end-to-end-full-sweep'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_order_aligned_with_end_to_end_full_sweep_case
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps'] = (
         evaluate_transitive_full_sweep_end_to_end_full_sweep_case_names_derived_from_component_full_sweeps_case
