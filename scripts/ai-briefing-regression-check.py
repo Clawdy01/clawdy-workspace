@@ -26651,6 +26651,8 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_FULL_SWEEP_CA
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-end-to-end-full-sweep',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-order-aligned-with-component-full-sweeps',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep',
+    'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
 ]
 
@@ -26660,6 +26662,7 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_CLUSTER_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-contiguous-block-in-end-to-end-full-sweep',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-start-block-in-end-to-end-full-sweep',
     *TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_FULL_SWEEP_CASE_NAMES,
+    'registry-keeps-transitive-full-sweep-end-to-end-component-cluster-full-sweep-complete',
 ]
 
 TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES = [
@@ -26788,7 +26791,10 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-end-to-end-full-sweep',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-order-aligned-with-component-full-sweeps',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep',
+    'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
+    'registry-keeps-transitive-full-sweep-end-to-end-component-cluster-full-sweep-complete',
 ]
 
 
@@ -27029,7 +27035,10 @@ def build_transitive_full_sweep_end_to_end_full_sweep_expected_case_names() -> l
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-end-to-end-full-sweep',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-order-aligned-with-component-full-sweeps',
+            'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep',
+            'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
+            'registry-keeps-transitive-full-sweep-end-to-end-component-cluster-full-sweep-complete',
         ]
     )
 
@@ -27942,6 +27951,36 @@ def evaluate_transitive_full_sweep_end_to_end_full_sweep_registry_case():
         full_sweep_batch_name='transitive-full-sweep-end-to-end-full-sweep',
         required_case_prefix_label='transitive-full-sweep-end-to-end-full-sweep-cases',
         relevant_case_names=TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_full_sweep_registry_case():
+    return evaluate_batch_dependency_transitive_full_sweep_registry_case(
+        registry_name='registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete',
+        label='transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep',
+        batch_case_dependencies={
+            'transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep': (
+                TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_FULL_SWEEP_CASE_NAMES
+            ),
+        },
+        full_sweep_batch_name='transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep',
+        required_case_prefix_label='transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-cases',
+        relevant_case_names=TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_FULL_SWEEP_CASE_NAMES,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_cluster_full_sweep_registry_case():
+    return evaluate_batch_dependency_transitive_full_sweep_registry_case(
+        registry_name='registry-keeps-transitive-full-sweep-end-to-end-component-cluster-full-sweep-complete',
+        label='transitive-full-sweep-end-to-end-component-cluster-full-sweep',
+        batch_case_dependencies={
+            'transitive-full-sweep-end-to-end-component-cluster-full-sweep': (
+                TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_CLUSTER_FULL_SWEEP_CASE_NAMES
+            ),
+        },
+        full_sweep_batch_name='transitive-full-sweep-end-to-end-component-cluster-full-sweep',
+        required_case_prefix_label='transitive-full-sweep-end-to-end-component-cluster-full-sweep-cases',
+        relevant_case_names=TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_CLUSTER_FULL_SWEEP_CASE_NAMES,
     )
 
 
@@ -29331,6 +29370,51 @@ def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case
         )
     return build_registry_case_result(
         name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-after-all-component-full-sweeps-in-end-to-end-full-sweep',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_cluster_case_names_occupy_end_block_in_end_to_end_full_sweep_case():
+    end_to_end_case_names = TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES
+    expected_component_cluster_case_names = (
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_CLUSTER_FULL_SWEEP_CASE_NAMES
+    )
+    actual_end_block = end_to_end_case_names[-len(expected_component_cluster_case_names) :]
+    first_mismatch_index = next(
+        (
+            index
+            for index, (expected_case_name, actual_case_name) in enumerate(
+                zip(expected_component_cluster_case_names, actual_end_block),
+                start=1,
+            )
+            if expected_case_name != actual_case_name
+        ),
+        None,
+    )
+    failures = []
+    audit_bits = [
+        f'{len(actual_end_block)}/{len(expected_component_cluster_case_names)} eindblokposities behouden het canonieke componentcluster'
+    ]
+    if len(actual_end_block) != len(expected_component_cluster_case_names):
+        failures.append(
+            'end-to-end full-sweep heeft te weinig posities voor het component-eindblok: '
+            f'{len(actual_end_block)} != {len(expected_component_cluster_case_names)}'
+        )
+    if first_mismatch_index is not None:
+        failures.append(
+            'end-to-end full-sweep eindigt niet met het canonieke componentcluster op positie '
+            f'{first_mismatch_index}: verwacht '
+            f'{expected_component_cluster_case_names[first_mismatch_index - 1]} maar kreeg '
+            f'{actual_end_block[first_mismatch_index - 1]}'
+        )
+    if not failures and expected_component_cluster_case_names:
+        first_end_block_index = len(end_to_end_case_names) - len(expected_component_cluster_case_names) + 1
+        audit_bits.append(
+            f'componentcluster bezet exact eindblokposities {first_end_block_index}-{len(end_to_end_case_names)} in de end-to-end full-sweep'
+        )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -111334,6 +111418,9 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-after-all-component-full-sweeps-in-end-to-end-full-sweep'] = (
         evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_after_all_component_full_sweeps_in_end_to_end_full_sweep_case
     )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_cluster_case_names_occupy_end_block_in_end_to_end_full_sweep_case
+    )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-occupy-contiguous-block-in-end-to-end-full-sweep'] = (
         evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_occupy_contiguous_block_in_end_to_end_full_sweep_case
     )
@@ -111348,6 +111435,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-order-aligned-with-component-full-sweeps'] = (
         evaluate_transitive_full_sweep_end_to_end_full_sweep_order_aligned_with_component_full_sweeps_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_full_sweep_registry_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-component-cluster-full-sweep-complete'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_cluster_full_sweep_registry_case
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete'] = (
         evaluate_transitive_full_sweep_end_to_end_full_sweep_registry_case
