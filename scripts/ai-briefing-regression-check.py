@@ -26672,8 +26672,10 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_CASE_NAM
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
+    'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete-directly-precedes-end-to-end-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-directly-precedes-component-cluster-full-sweep-complete',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
 ]
 
 TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_FULL_SWEEP_CASE_NAMES = [
@@ -26824,8 +26826,10 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
+    'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete-directly-precedes-end-to-end-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-directly-precedes-component-cluster-full-sweep-complete',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
     'registry-keeps-transitive-full-sweep-end-to-end-component-cluster-full-sweep-complete',
 ]
 
@@ -27073,8 +27077,10 @@ def build_transitive_full_sweep_end_to_end_full_sweep_expected_case_names() -> l
             'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
             'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
+            'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-full-sweep-complete',
             'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete-directly-precedes-end-to-end-full-sweep-complete',
             'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-directly-precedes-component-cluster-full-sweep-complete',
+            'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
             'registry-keeps-transitive-full-sweep-end-to-end-component-cluster-full-sweep-complete',
         ]
     )
@@ -29911,6 +29917,110 @@ def evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_
         )
     return build_registry_case_result(
         name='registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_full_sweep_component_cluster_occupy_end_block_in_end_to_end_full_sweep_directly_precedes_component_complete_anchor_cluster_occupy_end_block_in_component_cluster_full_sweep_case():
+    complete_anchor_cluster_case_names = (
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_FULL_SWEEP_CASE_NAMES
+    )
+    component_cluster_end_block_case_name = (
+        'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep'
+    )
+    complete_anchor_cluster_end_block_case_name = (
+        'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep'
+    )
+    failures = []
+    audit_bits = [
+        'de bredere componentcluster-eindblokguard blijft direct vóór de smallere complete-anchor-cluster-eindblokguard in het complete-anchor-cluster staan'
+    ]
+    if component_cluster_end_block_case_name not in complete_anchor_cluster_case_names:
+        failures.append(
+            'complete-anchor-cluster mist de bredere componentcluster-eindblokguard voor de directe-volgcheck: '
+            f'{component_cluster_end_block_case_name}'
+        )
+    if complete_anchor_cluster_end_block_case_name not in complete_anchor_cluster_case_names:
+        failures.append(
+            'complete-anchor-cluster mist de complete-anchor-cluster-eindblokguard voor de directe-volgcheck: '
+            f'{complete_anchor_cluster_end_block_case_name}'
+        )
+    if not failures:
+        component_cluster_end_block_index = complete_anchor_cluster_case_names.index(
+            component_cluster_end_block_case_name
+        )
+        complete_anchor_cluster_end_block_index = complete_anchor_cluster_case_names.index(
+            complete_anchor_cluster_end_block_case_name
+        )
+        if complete_anchor_cluster_end_block_index != component_cluster_end_block_index + 1:
+            failures.append(
+                'de bredere componentcluster-eindblokguard wordt niet direct gevolgd door de complete-anchor-cluster-eindblokguard: '
+                f'{component_cluster_end_block_case_name}@{component_cluster_end_block_index + 1}, '
+                f'{complete_anchor_cluster_end_block_case_name}@{complete_anchor_cluster_end_block_index + 1}'
+            )
+        else:
+            audit_bits.append(
+                'componentcluster-eindblokguard en complete-anchor-cluster-eindblokguard blijven direct aaneengesloten op posities '
+                f'{component_cluster_end_block_index + 1}-{complete_anchor_cluster_end_block_index + 1} in het complete-anchor-cluster'
+            )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_occupy_end_block_in_component_cluster_full_sweep_directly_precedes_component_complete_anchor_cluster_full_sweep_complete_case():
+    complete_anchor_cluster_case_names = (
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_FULL_SWEEP_CASE_NAMES
+    )
+    complete_anchor_cluster_end_block_case_name = (
+        'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep'
+    )
+    component_complete_anchor_cluster_complete_case_name = (
+        'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete'
+    )
+    failures = []
+    audit_bits = [
+        'de complete-anchor-cluster-eindblokguard blijft direct vóór de complete-anchor-cluster-completeness in het complete-anchor-cluster staan'
+    ]
+    if complete_anchor_cluster_end_block_case_name not in complete_anchor_cluster_case_names:
+        failures.append(
+            'complete-anchor-cluster mist de eindblokguard voor de directe-volgcheck: '
+            f'{complete_anchor_cluster_end_block_case_name}'
+        )
+    if (
+        component_complete_anchor_cluster_complete_case_name
+        not in complete_anchor_cluster_case_names
+    ):
+        failures.append(
+            'complete-anchor-cluster mist de eigen completenesscase voor de directe-volgcheck: '
+            f'{component_complete_anchor_cluster_complete_case_name}'
+        )
+    if not failures:
+        complete_anchor_cluster_end_block_index = complete_anchor_cluster_case_names.index(
+            complete_anchor_cluster_end_block_case_name
+        )
+        component_complete_anchor_cluster_complete_index = complete_anchor_cluster_case_names.index(
+            component_complete_anchor_cluster_complete_case_name
+        )
+        if (
+            component_complete_anchor_cluster_complete_index
+            != complete_anchor_cluster_end_block_index + 1
+        ):
+            failures.append(
+                'de complete-anchor-cluster-eindblokguard wordt niet direct gevolgd door de complete-anchor-cluster-completeness: '
+                f'{complete_anchor_cluster_end_block_case_name}@{complete_anchor_cluster_end_block_index + 1}, '
+                f'{component_complete_anchor_cluster_complete_case_name}@{component_complete_anchor_cluster_complete_index + 1}'
+            )
+        else:
+            audit_bits.append(
+                'complete-anchor-cluster-eindblokguard en complete-anchor-cluster-completeness blijven direct aaneengesloten op posities '
+                f'{complete_anchor_cluster_end_block_index + 1}-{component_complete_anchor_cluster_complete_index + 1} in het complete-anchor-cluster'
+            )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-full-sweep-complete',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -112049,6 +112159,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep'] = (
         evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_case_names_occupy_end_block_in_component_cluster_full_sweep_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep'] = (
+        evaluate_transitive_full_sweep_end_to_end_full_sweep_component_cluster_occupy_end_block_in_end_to_end_full_sweep_directly_precedes_component_complete_anchor_cluster_occupy_end_block_in_component_cluster_full_sweep_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-full-sweep-complete'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_occupy_end_block_in_component_cluster_full_sweep_directly_precedes_component_complete_anchor_cluster_full_sweep_complete_case
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete-directly-precedes-end-to-end-full-sweep-complete'] = (
         evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_full_sweep_complete_directly_precedes_end_to_end_full_sweep_complete_case
