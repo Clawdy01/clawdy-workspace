@@ -25826,6 +25826,7 @@ PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'proof-recheck-consumer-format-passthrough-all-routes',
     'registry-keeps-proof-recheck-proof-context-route-families-complete',
     'registry-keeps-proof-recheck-consumer-format-passthrough-all-routes-route-families-complete',
+    'registry-keeps-proof-recheck-full-sweep-complete',
 ]
 
 PROOF_RECHECK_BATCH_CASE_DEPENDENCIES = {
@@ -25854,6 +25855,7 @@ BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'brief-consumer-proof-context-all-routes',
     'registry-keeps-status-proof-context-route-families-complete',
     'registry-keeps-brief-consumer-proof-context-route-families-complete',
+    'registry-keeps-briefing-proof-context-full-sweep-complete',
 ]
 
 BRIEFING_PROOF_CONTEXT_BATCH_CASE_DEPENDENCIES = {
@@ -26140,6 +26142,7 @@ WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-watchdog-alert-proof-target-check-consumer-sweep-unsuppresses-after-deadline-route-families-complete',
     'registry-keeps-watchdog-alert-proof-target-check-all-routes-keeps-no-reply-before-deadline-route-families-complete',
     'registry-keeps-watchdog-alert-proof-target-check-all-routes-unsuppresses-after-deadline-route-families-complete',
+    'registry-keeps-watchdog-full-sweep-complete',
 ]
 
 
@@ -26532,6 +26535,7 @@ STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES = [
     'top3-open-tooling-release-docs-primary-stale-date-sample',
     'payload-audit-keeps-open-source-stale-date-guardrail',
     'payload-audit-keeps-audio-stale-date-guardrail',
+    'registry-keeps-stale-date-alias-family-full-sweep-complete',
 ]
 
 TOP3_MULTI_DOMAIN_ALIAS_FULL_SWEEP_CASE_NAMES = [
@@ -26551,6 +26555,7 @@ TOP3_MULTI_DOMAIN_ALIAS_FULL_SWEEP_CASE_NAMES = [
     'status-summary-audit-cli-keeps-top3-same-domain-multi-source-audit',
     'status-summary-audit-cli-keeps-top3-same-domain-multi-source',
     'status-summary-audit-cli-keeps-top3-same-domain-multi-source-regression',
+    'registry-keeps-top3-multi-domain-alias-full-sweep-complete',
 ]
 
 TRANSITIVE_FULL_SWEEP_REGISTRY_CASE_NAMES = [
@@ -26738,6 +26743,8 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-meta-registry-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-registered',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-registered',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-unique-by-batch',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-covered-by-cases-derived-from-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
@@ -26916,6 +26923,25 @@ def build_watchdog_route_family_registry_case_names() -> list[str]:
     return list(WATCHDOG_ROUTE_FAMILY_REGISTRY_CASE_NAMES_BY_BATCH.values())
 
 
+def build_transitive_full_sweep_end_to_end_component_full_sweep_case_names_by_batch() -> dict[str, list[str]]:
+    return {
+        'watchdog-all-routes-full-sweep': WATCHDOG_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
+        'proof-recheck-all-routes-full-sweep': PROOF_RECHECK_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
+        'briefing-proof-context-all-routes-full-sweep': BRIEFING_PROOF_CONTEXT_ALL_ROUTES_FULL_SWEEP_CASE_NAMES,
+        'stale-date-alias-family-full-sweep': STALE_DATE_ALIAS_FAMILY_FULL_SWEEP_CASE_NAMES,
+        'top3-multi-domain-alias-full-sweep': TOP3_MULTI_DOMAIN_ALIAS_FULL_SWEEP_CASE_NAMES,
+        'watchdog-alert-proof-target-check-full-sweep': WATCHDOG_ALERT_PROOF_TARGET_CHECK_FULL_SWEEP_FULL_SWEEP_CASE_NAMES,
+        'watchdog-route-family-registry-full-sweep': WATCHDOG_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES,
+        'proof-recheck-route-family-registry-full-sweep': PROOF_RECHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES,
+        'briefing-proof-context-route-family-registry-full-sweep': BRIEFING_PROOF_CONTEXT_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES,
+        'watchdog-alert-proof-target-check-route-family-registry-full-sweep': WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES,
+        'watchdog-alert-proof-target-check-route-family-transitive-full-sweep-full-sweep': WATCHDOG_ALERT_PROOF_TARGET_CHECK_ROUTE_FAMILY_TRANSITIVE_FULL_SWEEP_FULL_SWEEP_CASE_NAMES,
+        'transitive-full-sweep-route-family-registry-full-sweep': TRANSITIVE_FULL_SWEEP_ROUTE_FAMILY_REGISTRY_FULL_SWEEP_CASE_NAMES,
+        'transitive-full-sweep-registry-full-sweep': TRANSITIVE_FULL_SWEEP_REGISTRY_FULL_SWEEP_CASE_NAMES,
+        'transitive-full-sweep-meta-registry-full-sweep': TRANSITIVE_FULL_SWEEP_META_REGISTRY_FULL_SWEEP_CASE_NAMES,
+    }
+
+
 def build_transitive_full_sweep_end_to_end_full_sweep_expected_case_names() -> list[str]:
     return unique_case_names(
         [
@@ -26934,6 +26960,8 @@ def build_transitive_full_sweep_end_to_end_full_sweep_expected_case_names() -> l
             *TRANSITIVE_FULL_SWEEP_META_REGISTRY_FULL_SWEEP_CASE_NAMES,
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-registered',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-registered',
+            'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-unique-by-batch',
+            'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-covered-by-cases-derived-from-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-cases-derived-from-component-full-sweeps',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete',
@@ -28883,6 +28911,64 @@ def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case
         )
     return build_registry_case_result(
         name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-registered',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_unique_by_batch_case():
+    mapping = TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_FULL_SWEEP_COMPLETE_CASE_NAMES_BY_BATCH
+    anchor_case_names = list(mapping.values())
+    duplicate_anchor_case_names = [
+        case_name
+        for case_name in unique_case_names(anchor_case_names)
+        if anchor_case_names.count(case_name) > 1
+    ]
+    failures = [
+        f'component full-sweep complete-anker dubbel gemapt: {case_name}'
+        for case_name in duplicate_anchor_case_names
+    ]
+    failures.extend(
+        f'{batch_name} heeft leeg component full-sweep complete-anker'
+        for batch_name, case_name in mapping.items()
+        if not case_name.strip()
+    )
+    audit_bits = [
+        f'{batch_name} houdt uniek complete-anker {case_name}'
+        for batch_name, case_name in mapping.items()
+        if case_name.strip() and case_name not in duplicate_anchor_case_names
+    ]
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-unique-by-batch',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_aligned_with_component_full_sweeps_case():
+    component_case_names_by_batch = build_transitive_full_sweep_end_to_end_component_full_sweep_case_names_by_batch()
+    failures = []
+    audit_bits = []
+    for batch_name, anchor_case_name in (
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_FULL_SWEEP_COMPLETE_CASE_NAMES_BY_BATCH.items()
+    ):
+        component_case_names = component_case_names_by_batch.get(batch_name)
+        if component_case_names is None:
+            failures.append(
+                f'{batch_name} mist in de component full-sweep-caselijst maar heeft wel complete-anker {anchor_case_name}'
+            )
+            continue
+        if not anchor_case_name.strip():
+            failures.append(f'{batch_name} heeft leeg component full-sweep complete-anker')
+            continue
+        if anchor_case_name not in component_case_names:
+            failures.append(
+                f'{batch_name} mist zijn mapped complete-anker {anchor_case_name} in de eigen component full-sweep'
+            )
+            continue
+        audit_bits.append(f'{batch_name} bevat mapped complete-anker {anchor_case_name} in de eigen component full-sweep')
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -110717,6 +110803,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-registered'] = (
         evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_registered_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-unique-by-batch'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_unique_by_batch_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-aligned-with-component-full-sweeps'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_aligned_with_component_full_sweeps_case
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-covered-by-cases-derived-from-component-full-sweeps'] = (
         evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_covered_by_derived_cases_case
