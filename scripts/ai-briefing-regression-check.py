@@ -26750,6 +26750,8 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-meta-registry-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-registered',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-order-aligned-with-component-sweep-mapping',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-contiguous-block-in-end-to-end-full-sweep',
+    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-start-block-in-end-to-end-full-sweep',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-registered',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-unique-by-batch',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-component-full-sweeps',
@@ -26989,6 +26991,8 @@ def build_transitive_full_sweep_end_to_end_full_sweep_expected_case_names() -> l
             *build_transitive_full_sweep_end_to_end_full_sweep_component_derived_case_names(),
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-registered',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-order-aligned-with-component-sweep-mapping',
+            'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-contiguous-block-in-end-to-end-full-sweep',
+            'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-start-block-in-end-to-end-full-sweep',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-registered',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-unique-by-batch',
             'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-order-aligned-with-component-full-sweeps',
@@ -28905,6 +28909,94 @@ def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_case_names_or
         )
     return build_registry_case_result(
         name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-order-aligned-with-component-sweep-mapping',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_case_names_occupy_contiguous_block_in_end_to_end_full_sweep_case():
+    end_to_end_case_names = TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES
+    expected_component_case_names = TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_FULL_SWEEP_CASE_NAMES
+    component_indexes = [
+        end_to_end_case_names.index(case_name)
+        for case_name in expected_component_case_names
+        if case_name in end_to_end_case_names
+    ]
+    failures = []
+    audit_bits = []
+    if len(component_indexes) != len(expected_component_case_names):
+        missing_component_case_names = [
+            case_name
+            for case_name in expected_component_case_names
+            if case_name not in end_to_end_case_names
+        ]
+        failures.append(
+            'end-to-end full-sweep mist component full-sweeps voor contiguous-block-check: '
+            + ', '.join(missing_component_case_names)
+        )
+    elif component_indexes:
+        expected_component_block_indexes = list(
+            range(component_indexes[0], component_indexes[0] + len(component_indexes))
+        )
+        if component_indexes != expected_component_block_indexes:
+            failures.append(
+                'component full-sweeps vormen geen aaneengesloten blok in de end-to-end full-sweep: '
+                + ', '.join(
+                    f'{case_name}@{component_index + 1}'
+                    for case_name, component_index in zip(expected_component_case_names, component_indexes)
+                )
+            )
+        else:
+            audit_bits.append(
+                f'{len(component_indexes)}/{len(expected_component_case_names)} component full-sweeps vormen één aaneengesloten blok in de end-to-end full-sweep'
+            )
+            audit_bits.append(
+                f'component full-sweepblok beslaat posities {component_indexes[0] + 1}-{component_indexes[-1] + 1} in de end-to-end full-sweep'
+            )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-contiguous-block-in-end-to-end-full-sweep',
+        failures=failures,
+        audit_bits=audit_bits,
+    )
+
+
+def evaluate_transitive_full_sweep_end_to_end_component_full_sweep_case_names_occupy_start_block_in_end_to_end_full_sweep_case():
+    end_to_end_case_names = TRANSITIVE_FULL_SWEEP_END_TO_END_FULL_SWEEP_CASE_NAMES
+    expected_component_case_names = TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_FULL_SWEEP_CASE_NAMES
+    actual_start_block = end_to_end_case_names[: len(expected_component_case_names)]
+    first_mismatch_index = next(
+        (
+            index
+            for index, (expected_case_name, actual_case_name) in enumerate(
+                zip(expected_component_case_names, actual_start_block),
+                start=1,
+            )
+            if expected_case_name != actual_case_name
+        ),
+        None,
+    )
+    failures = []
+    audit_bits = [
+        f'{len(actual_start_block)}/{len(expected_component_case_names)} startblokposities behouden de canonieke component-full-sweeps'
+    ]
+    if len(actual_start_block) != len(expected_component_case_names):
+        failures.append(
+            'end-to-end full-sweep heeft te weinig posities voor het component-startblok: '
+            f'{len(actual_start_block)} != {len(expected_component_case_names)}'
+        )
+    if first_mismatch_index is not None:
+        failures.append(
+            'end-to-end full-sweep start niet met de canonieke component-full-sweeps op positie '
+            f'{first_mismatch_index}: verwacht '
+            f'{expected_component_case_names[first_mismatch_index - 1]} maar kreeg '
+            f'{actual_start_block[first_mismatch_index - 1]}'
+        )
+    if not failures and expected_component_case_names:
+        audit_bits.append(
+            f'component full-sweeps bezetten exact startblokposities 1-{len(expected_component_case_names)} in de end-to-end full-sweep'
+        )
+    return build_registry_case_result(
+        name='registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-start-block-in-end-to-end-full-sweep',
         failures=failures,
         audit_bits=audit_bits,
     )
@@ -111190,6 +111282,12 @@ def build_named_case_runners_without_watchdog_batches(module, producer_module):
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-order-aligned-with-component-sweep-mapping'] = (
         evaluate_transitive_full_sweep_end_to_end_component_full_sweep_case_names_order_aligned_with_component_sweep_mapping_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-contiguous-block-in-end-to-end-full-sweep'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_full_sweep_case_names_occupy_contiguous_block_in_end_to_end_full_sweep_case
+    )
+    named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweeps-occupy-start-block-in-end-to-end-full-sweep'] = (
+        evaluate_transitive_full_sweep_end_to_end_component_full_sweep_case_names_occupy_start_block_in_end_to_end_full_sweep_case
     )
     named_cases['registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-full-sweep-complete-anchors-registered'] = (
         evaluate_transitive_full_sweep_end_to_end_component_full_sweep_complete_case_names_registered_case
