@@ -149,6 +149,8 @@ PRIMARY_SOURCE_DOMAINS = {
     'mistral.ai',
     'github.com',
     'arxiv.org',
+    'cognizant.com',
+    'nist.gov',
 }
 PRIMARY_SOURCE_FAMILIES = {
     'openai.com': 'openai',
@@ -176,6 +178,8 @@ PRIMARY_SOURCE_FAMILIES = {
     'mistral.ai': 'mistral',
     'github.com': 'github',
     'arxiv.org': 'arxiv',
+    'cognizant.com': 'cognizant',
+    'nist.gov': 'nist',
 }
 CATEGORY_THEME_KEYWORDS = [
     ('frontier-modelupdates', ['frontier', 'modelupdate', 'model update', 'modelrelease', 'model release', 'gpt', 'claude', 'gemini']),
@@ -1155,9 +1159,9 @@ def analyze_source_line_issues(line):
         issues.append('bullet_separator')
     if re.search(r'[｜¦‖∣]', body_without_urls_for_separator):
         issues.append('pipe_variant')
-    if ',' in body:
+    if ',' in body_without_urls_for_separator:
         issues.append('komma')
-    if ';' in body:
+    if ';' in body_without_urls_for_separator:
         issues.append('puntkomma')
     if '(' in body or ')' in body:
         issues.append('haakjes')

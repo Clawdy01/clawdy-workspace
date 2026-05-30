@@ -1,0 +1,54 @@
+Dagelijkse AI-update, zaterdag 30 mei 2026
+
+Korte intro: dit sample bewaakt dat geldige URLs met komma in het pad niet onterecht als ongeldige Bron:-regel tellen, en dat primaire brondomeinen zoals Cognizant en NIST netjes meetellen.
+
+1) enterprise/security/regulatory ontwikkelingen alleen als ze praktische impact hebben
+Titel: Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties
+Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents
+Datum: 29 mei 2026, 16:30 CEST
+Wat is er nieuw: Cognizant opent zijn TriZetto Unify-platform voor AI-agents via een headless API-model.
+Waarom is dit belangrijk: Het is een concreet agent-ready platformvoorbeeld in een gereguleerde zorgworkflow.
+Relevant voor Christian: Relevante referentie voor enterprise automation, compliance-by-design en API-strategie.
+
+2) frontier modelreleases en modelupdates
+Titel: OpenAI lanceert Rosalind Biodefense en verruimt trusted access tot GPT-Rosalind
+Bron: https://openai.com/index/strengthening-societal-resilience-with-rosalind-biodefense/ | https://www.rdworldonline.com/openai-launches-rosalind-biodefense-offers-federal-agencies-early-access-to-its-life-sciences-model/
+Datum: 29 mei 2026
+Wat is er nieuw: OpenAI kondigt Rosalind Biodefense aan en verruimt trusted access tot GPT-Rosalind.
+Waarom is dit belangrijk: Dit laat zien hoe high-capability modellen via gecontroleerde toegang worden uitgerold.
+Relevant voor Christian: Nuttig als blauwdruk voor toekomstige governance- en distributiemodellen.
+
+3) belangrijke researchdoorbraken of capabilities
+Titel: NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie
+Bron: https://www.nist.gov/news-events/news/2026/05/nist-expands-ai-consortiums-scope-calls-new-members | https://www.meritalk.com/articles/nist-renames-ai-consortium-seeks-new-members/
+Datum: 29 mei 2026, update 15:29 CEST
+Wat is er nieuw: NIST verbreedt de scope van zijn AI-consortium richting meting, evaluatie, innovatie en adoptie.
+Waarom is dit belangrijk: Dit raakt direct aan evaluatieprotocollen, documentatie en governance voor AI-inkoop en uitrol.
+Relevant voor Christian: Relevante input voor enterprise AI-governance, evaluatie en compliance-documentatie.
+
+4) agents/automation/coding workflows
+Geen relevante nieuwe items.
+
+5) multimodal, voice, image, video en on-device/lokale AI
+Geen relevante nieuwe items.
+
+6) open-source modellen/frameworks/inference tooling
+Geen relevante nieuwe items.
+
+7) nieuwe AI-tools en productfeatures
+Geen relevante nieuwe items.
+
+Wat moeten wij hiermee?
+- Laat geldige URLs met leestekens in het pad niet onterecht door de bronregelaudit vallen.
+- Houd primaire bronherkenning breed genoeg voor echte first-party overheids- en enterprisepublicaties.
+
+Wat ik vandaag het belangrijkst vind
+- Bronvalidatie moet streng blijven, maar niet stukgaan op geldige URL-syntax.
+
+Bronnenlijst
+https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html
+https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents
+https://openai.com/index/strengthening-societal-resilience-with-rosalind-biodefense/
+https://www.rdworldonline.com/openai-launches-rosalind-biodefense-offers-federal-agencies-early-access-to-its-life-sciences-model/
+https://www.nist.gov/news-events/news/2026/05/nist-expands-ai-consortiums-scope-calls-new-members
+https://www.meritalk.com/articles/nist-renames-ai-consortium-seeks-new-members/

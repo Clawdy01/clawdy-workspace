@@ -1,29 +1,30 @@
-ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 44/46 runs ok, 44 afgeleverd, streak 41, laatste duur 6m 18s, laatste 24 uur geleden
+ai briefing watchdog: attention - huidige config wacht nog op eerste run, vorige config 45/47 runs ok, 45 afgeleverd, streak 42, laatste duur 5m 31s, laatste 24 uur geleden
 proof state: hercheckvenster is open voor het huidige kwalificatieslot (recheck-window-open)
 proof blocker: hercheckvenster is open, dus dit spoor wacht alleen nog op directe hercheck (recheck-window-open)
 reasons:
 - status not ok
-- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-29 09:06 CEST > 2026-05-29 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
+- runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-30 09:08 CEST > 2026-05-30 09:02 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
+- proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-30 09:08 CEST > 2026-05-30 09:02 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: Bronnenlijst bevat ongebruikte URLs (2): https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents, https://prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html; niet elk item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (patronen: komma 1x); niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (top3 patronen: komma 1x); te weinig top-3 items met meerdere bron-URLs (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties; te weinig top-3 items met bron-URLs uit meerdere domeinen (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties; niet elk top-3 item heeft een herkenbare primaire bron (1/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie; te weinig primaire bronfamilies in top 3 (1); te weinig top-3 items met zowel bron als recente datum (2/3); te weinig top-3 items met primaire bron én verse datum (1/3 binnen 48 uur): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie
 - onvoldoende gekwalificeerde runs voor huidige config (0/3)
-- geen gekwalificeerde run sinds verwacht dagslot 2026-05-29 09:00 CEST
+- geen gekwalificeerde run sinds verwacht dagslot 2026-05-30 09:00 CEST
 readiness: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan; runbewijs met aandachtspunt
-reference: referentietijd 2026-05-30 09:15 CEST
-proof config: bewijsconfig b90e08726bff, gewijzigd 2026-05-29 09:06 CEST (24 uur geleden)
-last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-05-29 09:06 CEST nog op eerste run
+reference: referentietijd 2026-05-31 09:15 CEST
+proof config: bewijsconfig b90e08726bff, gewijzigd 2026-05-30 09:08 CEST (24 uur geleden)
+last run config relation: laatste run hoorde nog bij de vorige config; huidige config wacht sinds 2026-05-30 09:08 CEST nog op eerste run
 proof recheck schedule kind: proof-recheck-cronstatus: ok
 proof recheck schedule: proof-recheck-cron ok (09:15 Europe/Amsterdam, 15m na daily-ai-update en gelijk aan grace-window)
 proof progress: bewijsprogressie 0/3 gekwalificeerde runs voor huidige config, nog 3 te gaan
 proof requirement: 0/3 gekwalificeerde runs
 proof remaining: nog 3 te gaan
-next run: 2026-05-30 09:00 CEST
-proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-05-30 09:00 CEST (nu), doel 2026-06-01 09:15 CEST
-proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-29 09:06 CEST > 2026-05-29 09:00 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config
+next run: 2026-05-31 09:00 CEST
+proof plan: bewijspad op schema, eerstvolgende kwalificatierun 2026-05-31 09:00 CEST (nu), doel 2026-06-02 09:15 CEST
 proof next action window: hercheckvenster is open; draai nu ai-briefing-status/watchdog opnieuw
 proof recheck commands: daarna draai: python3 scripts/ai-briefing-status.py --json ; python3 scripts/ai-briefing-watchdog.py --json --require-qualified-runs 3
-proof schedule risk: als slot 2026-05-30 09:00 CEST mist, schuift bewijsdoel naar 2026-06-02 09:15 CEST
-next qualifying run: 2026-05-30 09:00 CEST (nu) [T-0.2u] [vandaag]
-proof countdown: bewijsdoel 2026-06-01 09:15 CEST (over 2 d); mist volgend slot => 2026-06-02 09:15 CEST (slip +24u)
-proof target check gate: proof-target-check blijft stil tot 2026-06-01 09:15 CEST (over 2 d) (suppressed-until-deadline)
-qualifying run slots: 2026-05-30 09:00 CEST (nu | vandaag), 2026-05-31 09:00 CEST (over 23u 45m | morgen), 2026-06-01 09:00 CEST (over 1 d 23 u | over 2 d)
-last run timeout audit: laatste run had 5m 41s timeout-speling (6m 18s op limiet 12m 0s)
-recent run duration audit: recente duurtrend 3m 4s tot 7m 44s, gemiddeld 5m 42s, onder huidige limiet 12m 0s
+proof schedule risk: als slot 2026-05-31 09:00 CEST mist, schuift bewijsdoel naar 2026-06-03 09:15 CEST
+next qualifying run: 2026-05-31 09:00 CEST (nu) [T-0.2u] [vandaag]
+proof countdown: bewijsdoel 2026-06-02 09:15 CEST (over 2 d); mist volgend slot => 2026-06-03 09:15 CEST (slip +24u)
+proof target check gate: proof-target-check blijft stil tot 2026-06-02 09:15 CEST (over 2 d) (suppressed-until-deadline)
+qualifying run slots: 2026-05-31 09:00 CEST (nu | vandaag), 2026-06-01 09:00 CEST (over 23u 45m | morgen), 2026-06-02 09:00 CEST (over 1 d 23 u | over 2 d)
+last run timeout audit: laatste run had 6m 28s timeout-speling (5m 31s op limiet 12m 0s)
+recent run duration audit: recente duurtrend 3m 4s tot 6m 18s, gemiddeld 4m 57s, onder huidige limiet 12m 0s
+proof example: top3 ongeldige Bron-regel: Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents | top3 zonder multi-domein bronregel: Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties | top3 multi-domein details: Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties (0 domein; 0 url; primaire domeinen 0; primaire families 0)
