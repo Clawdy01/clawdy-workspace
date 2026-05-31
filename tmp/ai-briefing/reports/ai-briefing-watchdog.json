@@ -4,7 +4,6 @@
   "reasons": [
     "status not ok",
     "runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-30 09:08 CEST > 2026-05-30 09:02 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config",
-    "proof freshness: runbewijs verouderd voor huidige config; config nieuwer dan laatste run (2026-05-30 09:08 CEST > 2026-05-30 09:02 CEST); laatste succesvolle run is nog van oudere config; laatste afgeleverde run is nog van oudere config; briefing-output: Bronnenlijst bevat ongebruikte URLs (2): https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents, https://prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html; niet elk item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (patronen: komma 1x); niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (top3 patronen: komma 1x); te weinig top-3 items met meerdere bron-URLs (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties; te weinig top-3 items met bron-URLs uit meerdere domeinen (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties; niet elk top-3 item heeft een herkenbare primaire bron (1/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie; te weinig primaire bronfamilies in top 3 (1); te weinig top-3 items met zowel bron als recente datum (2/3); te weinig top-3 items met primaire bron én verse datum (1/3 binnen 48 uur): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie",
     "onvoldoende gekwalificeerde runs voor huidige config (0/3)",
     "geen gekwalificeerde run sinds verwacht dagslot 2026-05-30 09:00 CEST"
   ],
@@ -217,7 +216,7 @@
     "summary_preview": "Ik heb nu drie kandidaten die de versheidscheck nog halen. Ik doe nog één laatste validatie op data/URL-structuur en dan geef ik alleen die overgebleven set door. | clawdy: | Titel: Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
     "summary_output_audit": {
       "available": true,
-      "ok": false,
+      "ok": true,
       "missing_markers": [],
       "matched_alternative_groups": [
         {
@@ -260,18 +259,17 @@
       "bronnenlijst_duplicate_urls": [],
       "bronnenlijst_invalid_lines": [],
       "bronnenlijst_missing_used_urls": [],
-      "bronnenlijst_unused_urls": [
-        "https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents",
-        "https://prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html"
-      ],
+      "bronnenlijst_unused_urls": [],
       "numbered_title_heading_count": 0,
       "numbered_title_heading_examples": [],
       "items_with_exact_field_order_count": 3,
       "items_with_field_order_mismatch_count": 0,
       "items_field_order_mismatch_examples": [],
-      "source_url_count": 4,
-      "unique_source_url_count": 4,
+      "source_url_count": 6,
+      "unique_source_url_count": 6,
       "source_urls": [
+        "https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html",
+        "https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents",
         "https://openai.com/index/strengthening-societal-resilience-with-rosalind-biodefense/",
         "https://www.rdworldonline.com/openai-launches-rosalind-biodefense-offers-federal-agencies-early-access-to-its-life-sciences-model/",
         "https://www.nist.gov/news-events/news/2026/05/nist-expands-ai-consortiums-scope-calls-new-members",
@@ -279,11 +277,13 @@
       ],
       "source_domains": [
         "meritalk.com",
+        "news.cognizant.com",
         "nist.gov",
         "openai.com",
+        "prnewswire.com",
         "rdworldonline.com"
       ],
-      "source_domain_count": 4,
+      "source_domain_count": 6,
       "item_titles": [
         "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
         "OpenAI lanceert Rosalind Biodefense en verruimt trusted access tot GPT-Rosalind",
@@ -300,95 +300,68 @@
       "items_with_source_count": 3,
       "items_without_source_count": 0,
       "items_missing_source_examples": [],
-      "items_with_multiple_sources_count": 2,
-      "items_with_multi_domain_sources_count": 2,
-      "items_with_valid_source_line_count": 2,
-      "items_with_invalid_source_line_count": 1,
+      "items_with_multiple_sources_count": 3,
+      "items_with_multi_domain_sources_count": 3,
+      "items_with_valid_source_line_count": 3,
+      "items_with_invalid_source_line_count": 0,
       "items_missing_source_line_count": 0,
-      "invalid_source_line_issue_counts": {
-        "komma": 1
-      },
-      "items_invalid_source_line_examples": [
-        {
-          "title": "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-          "source_line": "Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents",
-          "issues": [
-            "komma"
-          ]
-        }
-      ],
+      "invalid_source_line_issue_counts": {},
+      "items_invalid_source_line_examples": [],
       "first3_items_with_source_count": 3,
       "top3_missing_source_examples": [],
-      "first3_items_with_multiple_sources_count": 2,
-      "first3_items_with_multi_domain_sources_count": 2,
-      "first3_items_with_valid_source_line_count": 2,
-      "first3_items_with_invalid_source_line_count": 1,
-      "first3_items_with_primary_source_count": 1,
-      "top3_invalid_source_line_issue_counts": {
-        "komma": 1
-      },
-      "top3_invalid_source_line_examples": [
-        {
-          "title": "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-          "source_line": "Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents",
-          "issues": [
-            "komma"
-          ]
-        }
-      ],
-      "top3_missing_multi_source_examples": [
-        "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties"
-      ],
-      "top3_missing_multi_domain_source_examples": [
-        "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties"
-      ],
-      "top3_missing_multi_domain_source_details": [
-        {
-          "title": "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-          "unique_source_domain_count": 0,
-          "source_domains": [],
-          "unique_source_url_count": 0,
-          "primary_source_domain_count": 0,
-          "primary_source_domains": [],
-          "primary_source_family_count": 0,
-          "primary_source_families": [],
-          "primary_source_family_text": null
-        }
-      ],
-      "top3_missing_primary_source_examples": [
-        "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-        "NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie"
-      ],
+      "first3_items_with_multiple_sources_count": 3,
+      "first3_items_with_multi_domain_sources_count": 3,
+      "first3_items_with_valid_source_line_count": 3,
+      "first3_items_with_invalid_source_line_count": 0,
+      "first3_items_with_primary_source_count": 3,
+      "top3_invalid_source_line_issue_counts": {},
+      "top3_invalid_source_line_examples": [],
+      "top3_missing_multi_source_examples": [],
+      "top3_missing_multi_domain_source_examples": [],
+      "top3_missing_multi_domain_source_details": [],
+      "top3_missing_primary_source_examples": [],
       "first3_source_urls": [
+        "https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html",
+        "https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents",
         "https://openai.com/index/strengthening-societal-resilience-with-rosalind-biodefense/",
         "https://www.rdworldonline.com/openai-launches-rosalind-biodefense-offers-federal-agencies-early-access-to-its-life-sciences-model/",
         "https://www.nist.gov/news-events/news/2026/05/nist-expands-ai-consortiums-scope-calls-new-members",
         "https://www.meritalk.com/articles/nist-renames-ai-consortium-seeks-new-members/"
       ],
-      "first3_unique_source_url_count": 4,
+      "first3_unique_source_url_count": 6,
       "first3_source_domains": [
         "meritalk.com",
+        "news.cognizant.com",
         "nist.gov",
         "openai.com",
+        "prnewswire.com",
         "rdworldonline.com"
       ],
-      "first3_source_domain_count": 4,
+      "first3_source_domain_count": 6,
       "first3_primary_source_domains": [
+        "news.cognizant.com",
+        "nist.gov",
         "openai.com"
       ],
-      "first3_primary_source_domain_count": 1,
+      "first3_primary_source_domain_count": 3,
       "first3_primary_source_families": [
+        "cognizant",
+        "nist",
         "openai"
       ],
-      "first3_primary_source_family_count": 1,
+      "first3_primary_source_family_count": 3,
       "primary_source_domains": [
+        "news.cognizant.com",
+        "nist.gov",
         "openai.com"
       ],
-      "primary_source_domain_count": 1,
+      "primary_source_domain_count": 3,
       "primary_source_families": [
+        "cognizant",
+        "nist",
         "openai"
       ],
-      "primary_source_family_count": 1,
+      "primary_source_family_count": 3,
       "dated_item_count": 3,
       "undated_item_count": 0,
       "explicit_dated_item_count": 3,
@@ -412,49 +385,10 @@
       "explicit_future_dated_first3_count": 0,
       "narrative_section_issue_counts": {},
       "narrative_section_issue_details": {},
-      "first3_evidenced_item_count": 2,
-      "first3_primary_fresh_item_count": 1,
-      "top3_missing_primary_fresh_examples": [
-        "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-        "NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie"
-      ],
-      "top3_missing_primary_fresh_details": [
-        {
-          "title": "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-          "position": 1,
-          "date_line": "Datum: 29 mei 2026, 16:30 CEST",
-          "date_text": "29 mei 2026, 16:30 CEST",
-          "date_value_text": "2026-05-29",
-          "has_date": true,
-          "is_fresh": true,
-          "source_domains": [],
-          "has_primary_source": false,
-          "primary_source_domains": [],
-          "primary_source_families": [],
-          "primary_source_family": null,
-          "primary_source_family_text": null,
-          "primary_fresh_issue": "missing-primary-source"
-        },
-        {
-          "title": "NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie",
-          "position": 3,
-          "date_line": "Datum: 29 mei 2026, update 15:29 CEST",
-          "date_text": "29 mei 2026, update 15:29 CEST",
-          "date_value_text": "2026-05-29",
-          "has_date": true,
-          "is_fresh": true,
-          "source_domains": [
-            "meritalk.com",
-            "nist.gov"
-          ],
-          "has_primary_source": false,
-          "primary_source_domains": [],
-          "primary_source_families": [],
-          "primary_source_family": null,
-          "primary_source_family_text": null,
-          "primary_fresh_issue": "missing-primary-source"
-        }
-      ],
+      "first3_evidenced_item_count": 3,
+      "first3_primary_fresh_item_count": 3,
+      "top3_missing_primary_fresh_examples": [],
+      "top3_missing_primary_fresh_details": [],
       "recent_item_max_age_days": 7,
       "fresh_item_max_age_hours": 48,
       "future_date_tolerance_days": 1,
@@ -466,80 +400,27 @@
         "enterprise-security-regulatory"
       ],
       "category_theme_count": 5,
-      "reasons": [
-        "Bronnenlijst bevat ongebruikte URLs (2): https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents, https://prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html",
-        "niet elk item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (patronen: komma 1x)",
-        "niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (top3 patronen: komma 1x)",
-        "te weinig top-3 items met meerdere bron-URLs (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-        "te weinig top-3 items met bron-URLs uit meerdere domeinen (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-        "niet elk top-3 item heeft een herkenbare primaire bron (1/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie",
-        "te weinig primaire bronfamilies in top 3 (1)",
-        "te weinig top-3 items met zowel bron als recente datum (2/3)",
-        "te weinig top-3 items met primaire bron én verse datum (1/3 binnen 48 uur): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie"
-      ],
-      "text": "Bronnenlijst bevat ongebruikte URLs (2): https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents, https://prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html; niet elk item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (patronen: komma 1x); niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (top3 patronen: komma 1x); te weinig top-3 items met meerdere bron-URLs (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties; te weinig top-3 items met bron-URLs uit meerdere domeinen (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties; niet elk top-3 item heeft een herkenbare primaire bron (1/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie; te weinig primaire bronfamilies in top 3 (1); te weinig top-3 items met zowel bron als recente datum (2/3); te weinig top-3 items met primaire bron én verse datum (1/3 binnen 48 uur): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie"
+      "reasons": [],
+      "text": "briefing-output ok (3 items, 6 geldige bron-URLs, 6 uniek, Bronnenlijst 6/6 unieke URLs, titels 3/3 uniek, items met juiste labelvolgorde 3/3, items met bron 3/3, geldige Bron:-regels 3/3, items met meerdere bron-URLs 3/3, items met multi-domein bronregels 3/3, top3 bron-URLs 6/3 uniek, top3 met meerdere bron-URLs 3/3, top3 met multi-domein bronregels 3/3, top3 met primaire bron 3/3, 6 domeinen, top3 6 domeinen, top3 primaire bron-domeinen 3, 3 primaire bron-domeinen, top3 primaire bronfamilies 3, 3 primaire bronfamilies, datums 3/3, expliciete Datum-regels 3/3, expliciet vers top3 3/3, expliciet recent top3 3/3, toekomstige datums 0, expliciet toekomstige datums 0, top3 met bron+recente datum 3/3, top3 met primaire bron+verse datum 3/3, exacte veldlabels Titel/Bron/Datum/Nieuw/Belangrijk/Relevant 3/3, 3/3, 3/3, 3/3, 3/3, 3/3, 5/7 categorie-thema's zichtbaar, complete structuur 3x)"
     },
     "error_text": null
   },
-  "last_run_output_audit_ok": false,
-  "last_run_output_audit_text": "Bronnenlijst bevat ongebruikte URLs (2): https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents, https://prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html; niet elk item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (patronen: komma 1x); niet elk top-3 item heeft een geldige Bron:-regel met alleen URLs (2/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents (top3 patronen: komma 1x); te weinig top-3 items met meerdere bron-URLs (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties; te weinig top-3 items met bron-URLs uit meerdere domeinen (2/3, verwacht minstens 3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties; niet elk top-3 item heeft een herkenbare primaire bron (1/3): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie; te weinig primaire bronfamilies in top 3 (1); te weinig top-3 items met zowel bron als recente datum (2/3); te weinig top-3 items met primaire bron én verse datum (1/3 binnen 48 uur): Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties, NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie",
+  "last_run_output_audit_ok": true,
+  "last_run_output_audit_text": "briefing-output ok (3 items, 6 geldige bron-URLs, 6 uniek, Bronnenlijst 6/6 unieke URLs, titels 3/3 uniek, items met juiste labelvolgorde 3/3, items met bron 3/3, geldige Bron:-regels 3/3, items met meerdere bron-URLs 3/3, items met multi-domein bronregels 3/3, top3 bron-URLs 6/3 uniek, top3 met meerdere bron-URLs 3/3, top3 met multi-domein bronregels 3/3, top3 met primaire bron 3/3, 6 domeinen, top3 6 domeinen, top3 primaire bron-domeinen 3, 3 primaire bron-domeinen, top3 primaire bronfamilies 3, 3 primaire bronfamilies, datums 3/3, expliciete Datum-regels 3/3, expliciet vers top3 3/3, expliciet recent top3 3/3, toekomstige datums 0, expliciet toekomstige datums 0, top3 met bron+recente datum 3/3, top3 met primaire bron+verse datum 3/3, exacte veldlabels Titel/Bron/Datum/Nieuw/Belangrijk/Relevant 3/3, 3/3, 3/3, 3/3, 3/3, 3/3, 5/7 categorie-thema's zichtbaar, complete structuur 3x)",
   "last_run_output_audit_item_count": 3,
-  "last_run_output_audit_multi_domain_top3_count": 2,
+  "last_run_output_audit_multi_domain_top3_count": 3,
   "last_run_output_audit_fresh_top3_count": 3,
-  "last_run_output_audit_primary_fresh_top3_count": 1,
+  "last_run_output_audit_primary_fresh_top3_count": 3,
   "last_run_output_audit_missing_source_examples": [],
-  "last_run_output_audit_missing_multi_source_examples": [
-    "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties"
-  ],
-  "last_run_output_audit_missing_multi_domain_examples": [
-    "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties"
-  ],
-  "last_run_output_audit_missing_multi_domain_details": [
-    {
-      "title": "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-      "unique_source_domain_count": 0,
-      "source_domains": [],
-      "unique_source_url_count": 0,
-      "primary_source_domain_count": 0,
-      "primary_source_domains": [],
-      "primary_source_family_count": 0,
-      "primary_source_families": [],
-      "primary_source_family_text": null
-    }
-  ],
-  "last_run_output_audit_missing_primary_source_examples": [
-    "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-    "NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie"
-  ],
+  "last_run_output_audit_missing_multi_source_examples": [],
+  "last_run_output_audit_missing_multi_domain_examples": [],
+  "last_run_output_audit_missing_multi_domain_details": [],
+  "last_run_output_audit_missing_primary_source_examples": [],
   "last_run_output_audit_missing_recent_date_examples": [],
   "last_run_output_audit_missing_fresh_examples": [],
-  "last_run_output_audit_missing_primary_fresh_examples": [
-    "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-    "NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie"
-  ],
+  "last_run_output_audit_missing_primary_fresh_examples": [],
   "last_run_output_audit_missing_fresh_details": [],
-  "last_run_output_audit_missing_primary_fresh_details": [
-    {
-      "title": "Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-      "date_text": "29 mei 2026, 16:30 CEST",
-      "freshness_issue": null,
-      "primary_fresh_issue": "missing-primary-source",
-      "primary_domain": null,
-      "primary_source_family": null,
-      "primary_source_families": [],
-      "primary_source_family_text": null
-    },
-    {
-      "title": "NIST verbreedt zijn AI-consortium van safety naar meting, adoptie en evaluatie",
-      "date_text": "29 mei 2026, update 15:29 CEST",
-      "freshness_issue": null,
-      "primary_fresh_issue": "missing-primary-source",
-      "primary_domain": null,
-      "primary_source_family": null,
-      "primary_source_families": [],
-      "primary_source_family_text": null
-    }
-  ],
+  "last_run_output_audit_missing_primary_fresh_details": [],
   "last_run_timeout_audit": {
     "available": true,
     "ok": true,
@@ -598,11 +479,7 @@
   "recent_run_duration_text": "recente duurtrend 3m 4s tot 6m 18s, gemiddeld 4m 57s, onder huidige limiet 12m 0s",
   "recent_run_duration_near_timeout": false,
   "recent_run_duration_timed_out": false,
-  "summary_output_examples": [
-    "top3 ongeldige Bron-regel: Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties -> Bron: https://www.prnewswire.com/news-releases/faster-decisions-faster-care-for-patients-cognizant-opens-trizetto-unify-to-ai-agents-302785705.html | https://news.cognizant.com/2026-05-29-Faster-decisions,-faster-care-for-patients-Cognizant-opens-TriZetto-Unify-to-AI-agents",
-    "top3 zonder multi-domein bronregel: Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties",
-    "top3 multi-domein details: Cognizant maakt TriZetto Unify agent-ready voor zorgautorisaties (0 domein; 0 url; primaire domeinen 0; primaire families 0)"
-  ],
+  "summary_output_examples": [],
   "consumer_requested_outputs": [
     {
       "channel": "board-json",
@@ -615,25 +492,17 @@
       "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
       "format": "text",
       "append": false
-    },
-    {
-      "channel": "eventlog-jsonl",
-      "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
-      "format": "jsonl",
-      "append": true
     }
   ],
   "consumer_requested_output_paths": [
     "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json",
-    "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
-    "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl"
+    "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt"
   ],
   "consumer_requested_output_channels": [
     "board-json",
-    "board-text",
-    "eventlog-jsonl"
+    "board-text"
   ],
-  "consumer_requested_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt; eventlog-jsonl: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
+  "consumer_requested_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
   "consumer_outputs": [
     {
       "channel": "board-json",
@@ -646,41 +515,33 @@
       "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
       "format": "text",
       "append": false
-    },
-    {
-      "channel": "eventlog-jsonl",
-      "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
-      "format": "jsonl",
-      "append": true
     }
   ],
   "consumer_output_paths": [
     "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json",
-    "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
-    "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl"
+    "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt"
   ],
   "consumer_output_channels": [
     "board-json",
-    "board-text",
-    "eventlog-jsonl"
+    "board-text"
   ],
-  "consumer_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt; eventlog-jsonl: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
-  "consumer_requested_output_count": 3,
-  "consumer_requested_output_channel_count": 3,
-  "consumer_requested_output_channel_count_text": "consumer-output-aanvraag-kanalen gevraagd=3, kanalen=3",
-  "consumer_requested_output_channels_text": "consumer-output-aanvraag-kanalen: board-json, board-text, eventlog-jsonl",
-  "consumer_requested_output_count_text": "consumer-output-aanvraag gevraagd=3, kanalen=3",
+  "consumer_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
+  "consumer_requested_output_count": 2,
+  "consumer_requested_output_channel_count": 2,
+  "consumer_requested_output_channel_count_text": "consumer-output-aanvraag-kanalen gevraagd=2, kanalen=2",
+  "consumer_requested_output_channels_text": "consumer-output-aanvraag-kanalen: board-json, board-text",
+  "consumer_requested_output_count_text": "consumer-output-aanvraag gevraagd=2, kanalen=2",
   "consumer_requested_outputs_status_kind": "requested",
-  "consumer_requested_outputs_status_text": "consumer-output-aanvraag vastgelegd voor 3 artifact(s)",
-  "consumer_output_count": 3,
-  "consumer_output_channel_count": 3,
-  "consumer_output_channel_count_text": "consumer-output-kanalen geschreven=3, kanalen=3",
-  "consumer_output_channels_text": "consumer-output-kanalen: board-json, board-text, eventlog-jsonl",
+  "consumer_requested_outputs_status_text": "consumer-output-aanvraag vastgelegd voor 2 artifact(s)",
+  "consumer_output_count": 2,
+  "consumer_output_channel_count": 2,
+  "consumer_output_channel_count_text": "consumer-output-kanalen geschreven=2, kanalen=2",
+  "consumer_output_channels_text": "consumer-output-kanalen: board-json, board-text",
   "consumer_outputs_missing_count": 0,
   "consumer_outputs_missing_text": null,
   "consumer_outputs_unexpected_count": 0,
   "consumer_outputs_unexpected_text": null,
-  "consumer_outputs_count_text": "consumer-output-telling gevraagd=3, geschreven=3, ontbrekend=0, onverwacht=0",
+  "consumer_outputs_count_text": "consumer-output-telling gevraagd=2, geschreven=2, ontbrekend=0, onverwacht=0",
   "consumer_outputs_match_requested": true,
   "consumer_outputs_missing": [],
   "consumer_outputs_missing_paths": [],
@@ -702,29 +563,21 @@
       "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
       "format": "text",
       "append": false
-    },
-    {
-      "channel": "eventlog-jsonl",
-      "path": "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
-      "format": "jsonl",
-      "append": true
     }
   ],
-  "consumer_effective_output_count": 3,
+  "consumer_effective_output_count": 2,
   "consumer_effective_output_paths": [
     "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json",
-    "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
-    "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl"
+    "/home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt"
   ],
   "consumer_effective_output_channels": [
     "board-json",
-    "board-text",
-    "eventlog-jsonl"
+    "board-text"
   ],
-  "consumer_effective_output_channel_count": 3,
-  "consumer_effective_output_channel_count_text": "consumer-effectieve-output-kanalen effectief=3, kanalen=3",
-  "consumer_effective_output_channels_text": "consumer-effectieve-output-kanalen: board-json, board-text, eventlog-jsonl",
-  "consumer_effective_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt; eventlog-jsonl: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.jsonl",
+  "consumer_effective_output_channel_count": 2,
+  "consumer_effective_output_channel_count_text": "consumer-effectieve-output-kanalen effectief=2, kanalen=2",
+  "consumer_effective_output_channels_text": "consumer-effectieve-output-kanalen: board-json, board-text",
+  "consumer_effective_outputs_text": "consumer-artifacts: board-json: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.json; board-text: /home/clawdy/.openclaw/workspace/tmp/ai-briefing/reports/ai-briefing-watchdog.txt",
   "consumer_effective_outputs_match_requested": true,
   "consumer_effective_outputs_missing_count": 0,
   "consumer_effective_outputs_missing": [],
@@ -736,16 +589,16 @@
   "consumer_effective_outputs_unexpected_paths": [],
   "consumer_effective_outputs_unexpected_channels": [],
   "consumer_effective_outputs_unexpected_text": null,
-  "consumer_effective_outputs_count_text": "consumer-effectieve-output-telling gevraagd=3, effectief=3, ontbrekend=0, onverwacht=0",
+  "consumer_effective_outputs_count_text": "consumer-effectieve-output-telling gevraagd=2, effectief=2, ontbrekend=0, onverwacht=0",
   "consumer_effective_outputs_status_kind": "ok",
-  "consumer_effective_outputs_status_text": "consumer-effectieve-output-audit ok (3/3 gevraagde artifacts gedekt via written)",
+  "consumer_effective_outputs_status_text": "consumer-effectieve-output-audit ok (2/2 gevraagde artifacts gedekt via written)",
   "consumer_outputs_status_kind": "ok",
-  "consumer_outputs_status_text": "consumer-output-audit ok (3/3 gevraagde artifacts geschreven)",
-  "generated_at": "2026-05-30T07:34:09.548620+00:00",
-  "generated_at_text": "2026-05-30 09:34:09 CEST",
-  "started_at": "2026-05-30T07:34:09.408327+00:00",
-  "started_at_text": "2026-05-30 09:34:09 CEST",
-  "duration_ms": 140,
-  "duration_seconds": 0.14,
-  "duration_text": "0.140s"
+  "consumer_outputs_status_text": "consumer-output-audit ok (2/2 gevraagde artifacts geschreven)",
+  "generated_at": "2026-05-31T01:47:27.339901+00:00",
+  "generated_at_text": "2026-05-31 03:47:27 CEST",
+  "started_at": "2026-05-31T01:47:27.198343+00:00",
+  "started_at_text": "2026-05-31 03:47:27 CEST",
+  "duration_ms": 142,
+  "duration_seconds": 0.142,
+  "duration_text": "0.142s"
 }
