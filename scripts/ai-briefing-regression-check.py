@@ -26728,6 +26728,32 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL
     },
 ]
 
+TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_TARGET_CASE_NAMES = (
+    TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[
+        :-1
+    ]
+)
+
+TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_BLOCK_CASE_NAMES = [
+    TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_PREDECESSOR_CASE_NAME,
+    *TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES,
+]
+
+TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_CHAIN_CASE_NAMES = [
+    *TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_BLOCK_CASE_NAMES[
+        :-1
+    ],
+]
+
+if len(
+    TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_CASE_MESSAGE_SPECS
+) != len(
+    TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_TARGET_CASE_NAMES
+):
+    raise ValueError(
+        'terminal continuation adjacency message specs must cover every canonical predecessor/successor adjacency guard exactly once'
+    )
+
 TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_CASE_SPECS = [
     {
         'name': second_case_name,
@@ -26736,11 +26762,8 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL
         **message_spec,
     }
     for first_case_name, second_case_name, message_spec in zip(
-        [
-            TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_PREDECESSOR_CASE_NAME,
-            *TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES,
-        ],
-        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES,
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_CHAIN_CASE_NAMES,
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_TARGET_CASE_NAMES,
         TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_CASE_MESSAGE_SPECS,
     )
 ]
@@ -26762,8 +26785,7 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_CASE_NAM
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-full-sweep-complete-directly-precedes-end-to-end-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-directly-precedes-component-cluster-full-sweep-complete',
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-directly-precedes-component-cluster-full-sweep-complete-directly-precedes-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
-    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep',
-    *TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES,
+    *TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_BLOCK_CASE_NAMES,
 ]
 
 TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_FULL_SWEEP_CASE_NAMES = [
@@ -30027,19 +30049,19 @@ def evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_
 
 def evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_tail_keeps_terminal_continuation_block_case():
     tail_case_names = TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_CASE_NAMES
-    expected_terminal_continuation_case_names = (
-        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES
+    expected_terminal_continuation_block_case_names = (
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_BLOCK_CASE_NAMES
     )
-    actual_terminal_continuation_case_names = tail_case_names[
-        -len(expected_terminal_continuation_case_names) :
+    actual_terminal_continuation_block_case_names = tail_case_names[
+        -len(expected_terminal_continuation_block_case_names) :
     ]
     first_mismatch_index = next(
         (
             index
             for index, (expected_case_name, actual_case_name) in enumerate(
                 zip(
-                    expected_terminal_continuation_case_names,
-                    actual_terminal_continuation_case_names,
+                    expected_terminal_continuation_block_case_names,
+                    actual_terminal_continuation_block_case_names,
                 ),
                 start=1,
             )
@@ -30049,30 +30071,30 @@ def evaluate_transitive_full_sweep_end_to_end_component_complete_anchor_cluster_
     )
     failures = []
     audit_bits = [
-        f'{len(actual_terminal_continuation_case_names)}/{len(expected_terminal_continuation_case_names)} terminale complete-anchor-clusterstaart-posities behouden het langste canonieke vervolgguardblok'
+        f'{len(actual_terminal_continuation_block_case_names)}/{len(expected_terminal_continuation_block_case_names)} terminale complete-anchor-clusterstaart-posities behouden het canonieke predecessor/vervolgguardblok'
     ]
-    if len(actual_terminal_continuation_case_names) != len(
-        expected_terminal_continuation_case_names
+    if len(actual_terminal_continuation_block_case_names) != len(
+        expected_terminal_continuation_block_case_names
     ):
         failures.append(
-            'complete-anchor-clusterstaart heeft te weinig terminale posities voor het langste canonieke vervolgguardblok: '
-            f'{len(actual_terminal_continuation_case_names)} != '
-            f'{len(expected_terminal_continuation_case_names)}'
+            'complete-anchor-clusterstaart heeft te weinig terminale posities voor het canonieke predecessor/vervolgguardblok: '
+            f'{len(actual_terminal_continuation_block_case_names)} != '
+            f'{len(expected_terminal_continuation_block_case_names)}'
         )
     if first_mismatch_index is not None:
         failures.append(
-            'complete-anchor-clusterstaart houdt het langste canonieke vervolgguardblok niet op de terminale suffixpositie '
+            'complete-anchor-clusterstaart houdt het canonieke predecessor/vervolgguardblok niet op de terminale suffixpositie '
             f'{first_mismatch_index}: verwacht '
-            f'{expected_terminal_continuation_case_names[first_mismatch_index - 1]} maar kreeg '
-            f'{actual_terminal_continuation_case_names[first_mismatch_index - 1]}'
+            f'{expected_terminal_continuation_block_case_names[first_mismatch_index - 1]} maar kreeg '
+            f'{actual_terminal_continuation_block_case_names[first_mismatch_index - 1]}'
         )
-    if not failures and expected_terminal_continuation_case_names:
+    if not failures and expected_terminal_continuation_block_case_names:
         start_position = (
-            len(tail_case_names) - len(expected_terminal_continuation_case_names) + 1
+            len(tail_case_names) - len(expected_terminal_continuation_block_case_names) + 1
         )
         end_position = len(tail_case_names)
         audit_bits.append(
-            'het langste canonieke vervolgguardblok bezet exact terminale staartposities '
+            'het canonieke predecessor/vervolgguardblok bezet exact terminale staartposities '
             f'{start_position}-{end_position} in de complete-anchor-clusterstaart'
         )
     return build_registry_case_result(
