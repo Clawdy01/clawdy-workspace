@@ -26670,23 +26670,35 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_GUARD_CASE_NAMES = [
     'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-directly-follows-component-full-sweep-guards-in-component-cluster-full-sweep',
 ]
 
-TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES = [
-    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete',
-    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete',
-    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete',
-    'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete-directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete',
-    'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete',
-]
-
 TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_PREDECESSOR_CASE_NAME = (
     'registry-keeps-transitive-full-sweep-end-to-end-full-sweep-component-cluster-occupy-end-block-in-end-to-end-full-sweep-directly-precedes-component-complete-anchor-cluster-occupy-end-block-in-component-cluster-full-sweep'
 )
 
-TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_CASE_SPECS = [
+TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_EXTENSION_SUFFIX = (
+    'directly-precedes-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete'
+)
+
+TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_FINAL_CASE_NAME = (
+    'registry-keeps-transitive-full-sweep-end-to-end-component-complete-anchor-cluster-tail-directly-precedes-component-cluster-full-sweep-complete'
+)
+
+TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES = [
+    '-'.join(
+        [
+            TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_PREDECESSOR_CASE_NAME,
+            *(
+                TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_EXTENSION_SUFFIX,
+            )
+            * repeat_count,
+        ]
+    )
+    for repeat_count in range(1, 5)
+] + [
+    TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_FINAL_CASE_NAME,
+]
+
+TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_CASE_MESSAGE_SPECS = [
     {
-        'name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[0],
-        'first_case_name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_PREDECESSOR_CASE_NAME,
-        'second_case_name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[0],
         'summary_audit_bit': 'de brede componentcluster-eindblokvervolgcheck blijft direct vóór zijn uitgebreidere complete-anchor-clusterstaart/cluster-completeness-vervolgguard in het complete-anchor-cluster staan',
         'missing_first_message': 'complete-anchor-cluster mist de brede componentcluster-eindblokvervolgcheck voor de vervolg-adjacentiecheck',
         'missing_second_message': 'complete-anchor-cluster mist de uitgebreidere complete-anchor-clusterstaart/cluster-completeness-vervolgguard voor de vervolg-adjacentiecheck',
@@ -26694,9 +26706,6 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL
         'success_message': 'de brede componentcluster-eindblokvervolgcheck en de uitgebreidere complete-anchor-clusterstaart/cluster-completeness-vervolgguard blijven direct aaneengesloten',
     },
     {
-        'name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[1],
-        'first_case_name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[0],
-        'second_case_name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[1],
         'summary_audit_bit': 'de eerste componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguard blijft direct vóór de uitgebreidere vervolgguard in het complete-anchor-cluster staan',
         'missing_first_message': 'complete-anchor-cluster mist de eerste componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguard voor de vervolg-adjacentiecheck',
         'missing_second_message': 'complete-anchor-cluster mist de uitgebreidere vervolgguard voor de vervolg-adjacentiecheck',
@@ -26704,9 +26713,6 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL
         'success_message': 'de eerste en uitgebreidere componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguards blijven direct aaneengesloten',
     },
     {
-        'name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[2],
-        'first_case_name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[1],
-        'second_case_name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[2],
         'summary_audit_bit': 'de uitgebreide componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguard blijft direct vóór de canonieke complete-anchor-clusterstaart/cluster-completeness-guard in het complete-anchor-cluster staan',
         'missing_first_message': 'complete-anchor-cluster mist de uitgebreide componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguard voor de vervolg-adjacentiecheck',
         'missing_second_message': 'complete-anchor-cluster mist de canonieke complete-anchor-clusterstaart/cluster-completeness-guard voor de vervolg-adjacentiecheck',
@@ -26714,15 +26720,29 @@ TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL
         'success_message': 'de uitgebreide componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguard en de canonieke complete-anchor-clusterstaart/cluster-completeness-guard blijven direct aaneengesloten',
     },
     {
-        'name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[3],
-        'first_case_name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[2],
-        'second_case_name': TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES[3],
         'summary_audit_bit': 'de uitgebreide componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguard blijft direct vóór de canonieke complete-anchor-clusterstaart/terminale-componentcluster-vervolgguard in het complete-anchor-cluster staan',
         'missing_first_message': 'complete-anchor-cluster mist de uitgebreide componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguard voor de vervolg-adjacentiecheck',
         'missing_second_message': 'complete-anchor-cluster mist de canonieke complete-anchor-clusterstaart/terminale-componentcluster-vervolgguard voor de vervolg-adjacentiecheck',
         'non_adjacent_message': 'de uitgebreide componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguard wordt niet direct gevolgd door de canonieke complete-anchor-clusterstaart/terminale-componentcluster-vervolgguard',
         'success_message': 'de uitgebreide componentcluster-eindblok/complete-anchor-clusterstaart-vervolgguard en de canonieke complete-anchor-clusterstaart/terminale-componentcluster-vervolgguard blijven direct aaneengesloten',
     },
+]
+
+TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_CASE_SPECS = [
+    {
+        'name': second_case_name,
+        'first_case_name': first_case_name,
+        'second_case_name': second_case_name,
+        **message_spec,
+    }
+    for first_case_name, second_case_name, message_spec in zip(
+        [
+            TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_PREDECESSOR_CASE_NAME,
+            *TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES,
+        ],
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_CASE_NAMES,
+        TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_TERMINAL_CONTINUATION_ADJACENCY_CASE_MESSAGE_SPECS,
+    )
 ]
 
 TRANSITIVE_FULL_SWEEP_END_TO_END_COMPONENT_COMPLETE_ANCHOR_CLUSTER_TAIL_CASE_NAMES = [
